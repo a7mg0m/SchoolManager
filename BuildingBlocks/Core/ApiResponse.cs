@@ -12,6 +12,12 @@ namespace BuildingBlocks
             message = "Success";
 
         }
+        public ApiResponse(int status, string message)
+        {
+            this.status = status;
+            this.message = message;
+           
+        }
         public int status { get; set; }
         public string? InsertedId { get; set; }
         public string? message { get; set; }
