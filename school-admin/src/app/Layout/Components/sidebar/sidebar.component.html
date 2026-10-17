@@ -1,0 +1,56 @@
+<div [class]="'app-sidebar sidebar-shadow ' + (config$ | async)?.sidebarTheme" 
+     (mouseenter)="onSidebarMouseEnter()"
+     (mouseleave)="onSidebarMouseLeave()">
+  <div class="app-header__logo">
+    <div class="logo-src">
+      <span class="logo-text">
+        <span class="logo-full">ArchitectUI</span>
+        <span class="logo-collapsed">A</span>
+      </span>
+    </div>
+  </div>
+  <div class="app-sidebar-content">
+    <div class="app-sidebar-scroll">
+      <div class="sidebar-scrollbar">
+        <div class="v-sidebar-menu vsm-default">
+          <div class="vsm-list">
+            <div class="vsm-header">Navigation</div>
+            
+            <!-- Home -->
+            <div class="vsm-item" [class.vsm-active]="extraParameter === 'dashboardsMenu'">
+              <a routerLink="/home" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                <i class="vsm-icon pe-7s-rocket"></i>
+                <span class="vsm-title">Home</span>
+              </a>
+            </div>
+
+            <!-- Management -->
+            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('managementMenu')">
+              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('managementMenu')">
+                <i class="vsm-icon pe-7s-note2"></i>
+                <span class="vsm-title">Management</span>
+                <i class="vsm-arrow"></i>
+              </a>
+              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('managementMenu')">
+                <div class="vsm-list">
+                  <div class="vsm-header">Management</div>
+                  <div class="vsm-item">
+                    <a routerLink="/management/stages" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">Stages</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/management/grades" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">Grades</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
