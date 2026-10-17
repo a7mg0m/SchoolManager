@@ -1,0 +1,10 @@
+@Gateway_HostAddress = http://localhost:5247
+
+### Gateway health
+GET {{Gateway_HostAddress}}/health
+
+### Management API via gateway
+GET {{Gateway_HostAddress}}/api/academic-year/get-all
+Accept: application/json
+
+###

@@ -1,0 +1,48 @@
+{
+  "ReverseProxy": {
+    "Routes": {
+      "identity-route": {
+        "ClusterId": "identity-cluster",
+        "Match": { "Path": "/api/{resource:regex(^(role|user|user-profile)$)}/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:59463" } ]
+      },
+      "management-route": {
+        "ClusterId": "management-cluster",
+        "Match": { "Path": "/api/{resource:regex(^(semester|section|timetable-slot|school-info|timetable|parent|teacher|grade|academic-year|subject|stage|student)$)}/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:56298" } ]
+      },
+      "examshomework-route": {
+        "ClusterId": "examshomework-cluster",
+        "Match": { "Path": "/api/{resource:regex(^(exam|homework|homework-question|homework-publish)$)}/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:62055" } ]
+      },
+      "notification-route": {
+        "ClusterId": "notification-cluster",
+        "Match": { "Path": "/api/{resource:regex(^(notification|notification-target|school-event|event-target)$)}/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5233" } ]
+      }
+    },
+    "Clusters": {
+      "identity-cluster": {
+        "Destinations": {
+          "identity-api": { "Address": "http://localhost:59463/" }
+        }
+      },
+      "management-cluster": {
+        "Destinations": {
+          "management-api": { "Address": "http://localhost:56298/" }
+        }
+      },
+      "examshomework-cluster": {
+        "Destinations": {
+          "examshomework-api": { "Address": "http://localhost:62055/" }
+        }
+      },
+      "notification-cluster": {
+        "Destinations": {
+          "notification-api": { "Address": "http://localhost:5233/" }
+        }
+      }
+    }
+  }
+}

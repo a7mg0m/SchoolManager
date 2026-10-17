@@ -1,0 +1,40 @@
+<Solution>
+  <Folder Name="/BuildingBlocks/">
+    <Project Path="BuildingBlocks/BuildingBlocks.csproj" />
+  </Folder>
+  <Folder Name="/MobileApps/">
+    <Project Path="MobileApps/SchoolManager.Parent/SchoolManager.Parent.csproj" Id="82a71472-7330-4938-af1c-f0ec7a66ef86">
+      <Deploy Solution="Debug|*" />
+    </Project>
+  </Folder>
+  <Folder Name="/Services/" />
+  <Folder Name="/Services/ExamsHomework/">
+    <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.API/SchoolManager.ExamsHomework.API.csproj" Id="13c4075e-beed-4ff1-844d-350060fcf615" />
+    <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.Application/SchoolManager.ExamsHomework.Application.csproj" Id="8430d7df-2b90-4028-bd57-925473e1fc59" />
+    <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.Domain/SchoolManager.ExamsHomework.Domain.csproj" Id="58bb6056-750a-491b-ab29-045e6454647a" />
+    <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.Infrastructure/SchoolManager.ExamsHomework.Infrastructure.csproj" Id="3e890438-628e-4d05-8c6e-8b1e378f3694" />
+  </Folder>
+  <Folder Name="/Services/Gateway/">
+    <Project Path="Services/Gateway/Gateway.csproj" Id="b0165191-5cde-44a6-adb8-0ea2de02a158" />
+  </Folder>
+  <Folder Name="/Services/Identity/">
+    <Project Path="Services/Identity/SchoolManager.Identity.API/SchoolManager.Identity.API.csproj" />
+    <Project Path="Services/Identity/SchoolManager.Identity.Application/SchoolManager.Identity.Application.csproj">
+      <BuildDependency Project="Services/Identity/SchoolManager.Identity.Domain/SchoolManager.Identity.Domain.csproj" />
+    </Project>
+    <Project Path="Services/Identity/SchoolManager.Identity.Domain/SchoolManager.Identity.Domain.csproj" />
+    <Project Path="Services/Identity/SchoolManager.Identity.Infrastructure/SchoolManager.Identity.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Services/Notification/">
+    <Project Path="Services/Notification/SchoolManager.Notification.API/SchoolManager.Notification.API.csproj" Id="667bd19a-9df8-475e-af17-57dcf020628e" />
+    <Project Path="Services/Notification/SchoolManager.Notification.Application/SchoolManager.Notification.Application.csproj" Id="4c786a83-54e7-48d9-abf7-4702cbe7a3d4" />
+    <Project Path="Services/Notification/SchoolManager.Notification.Domain/SchoolManager.Notification.Domain.csproj" Id="54027317-5888-45d4-b4ef-e6ce4960b89e" />
+    <Project Path="Services/Notification/SchoolManager.Notification.Infrastructure/SchoolManager.Notification.Infrastructure.csproj" Id="52a2382c-4b77-482a-a8a4-7856d9d9745a" />
+  </Folder>
+  <Folder Name="/Services/SchoolManagement/">
+    <Project Path="Services/SchoolManagement/SchoolManager.Management.API/SchoolManager.Management.API.csproj" Id="8d3af7cc-487a-4a94-baf0-fa987f84b84a" />
+    <Project Path="Services/SchoolManagement/SchoolManager.Management.Application/SchoolManager.Management.Application.csproj" Id="e5c1e632-9b3e-4532-bfe7-fac2823e53e2" />
+    <Project Path="Services/SchoolManagement/SchoolManager.Management.Domain/SchoolManager.Management.Domain.csproj" Id="8cfc4ca9-5a8d-462b-8211-83fe4ff8eea1" />
+    <Project Path="Services/SchoolManagement/SchoolManager.Management.Infrastructure/SchoolManager.Management.Infrastructure.csproj" Id="807e4b12-ad33-4199-8d06-1e6bcf912f14" />
+  </Folder>
+</Solution>

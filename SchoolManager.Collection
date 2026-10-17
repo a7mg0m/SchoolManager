@@ -1,0 +1,170 @@
+{
+  "info": {
+    "name": "SchoolManager",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "gatewayUrl", "value": "http://localhost:53607" },
+    { "key": "id", "value": "00000000-0000-0000-0000-000000000000" }
+  ],
+  "item": [
+    {
+      "name": "Identity",
+      "item": [
+        {
+          "name": "User",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/user/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/user/get/{{id}}" } },
+            { "name": "Search", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/user/search?searchTerm=admin" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/user/create", "body": { "mode": "raw", "raw": "{\n  \"loginName\": \"user1\",\n  \"email\": \"user1@school.com\",\n  \"hashPassword\": \"P@ssw0rd\",\n  \"roleId\": \"{{id}}\"\n}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/user/update", "body": { "mode": "raw", "raw": "{\n  \"id\": \"{{id}}\",\n  \"loginName\": \"user1\",\n  \"roleId\": \"{{id}}\"\n}" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/user/delete/{{id}}" } },
+            { "name": "Login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/user/login", "body": { "mode": "raw", "raw": "{\n  \"loginName\": \"user1\",\n  \"password\": \"P@ssw0rd\"\n}" } } }
+          ]
+        },
+        {
+          "name": "UserProfile",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/user-profile/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/user-profile/get/{{id}}" } },
+            { "name": "Search", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/user-profile/search?searchTerm=john" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/user-profile/create", "body": { "mode": "raw", "raw": "{\n  \"userId\": \"{{id}}\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@school.com\",\n  \"phoneNumber\": \"+000000000\",\n  \"address\": \"Street 1\",\n  \"profileImage\": null\n}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/user-profile/update", "body": { "mode": "raw", "raw": "{\n  \"id\": \"{{id}}\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john@school.com\",\n  \"phoneNumber\": \"+000000000\",\n  \"address\": \"Street 1\",\n  \"profileImage\": null\n}" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/user-profile/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Role",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/role/get-all" } }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Management",
+      "item": [
+        {
+          "name": "AcademicYear",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/academic-year/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/academic-year/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/academic-year/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/academic-year/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Grade",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/grade/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/grade/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/grade/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/grade/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/grade/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Parent",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/parent/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/parent/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/parent/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/parent/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/parent/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "SchoolInfo",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/school-info/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/school-info/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/school-info/create", "body": { "mode": "raw", "raw": "{\n  \"nameAr\": \"Ù…Ø¯Ø±Ø³Ø©\",\n  \"nameEn\": \"My School\",\n  \"address\": \"Street 1\",\n  \"phone\": \"+000000000\",\n  \"email\": \"info@school.com\",\n  \"logo\": null\n}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/school-info/update", "body": { "mode": "raw", "raw": "{\n  \"id\": \"{{id}}\",\n  \"nameAr\": \"Ù…Ø¯Ø±Ø³Ø©\",\n  \"nameEn\": \"My School\",\n  \"address\": \"Street 1\",\n  \"phone\": \"+000000000\",\n  \"email\": \"info@school.com\",\n  \"logo\": null\n}" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/school-info/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Section",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/section/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/section/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/section/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/section/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/section/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Semester",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/semester/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/semester/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/semester/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/semester/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/semester/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Stage",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/stage/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/stage/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/stage/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/stage/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/stage/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Student",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/student/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/student/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/student/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/student/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/student/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Subject",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/subject/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/subject/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/subject/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/subject/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/subject/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Teacher",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/teacher/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/teacher/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/teacher/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/teacher/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/teacher/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "Timetable",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/timetable/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/timetable/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/timetable/create", "body": { "mode": "raw", "raw": "{}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/timetable/update", "body": { "mode": "raw", "raw": "{ \"id\": \"{{id}}\" }" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/timetable/delete/{{id}}" } }
+          ]
+        },
+        {
+          "name": "TimetableSlot",
+          "item": [
+            { "name": "Get All", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/timetable-slot/get-all" } },
+            { "name": "Get By Id", "request": { "method": "GET", "url": "{{gatewayUrl}}/api/timetable-slot/get/{{id}}" } },
+            { "name": "Create", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/timetable-slot/create", "body": { "mode": "raw", "raw": "{\n  \"day\": 1,\n  \"nameAr\": \"Ø§Ù„Ø­ØµØ© Ø§Ù„Ø£ÙˆÙ„Ù‰\",\n  \"nameEn\": \"First Period\",\n  \"startTime\": \"08:00:00\",\n  \"endTime\": \"08:45:00\",\n  \"subjectId\": \"{{id}}\",\n  \"teacherId\": \"{{id}}\",\n  \"gradeId\": \"{{id}}\",\n  \"sectionId\": \"{{id}}\"\n}" } } },
+            { "name": "Update", "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "url": "{{gatewayUrl}}/api/timetable-slot/update", "body": { "mode": "raw", "raw": "{\n  \"id\": \"{{id}}\",\n  \"day\": 1,\n  \"nameAr\": \"Ø§Ù„Ø­ØµØ© Ø§Ù„Ø£ÙˆÙ„Ù‰\",\n  \"nameEn\": \"First Period\",\n  \"startTime\": \"08:00:00\",\n  \"endTime\": \"08:45:00\",\n  \"subjectId\": \"{{id}}\",\n  \"teacherId\": \"{{id}}\",\n  \"gradeId\": \"{{id}}\",\n  \"sectionId\": \"{{id}}\"\n}" } } },
+            { "name": "Delete", "request": { "method": "DELETE", "url": "{{gatewayUrl}}/api/timetable-slot/delete/{{id}}" } }
+          ]
+        }
+      ]
+    }
+  ]
+}
