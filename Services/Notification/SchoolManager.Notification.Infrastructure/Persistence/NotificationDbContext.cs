@@ -14,6 +14,11 @@ namespace SchoolManager.Notification.Infrastructure
         public DbSet<SchoolEvent> SchoolEvents => Set<SchoolEvent>();
         public DbSet<EventTarget> EventTargets => Set<EventTarget>();
 
+        public DbSet<ChatRoom> ChatRooms => Set<ChatRoom>();
+        public DbSet<ChatParticipant> ChatParticipants => Set<ChatParticipant>();
+        public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+        public DbSet<MessageStatus> MessageStatuses => Set<MessageStatus>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(NotificationDbContext).Assembly);

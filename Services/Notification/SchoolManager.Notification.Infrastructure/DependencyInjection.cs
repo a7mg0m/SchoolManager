@@ -2,6 +2,7 @@ using BuildingBlocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SchoolManager.Notification.Application;
 using SchoolManager.Notification.Domain;
 
 namespace SchoolManager.Notification.Infrastructure
@@ -17,7 +18,13 @@ namespace SchoolManager.Notification.Infrastructure
             services.AddScoped<INotificationTargetRepository, NotificationTargetRepository>();
             services.AddScoped<ISchoolEventRepository, SchoolEventRepository>();
             services.AddScoped<IEventTargetRepository, EventTargetRepository>();
+            services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
+            services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+            services.AddScoped<IMessageStatusRepository, MessageStatusRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddHttpClient<IUserProfileService, IdentityUserProfileService>(client =>
+                client.BaseAddress = new Uri(configuration["IdentityService:BaseUrl"] ?? "http://localhost:5000/"));
 
             return services;
         }

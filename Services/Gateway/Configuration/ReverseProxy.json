@@ -18,7 +18,7 @@
       },
       "notification-route": {
         "ClusterId": "notification-cluster",
-        "Match": { "Path": "/api/{resource:regex(^(notification|notification-target|school-event|event-target)$)}/{**catch-all}" },
+        (notification|notification-target|school-event|event-target|chat)
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5233" } ]
       }
     },
