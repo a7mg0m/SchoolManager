@@ -72,6 +72,7 @@ namespace SchoolManager.Notification.Infrastructure
                 a.Property(p => p.FileName).IsRequired().HasMaxLength(255);
                 a.Property(p => p.Url).IsRequired().HasMaxLength(1000);
                 a.Property(p => p.ContentType).HasMaxLength(100);
+                a.Property(p => p.SizeInBytes);
             });
             builder.Navigation(x => x.Attachments).UsePropertyAccessMode(PropertyAccessMode.Field);
 

@@ -7,6 +7,13 @@ namespace SchoolManager.Notification.Domain
         public string ContentType { get; }
         public long SizeInBytes { get; }
 
+        private Attachment()
+        {
+            FileName = string.Empty;
+            Url = string.Empty;
+            ContentType = string.Empty;
+        }
+
         public Attachment(string fileName, string url, string contentType, long sizeInBytes)
         {
             if (string.IsNullOrWhiteSpace(fileName)) throw new ChatDomainException("Attachment file name is required.");

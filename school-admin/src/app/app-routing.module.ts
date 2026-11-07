@@ -14,13 +14,24 @@ import {
   GradesComponent
 } from './components.barrel';
 
+// Import user pages
+import {UserPagesModule} from './user-pages.module';
+import {LoginBoxedComponent} from './UserPages/login-boxed/login-boxed.component';
+
 const routes: Routes = [
+  {
+    path: 'login',
+    component: PagesLayoutComponent,
+    children: [
+      {path: '', component: LoginBoxedComponent}
+    ]
+  },
   {
     path: '',
     component: BaseLayoutComponent,
     children: [
       // Dashboards
-      {path: '', redirectTo: '/home', pathMatch: 'full'},
+      {path: '', redirectTo: '/login', pathMatch: 'full'},
       {path: 'home', component: HomeComponent, data: {extraParameter: 'dashboardsMenu'}},
 
       // Management
@@ -33,14 +44,14 @@ const routes: Routes = [
     path: 'docs',
     loadChildren: () => import('./docs/docs.module').then(m => m.DocsModule)
   },
-  {path: '**', redirectTo: ''}
+  {path: '**', redirectTo: '/login'}
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
     scrollPositionRestoration: 'enabled',
     anchorScrolling: 'enabled'
-  })],
+  }), UserPagesModule],
   exports: [RouterModule]
 })
 export class AppRoutingModule {

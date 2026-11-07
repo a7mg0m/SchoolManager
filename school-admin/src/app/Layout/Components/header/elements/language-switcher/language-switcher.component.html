@@ -1,0 +1,17 @@
+<div class="language-switcher">
+  <button 
+    class="lang-btn" 
+    [class.active]="isEnglish()"
+    (click)="setLanguage('en')"
+    title="English">
+    EN
+  </button>
+  <span class="divider">|</span>
+  <button 
+    class="lang-btn" 
+    [class.active]="isArabic()"
+    (click)="setLanguage('ar')"
+    title="العربية">
+    AR
+  </button>
+</div>

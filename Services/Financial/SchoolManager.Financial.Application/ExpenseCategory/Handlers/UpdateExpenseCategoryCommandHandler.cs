@@ -1,0 +1,35 @@
+using BuildingBlocks;
+using BuildingBlocks.CQRS;
+using SchoolManager.Financial.Domain;
+
+namespace SchoolManager.Financial.Application
+{
+    public class UpdateExpenseCategoryCommandHandler : ICommandHandler<UpdateExpenseCategoryCommand, bool>
+    {
+        private readonly IExpenseCategoryRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public UpdateExpenseCategoryCommandHandler(IExpenseCategoryRepository repository, IUnitOfWork unitOfWork)
+        {
+            _repository = repository;
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<bool> Handle(UpdateExpenseCategoryCommand command, CancellationToken cancellationToken)
+        {
+            var entity = await _repository.GetByIdAsync(command.Id);
+            if (entity is null) return false;
+
+            var audit = entity.AuditInfo;
+            entity.Update(
+                command.Name,
+                command.Description,
+                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, command.UpdatedBy));
+
+            await _repository.UpdateAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+    }
+}

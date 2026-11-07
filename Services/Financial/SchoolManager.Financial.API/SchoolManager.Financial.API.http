@@ -1,0 +1,6 @@
+@SchoolManager.Financial.API_HostAddress = http://localhost:5128
+
+GET {{SchoolManager.Financial.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

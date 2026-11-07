@@ -11,13 +11,18 @@ import { environment } from '../environments/environment';
 import {AppRoutingModule} from './app-routing.module';
 
 import {CommonModule} from '@angular/common';
-import {HttpClientModule} from '@angular/common/http';
+import {HttpClientModule, HttpClient} from '@angular/common/http';
 import {AppComponent} from './app.component';
 
 // BOOTSTRAP COMPONENTS
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+
+// TRANSLATION MODULES
+import { provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import { LanguageService } from './ThemeOptions/store/language.service';
 
 // Feature Modules
 import { DashboardsModule } from './dashboards.module';
@@ -42,6 +47,9 @@ import {LogoComponent} from './Layout/Components/sidebar/elements/logo/logo.comp
 // FOOTER
 import {FooterComponent} from './Layout/Components/footer/footer.component';
 
+// LANGUAGE SWITCHER
+import {LanguageSwitcherComponent} from './Layout/Components/header/elements/language-switcher/language-switcher.component';
+
 // All component imports are handled by feature modules
 
 // ThemeOptions
@@ -60,6 +68,7 @@ import {ThemeOptions} from './theme-options';
     UserBoxComponent,
     NotificationsBoxComponent,
     MessagesBoxComponent,
+    LanguageSwitcherComponent,
 
     // SIDEBAR
     SidebarComponent,
@@ -93,8 +102,16 @@ import {ThemeOptions} from './theme-options';
   ],
   providers: [
     ConfigService,
+    LanguageService,
     ThemeOptions,
-    provideCharts(withDefaultRegisterables())
+    provideCharts(withDefaultRegisterables()),
+    provideTranslateService(),
+    provideTranslateHttpLoader({
+      prefix: './assets/i18n/',
+      suffix: '.json',
+      enforceLoading: true,
+      useHttpBackend: true
+    })
   ],
   bootstrap: [AppComponent]
 })

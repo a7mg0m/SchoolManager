@@ -14,6 +14,12 @@
     <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.Domain/SchoolManager.ExamsHomework.Domain.csproj" Id="58bb6056-750a-491b-ab29-045e6454647a" />
     <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.Infrastructure/SchoolManager.ExamsHomework.Infrastructure.csproj" Id="3e890438-628e-4d05-8c6e-8b1e378f3694" />
   </Folder>
+  <Folder Name="/Services/Financial/">
+    <Project Path="Services/Financial/SchoolManager.Financial.API/SchoolManager.Financial.API.csproj" Id="09b618ec-5c90-48fa-8504-c1559c6d4a01" />
+    <Project Path="Services/Financial/SchoolManager.Financial.Application/SchoolManager.Financial.Application.csproj" Id="9dd95dd9-0f50-42ac-a544-238209fc76ab" />
+    <Project Path="Services/Financial/SchoolManager.Financial.Domain/SchoolManager.Financial.Domain.csproj" Id="d713d6a8-6fe2-41f3-a030-0542c1714687" />
+    <Project Path="Services/Financial/SchoolManager.Financial.Infrastructure/SchoolManager.Financial.Infrastructure.csproj" Id="91b9a790-47a3-4077-9553-f5bfee70cd2d" />
+  </Folder>
   <Folder Name="/Services/Gateway/">
     <Project Path="Services/Gateway/Gateway.csproj" Id="b0165191-5cde-44a6-adb8-0ea2de02a158" />
   </Folder>

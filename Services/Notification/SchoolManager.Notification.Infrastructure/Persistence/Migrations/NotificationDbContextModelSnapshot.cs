@@ -22,6 +22,94 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("SchoolManager.Notification.Domain.ChatMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChatRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("SentOn")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChatRoomId", "SentOn");
+
+                    b.ToTable("ChatMessages", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.ChatParticipant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChatRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("JoinedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ChatRoomId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("ChatParticipants", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.ChatRoom", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("LastMessageOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PrivateKey")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<Guid?>("SectionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PrivateKey")
+                        .IsUnique()
+                        .HasFilter("[PrivateKey] IS NOT NULL");
+
+                    b.HasIndex("SectionId")
+                        .IsUnique()
+                        .HasFilter("[SectionId] IS NOT NULL");
+
+                    b.ToTable("ChatRooms", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Notification.Domain.EventTarget", b =>
                 {
                     b.Property<Guid>("Id")
@@ -48,6 +136,39 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                     b.HasIndex("EventId");
 
                     b.ToTable("EventTargets", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.MessageStatus", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ChatRoomId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeliveredOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("SeenOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MessageId", "UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ChatRoomId", "Status");
+
+                    b.ToTable("MessageStatuses", (string)null);
                 });
 
             modelBuilder.Entity("SchoolManager.Notification.Domain.Notification", b =>
@@ -152,6 +273,164 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                     b.ToTable("SchoolEvents", (string)null);
                 });
 
+            modelBuilder.Entity("SchoolManager.Notification.Domain.ChatMessage", b =>
+                {
+                    b.HasOne("SchoolManager.Notification.Domain.ChatRoom", null)
+                        .WithMany()
+                        .HasForeignKey("ChatRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsMany("SchoolManager.Notification.Domain.Attachment", "Attachments", b1 =>
+                        {
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            SqlServerPropertyBuilderExtensions.UseIdentityColumn(b1.Property<int>("Id"));
+
+                            b1.Property<Guid>("ChatMessageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("ContentType")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)");
+
+                            b1.Property<string>("FileName")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("nvarchar(255)");
+
+                            b1.Property<long>("SizeInBytes")
+                                .HasColumnType("bigint");
+
+                            b1.Property<string>("Url")
+                                .IsRequired()
+                                .HasMaxLength(1000)
+                                .HasColumnType("nvarchar(1000)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("ChatMessageId");
+
+                            b1.ToTable("ChatMessageAttachments", (string)null);
+
+                            b1.WithOwner()
+                                .HasForeignKey("ChatMessageId");
+                        });
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("ChatMessageId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("ChatMessageId");
+
+                            b1.ToTable("ChatMessages");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ChatMessageId");
+                        });
+
+                    b.Navigation("Attachments");
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.ChatParticipant", b =>
+                {
+                    b.HasOne("SchoolManager.Notification.Domain.ChatRoom", null)
+                        .WithMany("Participants")
+                        .HasForeignKey("ChatRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("ChatParticipantId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("ChatParticipantId");
+
+                            b1.ToTable("ChatParticipants");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ChatParticipantId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.ChatRoom", b =>
+                {
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("ChatRoomId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("ChatRoomId");
+
+                            b1.ToTable("ChatRooms");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ChatRoomId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SchoolManager.Notification.Domain.EventTarget", b =>
                 {
                     b.HasOne("SchoolManager.Notification.Domain.SchoolEvent", null)
@@ -187,6 +466,47 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("EventTargetId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.MessageStatus", b =>
+                {
+                    b.HasOne("SchoolManager.Notification.Domain.ChatMessage", null)
+                        .WithMany("Statuses")
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("MessageStatusId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("MessageStatusId");
+
+                            b1.ToTable("MessageStatuses");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MessageStatusId");
                         });
 
                     b.Navigation("AuditInfo")
@@ -302,6 +622,16 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
 
                     b.Navigation("AuditInfo")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.ChatMessage", b =>
+                {
+                    b.Navigation("Statuses");
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.ChatRoom", b =>
+                {
+                    b.Navigation("Participants");
                 });
 
             modelBuilder.Entity("SchoolManager.Notification.Domain.Notification", b =>
