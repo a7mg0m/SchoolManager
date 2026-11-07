@@ -47,9 +47,6 @@ import {LogoComponent} from './Layout/Components/sidebar/elements/logo/logo.comp
 // FOOTER
 import {FooterComponent} from './Layout/Components/footer/footer.component';
 
-// LANGUAGE SWITCHER
-import {LanguageSwitcherComponent} from './Layout/Components/header/elements/language-switcher/language-switcher.component';
-
 // All component imports are handled by feature modules
 
 // ThemeOptions
@@ -68,7 +65,6 @@ import {ThemeOptions} from './theme-options';
     UserBoxComponent,
     NotificationsBoxComponent,
     MessagesBoxComponent,
-    LanguageSwitcherComponent,
 
     // SIDEBAR
     SidebarComponent,

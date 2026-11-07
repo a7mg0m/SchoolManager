@@ -16,7 +16,8 @@
     "error": "خطأ",
     "success": "نجح",
     "warning": "تحذير",
-    "info": "معلومة"
+    "info": "معلومة",
+    "copyright": "حقوق النشر © ArchitectUI 2026"
   },
   "header": {
     "dashboard": "لوحة التحكم",
@@ -91,7 +92,17 @@
     "dontHaveAccount": "ليس لديك حساب؟",
     "resetPassword": "إعادة تعيين كلمة المرور",
     "emailNotFound": "البريد الإلكتروني غير موجود",
-    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+    "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "welcomeBack": "أهلاً بعودتك،",
+    "signInMessage": "يرجى تسجيل الدخول إلى حسابك أدناه.",
+    "emailHelper": "لن نشارك بريدك الإلكتروني مع أي شخص.",
+    "recoverPassword": "استرجاع كلمة المرور",
+    "loginDashboard": "دخول لوحة التحكم",
+    "noAccountSignUp": "ليس لديك حساب؟",
+    "signUpNow": "إنشاء حساب الآن",
+    "enterEmail": "أدخل البريد الإلكتروني...",
+    "enterPassword": "أدخل كلمة المرور...",
+    "keepLoggedIn": "ابقني مسجل الدخول"
   },
   "messages": {
     "saved": "تم الحفظ بنجاح",

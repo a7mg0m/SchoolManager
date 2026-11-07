@@ -16,7 +16,8 @@
     "error": "Error",
     "success": "Success",
     "warning": "Warning",
-    "info": "Info"
+    "info": "Info",
+    "copyright": "Copyright © ArchitectUI 2026"
   },
   "header": {
     "dashboard": "Dashboard",
@@ -91,7 +92,17 @@
     "dontHaveAccount": "Don't have an account?",
     "resetPassword": "Reset Password",
     "emailNotFound": "Email not found",
-    "invalidCredentials": "Invalid email or password"
+    "invalidCredentials": "Invalid email or password",
+    "welcomeBack": "Welcome back,",
+    "signInMessage": "Please sign in to your account below.",
+    "emailHelper": "We'll never share your email with anyone else.",
+    "recoverPassword": "Recover Password",
+    "loginDashboard": "Login to Dashboard",
+    "noAccountSignUp": "No account?",
+    "signUpNow": "Sign up now",
+    "enterEmail": "Enter email...",
+    "enterPassword": "Enter password...",
+    "keepLoggedIn": "Keep me logged in"
   },
   "messages": {
     "saved": "Saved successfully",
