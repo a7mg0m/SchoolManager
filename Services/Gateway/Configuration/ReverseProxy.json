@@ -18,8 +18,13 @@
       },
       "notification-route": {
         "ClusterId": "notification-cluster",
-        (notification|notification-target|school-event|event-target|chat)
+        "Match": { "Path": "/api/{resource:regex(^(notification|notification-target|school-event|event-target|chat)$)}/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5233" } ]
+      },
+      "financial-route": {
+        "ClusterId": "financial-cluster",
+        "Match": { "Path": "/api/{resource:regex(^(fee|student-fee|payment|payment-method|expense|expense-category|revenue|revenue-category)$)}/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5128" } ]
       }
     },
     "Clusters": {
@@ -41,6 +46,11 @@
       "notification-cluster": {
         "Destinations": {
           "notification-api": { "Address": "http://localhost:5233/" }
+        }
+      },
+      "financial-cluster": {
+        "Destinations": {
+          "financial-api": { "Address": "http://localhost:5128/" }
         }
       }
     }
