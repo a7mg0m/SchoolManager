@@ -1,0 +1,60 @@
+// Stages Component Styles
+
+.table {
+  tbody tr {
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+  }
+}
+
+.form-switch {
+  .form-check-input {
+    cursor: pointer;
+    width: 2.5rem;
+    height: 1.5rem;
+
+    &:checked {
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+
+    &:focus {
+      border-color: #28a745;
+      box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+  }
+
+  .form-check-label {
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
+}
+
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid #e3e6f0;
+  margin-top: 1rem;
+}
+
+.badge {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.6rem;
+}
+
+.spinner-border {
+  color: #4e73df;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  .form-check-label {
+    display: none;
+  }
+}

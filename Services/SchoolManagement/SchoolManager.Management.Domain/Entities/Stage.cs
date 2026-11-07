@@ -31,6 +31,12 @@ namespace SchoolManager.Management.Domain
             AuditInfo = auditInfo;
         }
 
+        public void Activate(AuditInfo auditInfo)
+        {
+            IsActive = true;
+            AuditInfo = auditInfo;
+        }
+
         public void Deactivate(AuditInfo auditInfo)
         {
             IsActive = false;

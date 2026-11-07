@@ -24,6 +24,9 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { LanguageService } from './ThemeOptions/store/language.service';
 
+// Core Module
+import { CoreModule } from './core/core.module';
+
 // Feature Modules
 import { DashboardsModule } from './dashboards.module';
 import { SharedModule } from './shared.module';
@@ -90,6 +93,9 @@ import {ThemeOptions} from './theme-options';
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
+
+    // Core Module (API, Auth, Interceptors)
+    CoreModule,
 
     // Feature Modules
     SharedModule,

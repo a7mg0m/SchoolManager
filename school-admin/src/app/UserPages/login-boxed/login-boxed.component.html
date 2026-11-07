@@ -18,22 +18,42 @@
             <p class="text-muted mb-0">{{ 'auth.signInMessage' | translate }}</p>
           </div>
 
+          <!-- Error Alert -->
+          @if (loginError) {
+            <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+              <strong>{{ 'common.error' | translate }}</strong>
+              {{ loginError }}
+              <button type="button" class="btn-close" (click)="loginError = null"></button>
+            </div>
+          }
+
           <!-- Login Form -->
-          <form id="loginForm" (ngSubmit)="onSubmit()" #loginFormRef="ngForm">
-            <!-- Email Input -->
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <!-- Login Name Input -->
             <div class="mb-3">
-              <label for="emailInput" class="form-label visually-hidden">{{ 'auth.email' | translate }}</label>
+              <label for="loginNameInput" class="form-label visually-hidden">{{ 'auth.loginName' | translate }}</label>
               <input 
-                id="emailInput" 
-                type="email" 
+                id="loginNameInput" 
+                type="text" 
                 class="form-control form-control-lg" 
-                [placeholder]="'auth.enterEmail' | translate" 
-                name="email"
-                ngModel
-                required 
-                autocomplete="email">
+                [class.is-invalid]="hasError('loginName', 'required') || hasError('loginName', 'minlength')"
+                [placeholder]="'auth.enterLoginName' | translate" 
+                formControlName="loginName"
+                autocomplete="username"
+                [disabled]="loading$ | async">
+              <!-- Validation Errors -->
+              @if (hasError('loginName', 'required')) {
+                <div class="invalid-feedback d-block">
+                  {{ 'validation.fieldRequired' | translate }}
+                </div>
+              }
+              @if (hasError('loginName', 'minlength')) {
+                <div class="invalid-feedback d-block">
+                  {{ 'validation.minLength' | translate: { min: 3 } }}
+                </div>
+              }
               <div class="form-text text-muted small">
-                {{ 'auth.emailHelper' | translate }}
+                {{ 'auth.loginNameHelper' | translate }}
               </div>
             </div>
 
@@ -44,11 +64,22 @@
                 id="passwordInput" 
                 type="password" 
                 class="form-control form-control-lg" 
+                [class.is-invalid]="hasError('password', 'required') || hasError('password', 'minlength')"
                 [placeholder]="'auth.enterPassword' | translate" 
-                name="password"
-                ngModel
-                required 
-                autocomplete="current-password">
+                formControlName="password"
+                autocomplete="current-password"
+                [disabled]="loading$ | async">
+              <!-- Validation Errors -->
+              @if (hasError('password', 'required')) {
+                <div class="invalid-feedback d-block">
+                  {{ 'validation.fieldRequired' | translate }}
+                </div>
+              }
+              @if (hasError('password', 'minlength')) {
+                <div class="invalid-feedback d-block">
+                  {{ 'validation.minLength' | translate: { min: 6 } }}
+                </div>
+              }
             </div>
 
             <!-- Remember Me Checkbox -->
@@ -57,8 +88,8 @@
                 class="form-check-input" 
                 type="checkbox" 
                 id="rememberCheck" 
-                name="rememberMe"
-                ngModel>
+                formControlName="rememberMe"
+                [disabled]="loading$ | async">
               <label class="form-check-label" for="rememberCheck">
                 {{ 'auth.keepLoggedIn' | translate }}
               </label>
@@ -71,7 +102,9 @@
             <div class="text-center mb-0">
               <p class="mb-0">
                 {{ 'auth.noAccountSignUp' | translate }} 
-                <a [routerLink]="'/pages/register-boxed'" class="text-primary text-decoration-none fw-medium">{{ 'auth.signUpNow' | translate }}</a>
+                <a [routerLink]="'/pages/register-boxed'" class="text-primary text-decoration-none fw-medium" [class.disabled]="loading$ | async">
+                  {{ 'auth.signUpNow' | translate }}
+                </a>
               </p>
             </div>
           </form>
@@ -80,11 +113,20 @@
         <!-- Footer with buttons -->
         <div class="card-footer bg-transparent border-0 p-4 pt-0">
           <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
-            <a [routerLink]="'/pages/forgot-password-boxed'" class="btn btn-link btn-lg text-decoration-none">
+            <a [routerLink]="'/pages/forgot-password-boxed'" class="btn btn-link btn-lg text-decoration-none" [class.disabled]="loading$ | async">
               {{ 'auth.recoverPassword' | translate }}
             </a>
-            <button type="submit" class="btn btn-primary btn-lg px-4" form="loginForm">
-              {{ 'auth.loginDashboard' | translate }}
+            <button 
+              type="submit" 
+              class="btn btn-primary btn-lg px-4"
+              [disabled]="!loginForm.valid || (loading$ | async)"
+              (click)="onSubmit()">
+              @if (loading$ | async) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                {{ 'common.loading' | translate }}
+              } @else {
+                {{ 'auth.loginDashboard' | translate }}
+              }
             </button>
           </div>
         </div>

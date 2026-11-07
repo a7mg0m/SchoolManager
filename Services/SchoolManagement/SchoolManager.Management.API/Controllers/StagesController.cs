@@ -26,6 +26,13 @@ namespace SchoolManager.Management.API.Controllers
 			return Ok(new ApiResponse { data = result });
 		}
 
+		[HttpGet("get-active")]
+		public async Task<ActionResult<List<StageDto>>> GetActive(CancellationToken cancellationToken)
+		{
+			var result = await _mediator.Send(new GetActiveStagesQuery(), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
 		[HttpGet("get/{id}")]
 		public async Task<ActionResult<StageDto>> GetById(Guid id, CancellationToken cancellationToken)
 		{
@@ -55,6 +62,29 @@ namespace SchoolManager.Management.API.Controllers
 
 			return Ok(new ApiResponse { message = "Updated Successfully" });
 		}
+
+		[HttpPut("activate/{id}")]
+		public async Task<IActionResult> Activate(Guid id, [FromQuery] Guid updatedBy, CancellationToken cancellationToken)
+		{
+			var success = await _mediator.Send(new SetStageActiveStatusCommand(id, true, updatedBy), cancellationToken);
+
+			if (!success)
+				return NotFound();
+
+			return Ok(new ApiResponse { message = "Activated Successfully" });
+		}
+
+		[HttpPut("deactivate/{id}")]
+		public async Task<IActionResult> Deactivate(Guid id, [FromQuery] Guid updatedBy, CancellationToken cancellationToken)
+		{
+			var success = await _mediator.Send(new SetStageActiveStatusCommand(id, false, updatedBy), cancellationToken);
+
+			if (!success)
+				return NotFound();
+
+			return Ok(new ApiResponse { message = "Deactivated Successfully" });
+		}
+
 		[HttpDelete("delete/{id}")]
 		public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
 		{

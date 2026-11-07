@@ -64,6 +64,92 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.HasIndex("StageId");
 
                     b.ToTable("Grades", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000001"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000001")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000002"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000001")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000003"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000002")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000004"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000002")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000005"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000002")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000006"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000002")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000007"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000002")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000008"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000002")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000009"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000003")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000010"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000003")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000011"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000003")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000012"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000004")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000013"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000004")
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-2222-2222-2222-000000000014"),
+                            IsActive = true,
+                            StageId = new Guid("11111111-1111-1111-1111-000000000004")
+                        });
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.Parent", b =>
@@ -172,6 +258,28 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Stages", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-000000000001"),
+                            IsActive = true
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-000000000002"),
+                            IsActive = true
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-000000000003"),
+                            IsActive = true
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-1111-1111-1111-000000000004"),
+                            IsActive = true
+                        });
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.Student", b =>
@@ -452,6 +560,92 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("GradeId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000005"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000006"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000007"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000008"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000009"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000010"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000011"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000012"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000013"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000014"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                });
                         });
 
                     b.OwnsOne("BuildingBlocks.NameLocalized", "Name", b1 =>
@@ -477,6 +671,92 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("GradeId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000001"),
+                                    Arabic = "KG 1",
+                                    English = "KG 1"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000002"),
+                                    Arabic = "KG 2",
+                                    English = "KG 2"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000003"),
+                                    Arabic = "الصف الأول",
+                                    English = "Grade 1"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000004"),
+                                    Arabic = "الصف الثاني",
+                                    English = "Grade 2"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000005"),
+                                    Arabic = "الصف الثالث",
+                                    English = "Grade 3"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000006"),
+                                    Arabic = "الصف الرابع",
+                                    English = "Grade 4"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000007"),
+                                    Arabic = "الصف الخامس",
+                                    English = "Grade 5"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000008"),
+                                    Arabic = "الصف السادس",
+                                    English = "Grade 6"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000009"),
+                                    Arabic = "الصف الأول",
+                                    English = "Grade 1"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000010"),
+                                    Arabic = "الصف الثاني",
+                                    English = "Grade 2"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000011"),
+                                    Arabic = "الصف الثالث",
+                                    English = "Grade 3"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000012"),
+                                    Arabic = "الصف الأول",
+                                    English = "Grade 1"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000013"),
+                                    Arabic = "الصف الثاني",
+                                    English = "Grade 2"
+                                },
+                                new
+                                {
+                                    GradeId = new Guid("22222222-2222-2222-2222-000000000014"),
+                                    Arabic = "الصف الثالث",
+                                    English = "Grade 3"
+                                });
                         });
 
                     b.Navigation("AuditInfo")
@@ -757,6 +1037,32 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("StageId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    StageId = new Guid("11111111-1111-1111-1111-000000000001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    StageId = new Guid("11111111-1111-1111-1111-000000000002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    StageId = new Guid("11111111-1111-1111-1111-000000000003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                },
+                                new
+                                {
+                                    StageId = new Guid("11111111-1111-1111-1111-000000000004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                                });
                         });
 
                     b.OwnsOne("BuildingBlocks.NameLocalized", "Name", b1 =>
@@ -782,6 +1088,32 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("StageId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    StageId = new Guid("11111111-1111-1111-1111-000000000001"),
+                                    Arabic = "مرحلة الحضانة",
+                                    English = "Nursery Stage"
+                                },
+                                new
+                                {
+                                    StageId = new Guid("11111111-1111-1111-1111-000000000002"),
+                                    Arabic = "المرحلة الابتدائية",
+                                    English = "Primary Stage"
+                                },
+                                new
+                                {
+                                    StageId = new Guid("11111111-1111-1111-1111-000000000003"),
+                                    Arabic = "المرحلة الإعدادية",
+                                    English = "Preparatory Stage"
+                                },
+                                new
+                                {
+                                    StageId = new Guid("11111111-1111-1111-1111-000000000004"),
+                                    Arabic = "المرحلة الثانوية",
+                                    English = "Secondary Stage"
+                                });
                         });
 
                     b.Navigation("AuditInfo")

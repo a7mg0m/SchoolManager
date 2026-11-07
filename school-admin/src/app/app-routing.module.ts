@@ -3,6 +3,7 @@ import {Routes, RouterModule} from '@angular/router';
 
 import {BaseLayoutComponent} from './Layout/base-layout/base-layout.component';
 import {PagesLayoutComponent} from './Layout/pages-layout/pages-layout.component';
+import { AuthGuard } from './core/guards/auth.guard';
 
 // Import components from barrel file
 import {
@@ -29,9 +30,10 @@ const routes: Routes = [
   {
     path: '',
     component: BaseLayoutComponent,
+    canActivate: [AuthGuard],
     children: [
       // Dashboards
-      {path: '', redirectTo: '/login', pathMatch: 'full'},
+      {path: '', redirectTo: '/home', pathMatch: 'full'},
       {path: 'home', component: HomeComponent, data: {extraParameter: 'dashboardsMenu'}},
 
       // Management
