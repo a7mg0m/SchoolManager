@@ -1,0 +1,281 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'teachers.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        (click)="navigateToCreate()"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'teachers.newTeacher' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="successMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Search -->
+  @if (!isLoading() && teachers().length > 0) {
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-8 col-lg-6">
+            <label for="teacherSearch" class="visually-hidden">{{ 'teachers.search' | translate }}</label>
+            <div class="input-group">
+              <input
+                id="teacherSearch"
+                type="search"
+                class="form-control"
+                [value]="searchTerm()"
+                (input)="onSearch($event)"
+                [placeholder]="'teachers.searchPlaceholder' | translate"
+              />
+              @if (searchTerm()) {
+                <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">
+                  {{ 'teachers.clearSearch' | translate }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && teachers().length === 0 && !errorMessage()) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-users text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'teachers.noTeachers' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'teachers.newTeacher' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- No Search Results -->
+  @if (!isLoading() && teachers().length > 0 && filteredTeachers().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-search text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'teachers.noMatchingTeachers' | translate }}</p>
+        <button class="btn btn-outline-secondary" (click)="clearSearch()">
+          {{ 'teachers.clearSearch' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Teachers Table -->
+  @if (!isLoading() && filteredTeachers().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'teachers.fullName' | translate }}</th>
+                <th class="d-none d-md-table-cell">{{ 'teachers.nationalId' | translate }}</th>
+                <th class="d-none d-lg-table-cell">{{ 'teachers.gender' | translate }}</th>
+                <th class="d-none d-sm-table-cell">{{ 'teachers.phoneNumber' | translate }}</th>
+                <th class="d-none d-lg-table-cell">{{ 'teachers.email' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (teacher of pagedTeachers(); track teacher.id) {
+                <tr>
+                  <td><strong>{{ getTeacherName(teacher) }}</strong></td>
+                  <td class="d-none d-md-table-cell" dir="ltr">{{ teacher.nationalId }}</td>
+                  <td class="d-none d-lg-table-cell">{{ getGenderLabel(teacher.gender) }}</td>
+                  <td class="d-none d-sm-table-cell" dir="ltr">{{ teacher.phoneNumber }}</td>
+                  <td class="d-none d-lg-table-cell" dir="ltr">{{ teacher.email || '-' }}</td>
+                  <td>
+                    @if (teacher.isActive) {
+                      <span class="badge bg-success">{{ 'common.active' | translate }}</span>
+                    } @else {
+                      <span class="badge bg-secondary">{{ 'common.inactive' | translate }}</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-info"
+                        (click)="openView(teacher, viewModal)"
+                        title="{{ 'teachers.view' | translate }}"
+                      >
+                        <i class="pe-7s-look"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-primary"
+                        (click)="navigateToEdit(teacher.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        (click)="openDeleteConfirmation(teacher, deleteModal)"
+                        title="{{ 'common.delete' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (filteredTeachers().length > pageSize) {
+          <div class="d-flex justify-content-center mt-3">
+            <ngb-pagination
+              [collectionSize]="filteredTeachers().length"
+              [page]="page()"
+              (pageChange)="page.set($event)"
+              [pageSize]="pageSize"
+              [maxSize]="5"
+              [rotate]="true"
+              [boundaryLinks]="true"
+              size="sm"
+            ></ngb-pagination>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- View Teacher Modal -->
+<ng-template #viewModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'teachers.teacherDetails' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    @if (viewedTeacher(); as t) {
+      <dl class="row mb-0 teacher-details">
+        <dt class="col-sm-4">{{ 'teachers.fullNameAr' | translate }}</dt>
+        <dd class="col-sm-8" dir="rtl">{{ t.fullNameAr || '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'teachers.fullNameEn' | translate }}</dt>
+        <dd class="col-sm-8" dir="ltr">{{ t.fullNameEn || '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'teachers.dateOfBirth' | translate }}</dt>
+        <dd class="col-sm-8">{{ t.dateOfBirth ? (t.dateOfBirth | date: 'mediumDate') : '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'teachers.nationalId' | translate }}</dt>
+        <dd class="col-sm-8" dir="ltr">{{ t.nationalId || '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'teachers.gender' | translate }}</dt>
+        <dd class="col-sm-8">{{ getGenderLabel(t.gender) }}</dd>
+
+        <dt class="col-sm-4">{{ 'teachers.phoneNumber' | translate }}</dt>
+        <dd class="col-sm-8" dir="ltr">{{ t.phoneNumber || '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'teachers.email' | translate }}</dt>
+        <dd class="col-sm-8" dir="ltr">{{ t.email || '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'teachers.address' | translate }}</dt>
+        <dd class="col-sm-8">{{ t.address || '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'common.status' | translate }}</dt>
+        <dd class="col-sm-8">
+          @if (t.isActive) {
+            <span class="badge bg-success">{{ 'common.active' | translate }}</span>
+          } @else {
+            <span class="badge bg-secondary">{{ 'common.inactive' | translate }}</span>
+          }
+        </dd>
+      </dl>
+    }
+  </div>
+  <div class="modal-footer">
+    @if (viewedTeacher(); as t) {
+      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(t.id)">
+        {{ 'common.edit' | translate }}
+      </button>
+    }
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">
+      {{ 'common.close' | translate }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'teachers.deleteTeacher' | translate }}</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="cancelDelete()"
+      [disabled]="isDeleting()"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'teachers.confirmDeleteTeacher' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="cancelDelete()"
+      [disabled]="isDeleting()"
+    >
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button
+      type="button"
+      class="btn btn-danger"
+      (click)="confirmDelete()"
+      [disabled]="isDeleting()"
+    >
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

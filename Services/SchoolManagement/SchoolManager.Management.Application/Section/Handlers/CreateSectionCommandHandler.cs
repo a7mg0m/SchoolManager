@@ -20,6 +20,7 @@ namespace SchoolManager.Management.Application
 			var entity = new Section(
 				new NameLocalized(command.NameAr, command.NameEn),
                 command.GradeId,
+                command.StageId,
                 new AuditInfo(DateTime.Now, command.CreatedBy));
 
 			await _repository.AddAsync(entity);

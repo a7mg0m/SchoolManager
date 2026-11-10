@@ -9,6 +9,8 @@ import { AcademicYearSaveComponent } from './management/academic-years/academic-
 import { SchoolInfoComponent } from './management/school-info/school-info.component';
 import { SectionListComponent } from './management/sections/section-list.component';
 import { SectionSaveComponent } from './management/sections/section-save.component';
+import { TeacherListComponent } from './management/teachers/teacher-list.component';
+import { TeacherSaveComponent } from './management/teachers/teacher-save.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +20,9 @@ import { SectionSaveComponent } from './management/sections/section-save.compone
     AcademicYearSaveComponent,
     SchoolInfoComponent,
     SectionListComponent,
-    SectionSaveComponent
+    SectionSaveComponent,
+    TeacherListComponent,
+    TeacherSaveComponent
   ],
   imports: [
     SharedModule
@@ -30,7 +34,9 @@ import { SectionSaveComponent } from './management/sections/section-save.compone
     AcademicYearSaveComponent,
     SchoolInfoComponent,
     SectionListComponent,
-    SectionSaveComponent
+    SectionSaveComponent,
+    TeacherListComponent,
+    TeacherSaveComponent
   ]
 })
 export class ManagementModule { }

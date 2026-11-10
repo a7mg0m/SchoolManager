@@ -33,6 +33,7 @@ namespace SchoolManager.Management.Domain
             string phoneNumber,
             string? email,
             string address,
+            bool isActive,
             AuditInfo auditInfo)
         {
             FullName = fullName;
@@ -42,7 +43,7 @@ namespace SchoolManager.Management.Domain
             PhoneNumber = phoneNumber;
             Email = email;
             Address = address;
-            IsActive = true;
+            IsActive = isActive;
 
             AuditInfo = auditInfo;
         }
@@ -52,9 +53,11 @@ namespace SchoolManager.Management.Domain
             string phoneNumber,
             string? email,
             string address,
+            bool isActive,
             AuditInfo auditInfo)
         {
             FullName = fullName;
+            IsActive = isActive;
             PhoneNumber = phoneNumber;
             Email = email;
             Address = address;
@@ -62,8 +65,7 @@ namespace SchoolManager.Management.Domain
             AuditInfo = auditInfo;
         }
 
-        public void Deactivate(AuditInfo auditInfo)
-        {
+        public void Deactivate(AuditInfo auditInfo)        {
             IsActive = false;
             AuditInfo = auditInfo;
         }

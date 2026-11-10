@@ -1,0 +1,252 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'teachers.editTeacher' | translate }}
+        } @else {
+          {{ 'teachers.newTeacher' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="row">
+            <!-- Arabic Full Name -->
+            <div class="col-md-6 mb-3">
+              <label for="fullNameAr" class="form-label">
+                {{ 'teachers.fullNameAr' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="fullNameAr"
+                formControlName="fullNameAr"
+                dir="rtl"
+                [class.is-invalid]="isInvalid('fullNameAr')"
+              />
+              @if (hasError('fullNameAr', 'required')) {
+                <div class="invalid-feedback">{{ 'teachers.fullNameArRequired' | translate }}</div>
+              }
+              @if (hasError('fullNameAr', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'teachers.maxLength' | translate: { max: 200 } }}</div>
+              }
+            </div>
+
+            <!-- English Full Name -->
+            <div class="col-md-6 mb-3">
+              <label for="fullNameEn" class="form-label">
+                {{ 'teachers.fullNameEn' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="fullNameEn"
+                formControlName="fullNameEn"
+                dir="ltr"
+                [class.is-invalid]="isInvalid('fullNameEn')"
+              />
+              @if (hasError('fullNameEn', 'required')) {
+                <div class="invalid-feedback">{{ 'teachers.fullNameEnRequired' | translate }}</div>
+              }
+              @if (hasError('fullNameEn', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'teachers.maxLength' | translate: { max: 200 } }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Date of Birth -->
+            <div class="col-md-4 mb-3">
+              <label for="dateOfBirth" class="form-label">
+                {{ 'teachers.dateOfBirth' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                class="form-control"
+                id="dateOfBirth"
+                formControlName="dateOfBirth"
+                [max]="maxDateOfBirth"
+                [class.is-invalid]="isInvalid('dateOfBirth')"
+              />
+              @if (hasError('dateOfBirth', 'required')) {
+                <div class="invalid-feedback">{{ 'teachers.dateOfBirthRequired' | translate }}</div>
+              }
+            </div>
+
+            <!-- National ID -->
+            <div class="col-md-4 mb-3">
+              <label for="nationalId" class="form-label">
+                {{ 'teachers.nationalId' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="nationalId"
+                formControlName="nationalId"
+                dir="ltr"
+                [class.is-invalid]="isInvalid('nationalId')"
+              />
+              @if (hasError('nationalId', 'required')) {
+                <div class="invalid-feedback">{{ 'teachers.nationalIdRequired' | translate }}</div>
+              }
+              @if (hasError('nationalId', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'teachers.maxLength' | translate: { max: 50 } }}</div>
+              }
+            </div>
+
+            <!-- Gender -->
+            <div class="col-md-4 mb-3">
+              <label for="gender" class="form-label">
+                {{ 'teachers.gender' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="gender"
+                class="form-select"
+                formControlName="gender"
+                [class.is-invalid]="isInvalid('gender')"
+              >
+                <option value="">{{ 'common.chooseOne' | translate }}</option>
+                @for (g of genders; track g) {
+                  <option [value]="g">{{ 'teachers.gender' + g | translate }}</option>
+                }
+              </select>
+              @if (hasError('gender', 'required')) {
+                <div class="invalid-feedback">{{ 'teachers.genderRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          @if (isEditMode()) {
+            <div class="form-text mb-3">{{ 'teachers.createOnlyHint' | translate }}</div>
+          }
+
+          <div class="row">
+            <!-- Phone Number -->
+            <div class="col-md-6 mb-3">
+              <label for="phoneNumber" class="form-label">
+                {{ 'teachers.phoneNumber' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="tel"
+                class="form-control"
+                id="phoneNumber"
+                formControlName="phoneNumber"
+                dir="ltr"
+                [class.is-invalid]="isInvalid('phoneNumber')"
+              />
+              @if (hasError('phoneNumber', 'required')) {
+                <div class="invalid-feedback">{{ 'teachers.phoneNumberRequired' | translate }}</div>
+              }
+              @if (hasError('phoneNumber', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'teachers.maxLength' | translate: { max: 50 } }}</div>
+              }
+            </div>
+
+            <!-- Email (optional) -->
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">{{ 'teachers.email' | translate }}</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                dir="ltr"
+                [class.is-invalid]="isInvalid('email')"
+              />
+              @if (hasError('email', 'email')) {
+                <div class="invalid-feedback">{{ 'teachers.emailInvalid' | translate }}</div>
+              }
+              @if (hasError('email', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'teachers.maxLength' | translate: { max: 256 } }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div class="mb-3">
+            <label for="address" class="form-label">
+              {{ 'teachers.address' | translate }} <span class="text-danger">*</span>
+            </label>
+            <textarea
+              class="form-control"
+              id="address"
+              rows="2"
+              formControlName="address"
+              [class.is-invalid]="isInvalid('address')"
+            ></textarea>
+            @if (hasError('address', 'required')) {
+              <div class="invalid-feedback">{{ 'teachers.addressRequired' | translate }}</div>
+            }
+            @if (hasError('address', 'maxlength')) {
+              <div class="invalid-feedback">{{ 'teachers.maxLength' | translate: { max: 500 } }}</div>
+            }
+          </div>
+
+          <!-- Is Active -->
+          <div class="mb-3">
+            <label for="isActive" class="form-label">{{ 'common.status' | translate }}</label>
+            <div class="form-check form-switch">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="isActive"
+                formControlName="isActive"
+              />
+              <label class="form-check-label" for="isActive">
+                @if (form.get('isActive')?.value) {
+                  <span class="badge bg-success">{{ 'common.active' | translate }}</span>
+                } @else {
+                  <span class="badge bg-danger">{{ 'common.inactive' | translate }}</span>
+                }
+              </label>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              }
+              {{ 'common.save' | translate }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+              {{ 'common.cancel' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

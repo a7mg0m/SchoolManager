@@ -25,6 +25,7 @@ namespace SchoolManager.Management.Application
 			entity.Update(
 				new NameLocalized(request.NameAr, request.NameEn),
                 request.GradeId,
+                request.StageId,
                 new AuditInfo(DateTime.Now, request.UpdatedBy));
 
 			await _unitOfWork.SaveChangesAsync();

@@ -6,6 +6,7 @@ namespace SchoolManager.Management.Application
         string NameAr,
         string NameEn,
         Guid GradeId,
+        Guid StageId,
         Guid CreatedBy
     ) : ICommand<Guid>;
 }

@@ -17,7 +17,9 @@ import {
   AcademicYearSaveComponent,
   SchoolInfoComponent,
   SectionListComponent,
-  SectionSaveComponent
+  SectionSaveComponent,
+  TeacherListComponent,
+  TeacherSaveComponent
 } from './components.barrel';
 
 // Import user pages
@@ -51,6 +53,9 @@ const routes: Routes = [
       {path: 'management/sections', component: SectionListComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/sections/save', component: SectionSaveComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/sections/save/:id', component: SectionSaveComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/teachers', component: TeacherListComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/teachers/save', component: TeacherSaveComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/teachers/save/:id', component: TeacherSaveComponent, data: {extraParameter: 'managementMenu'}},
     ]
   },
   {

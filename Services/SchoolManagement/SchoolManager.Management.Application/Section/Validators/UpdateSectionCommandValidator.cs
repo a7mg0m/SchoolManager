@@ -10,6 +10,7 @@ namespace SchoolManager.Management.Application
             RuleFor(x => x.NameAr).NotEmpty().WithMessage("NameArRequired");
             RuleFor(x => x.NameEn).NotEmpty().WithMessage("NameEnRequired");
             RuleFor(x => x.GradeId).NotEmpty().WithMessage("GradeIdRequired");
+            RuleFor(x => x.StageId).NotEmpty().WithMessage("StageIdRequired");
         }
     }
 }

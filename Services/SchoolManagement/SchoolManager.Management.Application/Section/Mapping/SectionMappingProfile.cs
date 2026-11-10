@@ -12,6 +12,7 @@ namespace SchoolManager.Management.Application
 					src.NameAr,
                     src.NameEn,
                     src.GradeId,
+                    src.StageId,
                     Guid.NewGuid()));
 
             CreateMap<UpdateSectionDto, UpdateSectionCommand>()
@@ -19,8 +20,9 @@ namespace SchoolManager.Management.Application
                     src.Id,
                     src.NameAr,
                     src.NameEn,
-                    src.GradeId,
-                    Guid.NewGuid()));
+					src.GradeId,
+					src.StageId,
+					Guid.NewGuid()));
 
 			CreateMap<Section, SectionDto>()
                 .ForMember(d => d.NameAr, o => o.MapFrom(s => s.Name.Arabic))

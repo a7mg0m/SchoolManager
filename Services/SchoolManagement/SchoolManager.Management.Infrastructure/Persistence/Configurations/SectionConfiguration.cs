@@ -12,8 +12,8 @@ namespace SchoolManager.Management.Infrastructure
             builder.HasKey(x => x.Id);
 
             builder.ConfigureLocalized(x => x.Name, "Name");
-            builder.HasMany(x => x.Students).WithOne(s => s.Section).HasForeignKey(s => s.SectionId).OnDelete(DeleteBehavior.Restrict);
-            builder.ConfigureAudit(x => x.AuditInfo);
+            builder.HasOne(x => x.Stage).WithMany().HasForeignKey(x => x.StageId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasMany(x => x.Students).WithOne(s => s.Section).HasForeignKey(s => s.SectionId).OnDelete(DeleteBehavior.Restrict);            builder.ConfigureAudit(x => x.AuditInfo);
 		}
 	}
 }

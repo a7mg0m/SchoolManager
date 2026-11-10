@@ -12,3 +12,5 @@ export { AcademicYearSaveComponent } from './management/academic-years/academic-
 export { SchoolInfoComponent } from './management/school-info/school-info.component';
 export { SectionListComponent } from './management/sections/section-list.component';
 export { SectionSaveComponent } from './management/sections/section-save.component';
+export { TeacherListComponent } from './management/teachers/teacher-list.component';
+export { TeacherSaveComponent } from './management/teachers/teacher-save.component';

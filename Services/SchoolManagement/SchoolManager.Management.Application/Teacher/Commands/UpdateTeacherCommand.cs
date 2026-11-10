@@ -9,6 +9,7 @@ namespace SchoolManager.Management.Application
         string PhoneNumber,
         string? Email,
         string Address,
+        bool IsActive,
         Guid UpdatedBy
     ) : ICommand<bool>;
 }

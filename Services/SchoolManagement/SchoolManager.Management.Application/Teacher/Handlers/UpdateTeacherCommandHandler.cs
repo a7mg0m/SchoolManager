@@ -27,6 +27,7 @@ namespace SchoolManager.Management.Application
                 request.PhoneNumber,
                 request.Email,
                 request.Address,
+                request.IsActive,
                 new AuditInfo(DateTime.Now, request.UpdatedBy));
 
 			await _unitOfWork.SaveChangesAsync();

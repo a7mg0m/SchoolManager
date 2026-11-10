@@ -25,6 +25,7 @@ namespace SchoolManager.Management.Application
                 command.PhoneNumber,
                 command.Email,
                 command.Address,
+                command.IsActive,
                 new AuditInfo(DateTime.Now, command.CreatedBy));
 
 			await _repository.AddAsync(entity);
