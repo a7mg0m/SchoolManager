@@ -23,6 +23,9 @@ namespace SchoolManager.Management.Application
                 command.EndDate,
                 new AuditInfo(DateTime.Now, command.CreatedBy));
 
+			foreach (var semester in command.Semesters ?? new())
+				entity.Semesters.Add(new Semester(semester.Name, entity.Id, semester.StartDate, semester.EndDate, new AuditInfo(DateTime.Now, command.CreatedBy)));
+
 			await _repository.AddAsync(entity);
 			await _unitOfWork.SaveChangesAsync();
 

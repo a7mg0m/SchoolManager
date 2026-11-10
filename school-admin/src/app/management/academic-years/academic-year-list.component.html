@@ -1,0 +1,189 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'management.academicYears' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        (click)="navigateToCreate()"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'management.newAcademicYear' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="successMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && academicYears().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-note2 text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">
+          {{ 'management.noAcademicYears' | translate }}
+        </p>
+        <button
+          class="btn btn-primary"
+          (click)="navigateToCreate()"
+        >
+          {{ 'management.newAcademicYear' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Academic Years Table -->
+  @if (!isLoading() && academicYears().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'common.name' | translate }}</th>
+                <th>{{ 'management.startDate' | translate }}</th>
+                <th>{{ 'management.endDate' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (academicYear of academicYears(); track academicYear.id) {
+                <tr>
+                  <td>
+                    <strong>{{ academicYear.name }}</strong>
+                  </td>
+                  <td>{{ formatDate(academicYear.startDate) }}</td>
+                  <td>{{ formatDate(academicYear.endDate) }}</td>
+                  <td>
+                    <span
+                      [ngClass]="{
+                        'badge bg-success': academicYear.isActive,
+                        'badge bg-danger': !academicYear.isActive
+                      }"
+                    >
+                      {{
+                        academicYear.isActive
+                          ? ('common.active' | translate)
+                          : ('common.inactive' | translate)
+                      }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-primary"
+                        (click)="navigateToEdit(academicYear.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        (click)="openDeleteConfirmation(academicYear, deleteModal)"
+                        title="{{ 'common.delete' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <!-- Semesters Sub-row -->
+                @if (academicYear.semesters && academicYear.semesters.length > 0) {
+                  <tr class="table-secondary">
+                    <td colspan="5">
+                      <small class="d-block mb-2">
+                        <strong>{{ 'management.semesters' | translate }}:</strong>
+                      </small>
+                      <div>
+                        @for (semester of academicYear.semesters; track semester.id) {
+                          <div class="d-flex gap-3 align-items-center mb-2">
+                            <span class="badge bg-info">{{ semester.name }}</span>
+                            <small class="text-muted">
+                              {{ formatDate(semester.startDate) }} - {{ formatDate(semester.endDate) }}
+                            </small>
+                          </div>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'management.deleteAcademicYear' | translate }}</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="modal.dismiss()"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'management.confirmDeleteAcademicYear' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="cancelDelete()"
+      [disabled]="isDeleting()"
+    >
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button
+      type="button"
+      class="btn btn-danger"
+      (click)="confirmDelete()"
+      [disabled]="isDeleting()"
+    >
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

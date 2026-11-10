@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using SchoolManager.Management.Domain;
 
 namespace SchoolManager.Management.Application
@@ -11,17 +11,22 @@ namespace SchoolManager.Management.Application
 				.ConstructUsing(src => new CreateSemesterCommand(
 					src.Name,
                     src.AcademicYearId,
+                    src.StartDate,
+                    src.EndDate,
                     Guid.NewGuid()));
 
             CreateMap<UpdateSemesterDto, UpdateSemesterCommand>()
                 .ConstructUsing(src => new UpdateSemesterCommand(
                     src.Id,
                     src.Name,
-                    src.AcademicYearId,
-                    Guid.NewGuid()));
+					src.AcademicYearId,
+					src.StartDate,
+					src.EndDate,
+					Guid.NewGuid()));
 
 			CreateMap<Semester, SemesterDto>()
 ;
 		}
 	}
 }
+

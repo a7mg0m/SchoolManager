@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace SchoolManager.Management.Application
 {
@@ -9,6 +9,9 @@ namespace SchoolManager.Management.Application
             RuleFor(x => x.Id).NotEmpty().WithMessage("IdRequired");
             RuleFor(x => x.Name).NotEmpty().WithMessage("NameRequired");
             RuleFor(x => x.AcademicYearId).NotEmpty().WithMessage("AcademicYearIdRequired");
+            RuleFor(x => x.EndDate).GreaterThan(x => x.StartDate).WithMessage("EndDateMustBeAfterStartDate");
         }
     }
 }
+
+

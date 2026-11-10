@@ -1,0 +1,155 @@
+// RTL (Right-to-Left) Support for Arabic and other RTL languages
+// This file handles all RTL-specific styling adjustments
+
+html[dir="rtl"],
+html:dir(rtl) {
+  
+  // ========== SIDEBAR ==========
+  .app-sidebar {
+    right: 0;
+    left: auto;
+    box-shadow: -7px 0 60px rgba(0, 0, 0, 0.05);
+    
+    .app-header__logo {
+      width: $app-sidebar-width;
+    }
+  }
+
+  // ========== HEADER ==========
+  .app-header {
+    .app-header__content {
+      padding-left: 0;
+      padding-right: $app-sidebar-width;
+      transition: padding-right .3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important,
+                  padding-left .3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    }
+
+    .app-header-left {
+      padding: 0 ($layout-spacer-x / 2) 0 0;
+    }
+
+    .app-header-right {
+      flex-direction: row-reverse;
+    }
+  }
+
+  // ========== MAIN CONTENT ==========
+  .app-main__outer {
+    padding: $app-header-height 0 0 0;
+    padding-right: $app-sidebar-width;
+    transition: padding-right .3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important,
+                padding-left .3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+  }
+
+  // ========== CLOSED SIDEBAR STATES ==========
+  .closed-sidebar {
+    .app-sidebar {
+      width: $app-sidebar-width-collapsed;
+      min-width: $app-sidebar-width-collapsed;
+      flex: 0 0 $app-sidebar-width-collapsed;
+      box-shadow: -7px 0 60px rgba(0, 0, 0, 0.05);
+    }
+
+    .app-header__content {
+      padding-left: 0;
+      padding-right: $app-sidebar-width-collapsed;
+    }
+
+    .app-main__outer {
+      padding-right: $app-sidebar-width-collapsed;
+      padding-left: 0;
+    }
+  }
+
+  .closed-sidebar-md {
+    .app-sidebar {
+      box-shadow: -7px 0 60px rgba(0, 0, 0, 0.05);
+      transform: translateX($app-sidebar-width-collapsed);
+      right: 0;
+      left: auto;
+    }
+  }
+
+  .closed-sidebar-open {
+    .app-sidebar {
+      box-shadow: -7px 0 60px rgba(0, 0, 0, 0.05);
+      transform: translateX(0);
+    }
+  }
+
+  // ========== SIDEBAR MENU OVERLAY ==========
+  .sidebar-menu-overlay {
+    right: 0;
+    left: auto;
+  }
+
+  // ========== RESPONSIVE ADJUSTMENTS ==========
+  @include media-breakpoint-down(md) {
+    .app-header__content {
+      right: 5% !important;
+      left: auto !important;
+      padding-left: 10px !important;
+      padding-right: 10px !important;
+    }
+
+    .app-main__outer {
+      padding-right: 0 !important;
+      padding-left: 0 !important;
+    }
+
+    .closed-sidebar-open {
+      .app-main__outer {
+        padding-right: 0 !important;
+      }
+    }
+  }
+
+  // ========== FORM CONTROLS ==========
+  .form-control,
+  .form-select {
+    text-align: right;
+
+    &::placeholder {
+      text-align: right;
+    }
+  }
+
+  // ========== ALERTS AND MESSAGES ==========
+  .alert {
+    text-align: right;
+
+    .btn-close {
+      margin-right: auto;
+      margin-left: 0;
+    }
+  }
+
+  // ========== TABLE ==========
+  table {
+    text-align: right;
+
+    th {
+      text-align: right;
+    }
+
+    td {
+      text-align: right;
+    }
+  }
+
+  // ========== BUTTONS AND BADGES ==========
+  .btn-group {
+    flex-direction: row-reverse;
+  }
+
+  // ========== MARGINS AND PADDING FLIP ==========
+  .ms-auto {
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .me-auto {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

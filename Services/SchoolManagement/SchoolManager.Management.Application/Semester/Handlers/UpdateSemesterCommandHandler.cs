@@ -25,6 +25,8 @@ namespace SchoolManager.Management.Application
 			entity.Update(
 				request.Name,
                 request.AcademicYearId,
+                request.StartDate,
+                request.EndDate,
                 new AuditInfo(DateTime.Now, request.UpdatedBy));
 
 			await _unitOfWork.SaveChangesAsync();

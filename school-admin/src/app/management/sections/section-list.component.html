@@ -1,0 +1,224 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'sections.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        (click)="navigateToCreate()"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'sections.newSection' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="successMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Filters -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label for="stageFilter" class="form-label">{{ 'sections.stage' | translate }}</label>
+          <select
+            id="stageFilter"
+            class="form-select"
+            [value]="selectedStageId()"
+            (change)="onStageFilterChange($event)"
+          >
+            <option value="">{{ 'sections.allStages' | translate }}</option>
+            @for (stage of stages(); track stage.id) {
+              <option [value]="stage.id" [selected]="stage.id === selectedStageId()">
+                {{ getOptionName(stage) }}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="col-md-5">
+          <label for="gradeFilter" class="form-label">{{ 'sections.grade' | translate }}</label>
+          <select
+            id="gradeFilter"
+            class="form-select"
+            [value]="selectedGradeId()"
+            (change)="onGradeFilterChange($event)"
+          >
+            <option value="">{{ 'sections.allGrades' | translate }}</option>
+            @for (grade of filterGrades(); track grade.id) {
+              <option [value]="grade.id" [selected]="grade.id === selectedGradeId()">
+                {{ getOptionName(grade) }}
+              </option>
+            }
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button
+            type="button"
+            class="btn btn-outline-secondary w-100"
+            (click)="clearFilters()"
+            [disabled]="!selectedStageId() && !selectedGradeId()"
+          >
+            {{ 'sections.clearFilters' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && sections().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-note2 text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">
+          {{ 'sections.noSections' | translate }}
+        </p>
+        <button
+          class="btn btn-primary"
+          (click)="navigateToCreate()"
+        >
+          {{ 'sections.newSection' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- No Filter Results -->
+  @if (!isLoading() && sections().length > 0 && filteredSections().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-filter text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">
+          {{ 'sections.noMatchingSections' | translate }}
+        </p>
+        <button
+          class="btn btn-outline-secondary"
+          (click)="clearFilters()"
+        >
+          {{ 'sections.clearFilters' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Sections Table -->
+  @if (!isLoading() && filteredSections().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'common.nameAr' | translate }}</th>
+                <th>{{ 'common.nameEn' | translate }}</th>
+                <th>{{ 'sections.stage' | translate }}</th>
+                <th>{{ 'sections.grade' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (section of filteredSections(); track section.id) {
+                <tr>
+                  <td dir="rtl"><strong>{{ section.nameAr }}</strong></td>
+                  <td dir="ltr"><strong>{{ section.nameEn }}</strong></td>
+                  <td>{{ getStageName(section.stageId) }}</td>
+                  <td>{{ getGradeName(section.gradeId) }}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-primary"
+                        (click)="navigateToEdit(section.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        (click)="openDeleteConfirmation(section, deleteModal)"
+                        title="{{ 'common.delete' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'sections.deleteSection' | translate }}</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="cancelDelete()"
+      [disabled]="isDeleting()"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'sections.confirmDeleteSection' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="cancelDelete()"
+      [disabled]="isDeleting()"
+    >
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button
+      type="button"
+      class="btn btn-danger"
+      (click)="confirmDelete()"
+      [disabled]="isDeleting()"
+    >
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

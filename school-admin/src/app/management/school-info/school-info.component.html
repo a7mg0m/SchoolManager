@@ -1,0 +1,232 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'schoolInfo.editTitle' | translate }}
+        } @else {
+          {{ 'schoolInfo.createTitle' | translate }}
+        }
+      </h2>
+      <p class="text-muted mb-0">{{ 'schoolInfo.subtitle' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="successMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <!-- School Name (Arabic) -->
+            <div class="col-md-6 mb-3">
+              <label for="nameAr" class="form-label">
+                {{ 'schoolInfo.nameAr' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="nameAr"
+                formControlName="nameAr"
+                dir="rtl"
+                [placeholder]="'schoolInfo.nameArPlaceholder' | translate"
+                [class.is-invalid]="hasError('nameAr', 'required') || hasError('nameAr', 'minlength') || hasError('nameAr', 'maxlength')"
+              />
+              @if (hasError('nameAr', 'required')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.nameArRequired' | translate }}</div>
+              }
+              @if (hasError('nameAr', 'minlength')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.nameMinLength' | translate }}</div>
+              }
+              @if (hasError('nameAr', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.nameMaxLength' | translate }}</div>
+              }
+            </div>
+
+            <!-- School Name (English) -->
+            <div class="col-md-6 mb-3">
+              <label for="nameEn" class="form-label">
+                {{ 'schoolInfo.nameEn' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="nameEn"
+                formControlName="nameEn"
+                dir="ltr"
+                [placeholder]="'schoolInfo.nameEnPlaceholder' | translate"
+                [class.is-invalid]="hasError('nameEn', 'required') || hasError('nameEn', 'minlength') || hasError('nameEn', 'maxlength')"
+              />
+              @if (hasError('nameEn', 'required')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.nameEnRequired' | translate }}</div>
+              }
+              @if (hasError('nameEn', 'minlength')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.nameMinLength' | translate }}</div>
+              }
+              @if (hasError('nameEn', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.nameMaxLength' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Email -->
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">{{ 'schoolInfo.email' | translate }}</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                [placeholder]="'schoolInfo.emailPlaceholder' | translate"
+                [class.is-invalid]="hasError('email', 'email')"
+              />
+              @if (hasError('email', 'email')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.emailInvalid' | translate }}</div>
+              }
+            </div>
+
+            <!-- Phone -->
+            <div class="col-md-6 mb-3">
+              <label for="phone" class="form-label">{{ 'schoolInfo.phone' | translate }}</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="phone"
+                formControlName="phone"
+                [placeholder]="'schoolInfo.phonePlaceholder' | translate"
+                [class.is-invalid]="hasError('phone', 'pattern')"
+              />
+              @if (hasError('phone', 'pattern')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.phoneInvalid' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Address -->
+            <div class="col-12 mb-3">
+              <label for="address" class="form-label">{{ 'schoolInfo.address' | translate }}</label>
+              <textarea
+                class="form-control"
+                id="address"
+                formControlName="address"
+                rows="3"
+                [placeholder]="'schoolInfo.addressPlaceholder' | translate"
+                [class.is-invalid]="hasError('address', 'maxlength')"
+              ></textarea>
+              @if (hasError('address', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'schoolInfo.addressMaxLength' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- Logo Section -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="card border-light">
+                <div class="card-header bg-light">
+                  <h5 class="mb-0">{{ 'schoolInfo.logo' | translate }}</h5>
+                </div>
+                <div class="card-body">
+                  <input
+                    #logoInput
+                    type="file"
+                    class="form-control"
+                    id="logo"
+                    accept="image/*"
+                    [class.is-invalid]="logoError()"
+                    (change)="onLogoSelected($event)"
+                  />
+                  @if (logoError()) {
+                    <div class="invalid-feedback">{{ logoError() }}</div>
+                  }
+                  <div class="form-text">{{ 'schoolInfo.logoHint' | translate }}</div>
+
+                  @if (logoPreview()) {
+                    <div class="d-flex align-items-center mt-3">
+                      <img
+                        [src]="logoPreview()"
+                        [alt]="'schoolInfo.logoAlt' | translate"
+                        class="img-thumbnail logo-preview"
+                      />
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="removeLogo(logoInput)"
+                        [disabled]="isSaving()"
+                      >
+                        <i class="pe-7s-trash"></i> {{ 'schoolInfo.removeLogo' | translate }}
+                      </button>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="row mt-4">
+            <div class="col">
+              <div class="d-flex gap-2">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="!form.valid || isSaving()"
+                >
+                  @if (isSaving()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  }
+                  {{ 'common.save' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="onReset()"
+                  [disabled]="isSaving()"
+                >
+                  {{ 'schoolInfo.reset' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

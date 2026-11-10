@@ -12,7 +12,18 @@ namespace SchoolManager.Management.Application
 					src.Name,
                     src.StartDate,
                     src.EndDate,
+                    src.Semesters,
                     Guid.NewGuid()));
+
+			CreateMap<UpdateAcademicYearDto, UpdateAcademicYearCommand>()
+				.ConstructUsing(src => new UpdateAcademicYearCommand(
+					src.Id,
+					src.Name,
+					src.StartDate,
+					src.EndDate,
+					src.IsActive,
+					src.Semesters,
+					Guid.NewGuid()));
 
 			CreateMap<AcademicYear, AcademicYearDto>()
 ;

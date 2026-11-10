@@ -14,13 +14,13 @@
       <div class="sidebar-scrollbar">
         <div class="v-sidebar-menu vsm-default">
           <div class="vsm-list">
-            <div class="vsm-header">Navigation</div>
+            <div class="vsm-header"></div>
             
             <!-- Home -->
             <div class="vsm-item" [class.vsm-active]="extraParameter === 'dashboardsMenu'">
               <a routerLink="/home" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
                 <i class="vsm-icon pe-7s-rocket"></i>
-                <span class="vsm-title">Home</span>
+                <span class="vsm-title">{{ 'sidebar.home' | translate }}</span>
               </a>
             </div>
 
@@ -28,20 +28,34 @@
             <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('managementMenu')">
               <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('managementMenu')">
                 <i class="vsm-icon pe-7s-note2"></i>
-                <span class="vsm-title">Management</span>
+                <span class="vsm-title">{{ 'sidebar.management' | translate }}</span>
                 <i class="vsm-arrow"></i>
               </a>
               <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('managementMenu')">
                 <div class="vsm-list">
-                  <div class="vsm-header">Management</div>
+                  <div class="vsm-item">
+                    <a routerLink="/management/school-info" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.schoolInfo' | translate }}</span>
+                    </a>
+                  </div>
                   <div class="vsm-item">
                     <a routerLink="/management/stages" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">Stages</span>
+                      <span class="vsm-title">{{ 'sidebar.stages' | translate }}</span>
                     </a>
                   </div>
                   <div class="vsm-item">
                     <a routerLink="/management/grades" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">Grades</span>
+                      <span class="vsm-title">{{ 'sidebar.grades' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/management/sections" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.sections' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/management/academic-years" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.academicYears' | translate }}</span>
                     </a>
                   </div>
                 </div>

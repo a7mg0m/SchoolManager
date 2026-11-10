@@ -6,6 +6,8 @@ namespace SchoolManager.Management.Application
         Guid Id,
         string Name,
         Guid AcademicYearId,
+        DateOnly StartDate,
+        DateOnly EndDate,
         Guid UpdatedBy
     ) : ICommand<bool>;
 }

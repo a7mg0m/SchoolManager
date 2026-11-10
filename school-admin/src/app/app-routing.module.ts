@@ -12,7 +12,12 @@ import {
   
   // Management components
   StagesComponent,
-  GradesComponent
+  GradesComponent,
+  AcademicYearListComponent,
+  AcademicYearSaveComponent,
+  SchoolInfoComponent,
+  SectionListComponent,
+  SectionSaveComponent
 } from './components.barrel';
 
 // Import user pages
@@ -37,8 +42,15 @@ const routes: Routes = [
       {path: 'home', component: HomeComponent, data: {extraParameter: 'dashboardsMenu'}},
 
       // Management
+      {path: 'management/school-info', component: SchoolInfoComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/stages', component: StagesComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/grades', component: GradesComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/academic-years', component: AcademicYearListComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/academic-years/save', component: AcademicYearSaveComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/academic-years/save/:id', component: AcademicYearSaveComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/sections', component: SectionListComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/sections/save', component: SectionSaveComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/sections/save/:id', component: SectionSaveComponent, data: {extraParameter: 'managementMenu'}},
     ]
   },
   {

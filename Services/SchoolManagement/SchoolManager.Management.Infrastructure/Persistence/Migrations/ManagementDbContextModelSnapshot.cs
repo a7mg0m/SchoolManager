@@ -231,6 +231,9 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("AcademicYearId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -238,6 +241,9 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -515,7 +521,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("AcademicYearId");
 
-                            b1.ToTable("AcademicYears");
+                            b1.ToTable("AcademicYears", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("AcademicYearId");
@@ -556,7 +562,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("GradeId");
 
-                            b1.ToTable("Grades");
+                            b1.ToTable("Grades", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("GradeId");
@@ -667,7 +673,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("GradeId");
 
-                            b1.ToTable("Grades");
+                            b1.ToTable("Grades", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("GradeId");
@@ -793,7 +799,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("ParentId");
 
-                            b1.ToTable("Parents");
+                            b1.ToTable("Parents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ParentId");
@@ -818,7 +824,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("ParentId");
 
-                            b1.ToTable("Parents");
+                            b1.ToTable("Parents", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ParentId");
@@ -856,7 +862,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SchoolInfoId");
 
-                            b1.ToTable("SchoolInfos");
+                            b1.ToTable("SchoolInfos", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SchoolInfoId");
@@ -881,7 +887,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SchoolInfoId");
 
-                            b1.ToTable("SchoolInfos");
+                            b1.ToTable("SchoolInfos", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SchoolInfoId");
@@ -925,7 +931,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SectionId");
 
-                            b1.ToTable("Sections");
+                            b1.ToTable("Sections", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SectionId");
@@ -950,7 +956,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SectionId");
 
-                            b1.ToTable("Sections");
+                            b1.ToTable("Sections", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SectionId");
@@ -996,7 +1002,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SemesterId");
 
-                            b1.ToTable("Semesters");
+                            b1.ToTable("Semesters", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SemesterId");
@@ -1033,7 +1039,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("StageId");
 
-                            b1.ToTable("Stages");
+                            b1.ToTable("Stages", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("StageId");
@@ -1084,7 +1090,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("StageId");
 
-                            b1.ToTable("Stages");
+                            b1.ToTable("Stages", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("StageId");
@@ -1172,7 +1178,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("StudentId");
 
-                            b1.ToTable("Students");
+                            b1.ToTable("Students", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("StudentId");
@@ -1197,7 +1203,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("StudentId");
 
-                            b1.ToTable("Students");
+                            b1.ToTable("Students", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("StudentId");
@@ -1247,7 +1253,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SubjectId");
 
-                            b1.ToTable("Subjects");
+                            b1.ToTable("Subjects", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SubjectId");
@@ -1272,7 +1278,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("SubjectId");
 
-                            b1.ToTable("Subjects");
+                            b1.ToTable("Subjects", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("SubjectId");
@@ -1331,7 +1337,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("TeacherId");
 
-                            b1.ToTable("Teachers");
+                            b1.ToTable("Teachers", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TeacherId");
@@ -1356,7 +1362,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("TeacherId");
 
-                            b1.ToTable("Teachers");
+                            b1.ToTable("Teachers", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TeacherId");
@@ -1406,7 +1412,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("TimetableId");
 
-                            b1.ToTable("Timetables");
+                            b1.ToTable("Timetables", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TimetableId");
@@ -1474,7 +1480,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("TimetableSlotId");
 
-                            b1.ToTable("TimetableSlots");
+                            b1.ToTable("TimetableSlots", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TimetableSlotId");
@@ -1499,7 +1505,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                             b1.HasKey("TimetableSlotId");
 
-                            b1.ToTable("TimetableSlots");
+                            b1.ToTable("TimetableSlots", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("TimetableSlotId");

@@ -1,0 +1,294 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'management.editAcademicYear' | translate }}
+        } @else {
+          {{ 'management.newAcademicYear' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="successMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <!-- Name Field -->
+            <div class="col-md-6 mb-3">
+              <label for="name" class="form-label">
+                {{ 'common.name' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                formControlName="name"
+                placeholder="e.g., 2026-2027"
+                [class.is-invalid]="hasError('name', 'required') || hasError('name', 'minlength') || hasError('name', 'maxlength')"
+              />
+              @if (hasError('name', 'required')) {
+                <div class="invalid-feedback">
+                  {{ 'common.nameRequired' | translate }}
+                </div>
+              }
+              @if (hasError('name', 'minlength')) {
+                <div class="invalid-feedback">
+                  {{ 'common.nameMinLength' | translate }}
+                </div>
+              }
+              @if (hasError('name', 'maxlength')) {
+                <div class="invalid-feedback">
+                  {{ 'common.nameMaxLength' | translate }}
+                </div>
+              }
+            </div>
+
+            <!-- Is Active Field -->
+            <div class="col-md-6 mb-3">
+              <label for="isActive" class="form-label">
+                {{ 'common.status' | translate }}
+              </label>
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="isActive"
+                  formControlName="isActive"
+                />
+                <label class="form-check-label" for="isActive">
+                  @if (form.get('isActive')?.value) {
+                    <span class="badge bg-success">{{ 'common.active' | translate }}</span>
+                  } @else {
+                    <span class="badge bg-danger">{{ 'common.inactive' | translate }}</span>
+                  }
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Start Date Field -->
+            <div class="col-md-6 mb-3">
+              <label for="startDate" class="form-label">
+                {{ 'management.startDate' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                class="form-control"
+                id="startDate"
+                formControlName="startDate"
+                [class.is-invalid]="hasError('startDate', 'required')"
+              />
+              @if (hasError('startDate', 'required')) {
+                <div class="invalid-feedback">
+                  {{ 'management.startDateRequired' | translate }}
+                </div>
+              }
+            </div>
+
+            <!-- End Date Field -->
+            <div class="col-md-6 mb-3">
+              <label for="endDate" class="form-label">
+                {{ 'management.endDate' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                class="form-control"
+                id="endDate"
+                formControlName="endDate"
+                [class.is-invalid]="hasError('endDate', 'required') || hasError('endDate', 'endDateMustBeGreater') || form.hasError('endDateMustBeGreater')"
+              />
+              @if (hasError('endDate', 'required')) {
+                <div class="invalid-feedback">
+                  {{ 'management.endDateRequired' | translate }}
+                </div>
+              }
+              @if (hasError('endDate', 'endDateMustBeGreater') || form.hasError('endDateMustBeGreater')) {
+                <div class="invalid-feedback">
+                  {{ 'management.endDateGreaterThanStart' | translate }}
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Semesters Section -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="card border-light">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                  <h5 class="mb-0">{{ 'management.semesters' | translate }}</h5>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="addSemester()"
+                    [disabled]="isSaving()"
+                  >
+                    <i class="pe-7s-plus"></i> {{ 'management.addSemester' | translate }}
+                  </button>
+                </div>
+                <div class="card-body">
+                  @if (semesters.length === 0) {
+                    <p class="text-muted mb-0">{{ 'management.noSemesters' | translate }}</p>
+                  }
+
+                  @if (semesters.length > 0) {
+                    <div class="table-responsive">
+                      <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                          <tr>
+                            <th>{{ 'management.semesterName' | translate }}</th>
+                            <th>{{ 'management.startDate' | translate }}</th>
+                            <th>{{ 'management.endDate' | translate }}</th>
+                            <th style="width: 100px;">{{ 'common.actions' | translate }}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (semester of semesters.controls; let i = $index; track i) {
+                            <tr>
+                              <td>
+                                <input
+                                  type="text"
+                                  class="form-control form-control-sm"
+                                  [formControl]="$any(semesters.at(i)?.get('name'))"
+                                  placeholder="e.g., First Semester"
+                                  [class.is-invalid]="hasSemesterError(i, 'name', 'required') || hasSemesterError(i, 'name', 'minlength') || hasSemesterError(i, 'name', 'maxlength')"
+                                />
+                                @if (hasSemesterError(i, 'name', 'required')) {
+                                  <div class="invalid-feedback d-block">
+                                    {{ 'management.semesterNameRequired' | translate }}
+                                  </div>
+                                }
+                                @if (hasSemesterError(i, 'name', 'minlength')) {
+                                  <div class="invalid-feedback d-block">
+                                    {{ 'common.nameMinLength' | translate }}
+                                  </div>
+                                }
+                                @if (hasSemesterError(i, 'name', 'maxlength')) {
+                                  <div class="invalid-feedback d-block">
+                                    {{ 'common.nameMaxLength' | translate }}
+                                  </div>
+                                }
+                              </td>
+                              <td>
+                                <input
+                                  type="date"
+                                  class="form-control form-control-sm"
+                                  [formControl]="$any(semesters.at(i)?.get('startDate'))"
+                                  [class.is-invalid]="hasSemesterError(i, 'startDate', 'required')"
+                                />
+                                @if (hasSemesterError(i, 'startDate', 'required')) {
+                                  <div class="invalid-feedback d-block">
+                                    {{ 'management.startDateRequired' | translate }}
+                                  </div>
+                                }
+                              </td>
+                              <td>
+                                <input
+                                  type="date"
+                                  class="form-control form-control-sm"
+                                  [formControl]="$any(semesters.at(i)?.get('endDate'))"
+                                  [class.is-invalid]="hasSemesterError(i, 'endDate', 'required') || semesters.at(i)?.hasError('endDateMustBeGreater')"
+                                />
+                                @if (hasSemesterError(i, 'endDate', 'required')) {
+                                  <div class="invalid-feedback d-block">
+                                    {{ 'management.endDateRequired' | translate }}
+                                  </div>
+                                }
+                                @if (semesters.at(i)?.hasError('endDateMustBeGreater')) {
+                                  <div class="invalid-feedback d-block">
+                                    {{ 'management.endDateGreaterThanStart' | translate }}
+                                  </div>
+                                }
+                              </td>
+                              <td>
+                                <button
+                                  type="button"
+                                  class="btn btn-sm btn-outline-danger"
+                                  (click)="removeSemester(i)"
+                                  [disabled]="isSaving()"
+                                  title="{{ 'common.delete' | translate }}"
+                                >
+                                  <i class="pe-7s-trash"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="row mt-4">
+            <div class="col">
+              <div class="d-flex gap-2">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="!form.valid || isSaving()"
+                >
+                  @if (isSaving()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  }
+                  {{ 'common.save' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="onCancel()"
+                  [disabled]="isSaving()"
+                >
+                  {{ 'common.cancel' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

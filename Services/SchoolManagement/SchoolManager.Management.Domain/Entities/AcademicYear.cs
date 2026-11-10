@@ -30,11 +30,16 @@ namespace SchoolManager.Management.Domain
             AuditInfo = auditInfo;
         }
 
-        public void Deactivate(AuditInfo auditInfo)
+        public void Update(string name, DateOnly startDate, DateOnly endDate, bool isActive, AuditInfo auditInfo)
         {
-            IsActive = false;
+            Name = name;
+            StartDate = startDate;
+            EndDate = endDate;
+            IsActive = isActive;
             AuditInfo = auditInfo;
         }
+
+       
     }
 
 }

@@ -44,6 +44,18 @@ namespace SchoolManager.Management.API.Controllers
 			return CreatedAtAction(nameof(GetById), new { id }, new ApiResponse { InsertedId = id.ToString() });
 		}
 
+		[HttpPut("update")]
+		public async Task<IActionResult> Update([FromBody] UpdateAcademicYearDto dto, CancellationToken cancellationToken)
+		{
+			var command = _mapper.Map<UpdateAcademicYearCommand>(dto);
+			var success = await _mediator.Send(command, cancellationToken);
+
+			if (!success)
+				return Ok(new ApiResponse { status = -1, message = "Update Failed" });
+
+			return Ok(new ApiResponse { message = "Updated Successfully" });
+		}
+
 		[HttpDelete("delete/{id}")]
 		public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
 		{

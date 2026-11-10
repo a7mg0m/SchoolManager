@@ -1,0 +1,183 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'sections.editSection' | translate }}
+        } @else {
+          {{ 'sections.newSection' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="successMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <!-- Arabic Name -->
+            <div class="col-md-6 mb-3">
+              <label for="nameAr" class="form-label">
+                {{ 'common.nameAr' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="nameAr"
+                formControlName="nameAr"
+                dir="rtl"
+                [placeholder]="'sections.nameArPlaceholder' | translate"
+                [class.is-invalid]="hasError('nameAr', 'required') || hasError('nameAr', 'maxlength')"
+              />
+              @if (hasError('nameAr', 'required')) {
+                <div class="invalid-feedback">{{ 'sections.nameArRequired' | translate }}</div>
+              }
+              @if (hasError('nameAr', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'common.nameMaxLength' | translate }}</div>
+              }
+            </div>
+
+            <!-- English Name -->
+            <div class="col-md-6 mb-3">
+              <label for="nameEn" class="form-label">
+                {{ 'common.nameEn' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="nameEn"
+                formControlName="nameEn"
+                dir="ltr"
+                [placeholder]="'sections.nameEnPlaceholder' | translate"
+                [class.is-invalid]="hasError('nameEn', 'required') || hasError('nameEn', 'maxlength')"
+              />
+              @if (hasError('nameEn', 'required')) {
+                <div class="invalid-feedback">{{ 'sections.nameEnRequired' | translate }}</div>
+              }
+              @if (hasError('nameEn', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'common.nameMaxLength' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Stage -->
+            <div class="col-md-6 mb-3">
+              <label for="stageId" class="form-label">
+                {{ 'sections.stage' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <select
+                id="stageId"
+                class="form-select"
+                formControlName="stageId"
+                [class.is-invalid]="hasError('stageId', 'required')"
+              >
+                <option value="">{{ 'common.chooseOne' | translate }}</option>
+                @for (stage of stages(); track stage.id) {
+                  <option [value]="stage.id">{{ getOptionName(stage) }}</option>
+                }
+              </select>
+              @if (hasError('stageId', 'required')) {
+                <div class="invalid-feedback">{{ 'sections.stageRequired' | translate }}</div>
+              }
+              @if (stages().length === 0) {
+                <div class="form-text">{{ 'management.noStagesAvailable' | translate }}</div>
+              }
+            </div>
+
+            <!-- Grade -->
+            <div class="col-md-6 mb-3">
+              <label for="gradeId" class="form-label">
+                {{ 'sections.grade' | translate }}
+                <span class="text-danger">*</span>
+              </label>
+              <select
+                id="gradeId"
+                class="form-select"
+                formControlName="gradeId"
+                [class.is-invalid]="hasError('gradeId', 'required')"
+              >
+                <option value="">{{ 'common.chooseOne' | translate }}</option>
+                @for (grade of availableGrades(); track grade.id) {
+                  <option [value]="grade.id">{{ getOptionName(grade) }}</option>
+                }
+              </select>
+              @if (hasError('gradeId', 'required')) {
+                <div class="invalid-feedback">{{ 'sections.gradeRequired' | translate }}</div>
+              }
+              @if (!selectedStageId()) {
+                <div class="form-text">{{ 'sections.selectStageFirst' | translate }}</div>
+              } @else if (availableGrades().length === 0) {
+                <div class="form-text">{{ 'sections.noGradesForStage' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="row mt-4">
+            <div class="col">
+              <div class="d-flex gap-2">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="!form.valid || isSaving()"
+                >
+                  @if (isSaving()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  }
+                  {{ 'common.save' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  (click)="onCancel()"
+                  [disabled]="isSaving()"
+                >
+                  {{ 'common.cancel' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -38,6 +38,7 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   width: $app-sidebar-width;
   position: fixed;
+  left: 0;
   height: 100vh;
   box-shadow: $sidebar-box-shadow;
   flex-direction: column;

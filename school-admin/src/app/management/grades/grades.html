@@ -1,1 +1,159 @@
-<p>grades works!</p>
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>{{ 'management.grades' | translate }}</h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="successMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button
+        type="button"
+        class="btn-close"
+        (click)="errorMessage.set(null)"
+      ></button>
+    </div>
+  }
+
+  <!-- Loading Stages State -->
+  @if (isLoadingStages()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Stage Selection Dropdown -->
+  @if (!isLoadingStages()) {
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="stageSelect" class="form-label">
+              {{ 'management.selectStage' | translate }}
+            </label>
+            <select
+              id="stageSelect"
+              class="form-select"
+              [value]="selectedStageId()"
+              (change)="onStageChange($event)"
+            >
+              <option value="">{{ 'common.chooseOne' | translate }}</option>
+              @for (stage of stages(); track stage.id) {
+                <option [value]="stage.id">
+                  {{ getStageName(stage) }}
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading Grades State -->
+  @if (isLoadingGrades()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Grades Table -->
+  @if (!isLoadingGrades() && selectedStageId() && grades().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'common.nameAr' | translate }}</th>
+                <th>{{ 'common.nameEn' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (grade of grades(); track grade.id) {
+                <tr>
+                  <td>{{ grade.nameAr }}</td>
+                  <td>{{ grade.nameEn }}</td>
+                  <td>
+                    <span
+                      [ngClass]="{
+                        'badge bg-success': grade.isActive,
+                        'badge bg-danger': !grade.isActive
+                      }"
+                    >
+                      {{ grade.isActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="btn btn-sm"
+                      [ngClass]="{
+                        'btn-success': !grade.isActive,
+                        'btn-danger': grade.isActive
+                      }"
+                      (click)="toggleGradeStatus(grade)"
+                    >
+                      @if (grade.isActive) {
+                        {{ 'common.deactivate' | translate }}
+                      } @else {
+                        {{ 'common.activate' | translate }}
+                      }
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State Message -->
+  @if (!isLoadingGrades() && selectedStageId() && grades().length === 0) {
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <p class="text-muted">{{ 'common.noDataFound' | translate }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- No Stage Selected Message -->
+  @if (!isLoadingGrades() && !selectedStageId() && stages().length > 0) {
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <p class="text-muted">{{ 'management.selectStageFirst' | translate }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- No Stages Available Message -->
+  @if (!isLoadingStages() && stages().length === 0) {
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <p class="text-muted">{{ 'common.noStagesAvailable' | translate }}</p>
+      </div>
+    </div>
+  }
+</div>

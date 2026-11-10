@@ -20,6 +20,8 @@ namespace SchoolManager.Management.Application
 			var entity = new Semester(
 				command.Name,
                 command.AcademicYearId,
+                command.StartDate,
+                command.EndDate,
                 new AuditInfo(DateTime.Now, command.CreatedBy));
 
 			await _repository.AddAsync(entity);

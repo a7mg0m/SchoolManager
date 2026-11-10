@@ -26,6 +26,13 @@ namespace SchoolManager.Management.API.Controllers
             return Ok(new ApiResponse { data = result });
         }
 
+        [HttpGet("get")]
+        public async Task<ActionResult> Get(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetAllSchoolInfosQuery(), cancellationToken);
+            return Ok(new ApiResponse { data = result.FirstOrDefault() });
+        }
+
         [HttpGet("get/{id}")]
         public async Task<ActionResult<SchoolInfoDto>> GetById(Guid id, CancellationToken cancellationToken)
         {

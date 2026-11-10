@@ -15,7 +15,7 @@ namespace SchoolManager.Management.Infrastructure
 			_dbSet = _context.Set<T>();
 		}
 
-		public Task<T?> GetByIdAsync(Guid id)
+		public virtual Task<T?> GetByIdAsync(Guid id)
 			=> _dbSet.FindAsync(id).AsTask();
 
 		public Task AddAsync(T entity)
