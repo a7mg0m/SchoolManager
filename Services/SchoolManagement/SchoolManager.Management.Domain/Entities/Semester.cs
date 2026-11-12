@@ -27,7 +27,7 @@ namespace SchoolManager.Management.Domain
             EndDate = endDate;
             IsActive = true;
 
-            AuditInfo = auditInfo;
+            AuditInfo = auditInfo.Copy(); // copy: owned type, the caller may share one instance across semesters
         }
 
         public void Update(string name, Guid academicYearId, DateOnly startDate, DateOnly endDate, AuditInfo auditInfo)
@@ -36,13 +36,13 @@ namespace SchoolManager.Management.Domain
             AcademicYearId = academicYearId;
             StartDate = startDate;
             EndDate = endDate;
-            AuditInfo = auditInfo;
+            AuditInfo = auditInfo.Copy(); // copy: owned type, the caller may share one instance across semesters
         }
 
         public void Deactivate(AuditInfo auditInfo)
         {
             IsActive = false;
-            AuditInfo = auditInfo;
+            AuditInfo = auditInfo.Copy(); // copy: owned type, the caller may share one instance across semesters
         }
     }
 

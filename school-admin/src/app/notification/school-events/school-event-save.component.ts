@@ -12,32 +12,17 @@ import { SectionService } from '../../core/services/section.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { StudentService } from '../../core/services/student.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
-import {
-  CreateSchoolEventRequest,
-  EVENT_FOR_OPTIONS,
-  EventFor,
-  SchoolEvent
-} from '../../core/models/school-event.model';
+import { CreateSchoolEventRequest, EventFor, SchoolEvent } from '../../core/models/school-event.model';
 import { AcademicYear } from '../../core/models/academic-year.model';
 import {
   AudienceLookups,
   EMPTY_LOOKUPS,
   buildTargets,
   loadAudienceLookups,
-  localizedFullName,
-  localizedName,
   selectedIdsFromTargets,
   toHourMinute,
   todayIso
-} from './event-audience';
-
-/** One selectable row in the audience picker */
-interface PickerItem {
-  id: string;
-  label: string;
-  sub?: string;
-  group?: string;
-}
+} from '../shared/audience';
 
 /** Field limits (SchoolEventConfiguration in the backend) */
 const TITLE_MAX = 200;
@@ -61,13 +46,11 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
   apiErrors = signal<string[]>([]);
   successMessage = signal<string | null>(null);
 
-  private lookups = signal<AudienceLookups>(EMPTY_LOOKUPS);
+  lookups = signal<AudienceLookups>(EMPTY_LOOKUPS);
 
-  // Audience
+  // Audience (bound two-way to <app-audience-picker>)
   eventFor = signal<EventFor>(EventFor.All);
   selectedIds = signal<Set<string>>(new Set());
-  pickerSearch = signal('');
-  pickerGradeFilter = signal('');
   /** Set after a submit attempt so the audience error only shows then */
   submitted = signal(false);
 
@@ -75,81 +58,13 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
   academicYearId = signal('');
   imageUrl = signal('');
 
-  readonly eventForOptions = EVENT_FOR_OPTIONS;
-  readonly EventFor = EventFor;
   readonly limits = { title: TITLE_MAX, description: DESCRIPTION_MAX, imageUrl: IMAGE_URL_MAX };
 
   academicYears = computed(() => this.lookups().academicYears);
-  grades = computed(() => this.lookups().grades);
 
   semesters = computed(() => {
     const year = this.lookups().academicYears.find(y => y.id === this.academicYearId());
     return (year?.semesters ?? []).filter(s => !!s.id);
-  });
-
-  /** All rows for the current audience type */
-  private pickerItems = computed<PickerItem[]>(() => {
-    const l = this.lookups();
-    const lang = this.currentLanguage();
-    const stages = new Map(l.stages.map(s => [s.id, s]));
-    const grades = new Map(l.grades.map(g => [g.id, g]));
-    const sections = new Map(l.sections.map(s => [s.id, s]));
-
-    switch (this.eventFor()) {
-      case EventFor.Stage:
-        return l.stages.map(s => ({
-          id: s.id,
-          label: localizedName(s, lang),
-          sub: this.translate.instant('schoolEvents.gradesCount', { count: l.grades.filter(g => g.stageId === s.id).length })
-        }));
-      case EventFor.Grade:
-        return l.grades.map(g => ({ id: g.id, label: localizedName(g, lang), group: localizedName(stages.get(g.stageId), lang) }));
-      case EventFor.Section:
-        return l.sections.map(s => ({ id: s.id, label: localizedName(s, lang), group: localizedName(grades.get(s.gradeId), lang) }));
-      case EventFor.Teacher:
-        return l.teachers
-          .filter(t => t.isActive !== false || this.selectedIds().has(t.id))
-          .map(t => ({ id: t.id, label: localizedFullName(t, lang), sub: t.phoneNumber }));
-      case EventFor.Student:
-        return l.students.map(s => ({
-          id: s.id,
-          label: localizedFullName(s, lang),
-          sub: `${localizedName(grades.get(s.gradeId), lang)} / ${localizedName(sections.get(s.sectionId), lang)}`,
-          group: s.gradeId
-        }));
-      default:
-        return [];
-    }
-  });
-
-  /** Rows after search (and grade filter for students) */
-  visiblePickerItems = computed(() => {
-    const term = this.pickerSearch().trim().toLowerCase();
-    const gradeId = this.pickerGradeFilter();
-    const isStudent = this.eventFor() === EventFor.Student;
-
-    return this.pickerItems().filter(item => {
-      if (isStudent && gradeId && item.group !== gradeId) return false;
-      if (term && !`${item.label} ${item.sub ?? ''} ${item.group ?? ''}`.toLowerCase().includes(term)) return false;
-      return true;
-    });
-  });
-
-  /** Visible rows grouped by their group label (students are not grouped) */
-  pickerGroups = computed(() => {
-    const groups = new Map<string, PickerItem[]>();
-    const grouped = this.eventFor() === EventFor.Grade || this.eventFor() === EventFor.Section;
-    for (const item of this.visiblePickerItems()) {
-      const key = grouped ? item.group || '-' : '';
-      groups.set(key, [...(groups.get(key) ?? []), item]);
-    }
-    return [...groups].map(([label, items]) => ({ label, items }));
-  });
-
-  allVisibleSelected = computed(() => {
-    const visible = this.visiblePickerItems();
-    const selected = this.selectedIds();
-    return visible.length > 0 && visible.every(i => selected.has(i.id));
   });
 
   /** Number of target rows that will be saved (stages expand to their grades) */
@@ -308,55 +223,6 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
 
     this.eventFor.set(event.eventFor || EventFor.All);
     this.selectedIds.set(selectedIdsFromTargets(event.eventFor, event.targets ?? [], this.lookups()));
-  }
-
-  // ---------------------------------------------------------------------------
-  // Audience picker
-  // ---------------------------------------------------------------------------
-
-  setEventFor(value: EventFor): void {
-    if (value === this.eventFor()) return;
-    this.eventFor.set(value);
-    this.selectedIds.set(new Set());
-    this.pickerSearch.set('');
-    this.pickerGradeFilter.set('');
-  }
-
-  isSelected(id: string): boolean {
-    return this.selectedIds().has(id);
-  }
-
-  toggle(id: string): void {
-    const next = new Set(this.selectedIds());
-    next.has(id) ? next.delete(id) : next.add(id);
-    this.selectedIds.set(next);
-  }
-
-  toggleAllVisible(): void {
-    const next = new Set(this.selectedIds());
-    const visible = this.visiblePickerItems();
-    if (this.allVisibleSelected()) {
-      visible.forEach(i => next.delete(i.id));
-    } else {
-      visible.forEach(i => next.add(i.id));
-    }
-    this.selectedIds.set(next);
-  }
-
-  clearSelection(): void {
-    this.selectedIds.set(new Set());
-  }
-
-  onPickerSearch(event: Event): void {
-    this.pickerSearch.set((event.target as HTMLInputElement).value);
-  }
-
-  onPickerGradeFilter(event: Event): void {
-    this.pickerGradeFilter.set((event.target as HTMLSelectElement).value);
-  }
-
-  gradeName(id: string): string {
-    return localizedName(this.lookups().grades.find(g => g.id === id), this.currentLanguage());
   }
 
   // ---------------------------------------------------------------------------

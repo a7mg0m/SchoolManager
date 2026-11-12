@@ -140,6 +140,11 @@
               <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('notificationMenu')">
                 <div class="vsm-list">
                   <div class="vsm-item">
+                    <a routerLink="/notification/notifications" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.notifications' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
                     <a routerLink="/notification/school-events" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
                       <span class="vsm-title">{{ 'sidebar.schoolEvents' | translate }}</span>
                     </a>

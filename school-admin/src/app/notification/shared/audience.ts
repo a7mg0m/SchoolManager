@@ -12,9 +12,15 @@ import { Section } from '../../core/models/section.model';
 import { Teacher } from '../../core/models/teacher.model';
 import { Student } from '../../core/models/student.model';
 import { AcademicYear } from '../../core/models/academic-year.model';
-import { EventFor, EventTarget, EventTargetInput, SchoolEvent } from '../../core/models/school-event.model';
+import { EventFor, EventTargetInput } from '../../core/models/school-event.model';
 
-/** Reference data needed to pick and describe an event's audience */
+/**
+ * Shared audience helpers for the Notification service screens (school events, notifications).
+ * Both store recipients as rows with one of grade/section/teacher/student ids set.
+ */
+export type TargetIds = Pick<EventTargetInput, 'gradeId' | 'sectionId' | 'teacherId' | 'studentId'>;
+
+/** Reference data needed to pick and describe an audience */
 export interface AudienceLookups {
   academicYears: AcademicYear[];
   stages: Stage[];
@@ -87,7 +93,7 @@ export function buildTargets(eventFor: EventFor, selectedIds: Set<string>, looku
 }
 
 /** Reverse of buildTargets: which ids the form should show as selected */
-export function selectedIdsFromTargets(eventFor: EventFor, targets: EventTarget[], lookups: AudienceLookups): Set<string> {
+export function selectedIdsFromTargets(eventFor: EventFor, targets: TargetIds[], lookups: AudienceLookups): Set<string> {
   switch (eventFor) {
     case EventFor.Stage: {
       // A stage counts as selected when any of its grades is targeted
@@ -118,13 +124,32 @@ export function localizedFullName(item: { fullNameAr: string; fullNameEn: string
   return lang === 'ar' ? item.fullNameAr || item.fullNameEn : item.fullNameEn || item.fullNameAr;
 }
 
-/** Display names of an event's audience (empty for "All") */
-export function audienceNames(event: SchoolEvent, lookups: AudienceLookups, lang: string): string[] {
-  const ids = selectedIdsFromTargets(event.eventFor, event.targets ?? [], lookups);
+/**
+ * Notifications don't store an audience type, only targets. Infer it:
+ * none → All; otherwise the most specific id present. Grade targets that
+ * exactly cover whole stages are shown as Stage (that's how stages are saved).
+ */
+export function inferAudience(targets: TargetIds[], lookups: AudienceLookups): EventFor {
+  if (!targets?.length) return EventFor.All;
+  if (targets.some(t => t.studentId)) return EventFor.Student;
+  if (targets.some(t => t.teacherId)) return EventFor.Teacher;
+  if (targets.some(t => t.sectionId)) return EventFor.Section;
+
+  const gradeIds = new Set(targets.map(t => t.gradeId).filter((id): id is string => !!id));
+  const stageIds = new Set(lookups.grades.filter(g => gradeIds.has(g.id)).map(g => g.stageId));
+  const coveredGrades = lookups.grades.filter(g => stageIds.has(g.stageId));
+  const coversWholeStages =
+    stageIds.size > 0 && coveredGrades.length === gradeIds.size && coveredGrades.every(g => gradeIds.has(g.id));
+  return coversWholeStages ? EventFor.Stage : EventFor.Grade;
+}
+
+/** Display names of an audience (empty for "All") */
+export function audienceNames(eventFor: EventFor, targets: TargetIds[], lookups: AudienceLookups, lang: string): string[] {
+  const ids = selectedIdsFromTargets(eventFor, targets ?? [], lookups);
   const pick = <T extends { id: string }>(list: T[], name: (x: T) => string) =>
     list.filter(x => ids.has(x.id)).map(name);
 
-  switch (event.eventFor) {
+  switch (eventFor) {
     case EventFor.Stage:
       return pick(lookups.stages, s => localizedName(s, lang));
     case EventFor.Grade:

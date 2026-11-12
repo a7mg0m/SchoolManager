@@ -70,7 +70,8 @@
     "fees": "الرسوم",
     "studentFees": "رسوم الطلاب",
     "notification": "الإشعارات",
-    "schoolEvents": "فعاليات المدرسة"
+    "schoolEvents": "فعاليات المدرسة",
+    "notifications": "الإشعارات"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -792,6 +793,64 @@
       "AcademicYearRequired": "العام الدراسي مطلوب",
       "SemesterRequired": "الفصل الدراسي مطلوب",
       "TargetRequired": "اختر مستهدفاً واحداً على الأقل"
+    }
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "newNotification": "إشعار جديد",
+    "editNotification": "تعديل الإشعار",
+    "backToList": "العودة إلى الإشعارات",
+    "scheduledCount": "{{count}} مجدول",
+    "searchPlaceholder": "ابحث بالعنوان أو نص الرسالة...",
+    "type": "النوع",
+    "allTypes": "جميع الأنواع",
+    "scheduled": "مجدول",
+    "sent": "مُرسل",
+    "noNotifications": "لا توجد إشعارات بعد.",
+    "noMatches": "لا توجد إشعارات مطابقة للفلاتر الحالية.",
+    "details": "التفاصيل",
+    "recipients": "المستلمون",
+    "editRecipients": "تعديل المستلمين",
+    "recipientsCount": "{{count}} مستلم",
+    "recipientType": "نوع المستلم",
+    "unknownRecipient": "غير معروف (ربما تم حذفه)",
+    "reachStudents": "الطلاب المستهدفون",
+    "reachTeachers": "المعلمون المستهدفون",
+    "reachHint": "تقدير حسب القيد الحالي",
+    "content": "المحتوى",
+    "message": "نص الرسالة",
+    "sendOn": "تاريخ الإرسال",
+    "scheduledHint": "هذا الإشعار مجدول لتاريخ لاحق.",
+    "allHint": "سيصل هذا الإشعار إلى جميع من في المدرسة.",
+    "send": "إرسال",
+    "schedule": "جدولة",
+    "deleteNotification": "حذف الإشعار",
+    "confirmDelete": "هل أنت متأكد من حذف هذا الإشعار؟",
+    "deleted": "تم حذف الإشعار بنجاح",
+    "deleteFailed": "فشل حذف الإشعار. يرجى المحاولة مرة أخرى.",
+    "loadFailed": "فشل تحميل الإشعارات. يرجى المحاولة مرة أخرى.",
+    "loadNotificationFailed": "فشل تحميل الإشعار.",
+    "loadRecipientsFailed": "فشل تحميل المستلمين.",
+    "created": "تم حفظ الإشعار بنجاح",
+    "updated": "تم تحديث الإشعار بنجاح",
+    "createFailed": "فشل حفظ الإشعار.",
+    "updateFailed": "فشل تحديث الإشعار.",
+    "types": {
+      "homework": "واجب",
+      "exam": "امتحان",
+      "examResult": "نتيجة امتحان",
+      "event": "فعالية",
+      "message": "رسالة"
+    },
+    "kinds": {
+      "grade": "صف",
+      "section": "فصل",
+      "teacher": "معلم",
+      "student": "طالب"
+    },
+    "errors": {
+      "NotificationTypeInvalid": "اختر نوع إشعار صحيح",
+      "IdRequired": "معرّف الإشعار مفقود"
     }
   }
 }

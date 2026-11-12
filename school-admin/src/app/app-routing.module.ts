@@ -45,7 +45,10 @@ import {
 
   // Notification components
   SchoolEventListComponent,
-  SchoolEventSaveComponent
+  SchoolEventSaveComponent,
+  NotificationListComponent,
+  NotificationSaveComponent,
+  NotificationTargetsComponent
 } from './components.barrel';
 
 // Import user pages
@@ -118,6 +121,10 @@ const routes: Routes = [
       {path: 'notification/school-events', component: SchoolEventListComponent, data: {extraParameter: 'notificationMenu'}},
       {path: 'notification/school-events/save', component: SchoolEventSaveComponent, data: {extraParameter: 'notificationMenu'}},
       {path: 'notification/school-events/save/:id', component: SchoolEventSaveComponent, data: {extraParameter: 'notificationMenu'}},
+      {path: 'notification/notifications', component: NotificationListComponent, data: {extraParameter: 'notificationMenu'}},
+      {path: 'notification/notifications/save', component: NotificationSaveComponent, data: {extraParameter: 'notificationMenu'}},
+      {path: 'notification/notifications/save/:id', component: NotificationSaveComponent, data: {extraParameter: 'notificationMenu'}},
+      {path: 'notification/notifications/:id/recipients', component: NotificationTargetsComponent, data: {extraParameter: 'notificationMenu'}},
     ]
   },
   {

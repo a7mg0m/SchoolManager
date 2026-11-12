@@ -25,14 +25,16 @@ namespace SchoolManager.Management.Application
             if (entity is null)
                 return false;
 
+            var now = DateTime.Now;
+
+            // Keep who/when created; record the update
             entity.Update(
                 request.Name,
                 request.StartDate,
                 request.EndDate,
                 request.IsActive,
-                new AuditInfo(DateTime.Now, request.UpdatedBy));
+                entity.AuditInfo.Updated(now, request.UpdatedBy));
 
-            var audit = new AuditInfo(DateTime.Now, request.UpdatedBy);
             var incoming = request.Semesters ?? new();
             var incomingIds = incoming.Where(s => s.Id.HasValue).Select(s => s.Id!.Value).ToHashSet();
 
@@ -45,10 +47,11 @@ namespace SchoolManager.Management.Application
             foreach (var dto in incoming)
             {
                 var existing = dto.Id.HasValue ? entity.Semesters.FirstOrDefault(s => s.Id == dto.Id.Value) : null;
+                // One AuditInfo per semester (owned type – a shared instance would be saved for only one row)
                 if (existing is not null)
-                    existing.Update(dto.Name, entity.Id, dto.StartDate, dto.EndDate, audit);
+                    existing.Update(dto.Name, entity.Id, dto.StartDate, dto.EndDate, existing.AuditInfo.Updated(now, request.UpdatedBy));
                 else
-                    await _semesterRepository.AddAsync(new Semester(dto.Name, entity.Id, dto.StartDate, dto.EndDate, audit));
+                    await _semesterRepository.AddAsync(new Semester(dto.Name, entity.Id, dto.StartDate, dto.EndDate, new AuditInfo(now, request.UpdatedBy)));
             }
 
             await _unitOfWork.SaveChangesAsync();

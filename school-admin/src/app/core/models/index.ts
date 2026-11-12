@@ -16,3 +16,4 @@ export * from './fee.model';
 export * from './student.model';
 export * from './student-fee.model';
 export * from './school-event.model';
+export * from './notification.model';

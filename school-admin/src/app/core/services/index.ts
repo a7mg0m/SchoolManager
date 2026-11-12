@@ -16,3 +16,4 @@ export * from './fee.service';
 export * from './student.service';
 export * from './student-fee.service';
 export * from './school-event.service';
+export * from './notification.service';

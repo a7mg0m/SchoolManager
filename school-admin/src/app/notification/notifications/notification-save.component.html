@@ -1,0 +1,159 @@
+<div class="container-fluid">
+  <div class="mb-3">
+    <button type="button" class="btn btn-link px-0 mb-1" (click)="cancel()">
+      <i class="pe-7s-angle-left"></i> {{ 'notifications.backToList' | translate }}
+    </button>
+    <h2 class="mb-0">{{ (notificationId() ? 'notifications.editNotification' : 'notifications.newNotification') | translate }}</h2>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success" role="alert">{{ successMessage() }}</div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      @if (apiErrors().length) {
+        <ul class="mb-0 mt-1">
+          @for (e of apiErrors(); track $index) {
+            <li>{{ e }}</li>
+          }
+        </ul>
+      }
+      <button type="button" class="btn-close" (click)="errorMessage.set(null); apiErrors.set([])"></button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="row g-3">
+        <!-- Left: content -->
+        <div class="col-xl-7">
+          <div class="card mb-3">
+            <div class="card-header">{{ 'notifications.content' | translate }}</div>
+            <div class="card-body">
+              <label class="form-label">{{ 'notifications.type' | translate }} <span class="text-danger">*</span></label>
+              <div class="type-options mb-3" role="radiogroup">
+                @for (t of types; track t.value) {
+                  <button
+                    type="button"
+                    class="type-option"
+                    role="radio"
+                    [attr.aria-checked]="notificationType() === t.value"
+                    [class.active]="notificationType() === t.value"
+                    (click)="setType(t.value)"
+                  >
+                    <span class="type-icon" [ngClass]="t.badge"><i [class]="t.icon"></i></span>
+                    <span>{{ t.key | translate }}</span>
+                  </button>
+                }
+              </div>
+
+              <div class="mb-3">
+                <label for="title" class="form-label">{{ 'schoolEvents.eventTitle' | translate }} <span class="text-danger">*</span></label>
+                <input
+                  id="title"
+                  type="text"
+                  class="form-control"
+                  formControlName="title"
+                  [attr.maxlength]="limits.title"
+                  [class.is-invalid]="form.get('title')?.invalid && form.get('title')?.touched"
+                />
+                @if (hasError('title', 'required')) {
+                  <div class="invalid-feedback">{{ 'schoolEvents.errors.TitleRequired' | translate }}</div>
+                }
+              </div>
+
+              <div class="mb-3">
+                <label for="description" class="form-label">{{ 'notifications.message' | translate }} <span class="text-danger">*</span></label>
+                <textarea
+                  id="description"
+                  rows="5"
+                  class="form-control"
+                  formControlName="description"
+                  [attr.maxlength]="limits.description"
+                  [class.is-invalid]="form.get('description')?.invalid && form.get('description')?.touched"
+                ></textarea>
+                <div class="d-flex justify-content-between">
+                  <div>
+                    @if (hasError('description', 'required')) {
+                      <div class="invalid-feedback d-block">{{ 'schoolEvents.errors.DescriptionRequired' | translate }}</div>
+                    }
+                  </div>
+                  <small class="text-muted">{{ form.get('description')?.value?.length || 0 }} / {{ limits.description }}</small>
+                </div>
+              </div>
+
+              <div class="row g-3">
+                <div class="col-md-5">
+                  <label for="sentOn" class="form-label">{{ 'notifications.sendOn' | translate }} <span class="text-danger">*</span></label>
+                  <input
+                    id="sentOn"
+                    type="date"
+                    class="form-control"
+                    formControlName="sentOn"
+                    [class.is-invalid]="form.get('sentOn')?.invalid && form.get('sentOn')?.touched"
+                  />
+                  @if (isScheduled()) {
+                    <small class="text-primary">{{ 'notifications.scheduledHint' | translate }}</small>
+                  }
+                </div>
+                <div class="col-md-7">
+                  <label for="imageUrl" class="form-label">{{ 'schoolEvents.imageUrl' | translate }}</label>
+                  <input
+                    id="imageUrl"
+                    type="url"
+                    class="form-control"
+                    formControlName="imageUrl"
+                    placeholder="https://..."
+                    dir="ltr"
+                    [class.is-invalid]="form.get('imageUrl')?.invalid && form.get('imageUrl')?.touched"
+                  />
+                  @if (hasError('imageUrl', 'pattern')) {
+                    <div class="invalid-feedback">{{ 'schoolEvents.imageUrlInvalid' | translate }}</div>
+                  }
+                </div>
+              </div>
+              @if (imageUrl() && !form.get('imageUrl')?.invalid) {
+                <img class="image-preview mt-2" [src]="imageUrl()" alt="" (error)="$any($event.target).style.display = 'none'" (load)="$any($event.target).style.display = ''" />
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: recipients -->
+        <div class="col-xl-5">
+          <div class="card mb-3" [class.border-danger]="submitted() && audienceInvalid()">
+            <div class="card-header">{{ 'notifications.recipients' | translate }}</div>
+            <div class="card-body">
+              <app-audience-picker
+                [(audience)]="audience"
+                [(selectedIds)]="selectedIds"
+                [lookups]="lookups()"
+                [lang]="currentLanguage()"
+                [showError]="submitted() && audienceInvalid()"
+                allHintKey="notifications.allHint"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mb-4">
+        <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="isSaving()">{{ 'common.cancel' | translate }}</button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ (notificationId() ? 'common.update' : (isScheduled() ? 'notifications.schedule' : 'notifications.send')) | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

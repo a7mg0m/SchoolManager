@@ -38,3 +38,6 @@ export { StudentFeeAssignComponent } from './financial/student-fees/student-fee-
 // Notification components
 export { SchoolEventListComponent } from './notification/school-events/school-event-list.component';
 export { SchoolEventSaveComponent } from './notification/school-events/school-event-save.component';
+export { NotificationListComponent } from './notification/notifications/notification-list.component';
+export { NotificationSaveComponent } from './notification/notifications/notification-save.component';
+export { NotificationTargetsComponent } from './notification/notifications/notification-targets.component';

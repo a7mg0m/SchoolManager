@@ -1,0 +1,129 @@
+<div class="container-fluid">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div class="min-w-0">
+      <button type="button" class="btn btn-link px-0 mb-1" (click)="backToList()">
+        <i class="pe-7s-angle-left"></i> {{ 'notifications.backToList' | translate }}
+      </button>
+      <h2 class="mb-0">{{ 'notifications.recipients' | translate }}</h2>
+      @if (notification(); as n) {
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+          <span class="fw-semibold text-truncate">{{ n.title }}</span>
+          <span class="badge" [ngClass]="typeInfo(n).badge">{{ typeInfo(n).key | translate }}</span>
+          <small class="text-muted">{{ formatDate(n.sentOn) }}</small>
+        </div>
+      }
+    </div>
+    @if (notification()) {
+      <button class="btn btn-outline-primary btn-sm" (click)="editNotification()">
+        <i class="pe-7s-note"></i> {{ 'notifications.editRecipients' | translate }}
+      </button>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  } @else if (!errorMessage()) {
+    <!-- Summary -->
+    <div class="row g-2 mb-3">
+      <div class="col-md-4 col-sm-6">
+        <div class="summary-tile">
+          <span class="text-muted small">{{ 'schoolEvents.audience' | translate }}</span>
+          <div class="summary-value"><i [class]="audienceOption().icon"></i> {{ audienceOption().key | translate }}</div>
+          <div class="summary-meta text-muted">
+            @if (targets().length === 0) {
+              {{ 'schoolEvents.wholeSchool' | translate }}
+            } @else {
+              {{ 'notifications.recipientsCount' | translate: { count: targets().length } }}
+            }
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="summary-tile">
+          <span class="text-muted small">{{ 'notifications.reachStudents' | translate }}</span>
+          <div class="summary-value">{{ reach().students }}</div>
+          <div class="summary-meta text-muted">{{ 'notifications.reachHint' | translate }}</div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="summary-tile">
+          <span class="text-muted small">{{ 'notifications.reachTeachers' | translate }}</span>
+          <div class="summary-value">{{ reach().teachers }}</div>
+        </div>
+      </div>
+    </div>
+
+    @if (targets().length === 0) {
+      <div class="card text-center">
+        <div class="card-body py-5">
+          <i class="pe-7s-global text-muted" style="font-size: 2.5rem;"></i>
+          <p class="text-muted mt-3 mb-0">{{ 'notifications.allHint' | translate }}</p>
+        </div>
+      </div>
+    } @else {
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+            <input
+              type="search"
+              class="form-control form-control-sm search-input"
+              [value]="searchTerm()"
+              (input)="onSearch($event)"
+              [placeholder]="'common.search' | translate"
+            />
+            @for (k of kinds; track k) {
+              @if (kindCount(k) > 0) {
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  [class.btn-dark]="kindFilter() === k"
+                  [class.btn-outline-secondary]="kindFilter() !== k"
+                  (click)="toggleKind(k)"
+                >
+                  <i [class]="kindIcons[k]"></i> {{ 'notifications.kinds.' + k | translate }} ({{ kindCount(k) }})
+                </button>
+              }
+            }
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th class="row-number">#</th>
+                  <th>{{ 'notifications.recipientType' | translate }}</th>
+                  <th>{{ 'students.name' | translate }}</th>
+                  <th>{{ 'notifications.details' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of visibleRows(); track r.id; let i = $index) {
+                  <tr>
+                    <td class="row-number text-muted">{{ i + 1 }}</td>
+                    <td class="text-nowrap"><i [class]="kindIcons[r.kind]"></i> {{ 'notifications.kinds.' + r.kind | translate }}</td>
+                    <td class="fw-semibold">{{ r.name }}</td>
+                    <td class="text-muted">{{ r.detail || '-' }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="4" class="text-center text-muted py-3">{{ 'schoolEvents.noOptions' | translate }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

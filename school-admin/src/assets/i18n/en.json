@@ -70,7 +70,8 @@
     "fees": "Fees",
     "studentFees": "Student Fees",
     "notification": "Notification",
-    "schoolEvents": "School Events"
+    "schoolEvents": "School Events",
+    "notifications": "Notifications"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -792,6 +793,64 @@
       "AcademicYearRequired": "Academic year is required",
       "SemesterRequired": "Semester is required",
       "TargetRequired": "Select at least one recipient"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "newNotification": "New Notification",
+    "editNotification": "Edit Notification",
+    "backToList": "Back to notifications",
+    "scheduledCount": "{{count}} scheduled",
+    "searchPlaceholder": "Search by title or message...",
+    "type": "Type",
+    "allTypes": "All types",
+    "scheduled": "Scheduled",
+    "sent": "Sent",
+    "noNotifications": "No notifications yet.",
+    "noMatches": "No notifications match the current filters.",
+    "details": "Details",
+    "recipients": "Recipients",
+    "editRecipients": "Edit recipients",
+    "recipientsCount": "{{count}} recipient(s)",
+    "recipientType": "Recipient type",
+    "unknownRecipient": "Unknown (deleted?)",
+    "reachStudents": "Students reached",
+    "reachTeachers": "Teachers reached",
+    "reachHint": "Estimated from current enrolment",
+    "content": "Content",
+    "message": "Message",
+    "sendOn": "Send on",
+    "scheduledHint": "This notification is scheduled for a future date.",
+    "allHint": "Everyone in the school will receive this notification.",
+    "send": "Send",
+    "schedule": "Schedule",
+    "deleteNotification": "Delete notification",
+    "confirmDelete": "Are you sure you want to delete this notification?",
+    "deleted": "Notification deleted successfully",
+    "deleteFailed": "Failed to delete the notification. Please try again.",
+    "loadFailed": "Failed to load notifications. Please try again.",
+    "loadNotificationFailed": "Failed to load the notification.",
+    "loadRecipientsFailed": "Failed to load the recipients.",
+    "created": "Notification saved successfully",
+    "updated": "Notification updated successfully",
+    "createFailed": "Failed to save the notification.",
+    "updateFailed": "Failed to update the notification.",
+    "types": {
+      "homework": "Homework",
+      "exam": "Exam",
+      "examResult": "Exam result",
+      "event": "Event",
+      "message": "Message"
+    },
+    "kinds": {
+      "grade": "Grade",
+      "section": "Section",
+      "teacher": "Teacher",
+      "student": "Student"
+    },
+    "errors": {
+      "NotificationTypeInvalid": "Choose a valid notification type",
+      "IdRequired": "Notification id is missing"
     }
   }
 }

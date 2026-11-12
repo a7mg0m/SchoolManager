@@ -21,7 +21,7 @@ namespace SchoolManager.Notification.Domain
             ChatRoomId = chatRoomId;
             UserId = userId;
             Status = MessageDeliveryStatus.Sent;
-            AuditInfo = auditInfo;
+            AuditInfo = auditInfo.Copy(); // copy: the message and every recipient status share one instance (owned type)
         }
 
         public void MarkDelivered(AuditInfo auditInfo)

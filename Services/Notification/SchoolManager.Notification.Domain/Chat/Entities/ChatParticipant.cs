@@ -20,7 +20,7 @@ namespace SchoolManager.Notification.Domain
             UserId = userId;
             JoinedOn = auditInfo.CreatedOn;
             IsActive = true;
-            AuditInfo = auditInfo;
+            AuditInfo = auditInfo.Copy(); // copy: the room and all participants are created with one instance (owned type)
         }
 
         internal void Rejoin(AuditInfo auditInfo)

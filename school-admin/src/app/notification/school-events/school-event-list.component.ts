@@ -21,7 +21,7 @@ import {
   formatTime,
   loadAudienceLookups,
   todayIso
-} from './event-audience';
+} from '../shared/audience';
 
 type EventTab = 'upcoming' | 'past';
 
@@ -250,7 +250,7 @@ export class SchoolEventListComponent implements OnInit, OnDestroy {
   }
 
   audience(event: SchoolEvent): string[] {
-    return audienceNames(event, this.lookups(), this.currentLanguage());
+    return audienceNames(event.eventFor, event.targets ?? [], this.lookups(), this.currentLanguage());
   }
 
   /** Short audience label for the card: "All school" or e.g. "Grade 1, Grade 2 +3" */

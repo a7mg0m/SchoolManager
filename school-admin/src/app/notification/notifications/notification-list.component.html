@@ -1,0 +1,240 @@
+<div class="container-fluid">
+  <div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+      <h2 class="mb-0">{{ 'notifications.title' | translate }}</h2>
+      @if (!isLoading() && scheduledCount() > 0) {
+        <small class="text-primary">{{ 'notifications.scheduledCount' | translate: { count: scheduledCount() } }}</small>
+      }
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'notifications.newNotification' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && notifications().length === 0 && !errorMessage()) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-bell text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'notifications.noNotifications' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">{{ 'notifications.newNotification' | translate }}</button>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && notifications().length > 0) {
+    <!-- Type chips -->
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      @for (t of types; track t.value) {
+        <button
+          type="button"
+          class="type-chip"
+          [class.active]="typeFilter() === '' + t.value"
+          [disabled]="typeCount(t.value) === 0"
+          (click)="toggleType(t.value)"
+        >
+          <span class="type-icon" [ngClass]="t.badge"><i [class]="t.icon"></i></span>
+          <span>{{ t.key | translate }}</span>
+          <span class="fw-bold">{{ typeCount(t.value) }}</span>
+        </button>
+      }
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-lg-6 col-md-12">
+            <label class="form-label small mb-1" for="notificationSearch">{{ 'common.search' | translate }}</label>
+            <input
+              id="notificationSearch"
+              type="search"
+              class="form-control"
+              [value]="searchTerm()"
+              (input)="setFilter('search', $event)"
+              [placeholder]="'notifications.searchPlaceholder' | translate"
+            />
+          </div>
+          <div class="col-lg-2 col-md-5 col-6">
+            <label class="form-label small mb-1" for="typeFilter">{{ 'notifications.type' | translate }}</label>
+            <select id="typeFilter" class="form-select" [value]="typeFilter()" (change)="setFilter('type', $event)">
+              <option value="">{{ 'notifications.allTypes' | translate }}</option>
+              @for (t of types; track t.value) {
+                <option [value]="t.value" [selected]="'' + t.value === typeFilter()">{{ t.key | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-5 col-6">
+            <label class="form-label small mb-1" for="statusFilter">{{ 'common.status' | translate }}</label>
+            <select id="statusFilter" class="form-select" [value]="statusFilter()" (change)="setFilter('status', $event)">
+              <option value="">{{ 'students.all' | translate }}</option>
+              <option value="scheduled" [selected]="statusFilter() === 'scheduled'">{{ 'notifications.scheduled' | translate }}</option>
+              <option value="sent" [selected]="statusFilter() === 'sent'">{{ 'notifications.sent' | translate }}</option>
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-2">
+            <button type="button" class="btn btn-outline-secondary w-100" (click)="clearFilters()" [disabled]="!hasActiveFilters()">
+              {{ 'fees.clear' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (filtered().length === 0) {
+      <div class="card text-center">
+        <div class="card-body py-5">
+          <i class="pe-7s-search text-muted" style="font-size: 2.5rem;"></i>
+          <p class="text-muted mt-3 mb-0">{{ 'notifications.noMatches' | translate }}</p>
+        </div>
+      </div>
+    } @else {
+      <div class="card">
+        <div class="list-group list-group-flush">
+          @for (n of paged(); track n.id) {
+            @let type = typeInfo(n);
+            @let aud = audienceOption(n);
+            <div class="list-group-item notification-row">
+              <div class="d-flex gap-3 align-items-start">
+                <span class="type-icon type-icon-lg flex-shrink-0" [ngClass]="type.badge"><i [class]="type.icon"></i></span>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <a href="javascript:void(0)" class="notification-title" (click)="openView(n, viewModal)">{{ n.title }}</a>
+                    <span class="badge" [ngClass]="type.badge">{{ type.key | translate }}</span>
+                    @if (isScheduled(n)) {
+                      <span class="badge bg-light text-primary border border-primary">{{ 'notifications.scheduled' | translate }}</span>
+                    }
+                  </div>
+                  <p class="notification-description small mb-1">{{ n.description }}</p>
+                  <div class="small text-muted d-flex flex-wrap gap-3">
+                    <span><i class="pe-7s-date"></i> {{ formatDate(n.sentOn) }}</span>
+                    <span><i [class]="aud.icon"></i> {{ audienceSummary(n) }}</span>
+                  </div>
+                </div>
+                <div class="btn-group btn-group-sm flex-shrink-0" role="group">
+                  <button class="btn btn-outline-info" (click)="openView(n, viewModal)" title="{{ 'schoolEvents.view' | translate }}">
+                    <i class="pe-7s-look"></i>
+                  </button>
+                  <button class="btn btn-outline-secondary" (click)="navigateToRecipients(n.id)" title="{{ 'notifications.recipients' | translate }}">
+                    <i class="pe-7s-users"></i>
+                  </button>
+                  <button class="btn btn-outline-primary" (click)="navigateToEdit(n.id)" [disabled]="isDeleting()" title="{{ 'common.edit' | translate }}">
+                    <i class="pe-7s-note"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="openDeleteConfirmation(n, deleteModal)" [disabled]="isDeleting()" title="{{ 'common.delete' | translate }}">
+                    <i class="pe-7s-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+        @if (filtered().length > pageSize) {
+          <div class="card-footer bg-transparent d-flex justify-content-center">
+            <ngb-pagination
+              [collectionSize]="filtered().length"
+              [page]="page()"
+              (pageChange)="page.set($event)"
+              [pageSize]="pageSize"
+              [maxSize]="5"
+              [rotate]="true"
+              [boundaryLinks]="true"
+              size="sm"
+            ></ngb-pagination>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- View Modal -->
+<ng-template #viewModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'notifications.details' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    @if (viewed(); as n) {
+      @if (n.imageUrl) {
+        <img class="view-image mb-3" [src]="n.imageUrl" [alt]="n.title" (error)="$any($event.target).style.display = 'none'" />
+      }
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+        <h4 class="mb-0">{{ n.title }}</h4>
+        <span class="badge" [ngClass]="typeInfo(n).badge">{{ typeInfo(n).key | translate }}</span>
+      </div>
+      <div class="text-muted mb-3">
+        <i class="pe-7s-date"></i> {{ formatDate(n.sentOn) }}
+        · {{ (isScheduled(n) ? 'notifications.scheduled' : 'notifications.sent') | translate }}
+      </div>
+      <p class="description-full">{{ n.description }}</p>
+
+      <h6 class="mt-3">{{ 'schoolEvents.audience' | translate }}</h6>
+      <span class="badge bg-light text-dark border"><i [class]="audienceOption(n).icon"></i> {{ audienceOption(n).key | translate }}</span>
+      @if (!n.targets?.length) {
+        <span class="ms-1">{{ 'schoolEvents.wholeSchool' | translate }}</span>
+      } @else {
+        <div class="d-flex flex-wrap gap-1 mt-2">
+          @for (name of audience(n); track $index) {
+            <span class="badge bg-primary-subtle text-primary-emphasis border">{{ name }}</span>
+          }
+        </div>
+      }
+    }
+  </div>
+  <div class="modal-footer">
+    @if (viewed(); as n) {
+      <button type="button" class="btn btn-outline-secondary" (click)="modal.close(); navigateToRecipients(n.id)">
+        {{ 'notifications.recipients' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(n.id)">{{ 'common.edit' | translate }}</button>
+    }
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">{{ 'common.close' | translate }}</button>
+  </div>
+</ng-template>
+
+<!-- Delete Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'notifications.deleteNotification' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelDelete()" [disabled]="isDeleting()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-1">{{ 'notifications.confirmDelete' | translate }}</p>
+    @if (toDelete(); as n) {
+      <p class="mb-0"><strong>{{ n.title }}</strong> — {{ formatDate(n.sentOn) }}</p>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">{{ 'common.cancel' | translate }}</button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>
