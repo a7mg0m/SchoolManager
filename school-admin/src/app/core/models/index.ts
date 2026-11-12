@@ -5,3 +5,5 @@ export * from './stage.model';
 export * from './grade.model';
 export * from './section.model';
 export * from './teacher.model';
+export * from './subject.model';
+export * from './parent.model';

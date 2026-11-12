@@ -14,3 +14,7 @@ export { SectionListComponent } from './management/sections/section-list.compone
 export { SectionSaveComponent } from './management/sections/section-save.component';
 export { TeacherListComponent } from './management/teachers/teacher-list.component';
 export { TeacherSaveComponent } from './management/teachers/teacher-save.component';
+export { SubjectListComponent } from './management/subjects/subject-list.component';
+export { SubjectSaveComponent } from './management/subjects/subject-save.component';
+export { ParentListComponent } from './management/parents/parent-list.component';
+export { ParentSaveComponent } from './management/parents/parent-save.component';

@@ -8,15 +8,20 @@ namespace SchoolManager.Management.Application
 	{
 		private readonly IStudentRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
+		private readonly IGradeRepository _gradeRepository;
 
-		public CreateStudentCommandHandler(IStudentRepository repository, IUnitOfWork unitOfWork)
+		public CreateStudentCommandHandler(IStudentRepository repository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
 		{
+			_gradeRepository = gradeRepository;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
 
 		public async Task<Guid> Handle(CreateStudentCommand command, CancellationToken cancellationToken)
 		{
+			var grade = await _gradeRepository.GetByIdAsync(command.GradeId)
+				?? throw new InvalidOperationException("Grade not found.");
+
 			var entity = new Student(
 				new NameLocalized(command.FullNameAr, command.FullNameEn),
                 command.DateOfBirth,
@@ -25,6 +30,7 @@ namespace SchoolManager.Management.Application
                 command.PhoneNumber,
                 command.Email,
                 command.Address,
+                grade.StageId,
                 command.GradeId,
                 command.SectionId,
                 command.AcademicYearId,

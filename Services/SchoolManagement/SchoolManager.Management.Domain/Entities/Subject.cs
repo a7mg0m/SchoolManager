@@ -8,12 +8,14 @@ namespace SchoolManager.Management.Domain
     public sealed class Subject : BaseEntity
     {
         public NameLocalized Name { get; private set; }
+        public Guid StageId { get; private set; }
         public Guid GradeId { get; private set; }
         public bool IsActive { get; private set; }
 
         public AuditInfo AuditInfo { get; private set; }
 
         // Navigation
+        public Stage? Stage { get; private set; }
         public Grade? Grade { get; private set; }
         public List<SubjectTeacher> SubjectTeachers { get; private set; } = new();
 
@@ -21,11 +23,13 @@ namespace SchoolManager.Management.Domain
 
         public Subject(
             NameLocalized name,
+            Guid stageId,
             Guid gradeId,
             IEnumerable<Guid> teacherIds,
             AuditInfo auditInfo)
         {
             Name = name;
+            StageId = stageId;
             GradeId = gradeId;
             IsActive = true;
             SetTeachers(teacherIds);
@@ -33,9 +37,10 @@ namespace SchoolManager.Management.Domain
             AuditInfo = auditInfo;
         }
 
-        public void Update(NameLocalized name, Guid gradeId, IEnumerable<Guid> teacherIds, AuditInfo auditInfo)
+        public void Update(NameLocalized name, Guid stageId, Guid gradeId, IEnumerable<Guid> teacherIds, AuditInfo auditInfo)
         {
             Name = name;
+            StageId = stageId;
             GradeId = gradeId;
             SetTeachers(teacherIds);
 

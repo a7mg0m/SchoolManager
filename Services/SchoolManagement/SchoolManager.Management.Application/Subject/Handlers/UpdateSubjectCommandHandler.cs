@@ -23,6 +23,7 @@ namespace SchoolManager.Management.Application
 				return false;
 			entity.Update(
 				new NameLocalized(request.NameAr, request.NameEn),
+                request.StageId,
                 request.GradeId,
                 request.TeacherIds,
                 new AuditInfo(DateTime.Now, request.UpdatedBy));

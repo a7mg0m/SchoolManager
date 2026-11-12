@@ -5,6 +5,7 @@ namespace SchoolManager.Management.Application
     public record CreateSubjectCommand(
         string NameAr,
         string NameEn,
+        Guid StageId,
         Guid GradeId,
         List<Guid> TeacherIds,
         Guid CreatedBy

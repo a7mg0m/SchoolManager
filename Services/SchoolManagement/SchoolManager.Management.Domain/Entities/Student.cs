@@ -20,6 +20,7 @@ namespace SchoolManager.Management.Domain
         public string Address { get; private set; }
 
         // Academic Info
+        public Guid StageId { get; private set; }
         public Guid GradeId { get; private set; }
         public Guid SectionId { get; private set; }
         public Guid AcademicYearId { get; private set; }
@@ -31,6 +32,7 @@ namespace SchoolManager.Management.Domain
         public bool IsActive { get; private set; }
 
         // Navigation Properties
+        public Stage? Stage { get; private set; }
         public Grade? Grade { get; private set; }
         public Section? Section { get; private set; }
         public Parent? Parent { get; private set; }
@@ -47,6 +49,7 @@ namespace SchoolManager.Management.Domain
             string phoneNumber,
             string? email,
             string address,
+            Guid stageId,
             Guid gradeId,
             Guid sectionId,
             Guid academicYearId,
@@ -60,6 +63,7 @@ namespace SchoolManager.Management.Domain
             PhoneNumber = phoneNumber;
             Email = email;
             Address = address;
+            StageId = stageId;
             GradeId = gradeId;
             SectionId = sectionId;
             AcademicYearId = academicYearId;
@@ -74,6 +78,7 @@ namespace SchoolManager.Management.Domain
             string phoneNumber,
             string? email,
             string address,
+            Guid stageId,
             Guid gradeId,
             Guid sectionId,
             Guid academicYearId,
@@ -83,6 +88,7 @@ namespace SchoolManager.Management.Domain
             PhoneNumber = phoneNumber;
             Email = email;
             Address = address;
+            StageId = stageId;
             GradeId = gradeId;
             SectionId = sectionId;
             AcademicYearId = academicYearId;

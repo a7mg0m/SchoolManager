@@ -9,6 +9,7 @@ namespace SchoolManager.Management.Application
         string PhoneNumber,
         string? Email,
         string Address,
+        List<ParentStudentDto> Students,
         Guid UpdatedBy
     ) : ICommand<bool>;
 }

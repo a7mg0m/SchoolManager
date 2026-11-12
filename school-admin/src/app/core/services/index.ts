@@ -5,3 +5,5 @@ export * from './stage.service';
 export * from './grade.service';
 export * from './section.service';
 export * from './teacher.service';
+export * from './subject.service';
+export * from './parent.service';

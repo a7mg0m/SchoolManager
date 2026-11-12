@@ -1,0 +1,275 @@
+<div class="container-fluid">
+  <div class="row mb-4 ">
+    <div class="col-md-6">
+      <h2 class="mb-0">{{ 'subjects.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'subjects.newSubject' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Search & Filters -->
+  @if (!isLoading() && subjects().length > 0) {
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-4">
+            <label for="subjectSearch" class="form-label">{{ 'subjects.search' | translate }}</label>
+            <input
+              id="subjectSearch"
+              type="search"
+              class="form-control"
+              [value]="searchTerm()"
+              (input)="onSearch($event)"
+              [placeholder]="'subjects.searchPlaceholder' | translate"
+            />
+          </div>
+          <div class="col-md-3">
+            <label for="stageFilter" class="form-label">{{ 'subjects.stage' | translate }}</label>
+            <select id="stageFilter" class="form-select" (change)="onStageFilterChange($event)">
+              <option value="" [selected]="!selectedStageId()">{{ 'subjects.allStages' | translate }}</option>
+              @for (stage of filterStages(); track stage.id) {
+                <option [value]="stage.id" [selected]="stage.id === selectedStageId()">
+                  {{ getOptionName(stage) }}
+                </option>
+              }
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="gradeFilter" class="form-label">{{ 'subjects.grade' | translate }}</label>
+            <select id="gradeFilter" class="form-select" (change)="onGradeFilterChange($event)">
+              <option value="" [selected]="!selectedGradeId()">{{ 'subjects.allGrades' | translate }}</option>
+              @for (grade of filterGrades(); track grade.id) {
+                <option [value]="grade.id" [selected]="grade.id === selectedGradeId()">
+                  {{ getOptionName(grade) }}
+                </option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button
+              type="button"
+              class="btn btn-outline-secondary w-100"
+              (click)="clearFilters()"
+              [disabled]="!hasFilters()"
+            >
+              {{ 'subjects.clearFilters' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && subjects().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-notebook text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'subjects.noSubjects' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'subjects.newSubject' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- No Filter Results -->
+  @if (!isLoading() && subjects().length > 0 && filteredSubjects().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-search text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'subjects.noMatchingSubjects' | translate }}</p>
+        <button class="btn btn-outline-secondary" (click)="clearFilters()">
+          {{ 'subjects.clearFilters' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Subjects Table -->
+  @if (!isLoading() && filteredSubjects().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="row-number">#</th>
+                <th>{{ 'common.nameAr' | translate }}</th>
+                <th>{{ 'common.nameEn' | translate }}</th>
+                <th class="d-none d-lg-table-cell">{{ 'subjects.stage' | translate }}</th>
+                <th class="d-none d-sm-table-cell">{{ 'subjects.grade' | translate }}</th>
+                <th class="d-none d-md-table-cell">{{ 'subjects.teachers' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (subject of pagedSubjects(); track subject.id; let i = $index) {
+                <tr>
+                  <td class="row-number text-muted">{{ rowNumber(i) }}</td>
+                  <td dir="rtl"><strong>{{ subject.nameAr }}</strong></td>
+                  <td dir="ltr"><strong>{{ subject.nameEn }}</strong></td>
+                  <td class="d-none d-lg-table-cell">{{ getStageNameForGrade(subject.gradeId) }}</td>
+                  <td class="d-none d-sm-table-cell">{{ getGradeName(subject.gradeId) }}</td>
+                  <td class="d-none d-md-table-cell">
+                    @for (name of getTeacherNames(subject.teacherIds); track $index) {
+                      <span class="badge bg-light text-dark border me-1 mb-1">{{ name }}</span>
+                    } @empty {
+                      <span class="text-muted">-</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-info"
+                        (click)="openView(subject, viewModal)"
+                        title="{{ 'subjects.view' | translate }}"
+                      >
+                        <i class="pe-7s-look"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-primary"
+                        (click)="navigateToEdit(subject.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        (click)="openDeleteConfirmation(subject, deleteModal)"
+                        title="{{ 'common.delete' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (filteredSubjects().length > pageSize) {
+          <div class="d-flex justify-content-center mt-3">
+            <ngb-pagination
+              [collectionSize]="filteredSubjects().length"
+              [page]="page()"
+              (pageChange)="page.set($event)"
+              [pageSize]="pageSize"
+              [maxSize]="5"
+              [rotate]="true"
+              [boundaryLinks]="true"
+              size="sm"
+            ></ngb-pagination>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- View Subject Modal -->
+<ng-template #viewModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'subjects.subjectDetails' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    @if (viewedSubject(); as s) {
+      <dl class="row mb-0">
+        <dt class="col-sm-4">{{ 'common.nameAr' | translate }}</dt>
+        <dd class="col-sm-8" dir="rtl">{{ s.nameAr || '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'common.nameEn' | translate }}</dt>
+        <dd class="col-sm-8" dir="ltr">{{ s.nameEn || '-' }}</dd>
+
+        <dt class="col-sm-4">{{ 'subjects.stage' | translate }}</dt>
+        <dd class="col-sm-8">{{ getStageNameForGrade(s.gradeId) }}</dd>
+
+        <dt class="col-sm-4">{{ 'subjects.grade' | translate }}</dt>
+        <dd class="col-sm-8">{{ getGradeName(s.gradeId) }}</dd>
+
+        <dt class="col-sm-4">{{ 'subjects.teachers' | translate }}</dt>
+        <dd class="col-sm-8">
+          @for (name of getTeacherNames(s.teacherIds); track $index) {
+            <span class="badge bg-light text-dark border me-1 mb-1">{{ name }}</span>
+          } @empty {
+            -
+          }
+        </dd>
+
+        <dt class="col-sm-4">{{ 'common.status' | translate }}</dt>
+        <dd class="col-sm-8">
+          @if (s.isActive) {
+            <span class="badge bg-success">{{ 'common.active' | translate }}</span>
+          } @else {
+            <span class="badge bg-secondary">{{ 'common.inactive' | translate }}</span>
+          }
+        </dd>
+      </dl>
+    }
+  </div>
+  <div class="modal-footer">
+    @if (viewedSubject(); as s) {
+      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(s.id)">
+        {{ 'common.edit' | translate }}
+      </button>
+    }
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">
+      {{ 'common.close' | translate }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'subjects.deleteSubject' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelDelete()" [disabled]="isDeleting()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'subjects.confirmDeleteSubject' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

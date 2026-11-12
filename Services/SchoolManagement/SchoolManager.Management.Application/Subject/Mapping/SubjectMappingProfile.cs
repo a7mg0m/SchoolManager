@@ -11,6 +11,7 @@ namespace SchoolManager.Management.Application
                 .ConstructUsing(src => new CreateSubjectCommand(
                     src.NameAr,
                     src.NameEn,
+                    src.StageId,
                     src.GradeId,
                     src.TeacherIds,
                     Guid.NewGuid()));
@@ -20,6 +21,7 @@ namespace SchoolManager.Management.Application
                     src.Id,
                     src.NameAr,
                     src.NameEn,
+                    src.StageId,
                     src.GradeId,
                     src.TeacherIds,
                     Guid.NewGuid()));

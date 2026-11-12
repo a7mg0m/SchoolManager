@@ -17,7 +17,7 @@ namespace SchoolManager.Management.Application
 
 		public async Task<ParentDto?> Handle(GetParentByIdQuery request, CancellationToken cancellationToken)
 		{
-			var entity = await _repository.GetByIdAsync(request.Id);
+			var entity = await _repository.GetByIdWithStudentsAsync(request.Id);
 
 			return entity is null ? null : _mapper.Map<ParentDto>(entity);
 		}

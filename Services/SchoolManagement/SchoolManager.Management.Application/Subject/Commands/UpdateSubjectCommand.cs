@@ -6,6 +6,7 @@ namespace SchoolManager.Management.Application
         Guid Id,
         string NameAr,
         string NameEn,
+        Guid StageId,
         Guid GradeId,
         List<Guid> TeacherIds,
         Guid UpdatedBy

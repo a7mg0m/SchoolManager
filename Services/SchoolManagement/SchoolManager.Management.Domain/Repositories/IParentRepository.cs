@@ -7,6 +7,8 @@ namespace SchoolManager.Management.Domain
 {
     public interface IParentRepository : IRepository<Parent>
     {
+        Task<Parent?> GetByIdWithStudentsAsync(Guid id);
+        Task<List<Parent>> GetAllWithStudentsAsync();
     }
    
 }

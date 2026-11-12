@@ -18,6 +18,7 @@ namespace SchoolManager.Management.Infrastructure
             builder.Property(x => x.Address).IsRequired().HasMaxLength(500);
             builder.Property(x => x.Email).HasMaxLength(256);
             builder.HasIndex(x => x.NationalId).IsUnique();
+            builder.HasOne(x => x.Stage).WithMany().HasForeignKey(x => x.StageId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(x => x.Grade).WithMany().HasForeignKey(x => x.GradeId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne<AcademicYear>().WithMany().HasForeignKey(x => x.AcademicYearId).OnDelete(DeleteBehavior.Restrict);
             builder.ConfigureAudit(x => x.AuditInfo);

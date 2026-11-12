@@ -1,0 +1,292 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2 class="mb-0">{{ 'parents.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'parents.newParent' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Search -->
+  @if (!isLoading() && parents().length > 0) {
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-8 col-lg-6">
+            <label for="parentSearch" class="visually-hidden">{{ 'parents.search' | translate }}</label>
+            <div class="input-group">
+              <input
+                id="parentSearch"
+                type="search"
+                class="form-control"
+                [value]="searchTerm()"
+                (input)="onSearch($event)"
+                [placeholder]="'parents.searchPlaceholder' | translate"
+              />
+              @if (searchTerm()) {
+                <button type="button" class="btn btn-outline-secondary" (click)="clearSearch()">
+                  {{ 'parents.clearSearch' | translate }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && parents().length === 0 && !errorMessage()) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-users text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'parents.noParents' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'parents.newParent' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- No Search Results -->
+  @if (!isLoading() && parents().length > 0 && filteredParents().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-search text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'parents.noMatchingParents' | translate }}</p>
+        <button class="btn btn-outline-secondary" (click)="clearSearch()">
+          {{ 'parents.clearSearch' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Parents Table -->
+  @if (!isLoading() && filteredParents().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="row-number">#</th>
+                <th>{{ 'parents.fullNameAr' | translate }}</th>
+                <th class="d-none d-md-table-cell">{{ 'parents.fullNameEn' | translate }}</th>
+                <th class="d-none d-sm-table-cell">{{ 'parents.phoneNumber' | translate }}</th>
+                <th class="d-none d-lg-table-cell">{{ 'parents.email' | translate }}</th>
+                <th class="d-none d-xl-table-cell">{{ 'parents.address' | translate }}</th>
+                <th class="text-center">{{ 'parents.studentsCount' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (parent of pagedParents(); track parent.id; let i = $index) {
+                <tr>
+                  <td class="row-number text-muted">{{ rowNumber(i) }}</td>
+                  <td dir="rtl"><strong>{{ parent.fullNameAr }}</strong></td>
+                  <td class="d-none d-md-table-cell" dir="ltr"><strong>{{ parent.fullNameEn }}</strong></td>
+                  <td class="d-none d-sm-table-cell" dir="ltr">{{ parent.phoneNumber }}</td>
+                  <td class="d-none d-lg-table-cell" dir="ltr">{{ parent.email || '-' }}</td>
+                  <td class="d-none d-xl-table-cell address-cell" [title]="parent.address">{{ parent.address || '-' }}</td>
+                  <td class="text-center">
+                    <span class="badge rounded-pill" [class.bg-primary]="parent.students?.length" [class.bg-secondary]="!parent.students?.length">
+                      {{ parent.students?.length ?? 0 }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-info"
+                        (click)="openView(parent, viewModal)"
+                        title="{{ 'parents.view' | translate }}"
+                      >
+                        <i class="pe-7s-look"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-primary"
+                        (click)="navigateToEdit(parent.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        (click)="openDeleteConfirmation(parent, deleteModal)"
+                        title="{{ 'common.delete' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (filteredParents().length > pageSize) {
+          <div class="d-flex justify-content-center mt-3">
+            <ngb-pagination
+              [collectionSize]="filteredParents().length"
+              [page]="page()"
+              (pageChange)="page.set($event)"
+              [pageSize]="pageSize"
+              [maxSize]="5"
+              [rotate]="true"
+              [boundaryLinks]="true"
+              size="sm"
+            ></ngb-pagination>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- View Parent Modal -->
+<ng-template #viewModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'parents.parentDetails' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    @if (viewedParent(); as p) {
+      <h5 class="mb-3">{{ 'parents.parentInformation' | translate }}</h5>
+      <dl class="row details-list">
+        <dt class="col-sm-3">{{ 'parents.fullNameAr' | translate }}</dt>
+        <dd class="col-sm-9" dir="rtl">{{ p.fullNameAr || '-' }}</dd>
+
+        <dt class="col-sm-3">{{ 'parents.fullNameEn' | translate }}</dt>
+        <dd class="col-sm-9" dir="ltr">{{ p.fullNameEn || '-' }}</dd>
+
+        <dt class="col-sm-3">{{ 'parents.phoneNumber' | translate }}</dt>
+        <dd class="col-sm-9" dir="ltr">{{ p.phoneNumber || '-' }}</dd>
+
+        <dt class="col-sm-3">{{ 'parents.email' | translate }}</dt>
+        <dd class="col-sm-9" dir="ltr">{{ p.email || '-' }}</dd>
+
+        <dt class="col-sm-3">{{ 'parents.address' | translate }}</dt>
+        <dd class="col-sm-9">{{ p.address || '-' }}</dd>
+      </dl>
+
+      <h5 class="mt-4 mb-3">
+        {{ 'parents.associatedStudents' | translate }}
+        <span class="badge bg-secondary ms-1">{{ p.students?.length ?? 0 }}</span>
+      </h5>
+      @if (!p.students?.length) {
+        <p class="text-muted mb-0">{{ 'parents.noStudents' | translate }}</p>
+      } @else {
+        @if (isLoadingLookups()) {
+          <div class="text-muted small mb-2">
+            <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+            {{ 'common.loading' | translate }}
+          </div>
+        }
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered align-middle mb-0 students-table">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'parents.fullNameAr' | translate }}</th>
+                <th>{{ 'parents.fullNameEn' | translate }}</th>
+                <th>{{ 'parents.dateOfBirth' | translate }}</th>
+                <th>{{ 'parents.nationalId' | translate }}</th>
+                <th>{{ 'parents.gender' | translate }}</th>
+                <th>{{ 'parents.phoneNumber' | translate }}</th>
+                <th>{{ 'parents.email' | translate }}</th>
+                <th>{{ 'parents.academicYear' | translate }}</th>
+                <th>{{ 'parents.stage' | translate }}</th>
+                <th>{{ 'parents.grade' | translate }}</th>
+                <th>{{ 'parents.section' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of p.students; track s.id) {
+                <tr>
+                  <td dir="rtl">{{ s.fullNameAr || '-' }}</td>
+                  <td dir="ltr">{{ s.fullNameEn || '-' }}</td>
+                  <td>{{ s.dateOfBirth ? (s.dateOfBirth | date: 'mediumDate') : '-' }}</td>
+                  <td dir="ltr">{{ s.nationalId || '-' }}</td>
+                  <td>{{ getGenderLabel(s.gender) }}</td>
+                  <td dir="ltr">{{ s.phoneNumber || '-' }}</td>
+                  <td dir="ltr">{{ s.email || '-' }}</td>
+                  <td>{{ getAcademicYearName(s.academicYearId) }}</td>
+                  <td>{{ getStageNameForGrade(s.gradeId) }}</td>
+                  <td>{{ getGradeName(s.gradeId) }}</td>
+                  <td>{{ getSectionName(s.sectionId) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  </div>
+  <div class="modal-footer">
+    @if (viewedParent(); as p) {
+      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(p.id)">
+        {{ 'common.edit' | translate }}
+      </button>
+    }
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">
+      {{ 'common.close' | translate }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'parents.deleteParent' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelDelete()" [disabled]="isDeleting()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'parents.confirmDeleteParent' | translate }}</p>
+    @if (parentToDelete()?.students?.length) {
+      <div class="alert alert-warning mb-0">
+        {{ 'parents.deleteStudentsWarning' | translate: { count: parentToDelete()!.students.length } }}
+      </div>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

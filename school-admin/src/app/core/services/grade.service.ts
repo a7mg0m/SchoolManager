@@ -26,6 +26,14 @@ export class GradeService {
   }
 
   /**
+   * Get all grades (active and inactive) from the API
+   * @returns Observable of grades list response
+   */
+  getAllGrades(): Observable<GradeListResponse> {
+    return this.apiService.get<GradeListResponse>(`${this.gradeEndpoint}/get-all`);
+  }
+
+  /**
    * Get active grades from the API
    * @returns Observable of active grades list response
    */

@@ -1,0 +1,405 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'parents.editParent' | translate }}
+        } @else {
+          {{ 'parents.newParent' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <!-- ===== Parent Information ===== -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">{{ 'parents.parentInformation' | translate }}</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="fullNameAr" class="form-label">
+                {{ 'parents.fullNameAr' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="fullNameAr" formControlName="fullNameAr" dir="rtl"
+                     [class.is-invalid]="isInvalid('fullNameAr')" />
+              @if (hasError('fullNameAr', 'required')) {
+                <div class="invalid-feedback">{{ 'parents.fullNameArRequired' | translate }}</div>
+              }
+              @if (hasError('fullNameAr', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 200 } }}</div>
+              }
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="fullNameEn" class="form-label">
+                {{ 'parents.fullNameEn' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input type="text" class="form-control" id="fullNameEn" formControlName="fullNameEn" dir="ltr"
+                     [class.is-invalid]="isInvalid('fullNameEn')" />
+              @if (hasError('fullNameEn', 'required')) {
+                <div class="invalid-feedback">{{ 'parents.fullNameEnRequired' | translate }}</div>
+              }
+              @if (hasError('fullNameEn', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 200 } }}</div>
+              }
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="phoneNumber" class="form-label">
+                {{ 'parents.phoneNumber' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input type="tel" class="form-control" id="phoneNumber" formControlName="phoneNumber" dir="ltr"
+                     [class.is-invalid]="isInvalid('phoneNumber')" />
+              @if (hasError('phoneNumber', 'required')) {
+                <div class="invalid-feedback">{{ 'parents.phoneNumberRequired' | translate }}</div>
+              }
+              @if (hasError('phoneNumber', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 50 } }}</div>
+              }
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">{{ 'parents.email' | translate }}</label>
+              <input type="email" class="form-control" id="email" formControlName="email" dir="ltr"
+                     [class.is-invalid]="isInvalid('email')" />
+              @if (hasError('email', 'email')) {
+                <div class="invalid-feedback">{{ 'parents.emailInvalid' | translate }}</div>
+              }
+              @if (hasError('email', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 256 } }}</div>
+              }
+            </div>
+
+            <div class="col-12 mb-3">
+              <label for="address" class="form-label">
+                {{ 'parents.address' | translate }} <span class="text-danger">*</span>
+              </label>
+              <textarea class="form-control" id="address" rows="2" formControlName="address"
+                        [class.is-invalid]="isInvalid('address')"></textarea>
+              @if (hasError('address', 'required')) {
+                <div class="invalid-feedback">{{ 'parents.addressRequired' | translate }}</div>
+              }
+              @if (hasError('address', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 500 } }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Students ===== -->
+      <div class="card mb-4">
+        <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
+          <h5 class="mb-0">
+            {{ 'parents.studentsInformation' | translate }}
+            <span class="badge bg-secondary ms-1">{{ studentsArray.length }}</span>
+          </h5>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="addStudent()" [disabled]="isSaving()">
+            <i class="pe-7s-plus"></i> {{ 'parents.addStudent' | translate }}
+          </button>
+        </div>
+        <div class="card-body">
+          @if (studentsArray.length === 0) {
+            <p class="text-muted text-center mb-0 py-3">{{ 'parents.noStudentsYet' | translate }}</p>
+          }
+
+          <div formArrayName="students">
+            @for (studentCtrl of studentsArray.controls; track studentCtrl; let i = $index) {
+              <div class="card student-card mb-3" [formGroupName]="i" [class.border-danger]="studentHasVisibleErrors(i)">
+                <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-light text-dark border">#{{ i + 1 }}</span>
+                    <strong>{{ studentTitle(i) }}</strong>
+                    @if (isExistingStudent(i)) {
+                      <span class="badge bg-info">{{ 'parents.existingStudent' | translate }}</span>
+                    } @else {
+                      <span class="badge bg-success">{{ 'parents.newStudentBadge' | translate }}</span>
+                    }
+                  </div>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeStudent(i, removeStudentModal)"
+                          [disabled]="isSaving()" [attr.aria-label]="('parents.removeStudent' | translate) + ' #' + (i + 1)">
+                    <i class="pe-7s-trash"></i> {{ 'parents.removeStudent' | translate }}
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <!-- Names -->
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-fullNameAr'">
+                        {{ 'parents.fullNameAr' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <input type="text" class="form-control" [id]="'s' + i + '-fullNameAr'" formControlName="fullNameAr" dir="rtl"
+                             [class.is-invalid]="studentInvalid(i, 'fullNameAr')" />
+                      @if (studentHasError(i, 'fullNameAr', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.fullNameArRequired' | translate }}</div>
+                      }
+                      @if (studentHasError(i, 'fullNameAr', 'maxlength')) {
+                        <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 200 } }}</div>
+                      }
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-fullNameEn'">
+                        {{ 'parents.fullNameEn' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <input type="text" class="form-control" [id]="'s' + i + '-fullNameEn'" formControlName="fullNameEn" dir="ltr"
+                             [class.is-invalid]="studentInvalid(i, 'fullNameEn')" />
+                      @if (studentHasError(i, 'fullNameEn', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.fullNameEnRequired' | translate }}</div>
+                      }
+                      @if (studentHasError(i, 'fullNameEn', 'maxlength')) {
+                        <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 200 } }}</div>
+                      }
+                    </div>
+
+                    <!-- Date of birth / National ID / Gender -->
+                    <div class="col-md-4 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-dateOfBirth'">
+                        {{ 'parents.dateOfBirth' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <input type="date" class="form-control" [id]="'s' + i + '-dateOfBirth'" formControlName="dateOfBirth"
+                             [max]="maxDateOfBirth" [class.is-invalid]="studentInvalid(i, 'dateOfBirth')" />
+                      @if (studentHasError(i, 'dateOfBirth', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.dateOfBirthRequired' | translate }}</div>
+                      }
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-nationalId'">
+                        {{ 'parents.nationalId' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <input type="text" class="form-control" [id]="'s' + i + '-nationalId'" formControlName="nationalId" dir="ltr"
+                             [class.is-invalid]="studentInvalid(i, 'nationalId')" />
+                      @if (studentHasError(i, 'nationalId', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.nationalIdRequired' | translate }}</div>
+                      }
+                      @if (studentHasError(i, 'nationalId', 'maxlength')) {
+                        <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 50 } }}</div>
+                      }
+                      @if (isDuplicateNationalId(i)) {
+                        <div class="invalid-feedback">{{ 'parents.duplicateNationalId' | translate }}</div>
+                      }
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-gender'">
+                        {{ 'parents.gender' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <select class="form-select" [id]="'s' + i + '-gender'" formControlName="gender"
+                              [class.is-invalid]="studentInvalid(i, 'gender')">
+                        <option value="">{{ 'common.chooseOne' | translate }}</option>
+                        @for (g of genders; track g) {
+                          <option [value]="g">{{ 'parents.gender' + g | translate }}</option>
+                        }
+                      </select>
+                      @if (studentHasError(i, 'gender', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.genderRequired' | translate }}</div>
+                      }
+                    </div>
+
+                    @if (isExistingStudent(i)) {
+                      <div class="col-12">
+                        <div class="form-text mb-3">{{ 'parents.lockedFieldsHint' | translate }}</div>
+                      </div>
+                    }
+
+                    <!-- Contact -->
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-phoneNumber'">
+                        {{ 'parents.phoneNumber' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <input type="tel" class="form-control" [id]="'s' + i + '-phoneNumber'" formControlName="phoneNumber" dir="ltr"
+                             [class.is-invalid]="studentInvalid(i, 'phoneNumber')" />
+                      @if (studentHasError(i, 'phoneNumber', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.phoneNumberRequired' | translate }}</div>
+                      }
+                      @if (studentHasError(i, 'phoneNumber', 'maxlength')) {
+                        <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 50 } }}</div>
+                      }
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-email'">{{ 'parents.email' | translate }}</label>
+                      <input type="email" class="form-control" [id]="'s' + i + '-email'" formControlName="email" dir="ltr"
+                             [class.is-invalid]="studentInvalid(i, 'email')" />
+                      @if (studentHasError(i, 'email', 'email')) {
+                        <div class="invalid-feedback">{{ 'parents.emailInvalid' | translate }}</div>
+                      }
+                      @if (studentHasError(i, 'email', 'maxlength')) {
+                        <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 256 } }}</div>
+                      }
+                    </div>
+
+                    <div class="col-12 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-address'">
+                        {{ 'parents.address' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <input type="text" class="form-control" [id]="'s' + i + '-address'" formControlName="address"
+                             [class.is-invalid]="studentInvalid(i, 'address')" />
+                      @if (studentHasError(i, 'address', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.addressRequired' | translate }}</div>
+                      }
+                      @if (studentHasError(i, 'address', 'maxlength')) {
+                        <div class="invalid-feedback">{{ 'parents.maxLength' | translate: { max: 500 } }}</div>
+                      }
+                    </div>
+
+                    <!-- Academic Year / Stage / Grade / Section -->
+                    <div class="col-md-6 col-xl-3 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-academicYearId'">
+                        {{ 'parents.academicYear' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <select class="form-select" [id]="'s' + i + '-academicYearId'" formControlName="academicYearId"
+                              [class.is-invalid]="studentInvalid(i, 'academicYearId')">
+                        <option value="">{{ 'common.chooseOne' | translate }}</option>
+                        @for (year of academicYears(); track year.id) {
+                          <option [value]="year.id">
+                            {{ year.name }}@if (!year.isActive) { ({{ 'common.inactive' | translate }}) }
+                          </option>
+                        }
+                      </select>
+                      @if (studentHasError(i, 'academicYearId', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.academicYearRequired' | translate }}</div>
+                      }
+                      @if (academicYears().length === 0) {
+                        <div class="form-text">{{ 'parents.noAcademicYears' | translate }}</div>
+                      }
+                    </div>
+
+                    <div class="col-md-6 col-xl-3 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-stageId'">
+                        {{ 'parents.stage' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <select class="form-select" [id]="'s' + i + '-stageId'" formControlName="stageId"
+                              [class.is-invalid]="studentInvalid(i, 'stageId')">
+                        <option value="">{{ 'common.chooseOne' | translate }}</option>
+                        @for (stage of stageOptions(); track stage.id) {
+                          <option [value]="stage.id">
+                            {{ getOptionName(stage) }}@if (!stage.isActive) { ({{ 'common.inactive' | translate }}) }
+                          </option>
+                        }
+                      </select>
+                      @if (studentHasError(i, 'stageId', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.stageRequired' | translate }}</div>
+                      }
+                      @if (stageOptions().length === 0) {
+                        <div class="form-text">{{ 'parents.noStagesAvailable' | translate }}</div>
+                      }
+                    </div>
+
+                    <div class="col-md-6 col-xl-3 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-gradeId'">
+                        {{ 'parents.grade' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <select class="form-select" [id]="'s' + i + '-gradeId'" formControlName="gradeId"
+                              [class.is-invalid]="studentInvalid(i, 'gradeId')">
+                        <option value="">{{ 'common.chooseOne' | translate }}</option>
+                        @for (grade of gradesFor(studentCtrl.get('stageId')?.value); track grade.id) {
+                          <option [value]="grade.id">
+                            {{ getOptionName(grade) }}@if (!grade.isActive) { ({{ 'common.inactive' | translate }}) }
+                          </option>
+                        }
+                      </select>
+                      @if (studentHasError(i, 'gradeId', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.gradeRequired' | translate }}</div>
+                      }
+                      @if (!studentCtrl.get('stageId')?.value) {
+                        <div class="form-text">{{ 'parents.selectStageFirst' | translate }}</div>
+                      } @else if (gradesFor(studentCtrl.get('stageId')?.value).length === 0) {
+                        <div class="form-text">{{ 'parents.noGradesForStage' | translate }}</div>
+                      }
+                    </div>
+
+                    <div class="col-md-6 col-xl-3 mb-3">
+                      <label class="form-label" [attr.for]="'s' + i + '-sectionId'">
+                        {{ 'parents.section' | translate }} <span class="text-danger">*</span>
+                      </label>
+                      <select class="form-select" [id]="'s' + i + '-sectionId'" formControlName="sectionId"
+                              [class.is-invalid]="studentInvalid(i, 'sectionId')">
+                        <option value="">{{ 'common.chooseOne' | translate }}</option>
+                        @for (section of sectionsFor(studentCtrl.get('gradeId')?.value); track section.id) {
+                          <option [value]="section.id">{{ getOptionName(section) }}</option>
+                        }
+                      </select>
+                      @if (studentHasError(i, 'sectionId', 'required')) {
+                        <div class="invalid-feedback">{{ 'parents.sectionRequired' | translate }}</div>
+                      }
+                      @if (!studentCtrl.get('gradeId')?.value) {
+                        <div class="form-text">{{ 'parents.selectGradeFirst' | translate }}</div>
+                      } @else if (sectionsFor(studentCtrl.get('gradeId')?.value).length === 0) {
+                        <div class="form-text">{{ 'parents.noSectionsForGrade' | translate }}</div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (studentsArray.length > 0) {
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="addStudent()" [disabled]="isSaving()">
+              <i class="pe-7s-plus"></i> {{ 'parents.addAnotherStudent' | translate }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex flex-wrap gap-2 mb-4">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ 'common.save' | translate }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
+
+<!-- Remove Existing Student Confirmation -->
+<ng-template #removeStudentModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'parents.removeStudent' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-0">{{ 'parents.confirmRemoveStudent' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close(false)">{{ 'common.cancel' | translate }}</button>
+    <button type="button" class="btn btn-danger" (click)="modal.close(true)">{{ 'parents.removeStudent' | translate }}</button>
+  </div>
+</ng-template>

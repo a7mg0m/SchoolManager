@@ -2,11 +2,7 @@
   <Folder Name="/BuildingBlocks/">
     <Project Path="BuildingBlocks/BuildingBlocks.csproj" />
   </Folder>
-  <Folder Name="/MobileApps/">
-    <Project Path="MobileApps/SchoolManager.Parent/SchoolManager.Parent.csproj" Id="82a71472-7330-4938-af1c-f0ec7a66ef86">
-      <Deploy Solution="Debug|*" />
-    </Project>
-  </Folder>
+  <Folder Name="/MobileApps/" />
   <Folder Name="/Services/" />
   <Folder Name="/Services/ExamsHomework/">
     <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.API/SchoolManager.ExamsHomework.API.csproj" Id="13c4075e-beed-4ff1-844d-350060fcf615" />

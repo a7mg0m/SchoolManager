@@ -11,6 +11,10 @@ import { SectionListComponent } from './management/sections/section-list.compone
 import { SectionSaveComponent } from './management/sections/section-save.component';
 import { TeacherListComponent } from './management/teachers/teacher-list.component';
 import { TeacherSaveComponent } from './management/teachers/teacher-save.component';
+import { SubjectListComponent } from './management/subjects/subject-list.component';
+import { SubjectSaveComponent } from './management/subjects/subject-save.component';
+import { ParentListComponent } from './management/parents/parent-list.component';
+import { ParentSaveComponent } from './management/parents/parent-save.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +26,11 @@ import { TeacherSaveComponent } from './management/teachers/teacher-save.compone
     SectionListComponent,
     SectionSaveComponent,
     TeacherListComponent,
-    TeacherSaveComponent
+    TeacherSaveComponent,
+    SubjectListComponent,
+    SubjectSaveComponent,
+    ParentListComponent,
+    ParentSaveComponent
   ],
   imports: [
     SharedModule
@@ -36,7 +44,11 @@ import { TeacherSaveComponent } from './management/teachers/teacher-save.compone
     SectionListComponent,
     SectionSaveComponent,
     TeacherListComponent,
-    TeacherSaveComponent
+    TeacherSaveComponent,
+    SubjectListComponent,
+    SubjectSaveComponent,
+    ParentListComponent,
+    ParentSaveComponent
   ]
 })
 export class ManagementModule { }

@@ -1,0 +1,251 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'subjects.editSubject' | translate }}
+        } @else {
+          {{ 'subjects.newSubject' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+          <div class="row">
+            <!-- Arabic Name -->
+            <div class="col-md-6 mb-3">
+              <label for="nameAr" class="form-label">
+                {{ 'common.nameAr' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="nameAr"
+                formControlName="nameAr"
+                dir="rtl"
+                [placeholder]="'subjects.nameArPlaceholder' | translate"
+                [class.is-invalid]="isInvalid('nameAr')"
+              />
+              @if (hasError('nameAr', 'required')) {
+                <div class="invalid-feedback">{{ 'subjects.nameArRequired' | translate }}</div>
+              }
+              @if (hasError('nameAr', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'subjects.nameMaxLength' | translate }}</div>
+              }
+            </div>
+
+            <!-- English Name -->
+            <div class="col-md-6 mb-3">
+              <label for="nameEn" class="form-label">
+                {{ 'common.nameEn' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="nameEn"
+                formControlName="nameEn"
+                dir="ltr"
+                [placeholder]="'subjects.nameEnPlaceholder' | translate"
+                [class.is-invalid]="isInvalid('nameEn')"
+              />
+              @if (hasError('nameEn', 'required')) {
+                <div class="invalid-feedback">{{ 'subjects.nameEnRequired' | translate }}</div>
+              }
+              @if (hasError('nameEn', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'subjects.nameMaxLength' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Stage (filters the grade list; not stored on the subject) -->
+            <div class="col-md-6 mb-3">
+              <label for="stageId" class="form-label">
+                {{ 'subjects.stage' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="stageId"
+                class="form-select"
+                formControlName="stageId"
+                [class.is-invalid]="isInvalid('stageId')"
+              >
+                <option value="">{{ 'common.chooseOne' | translate }}</option>
+                @for (stage of stageOptions(); track stage.id) {
+                  <option [value]="stage.id">
+                    {{ getOptionName(stage) }}@if (!stage.isActive) { ({{ 'common.inactive' | translate }}) }
+                  </option>
+                }
+              </select>
+              @if (hasError('stageId', 'required')) {
+                <div class="invalid-feedback">{{ 'subjects.stageRequired' | translate }}</div>
+              }
+              @if (stageOptions().length === 0) {
+                <div class="form-text">{{ 'subjects.noStagesAvailable' | translate }}</div>
+              }
+            </div>
+
+            <!-- Grade -->
+            <div class="col-md-6 mb-3">
+              <label for="gradeId" class="form-label">
+                {{ 'subjects.grade' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="gradeId"
+                class="form-select"
+                formControlName="gradeId"
+                [class.is-invalid]="isInvalid('gradeId')"
+              >
+                <option value="">{{ 'common.chooseOne' | translate }}</option>
+                @for (grade of gradeOptions(); track grade.id) {
+                  <option [value]="grade.id">
+                    {{ getOptionName(grade) }}@if (!grade.isActive) { ({{ 'common.inactive' | translate }}) }
+                  </option>
+                }
+              </select>
+              @if (hasError('gradeId', 'required')) {
+                <div class="invalid-feedback">{{ 'subjects.gradeRequired' | translate }}</div>
+              }
+              @if (!selectedStageId()) {
+                <div class="form-text">{{ 'subjects.selectStageFirst' | translate }}</div>
+              } @else if (gradeOptions().length === 0) {
+                <div class="form-text">{{ 'subjects.noGradesForStage' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Teachers (multi-select) -->
+            <div class="col-md-6 mb-3">
+              <label for="teacherToggle" class="form-label">
+                {{ 'subjects.teachers' | translate }} <span class="text-danger">*</span>
+              </label>
+              <div
+                ngbDropdown
+                autoClose="outside"
+                class="d-block teacher-select"
+                (openChange)="onTeacherDropdownToggle($event)"
+              >
+                <button
+                  type="button"
+                  id="teacherToggle"
+                  class="form-select text-start"
+                  ngbDropdownToggle
+                  [class.is-invalid]="isInvalid('teacherIds')"
+                  [disabled]="isSaving()"
+                >
+                  @if (selectedTeacherIds().length === 0) {
+                    <span class="text-muted">{{ 'subjects.selectTeachers' | translate }}</span>
+                  } @else {
+                    {{ 'subjects.teachersSelected' | translate: { count: selectedTeacherIds().length } }}
+                  }
+                </button>
+                <div ngbDropdownMenu class="w-100 teacher-menu" aria-labelledby="teacherToggle">
+                  @if (teacherOptions().length > 5) {
+                    <div class="px-2 pb-2">
+                      <input
+                        type="search"
+                        class="form-control form-control-sm"
+                        [value]="teacherSearch()"
+                        (input)="onTeacherSearch($event)"
+                        [placeholder]="'subjects.searchTeachers' | translate"
+                        [attr.aria-label]="'subjects.searchTeachers' | translate"
+                      />
+                    </div>
+                  }
+                  <div class="teacher-options">
+                    @for (teacher of visibleTeachers(); track teacher.id) {
+                      <label class="dropdown-item d-flex align-items-center gap-2 mb-0">
+                        <input
+                          type="checkbox"
+                          class="form-check-input m-0"
+                          [checked]="isTeacherSelected(teacher.id)"
+                          (change)="toggleTeacher(teacher.id)"
+                        />
+                        <span>{{ getTeacherName(teacher) }}</span>
+                        @if (!teacher.isActive) {
+                          <span class="badge bg-secondary ms-auto">{{ 'common.inactive' | translate }}</span>
+                        }
+                      </label>
+                    } @empty {
+                      <span class="dropdown-item-text text-muted">
+                        @if (teacherOptions().length === 0) {
+                          {{ 'subjects.noTeachersAvailable' | translate }}
+                        } @else {
+                          {{ 'subjects.noMatchingTeachers' | translate }}
+                        }
+                      </span>
+                    }
+                  </div>
+                </div>
+              </div>
+              @if (hasError('teacherIds', 'required')) {
+                <div class="invalid-feedback d-block">{{ 'subjects.teachersRequired' | translate }}</div>
+              }
+
+              <!-- Selected teacher chips -->
+              @if (selectedTeachers().length > 0) {
+                <div class="d-flex flex-wrap gap-1 mt-2">
+                  @for (item of selectedTeachers(); track item.id) {
+                    <span class="badge bg-primary d-inline-flex align-items-center teacher-chip">
+                      {{ getTeacherName(item.teacher) }}
+                      <button
+                        type="button"
+                        class="btn-close btn-close-white ms-1"
+                        (click)="removeTeacher(item.id)"
+                        [disabled]="isSaving()"
+                        [attr.aria-label]="('subjects.removeTeacher' | translate) + ' ' + getTeacherName(item.teacher)"
+                      ></button>
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="d-flex flex-wrap gap-2 mt-4">
+            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              }
+              {{ 'common.save' | translate }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+              {{ 'common.cancel' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -11,6 +11,7 @@
         public string PhoneNumber { get; set; } = string.Empty;
         public string? Email { get; set; }
         public string Address { get; set; } = string.Empty;
+        public Guid StageId { get; set; }
         public Guid GradeId { get; set; }
         public Guid SectionId { get; set; }
         public Guid AcademicYearId { get; set; }

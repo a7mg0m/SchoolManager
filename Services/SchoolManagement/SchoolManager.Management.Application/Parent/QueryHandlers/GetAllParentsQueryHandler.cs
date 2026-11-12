@@ -17,7 +17,7 @@ namespace SchoolManager.Management.Application
 
 		public async Task<List<ParentDto>> Handle(GetAllParentsQuery request, CancellationToken cancellationToken)
 		{
-			var entities = await _repository.GetAllAsync();
+			var entities = await _repository.GetAllWithStudentsAsync();
 
 			return _mapper.Map<List<ParentDto>>(entities);
 		}

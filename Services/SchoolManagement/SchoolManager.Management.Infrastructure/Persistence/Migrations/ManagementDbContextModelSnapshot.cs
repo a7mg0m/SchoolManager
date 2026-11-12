@@ -341,6 +341,9 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("SectionId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AcademicYearId");
@@ -353,6 +356,8 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.HasIndex("ParentId");
 
                     b.HasIndex("SectionId");
+
+                    b.HasIndex("StageId");
 
                     b.ToTable("Students", (string)null);
                 });
@@ -369,9 +374,14 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("GradeId");
+
+                    b.HasIndex("StageId");
 
                     b.ToTable("Subjects", (string)null);
                 });
@@ -1168,6 +1178,12 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SchoolManager.Management.Domain.Stage", "Stage")
+                        .WithMany()
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
                         {
                             b1.Property<Guid>("StudentId")
@@ -1233,6 +1249,8 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Navigation("Parent");
 
                     b.Navigation("Section");
+
+                    b.Navigation("Stage");
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.Subject", b =>
@@ -1240,6 +1258,12 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.HasOne("SchoolManager.Management.Domain.Grade", "Grade")
                         .WithMany()
                         .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManager.Management.Domain.Stage", "Stage")
+                        .WithMany()
+                        .HasForeignKey("StageId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -1304,6 +1328,8 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Name")
                         .IsRequired();
+
+                    b.Navigation("Stage");
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.SubjectTeacher", b =>

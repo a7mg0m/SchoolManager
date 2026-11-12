@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace SchoolManager.Management.Application
 {
@@ -9,6 +9,7 @@ namespace SchoolManager.Management.Application
             RuleFor(x => x.Id).NotEmpty().WithMessage("IdRequired");
             RuleFor(x => x.NameAr).NotEmpty().WithMessage("NameArRequired");
             RuleFor(x => x.NameEn).NotEmpty().WithMessage("NameEnRequired");
+            RuleFor(x => x.StageId).NotEmpty().WithMessage("StageIdRequired");
             RuleFor(x => x.GradeId).NotEmpty().WithMessage("GradeIdRequired");
             RuleFor(x => x.TeacherIds).NotEmpty().WithMessage("TeacherIdRequired");
         }

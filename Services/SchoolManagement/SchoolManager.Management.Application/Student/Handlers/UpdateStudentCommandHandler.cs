@@ -8,9 +8,11 @@ namespace SchoolManager.Management.Application
 	{
 		private readonly IStudentRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
+		private readonly IGradeRepository _gradeRepository;
 
-		public UpdateStudentCommandHandler(IStudentRepository repository, IUnitOfWork unitOfWork)
+		public UpdateStudentCommandHandler(IStudentRepository repository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
 		{
+			_gradeRepository = gradeRepository;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -22,11 +24,15 @@ namespace SchoolManager.Management.Application
 			if (entity is null)
 				return false;
 
+			var grade = await _gradeRepository.GetByIdAsync(request.GradeId)
+				?? throw new InvalidOperationException("Grade not found.");
+
 			entity.Update(
 				new NameLocalized(request.FullNameAr, request.FullNameEn),
                 request.PhoneNumber,
                 request.Email,
                 request.Address,
+                grade.StageId,
                 request.GradeId,
                 request.SectionId,
                 request.AcademicYearId,
