@@ -1,0 +1,297 @@
+<div class="container-fluid">
+  <!-- Top bar -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <button class="btn btn-link px-0" (click)="backToList()">
+      <i class="pe-7s-angle-left"></i> {{ 'students.backToList' | translate }}
+    </button>
+    @if (student() && !isLoading()) {
+      <div class="d-flex flex-wrap gap-2">
+        <button class="btn btn-outline-secondary btn-sm" (click)="reload()">
+          <i class="pe-7s-refresh-2"></i> {{ 'students.refresh' | translate }}
+        </button>
+        <button class="btn btn-outline-primary btn-sm" (click)="editViaParent()" [disabled]="!student()?.parentId">
+          <i class="pe-7s-note"></i> {{ 'students.editViaParent' | translate }}
+        </button>
+        <button class="btn btn-primary btn-sm" (click)="manageFees()">
+          <i class="pe-7s-cash"></i> {{ 'students.manageFees' | translate }}
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+      <span><strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}</span>
+      <button class="btn btn-sm btn-outline-danger" (click)="reload()">{{ 'students.retry' | translate }}</button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && notFound()) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-attention text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'students.notFound' | translate }}</p>
+        <button class="btn btn-outline-secondary" (click)="backToList()">{{ 'students.backToList' | translate }}</button>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && student(); as s) {
+    <!-- Header -->
+    <div class="card mb-3 profile-header">
+      <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <span class="avatar avatar-lg" [class.avatar-female]="s.gender === 'Female'">{{ initials(s) }}</span>
+        <div class="flex-grow-1 min-w-0">
+          <h3 class="mb-0 text-truncate">{{ displayName(s) }}</h3>
+          @if (altName(s)) {
+            <div class="text-muted">{{ altName(s) }}</div>
+          }
+          <div class="d-flex flex-wrap gap-1 mt-2">
+            <span class="badge" [class.bg-success]="s.isActive" [class.bg-secondary]="!s.isActive">
+              {{ (s.isActive ? 'common.active' : 'common.inactive') | translate }}
+            </span>
+            <span class="badge bg-light text-dark border">{{ gradeName(s.gradeId) }} · {{ sectionName(s.sectionId) }}</span>
+            <span class="badge bg-light text-dark border">{{ academicYearName(s.academicYearId) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Left column: details -->
+      <div class="col-xl-4 col-lg-5">
+        <div class="card mb-3">
+          <div class="card-header">{{ 'students.personalInfo' | translate }}</div>
+          <div class="card-body">
+            <dl class="row details-list mb-0">
+              <dt class="col-5">{{ 'parents.fullNameAr' | translate }}</dt>
+              <dd class="col-7" dir="rtl">{{ s.fullNameAr || '-' }}</dd>
+              <dt class="col-5">{{ 'parents.fullNameEn' | translate }}</dt>
+              <dd class="col-7" dir="ltr">{{ s.fullNameEn || '-' }}</dd>
+              <dt class="col-5">{{ 'parents.nationalId' | translate }}</dt>
+              <dd class="col-7" dir="ltr">{{ s.nationalId || '-' }}</dd>
+              <dt class="col-5">{{ 'parents.dateOfBirth' | translate }}</dt>
+              <dd class="col-7">
+                {{ formatDate(s.dateOfBirth) }}
+                @if (age(s.dateOfBirth) !== null) {
+                  <small class="text-muted">({{ 'students.ageYears' | translate: { age: age(s.dateOfBirth) } }})</small>
+                }
+              </dd>
+              <dt class="col-5">{{ 'parents.gender' | translate }}</dt>
+              <dd class="col-7">{{ genderLabel(s.gender) }}</dd>
+              <dt class="col-5">{{ 'parents.phoneNumber' | translate }}</dt>
+              <dd class="col-7" dir="ltr">
+                @if (s.phoneNumber) { <a [href]="'tel:' + s.phoneNumber">{{ s.phoneNumber }}</a> } @else { - }
+              </dd>
+              <dt class="col-5">{{ 'parents.email' | translate }}</dt>
+              <dd class="col-7" dir="ltr">
+                @if (s.email) { <a [href]="'mailto:' + s.email">{{ s.email }}</a> } @else { - }
+              </dd>
+              <dt class="col-5">{{ 'parents.address' | translate }}</dt>
+              <dd class="col-7">{{ s.address || '-' }}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-header">{{ 'students.academicInfo' | translate }}</div>
+          <div class="card-body">
+            <dl class="row details-list mb-0">
+              <dt class="col-5">{{ 'parents.academicYear' | translate }}</dt>
+              <dd class="col-7">{{ academicYearName(s.academicYearId) }}</dd>
+              <dt class="col-5">{{ 'parents.stage' | translate }}</dt>
+              <dd class="col-7">{{ stageName(s) }}</dd>
+              <dt class="col-5">{{ 'parents.grade' | translate }}</dt>
+              <dd class="col-7">{{ gradeName(s.gradeId) }}</dd>
+              <dt class="col-5">{{ 'parents.section' | translate }}</dt>
+              <dd class="col-7">{{ sectionName(s.sectionId) }}</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'students.parentInfo' | translate }}</span>
+            @if (parent()) {
+              <button class="btn btn-link btn-sm p-0" (click)="editViaParent()">{{ 'common.edit' | translate }}</button>
+            }
+          </div>
+          <div class="card-body">
+            @if (parent(); as p) {
+              <dl class="row details-list mb-0">
+                <dt class="col-5">{{ 'students.name' | translate }}</dt>
+                <dd class="col-7">
+                  {{ displayName(p) }}
+                  @if (altName(p)) { <small class="text-muted d-block">{{ altName(p) }}</small> }
+                </dd>
+                <dt class="col-5">{{ 'parents.phoneNumber' | translate }}</dt>
+                <dd class="col-7" dir="ltr">
+                  @if (p.phoneNumber) { <a [href]="'tel:' + p.phoneNumber">{{ p.phoneNumber }}</a> } @else { - }
+                </dd>
+                <dt class="col-5">{{ 'parents.email' | translate }}</dt>
+                <dd class="col-7" dir="ltr">
+                  @if (p.email) { <a [href]="'mailto:' + p.email">{{ p.email }}</a> } @else { - }
+                </dd>
+                <dt class="col-5">{{ 'parents.address' | translate }}</dt>
+                <dd class="col-7">{{ p.address || '-' }}</dd>
+                @if (p.students.length > 1) {
+                  <dt class="col-5">{{ 'students.siblings' | translate }}</dt>
+                  <dd class="col-7">
+                    @for (sib of p.students; track sib.id) {
+                      @if (sib.id !== s.id) {
+                        <a class="d-block" [routerLink]="['/management/students', sib.id]">{{ displayName(sib) }}</a>
+                      }
+                    }
+                  </dd>
+                }
+              </dl>
+            } @else {
+              <p class="text-muted mb-0">{{ 'students.noParentInfo' | translate }}</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column: fees -->
+      <div class="col-xl-8 col-lg-7">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'students.feesTitle' | translate }} <span class="badge bg-secondary ms-1">{{ fees().length }}</span></span>
+            <button class="btn btn-outline-primary btn-sm" (click)="assignFees()" [disabled]="feesUnavailable()">
+              <i class="pe-7s-plus"></i> {{ 'studentFees.assign.button' | translate }}
+            </button>
+          </div>
+          <div class="card-body">
+            @if (feesUnavailable()) {
+              <div class="alert alert-warning mb-0 py-2 small">{{ 'students.feesUnavailable' | translate }}</div>
+            } @else if (fees().length === 0) {
+              <div class="text-center py-4">
+                <i class="pe-7s-cash text-muted" style="font-size: 2.5rem;"></i>
+                <p class="text-muted mt-2 mb-2">{{ 'students.noFees' | translate }}</p>
+                <button class="btn btn-primary btn-sm" (click)="assignFees()">{{ 'studentFees.assign.button' | translate }}</button>
+              </div>
+            } @else {
+              <!-- Summary -->
+              <div class="row g-2 mb-3">
+                @for (sum of summary(); track sum.currency) {
+                  <div class="col-sm-6">
+                    <div class="summary-tile">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">{{ 'studentFees.netDue' | translate }}</span>
+                        <span class="badge bg-light text-dark border">{{ sum.currency }}</span>
+                      </div>
+                      <div class="summary-value">{{ formatAmount(sum.net) }}</div>
+                      <div class="d-flex justify-content-between gap-2 summary-meta">
+                        <span class="text-success">{{ 'studentFees.paid' | translate }}: {{ formatAmount(sum.paid) }}</span>
+                        <span class="text-danger">{{ 'studentFees.balance' | translate }}: {{ formatAmount(sum.balance) }}</span>
+                      </div>
+                      @if (sum.waived > 0) {
+                        <div class="summary-meta text-secondary">{{ 'studentFees.waive.waived' | translate }}: {{ formatAmount(sum.waived) }}</div>
+                      }
+                      <div class="progress summary-progress">
+                        <div class="progress-bar bg-success" [style.width.%]="paidPercent(sum.net, sum.paid, sum.balance)"></div>
+                        <div class="progress-bar bg-secondary" [style.width.%]="sum.net > 0 ? (sum.waived / sum.net) * 100 : 0"></div>
+                      </div>
+                    </div>
+                  </div>
+                }
+                <div class="col-sm-6">
+                  <div class="summary-tile" [class.border-danger]="overdueCount() > 0">
+                    <span class="text-muted small">{{ 'students.nextDue' | translate }}</span>
+                    @if (nextDue(); as nd) {
+                      <div class="summary-value" [class.text-danger]="isPastDue(nd)">{{ formatDate(nd.dueDate) }}</div>
+                      <div class="summary-meta text-muted">{{ formatAmount(nd.balance, nd.currency) }}</div>
+                    } @else {
+                      <div class="summary-value text-success">{{ 'students.allSettled' | translate }}</div>
+                    }
+                    @if (overdueCount() > 0) {
+                      <div class="summary-meta text-danger">{{ 'students.overdueCount' | translate: { count: overdueCount() } }}</div>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status filter chips -->
+              <div class="d-flex flex-wrap gap-1 mb-2">
+                <button
+                  type="button"
+                  class="btn btn-sm"
+                  [class.btn-dark]="statusFilter() === ''"
+                  [class.btn-outline-secondary]="statusFilter() !== ''"
+                  (click)="statusFilter.set('')"
+                >
+                  {{ 'studentFees.allStatuses' | translate }} ({{ fees().length }})
+                </button>
+                @for (st of statuses; track st.value) {
+                  @if (statusCount(st.value) > 0) {
+                    <button
+                      type="button"
+                      class="btn btn-sm"
+                      [class.btn-dark]="statusFilter() === '' + st.value"
+                      [class.btn-outline-secondary]="statusFilter() !== '' + st.value"
+                      (click)="setStatusFilter('' + st.value)"
+                    >
+                      {{ st.key | translate }} ({{ statusCount(st.value) }})
+                    </button>
+                  }
+                }
+              </div>
+
+              <!-- Fees table -->
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0 fees-table">
+                  <thead class="table-light">
+                    <tr>
+                      <th>{{ 'studentFees.dueDate' | translate }}</th>
+                      <th class="text-end">{{ 'studentFees.total' | translate }}</th>
+                      <th class="text-end d-none d-md-table-cell">{{ 'studentFees.discount' | translate }}</th>
+                      <th class="text-end">{{ 'studentFees.net' | translate }}</th>
+                      <th class="text-end">{{ 'studentFees.paid' | translate }}</th>
+                      <th class="text-end">{{ 'studentFees.balance' | translate }}</th>
+                      <th>{{ 'studentFees.status' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (fee of visibleFees(); track fee.id) {
+                      @let info = statusInfo(fee);
+                      <tr>
+                        <td [class.text-danger]="isPastDue(fee)">{{ formatDate(fee.dueDate) }}</td>
+                        <td class="text-end amount">{{ formatAmount(fee.totalAmount) }}</td>
+                        <td class="text-end amount d-none d-md-table-cell">{{ fee.discountAmount ? formatAmount(fee.discountAmount) : '-' }}</td>
+                        <td class="text-end amount">{{ formatAmount(fee.netAmount) }} <small class="text-muted">{{ fee.currency }}</small></td>
+                        <td class="text-end amount text-success">{{ formatAmount(fee.paidAmount) }}</td>
+                        <td class="text-end amount" [class.text-danger]="fee.balance > 0">
+                          {{ formatAmount(fee.balance) }}
+                          @if (fee.waivedAmount > 0) {
+                            <small class="d-block text-secondary">{{ 'studentFees.waive.waived' | translate }}: {{ formatAmount(fee.waivedAmount) }}</small>
+                          }
+                        </td>
+                        <td>
+                          <span class="badge" [ngClass]="info.badge" [title]="fee.waiveReason || ''">{{ info.key | translate }}</span>
+                          @if (fee.waiveReason) {
+                            <small class="d-block text-muted waive-reason" [title]="fee.waiveReason">{{ fee.waiveReason }}</small>
+                          }
+                          <div class="progress row-progress">
+                            <div class="progress-bar bg-success" [style.width.%]="paidPercent(fee.netAmount, fee.paidAmount, fee.balance)"></div>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,249 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <button type="button" class="btn btn-link px-0 mb-1" (click)="navigateBack()">
+        <i class="pe-7s-angle-left"></i> {{ 'studentFees.backToAll' | translate }}
+      </button>
+      <h2>{{ 'studentFees.assign.title' | translate }}</h2>
+      <p class="text-muted mb-0">{{ 'studentFees.assign.subtitle' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <!-- Step 1: grade -->
+    <div class="card mb-3">
+      <div class="card-header"><span class="step">1</span> {{ 'studentFees.assign.chooseGrade' | translate }}</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="stage" class="form-label">{{ 'fees.stage' | translate }} <span class="text-danger">*</span></label>
+            <select id="stage" class="form-select" [value]="stageId()" (change)="onStageChange($event)">
+              <option value="">{{ 'common.chooseOne' | translate }}</option>
+              @for (s of stages(); track s.id) {
+                <option [value]="s.id">{{ getName(s) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="grade" class="form-label">{{ 'fees.grade' | translate }} <span class="text-danger">*</span></label>
+            <select id="grade" class="form-select" [value]="gradeId()" (change)="onGradeChange($event)" [disabled]="!stageId()">
+              <option value="">
+                {{ (stageId() ? 'common.chooseOne' : 'fees.selectStageFirst') | translate }}
+              </option>
+              @for (g of stageGrades(); track g.id) {
+                <option [value]="g.id">{{ getName(g) }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (gradeId()) {
+      <div class="row g-3">
+        <!-- Step 2: students -->
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><span class="step">2</span> {{ 'studentFees.assign.chooseStudents' | translate }}</span>
+              <span class="badge bg-primary">{{ selectedStudentIds().size }} / {{ gradeStudents().length }}</span>
+            </div>
+            <div class="card-body">
+              @if (gradeStudents().length === 0) {
+                <p class="text-muted mb-0">{{ 'studentFees.assign.noStudents' | translate }}</p>
+              } @else {
+                <div class="d-flex gap-2 mb-2">
+                  <input
+                    type="search"
+                    class="form-control form-control-sm"
+                    [value]="studentSearch()"
+                    (input)="onStudentSearch($event)"
+                    [placeholder]="'studentFees.searchPlaceholder' | translate"
+                  />
+                  <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="toggleAllVisible()">
+                    {{ (allVisibleSelected() ? 'studentFees.assign.deselectAll' : 'studentFees.assign.selectAll') | translate }}
+                  </button>
+                </div>
+                <div class="list-group pick-list">
+                  @for (s of visibleStudents(); track s.id) {
+                    <label class="list-group-item d-flex align-items-center gap-2" [class.active-pick]="selectedStudentIds().has(s.id)">
+                      <input
+                        class="form-check-input m-0"
+                        type="checkbox"
+                        [checked]="selectedStudentIds().has(s.id)"
+                        (change)="toggleStudent(s.id)"
+                      />
+                      <span class="flex-grow-1">
+                        {{ studentName(s) }}
+                        <small class="d-block text-muted">{{ s.nationalId }}</small>
+                      </span>
+                      @if (existingCountByStudent().get(s.id); as count) {
+                        <span class="badge bg-warning text-dark" [title]="'studentFees.assign.alreadyAssignedHint' | translate">
+                          {{ 'studentFees.assign.alreadyAssigned' | translate }}: {{ count }}
+                        </span>
+                      }
+                    </label>
+                  }
+                </div>
+              }
+              @if (submitted() && selectedStudentIds().size === 0) {
+                <div class="invalid-feedback d-block">{{ 'studentFees.assign.studentsRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: fees -->
+        <div class="col-lg-6">
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><span class="step">3</span> {{ 'studentFees.assign.chooseFees' | translate }}</span>
+              <span class="badge bg-primary">{{ selectedFees().length }} / {{ gradeFees().length }}</span>
+            </div>
+            <div class="card-body">
+              @if (gradeFees().length === 0) {
+                <p class="text-muted">{{ 'studentFees.assign.noFees' | translate }}</p>
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToFees()">
+                  {{ 'fees.newFee' | translate }}
+                </button>
+              } @else {
+                <div class="list-group pick-list">
+                  @for (f of gradeFees(); track f.id) {
+                    <label class="list-group-item d-flex align-items-center gap-2" [class.active-pick]="selectedFeeIds().has(f.id)">
+                      <input
+                        class="form-check-input m-0"
+                        type="checkbox"
+                        [checked]="selectedFeeIds().has(f.id)"
+                        (change)="toggleFee(f.id)"
+                      />
+                      <span class="flex-grow-1">
+                        {{ f.name }}
+                        <small class="d-block text-muted">
+                          {{ typeKey(f) | translate }} ·
+                          {{ (f.isMandatory ? 'fees.mandatory' : 'fees.optional') | translate }}
+                        </small>
+                      </span>
+                      <span class="fw-semibold text-nowrap">{{ formatAmount(f.amount, f.currency) }}</span>
+                    </label>
+                  }
+                </div>
+                @if (hasCurrencyMismatch()) {
+                  <div class="alert alert-danger py-2 mt-2 mb-0 small">
+                    {{ 'studentFees.assign.currencyMismatch' | translate }} ({{ selectedCurrencies().join(', ') }})
+                  </div>
+                }
+              }
+              @if (submitted() && selectedFees().length === 0 && gradeFees().length > 0) {
+                <div class="invalid-feedback d-block">{{ 'studentFees.assign.feesRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: discount, due date, summary -->
+      <div class="card mt-3">
+        <div class="card-header"><span class="step">4</span> {{ 'studentFees.assign.details' | translate }}</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="discount" class="form-label">{{ 'studentFees.assign.discountPerStudent' | translate }}</label>
+              <div class="input-group">
+                <input
+                  type="number"
+                  id="discount"
+                  class="form-control"
+                  min="0"
+                  step="0.01"
+                  [value]="discount()"
+                  (input)="onDiscountChange($event)"
+                  [class.is-invalid]="discountError()"
+                />
+                <span class="input-group-text">{{ currency() || '—' }}</span>
+              </div>
+              @if (discountError(); as err) {
+                <div class="invalid-feedback d-block">{{ err | translate }}</div>
+              }
+            </div>
+            <div class="col-md-4">
+              <label for="dueDate" class="form-label">{{ 'studentFees.dueDate' | translate }} <span class="text-danger">*</span></label>
+              <input
+                type="date"
+                id="dueDate"
+                class="form-control"
+                [value]="dueDate()"
+                (change)="onDueDateChange($event)"
+                [class.is-invalid]="submitted() && !dueDate()"
+              />
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="summary mt-4">
+            <div class="d-flex justify-content-between">
+              <span>{{ 'studentFees.assign.totalPerStudent' | translate }}</span>
+              <span>{{ formatAmount(totalPerStudent(), currency()) }}</span>
+            </div>
+            @if (discount() > 0) {
+              <div class="d-flex justify-content-between text-muted">
+                <span>{{ 'studentFees.discount' | translate }}</span>
+                <span>−{{ formatAmount(discount(), currency()) }}</span>
+              </div>
+            }
+            <div class="d-flex justify-content-between fw-semibold">
+              <span>{{ 'studentFees.assign.netPerStudent' | translate }}</span>
+              <span>{{ formatAmount(netPerStudent(), currency()) }}</span>
+            </div>
+            <hr class="my-2" />
+            <div class="d-flex justify-content-between fs-5 fw-bold">
+              <span>
+                {{ 'studentFees.assign.grandTotal' | translate }}
+                <small class="text-muted fw-normal">(× {{ selectedStudentIds().size }})</small>
+              </span>
+              <span>{{ formatAmount(grandTotal(), currency()) }}</span>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-4">
+            <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="!canSubmit()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              }
+              {{ 'studentFees.assign.submit' | translate }}
+              @if (selectedStudentIds().size > 0) {
+                ({{ selectedStudentIds().size }})
+              }
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="navigateBack()" [disabled]="isSaving()">
+              {{ 'common.cancel' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

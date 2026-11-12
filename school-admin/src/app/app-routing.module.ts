@@ -25,7 +25,27 @@ import {
   ParentListComponent,
   ParentSaveComponent,
   TimetableListComponent,
-  TimetableSaveComponent
+  TimetableSaveComponent,
+  StudentListComponent,
+  StudentProfileComponent,
+
+  // Financial components
+  ExpenseCategoryListComponent,
+  ExpenseCategorySaveComponent,
+  RevenueCategoryListComponent,
+  RevenueCategorySaveComponent,
+  ExpenseListComponent,
+  ExpenseSaveComponent,
+  RevenueListComponent,
+  RevenueSaveComponent,
+  FeeListComponent,
+  FeeSaveComponent,
+  StudentFeeListComponent,
+  StudentFeeAssignComponent,
+
+  // Notification components
+  SchoolEventListComponent,
+  SchoolEventSaveComponent
 } from './components.barrel';
 
 // Import user pages
@@ -65,12 +85,39 @@ const routes: Routes = [
       {path: 'management/subjects', component: SubjectListComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/subjects/save', component: SubjectSaveComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/subjects/save/:id', component: SubjectSaveComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/students', component: StudentListComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/students/:id', component: StudentProfileComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/parents', component: ParentListComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/parents/save', component: ParentSaveComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/parents/save/:id', component: ParentSaveComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/timetables', component: TimetableListComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/timetables/save', component: TimetableSaveComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/timetables/save/:id', component: TimetableSaveComponent, data: {extraParameter: 'managementMenu'}},
+
+      // Financial
+      {path: 'financial/expense-categories', component: ExpenseCategoryListComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/expense-categories/save', component: ExpenseCategorySaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/expense-categories/save/:id', component: ExpenseCategorySaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/revenue-categories', component: RevenueCategoryListComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/revenue-categories/save', component: RevenueCategorySaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/revenue-categories/save/:id', component: RevenueCategorySaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/expenses', component: ExpenseListComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/expenses/save', component: ExpenseSaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/expenses/save/:id', component: ExpenseSaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/revenues', component: RevenueListComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/revenues/save', component: RevenueSaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/revenues/save/:id', component: RevenueSaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/fees', component: FeeListComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/fees/save', component: FeeSaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/fees/save/:id', component: FeeSaveComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/student-fees', component: StudentFeeListComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/student-fees/student/:studentId', component: StudentFeeListComponent, data: {extraParameter: 'financialMenu'}},
+      {path: 'financial/student-fees/assign', component: StudentFeeAssignComponent, data: {extraParameter: 'financialMenu'}},
+
+      // Notification
+      {path: 'notification/school-events', component: SchoolEventListComponent, data: {extraParameter: 'notificationMenu'}},
+      {path: 'notification/school-events/save', component: SchoolEventSaveComponent, data: {extraParameter: 'notificationMenu'}},
+      {path: 'notification/school-events/save/:id', component: SchoolEventSaveComponent, data: {extraParameter: 'notificationMenu'}},
     ]
   },
   {

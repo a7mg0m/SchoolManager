@@ -40,7 +40,15 @@ namespace SchoolManager.Management.API.Controllers
 		public async Task<ActionResult<Guid>> Create([FromBody] CreateParentDto dto, CancellationToken cancellationToken)
 		{
 			var command = _mapper.Map<CreateParentCommand>(dto);
-			var id = await _mediator.Send(command, cancellationToken);
+			Guid id;
+			try
+			{
+				id = await _mediator.Send(command, cancellationToken);
+			}
+			catch (DuplicateNationalIdException ex)
+			{
+				return Ok(new ApiResponse(-1, DuplicateNationalIdException.ErrorKey) { errors = ex.NationalIds });
+			}
 			return CreatedAtAction(nameof(GetById), new { id }, new ApiResponse { InsertedId = id.ToString() });
 		}
 
@@ -48,7 +56,15 @@ namespace SchoolManager.Management.API.Controllers
 		public async Task<IActionResult> Update([FromBody] UpdateParentDto dto, CancellationToken cancellationToken)
 		{
 			var command = _mapper.Map<UpdateParentCommand>(dto);
-			var success = await _mediator.Send(command, cancellationToken);
+			bool success;
+			try
+			{
+				success = await _mediator.Send(command, cancellationToken);
+			}
+			catch (DuplicateNationalIdException ex)
+			{
+				return Ok(new ApiResponse(-1, DuplicateNationalIdException.ErrorKey) { errors = ex.NationalIds });
+			}
 
 			if (!success)
 				return Ok(new ApiResponse { status = -1, message = "Update Failed" });

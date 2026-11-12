@@ -8,6 +8,8 @@ namespace SchoolManager.Notification.Application
 		public EventTargetMappingProfile()
 		{
 			CreateMap<EventTarget, EventTargetDto>();
+			CreateMap<Domain.SchoolEvent, SchoolEventDto>()
+				.ForMember(d => d.CreatedOn, o => o.MapFrom(s => s.AuditInfo.CreatedOn));
 		}
 	}
 }

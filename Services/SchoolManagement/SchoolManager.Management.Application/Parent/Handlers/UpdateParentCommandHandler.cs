@@ -36,6 +36,12 @@ namespace SchoolManager.Management.Application
             AuditInfo NewAudit() => new AuditInfo(DateTime.Now, request.UpdatedBy);
             var incomingIds = request.Students.Where(s => s.Id.HasValue).Select(s => s.Id!.Value).ToHashSet();
 
+            // New students (no Id) must not reuse a national ID that already belongs to someone
+            var existingIds = await _studentRepository.GetExistingNationalIdsAsync(
+                request.Students.Where(s => !s.Id.HasValue).Select(s => s.NationalId), cancellationToken);
+            if (existingIds.Count > 0)
+                throw new DuplicateNationalIdException(existingIds);
+
             foreach (var removed in entity.Students.Where(s => !incomingIds.Contains(s.Id)).ToList())
             {
                 entity.Students.Remove(removed);

@@ -19,6 +19,10 @@ namespace SchoolManager.Management.Application
 
 		public async Task<Guid> Handle(CreateStudentCommand command, CancellationToken cancellationToken)
 		{
+			var existingIds = await _repository.GetExistingNationalIdsAsync(new[] { command.NationalId }, cancellationToken);
+			if (existingIds.Count > 0)
+				throw new DuplicateNationalIdException(existingIds);
+
 			var grade = await _gradeRepository.GetByIdAsync(command.GradeId)
 				?? throw new InvalidOperationException("Grade not found.");
 

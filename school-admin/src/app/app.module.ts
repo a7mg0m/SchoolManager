@@ -31,6 +31,8 @@ import { CoreModule } from './core/core.module';
 import { DashboardsModule } from './dashboards.module';
 import { SharedModule } from './shared.module';
 import { ManagementModule } from './management.module';
+import { FinancialModule } from './financial.module';
+import { NotificationModule } from './notification.module';
 
 // LAYOUT
 import {BaseLayoutComponent} from './Layout/base-layout/base-layout.component';
@@ -101,6 +103,8 @@ import {ThemeOptions} from './theme-options';
     SharedModule,
     DashboardsModule,
     ManagementModule,
+    FinancialModule,
+    NotificationModule,
   ],
   providers: [
     ConfigService,

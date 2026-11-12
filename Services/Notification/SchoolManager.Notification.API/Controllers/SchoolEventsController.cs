@@ -15,6 +15,23 @@ namespace SchoolManager.Notification.API.Controllers
             _mediator = mediator;
         }
 
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetAllSchoolEventsQuery(), cancellationToken);
+            return Ok(new ApiResponse { data = result });
+        }
+
+        [HttpGet("get/{id}")]
+        public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetSchoolEventByIdQuery(id), cancellationToken);
+            if (result is null)
+                return NotFound();
+
+            return Ok(new ApiResponse { data = result });
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateSchoolEventDto dto, CancellationToken cancellationToken)
         {

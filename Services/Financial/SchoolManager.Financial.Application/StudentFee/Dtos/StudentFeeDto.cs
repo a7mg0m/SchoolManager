@@ -14,5 +14,8 @@ namespace SchoolManager.Financial.Application
         public string Currency { get; set; } = string.Empty;
         public FeeStatus Status { get; set; }
         public DateTime DueDate { get; set; }
+        public decimal WaivedAmount { get; set; }
+        public string? WaiveReason { get; set; }
+        public DateTime? WaivedAt { get; set; }
     }
 }

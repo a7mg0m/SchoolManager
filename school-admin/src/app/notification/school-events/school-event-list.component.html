@@ -1,0 +1,243 @@
+<div class="container-fluid">
+  <div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+      <h2 class="mb-0">{{ 'schoolEvents.title' | translate }}</h2>
+      @if (!isLoading() && todayCount() > 0) {
+        <small class="text-primary">{{ 'schoolEvents.todayCount' | translate: { count: todayCount() } }}</small>
+      }
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'schoolEvents.newEvent' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && events().length === 0 && !errorMessage()) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-date text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'schoolEvents.noEvents' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">{{ 'schoolEvents.newEvent' | translate }}</button>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && events().length > 0) {
+    <!-- Tabs + filters -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <ul class="nav nav-pills mb-3">
+          <li class="nav-item">
+            <button type="button" class="nav-link" [class.active]="tab() === 'upcoming'" (click)="tab.set('upcoming')">
+              {{ 'schoolEvents.upcoming' | translate }}
+              <span class="badge rounded-pill ms-1" [class.bg-light]="tab() === 'upcoming'" [class.text-dark]="tab() === 'upcoming'" [class.bg-secondary]="tab() !== 'upcoming'">
+                {{ upcomingEvents().length }}
+              </span>
+            </button>
+          </li>
+          <li class="nav-item">
+            <button type="button" class="nav-link" [class.active]="tab() === 'past'" (click)="tab.set('past')">
+              {{ 'schoolEvents.past' | translate }}
+              <span class="badge rounded-pill ms-1" [class.bg-light]="tab() === 'past'" [class.text-dark]="tab() === 'past'" [class.bg-secondary]="tab() !== 'past'">
+                {{ pastEvents().length }}
+              </span>
+            </button>
+          </li>
+        </ul>
+
+        <div class="row g-2 align-items-end">
+          <div class="col-lg-5 col-md-12">
+            <label class="form-label small mb-1" for="eventSearch">{{ 'common.search' | translate }}</label>
+            <input
+              id="eventSearch"
+              type="search"
+              class="form-control"
+              [value]="searchTerm()"
+              (input)="setFilter('search', $event)"
+              [placeholder]="'schoolEvents.searchPlaceholder' | translate"
+            />
+          </div>
+          <div class="col-lg-3 col-md-5 col-6">
+            <label class="form-label small mb-1" for="eventForFilter">{{ 'schoolEvents.audience' | translate }}</label>
+            <select id="eventForFilter" class="form-select" [value]="eventForFilter()" (change)="setFilter('eventFor', $event)">
+              <option value="">{{ 'schoolEvents.allAudiences' | translate }}</option>
+              @for (o of eventForOptions; track o.value) {
+                <option [value]="o.value" [selected]="'' + o.value === eventForFilter()">{{ o.key | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-3 col-md-5 col-6">
+            <label class="form-label small mb-1" for="yearFilter">{{ 'parents.academicYear' | translate }}</label>
+            <select id="yearFilter" class="form-select" [value]="academicYearFilter()" (change)="setFilter('academicYear', $event)">
+              <option value="">{{ 'students.all' | translate }}</option>
+              @for (y of academicYears(); track y.id) {
+                <option [value]="y.id" [selected]="y.id === academicYearFilter()">{{ y.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-1 col-md-2">
+            <button type="button" class="btn btn-outline-secondary w-100" (click)="clearFilters()" [disabled]="!hasActiveFilters()">
+              {{ 'fees.clear' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event cards -->
+    @if (visibleEvents().length === 0) {
+      <div class="card text-center">
+        <div class="card-body py-5">
+          <i class="pe-7s-search text-muted" style="font-size: 2.5rem;"></i>
+          <p class="text-muted mt-3 mb-0">
+            {{ (hasActiveFilters() ? 'schoolEvents.noMatches' : (tab() === 'upcoming' ? 'schoolEvents.noUpcoming' : 'schoolEvents.noPast')) | translate }}
+          </p>
+        </div>
+      </div>
+    } @else {
+      <div class="row g-3">
+        @for (e of visibleEvents(); track e.id) {
+          @let opt = eventForOption(e);
+          <div class="col-xl-4 col-md-6">
+            <div class="card event-card" [class.event-today]="isToday(e)" [class.event-past]="tab() === 'past'">
+              @if (e.imageUrl) {
+                <img class="event-image" [src]="e.imageUrl" [alt]="e.title" loading="lazy" (error)="$any($event.target).style.display = 'none'" />
+              }
+              <div class="card-body d-flex gap-3">
+                <div class="date-block" [class.date-today]="isToday(e)">
+                  <span class="date-day">{{ dayOfMonth(e) }}</span>
+                  <span class="date-month">{{ monthShort(e) }}</span>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <h5 class="event-title mb-1" [title]="e.title">{{ e.title }}</h5>
+                    @if (isToday(e)) {
+                      <span class="badge bg-primary flex-shrink-0">{{ 'schoolEvents.today' | translate }}</span>
+                    }
+                  </div>
+                  <div class="small text-muted mb-2">
+                    <i class="pe-7s-clock"></i> {{ timeRange(e) }}
+                  </div>
+                  <p class="event-description small mb-2">{{ e.description }}</p>
+                  <div class="small">
+                    <span class="badge bg-light text-dark border me-1"><i [class]="opt.icon"></i> {{ opt.key | translate }}</span>
+                    <span class="text-muted">{{ audienceSummary(e) }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+                <small class="text-muted">{{ academicYearName(e.academicYearId) }} · {{ semesterName(e) }}</small>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button class="btn btn-outline-info" (click)="openView(e, viewModal)" title="{{ 'schoolEvents.view' | translate }}">
+                    <i class="pe-7s-look"></i>
+                  </button>
+                  <button class="btn btn-outline-primary" (click)="navigateToEdit(e.id)" [disabled]="isDeleting()" title="{{ 'common.edit' | translate }}">
+                    <i class="pe-7s-note"></i>
+                  </button>
+                  <button class="btn btn-outline-danger" (click)="openDeleteConfirmation(e, deleteModal)" [disabled]="isDeleting()" title="{{ 'common.delete' | translate }}">
+                    <i class="pe-7s-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- View Event Modal -->
+<ng-template #viewModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'schoolEvents.eventDetails' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    @if (viewedEvent(); as e) {
+      @if (e.imageUrl) {
+        <img class="view-image mb-3" [src]="e.imageUrl" [alt]="e.title" (error)="$any($event.target).style.display = 'none'" />
+      }
+      <h4 class="mb-1">{{ e.title }}</h4>
+      <div class="text-muted mb-3">
+        <i class="pe-7s-date"></i> {{ fullDate(e) }} &nbsp; <i class="pe-7s-clock"></i> {{ timeRange(e) }}
+      </div>
+      <p class="description-full">{{ e.description }}</p>
+
+      <dl class="row mb-0 details-list">
+        <dt class="col-sm-4">{{ 'parents.academicYear' | translate }}</dt>
+        <dd class="col-sm-8">{{ academicYearName(e.academicYearId) }}</dd>
+        <dt class="col-sm-4">{{ 'schoolEvents.semester' | translate }}</dt>
+        <dd class="col-sm-8">{{ semesterName(e) }}</dd>
+        <dt class="col-sm-4">{{ 'schoolEvents.audience' | translate }}</dt>
+        <dd class="col-sm-8">
+          <span class="badge bg-light text-dark border"><i [class]="eventForOption(e).icon"></i> {{ eventForOption(e).key | translate }}</span>
+          @if (e.eventFor === EventFor.All) {
+            <span class="ms-1">{{ 'schoolEvents.wholeSchool' | translate }}</span>
+          } @else {
+            <div class="d-flex flex-wrap gap-1 mt-2">
+              @for (name of audience(e); track $index) {
+                <span class="badge bg-primary-subtle text-primary-emphasis border">{{ name }}</span>
+              } @empty {
+                <span class="text-muted">{{ 'schoolEvents.noTargets' | translate }}</span>
+              }
+            </div>
+          }
+        </dd>
+      </dl>
+    }
+  </div>
+  <div class="modal-footer">
+    @if (viewedEvent(); as e) {
+      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(e.id)">{{ 'common.edit' | translate }}</button>
+    }
+    <button type="button" class="btn btn-secondary" (click)="modal.close()">{{ 'common.close' | translate }}</button>
+  </div>
+</ng-template>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'schoolEvents.deleteEvent' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelDelete()" [disabled]="isDeleting()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-1">{{ 'schoolEvents.confirmDelete' | translate }}</p>
+    @if (eventToDelete(); as e) {
+      <p class="mb-0"><strong>{{ e.title }}</strong> — {{ fullDate(e) }}</p>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">{{ 'common.cancel' | translate }}</button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

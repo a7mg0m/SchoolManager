@@ -69,6 +69,11 @@
                     </a>
                   </div>
                   <div class="vsm-item">
+                    <a routerLink="/management/students" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.students' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
                     <a routerLink="/management/parents" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
                       <span class="vsm-title">{{ 'sidebar.parents' | translate }}</span>
                     </a>
@@ -76,6 +81,67 @@
                   <div class="vsm-item">
                     <a routerLink="/management/timetables" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
                       <span class="vsm-title">{{ 'sidebar.timetables' | translate }}</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Financial -->
+            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('financialMenu')">
+              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('financialMenu')">
+                <i class="vsm-icon pe-7s-cash"></i>
+                <span class="vsm-title">{{ 'sidebar.financial' | translate }}</span>
+                <i class="vsm-arrow"></i>
+              </a>
+              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('financialMenu')">
+                <div class="vsm-list">
+                  <div class="vsm-item">
+                    <a routerLink="/financial/fees" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.fees' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/financial/student-fees" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.studentFees' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/financial/expenses" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.expenses' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/financial/revenues" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.revenues' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/financial/expense-categories" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.expenseCategories' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/financial/revenue-categories" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.revenueCategories' | translate }}</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notification -->
+            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('notificationMenu')">
+              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('notificationMenu')">
+                <i class="vsm-icon pe-7s-bell"></i>
+                <span class="vsm-title">{{ 'sidebar.notification' | translate }}</span>
+                <i class="vsm-arrow"></i>
+              </a>
+              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('notificationMenu')">
+                <div class="vsm-list">
+                  <div class="vsm-item">
+                    <a routerLink="/notification/school-events" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.schoolEvents' | translate }}</span>
                     </a>
                   </div>
                 </div>

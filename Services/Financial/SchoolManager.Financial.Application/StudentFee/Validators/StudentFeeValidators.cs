@@ -12,6 +12,16 @@ namespace SchoolManager.Financial.Application
         }
     }
 
+    public class WaiveStudentFeeCommandValidator : AbstractValidator<WaiveStudentFeeCommand>
+    {
+        public WaiveStudentFeeCommandValidator()
+        {
+            RuleFor(x => x.Id).NotEmpty().WithMessage("IdRequired");
+            RuleFor(x => x.Reason).NotEmpty().WithMessage("ReasonRequired")
+                .MaximumLength(Domain.StudentFee.MaxWaiveReasonLength).WithMessage("ReasonTooLong");
+        }
+    }
+
     public class DeleteStudentFeeCommandValidator : AbstractValidator<DeleteStudentFeeCommand>
     {
         public DeleteStudentFeeCommandValidator()

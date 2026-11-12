@@ -40,7 +40,15 @@ namespace SchoolManager.Management.API.Controllers
 		public async Task<ActionResult<Guid>> Create([FromBody] CreateStudentDto dto, CancellationToken cancellationToken)
 		{
 			var command = _mapper.Map<CreateStudentCommand>(dto);
-			var id = await _mediator.Send(command, cancellationToken);
+			Guid id;
+			try
+			{
+				id = await _mediator.Send(command, cancellationToken);
+			}
+			catch (DuplicateNationalIdException ex)
+			{
+				return Ok(new ApiResponse(-1, DuplicateNationalIdException.ErrorKey) { errors = ex.NationalIds });
+			}
 			return CreatedAtAction(nameof(GetById), new { id }, new ApiResponse { InsertedId = id.ToString() });
 		}
 

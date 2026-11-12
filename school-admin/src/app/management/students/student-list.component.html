@@ -1,0 +1,219 @@
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+      <h2 class="mb-0">{{ 'students.title' | translate }}</h2>
+      @if (!isLoading() && students().length > 0) {
+        <small class="text-muted">{{ filteredStudents().length }} / {{ students().length }} {{ 'students.records' | translate }}</small>
+      }
+    </div>
+    <div class="col-md-6 text-md-end mt-2 mt-md-0">
+      <button class="btn btn-outline-secondary" (click)="loadData()" [disabled]="isLoading()">
+        <i class="pe-7s-refresh-2"></i> {{ 'students.refresh' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (feesUnavailable() && !isLoading()) {
+    <div class="alert alert-warning py-2 small" role="alert">{{ 'students.feesUnavailable' | translate }}</div>
+  }
+
+  <!-- Filters -->
+  @if (!isLoading() && students().length > 0) {
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-lg-4 col-md-6">
+            <label class="form-label small mb-1" for="studentSearch">{{ 'common.search' | translate }}</label>
+            <input
+              id="studentSearch"
+              type="search"
+              class="form-control"
+              [value]="searchTerm()"
+              (input)="setFilter('search', $event)"
+              [placeholder]="'students.searchPlaceholder' | translate"
+            />
+          </div>
+          <div class="col-lg-2 col-md-6 col-6">
+            <label class="form-label small mb-1" for="stageFilter">{{ 'parents.stage' | translate }}</label>
+            <select id="stageFilter" class="form-select" [value]="stageFilter()" (change)="setFilter('stage', $event)">
+              <option value="">{{ 'students.all' | translate }}</option>
+              @for (stage of stages(); track stage.id) {
+                <option [value]="stage.id" [selected]="stage.id === stageFilter()">{{ getName(stage) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4 col-6">
+            <label class="form-label small mb-1" for="gradeFilter">{{ 'parents.grade' | translate }}</label>
+            <select id="gradeFilter" class="form-select" [value]="gradeFilter()" (change)="setFilter('grade', $event)">
+              <option value="">{{ 'students.all' | translate }}</option>
+              @for (grade of filterGrades(); track grade.id) {
+                <option [value]="grade.id" [selected]="grade.id === gradeFilter()">{{ getName(grade) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4 col-6">
+            <label class="form-label small mb-1" for="sectionFilter">{{ 'parents.section' | translate }}</label>
+            <select
+              id="sectionFilter"
+              class="form-select"
+              [value]="sectionFilter()"
+              (change)="setFilter('section', $event)"
+              [disabled]="!gradeFilter()"
+            >
+              <option value="">{{ 'students.all' | translate }}</option>
+              @for (section of filterSections(); track section.id) {
+                <option [value]="section.id" [selected]="section.id === sectionFilter()">{{ getName(section) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4 col-6">
+            <label class="form-label small mb-1" for="feeStateFilter">{{ 'students.feeStatus' | translate }}</label>
+            <select
+              id="feeStateFilter"
+              class="form-select"
+              [value]="feeStateFilter()"
+              (change)="setFilter('feeState', $event)"
+              [disabled]="feesUnavailable()"
+            >
+              <option value="">{{ 'students.all' | translate }}</option>
+              @for (state of feeStates; track state) {
+                <option [value]="state" [selected]="state === feeStateFilter()">{{ 'students.feeStates.' + state | translate }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        @if (hasActiveFilters()) {
+          <button type="button" class="btn btn-link btn-sm px-0 mt-2" (click)="clearFilters()">
+            {{ 'students.clearFilters' | translate }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && students().length === 0 && !errorMessage()) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-users text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3 mb-1">{{ 'students.noStudents' | translate }}</p>
+        <p class="text-muted small mb-0">{{ 'students.addedViaParents' | translate }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- No Matches -->
+  @if (!isLoading() && students().length > 0 && filteredStudents().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-search text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'students.noMatches' | translate }}</p>
+        <button class="btn btn-outline-secondary" (click)="clearFilters()">{{ 'students.clearFilters' | translate }}</button>
+      </div>
+    </div>
+  }
+
+  <!-- Students Table -->
+  @if (!isLoading() && filteredStudents().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="row-number">#</th>
+                <th>{{ 'students.student' | translate }}</th>
+                <th class="d-none d-md-table-cell">{{ 'parents.nationalId' | translate }}</th>
+                <th>{{ 'parents.grade' | translate }}</th>
+                <th class="d-none d-lg-table-cell">{{ 'students.parent' | translate }}</th>
+                <th class="d-none d-sm-table-cell">{{ 'students.feeStatus' | translate }}</th>
+                <th class="text-end">{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of pagedStudents(); track s.id; let i = $index) {
+                @let fees = feeOverviewOf(s);
+                <tr class="clickable-row" (click)="viewProfile(s)">
+                  <td class="row-number text-muted">{{ rowNumber(i) }}</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="avatar" [class.avatar-female]="s.gender === 'Female'">{{ initials(s) }}</span>
+                      <div class="min-w-0">
+                        <div class="fw-semibold text-truncate">
+                          {{ studentName(s) }}
+                          @if (!s.isActive) {
+                            <span class="badge bg-secondary ms-1">{{ 'common.inactive' | translate }}</span>
+                          }
+                        </div>
+                        @if (studentAltName(s)) {
+                          <small class="text-muted text-truncate d-block">{{ studentAltName(s) }}</small>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  <td class="d-none d-md-table-cell" dir="ltr">{{ s.nationalId || '-' }}</td>
+                  <td>
+                    <div>{{ getGradeName(s.gradeId) }}</div>
+                    <small class="text-muted">{{ getStageName(s) }} · {{ getSectionName(s.sectionId) }}</small>
+                  </td>
+                  <td class="d-none d-lg-table-cell">{{ parentName(s) }}</td>
+                  <td class="d-none d-sm-table-cell">
+                    @if (feesUnavailable()) {
+                      <span class="text-muted">-</span>
+                    } @else {
+                      <span class="badge" [ngClass]="feeStateBadges[fees.state]">{{ 'students.feeStates.' + fees.state | translate }}</span>
+                      @for (b of fees.balances; track b.currency) {
+                        <small class="d-block text-danger amount">{{ formatAmount(b.amount, b.currency) }}</small>
+                      }
+                    }
+                  </td>
+                  <td class="text-end">
+                    <button
+                      class="btn btn-sm btn-outline-info"
+                      (click)="$event.stopPropagation(); viewProfile(s)"
+                      title="{{ 'students.viewProfile' | translate }}"
+                    >
+                      <i class="pe-7s-look"></i> <span class="d-none d-xl-inline">{{ 'students.viewProfile' | translate }}</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (filteredStudents().length > pageSize) {
+          <div class="d-flex justify-content-center mt-3">
+            <ngb-pagination
+              [collectionSize]="filteredStudents().length"
+              [page]="page()"
+              (pageChange)="page.set($event)"
+              [pageSize]="pageSize"
+              [maxSize]="5"
+              [rotate]="true"
+              [boundaryLinks]="true"
+              size="sm"
+            ></ngb-pagination>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

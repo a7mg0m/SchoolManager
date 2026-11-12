@@ -10,6 +10,9 @@ namespace SchoolManager.Notification.Infrastructure
         {
             builder.ToTable("NotificationTargets");
             builder.HasKey(x => x.Id);
+            // Same as EventTargetConfiguration: ids come from BaseEntity, so new targets added on update
+            // must be inserted, not treated as existing rows.
+            builder.Property(x => x.Id).ValueGeneratedNever();
 
             builder.ConfigureAudit(x => x.AuditInfo);
         }

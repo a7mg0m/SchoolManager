@@ -1,0 +1,465 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      @if (studentId()) {
+        <button type="button" class="btn btn-link px-0 mb-1" (click)="backToAll()">
+          <i class="pe-7s-angle-left"></i> {{ 'studentFees.backToAll' | translate }}
+        </button>
+        <h2>{{ 'studentFees.feesOf' | translate }} {{ studentName(studentId()!) }}</h2>
+        @if (studentGrade(studentId()!)) {
+          <small class="text-muted">{{ studentGrade(studentId()!) }}</small>
+        }
+      } @else {
+        <h2>{{ 'studentFees.title' | translate }}</h2>
+      }
+    </div>
+    <div class="col-auto align-self-end">
+      <button class="btn btn-primary" (click)="navigateToAssign()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'studentFees.assign.button' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && studentFees().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-id text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3 mb-1">{{ 'studentFees.noStudentFees' | translate }}</p>
+        <p class="text-muted small">{{ 'studentFees.assignedHint' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToAssign()">
+          {{ 'studentFees.assign.button' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && studentFees().length > 0) {
+    <!-- Summary -->
+    <div class="row g-2 mb-3">
+      @for (s of summary(); track s.currency) {
+        <div class="col-xl-3 col-lg-4 col-sm-6">
+          <div class="card summary-card ">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">{{ 'studentFees.netDue' | translate }}</span>
+                <span class="badge bg-light text-dark border">{{ s.currency }}</span>
+              </div>
+              <div class="summary-value">{{ formatAmount(s.net) }}</div>
+              <div class="d-flex justify-content-between gap-2 summary-meta">
+                <span class="text-success">{{ 'studentFees.paid' | translate }}: {{ formatAmount(s.paid) }}</span>
+                <span class="text-danger">{{ 'studentFees.balance' | translate }}: {{ formatAmount(s.balance) }}</span>
+              </div>
+              @if (s.waived > 0) {
+                <div class="summary-meta text-secondary">{{ 'studentFees.waive.waived' | translate }}: {{ formatAmount(s.waived) }}</div>
+              }
+              <div class="progress summary-progress">
+                <div class="progress-bar bg-success" [style.width.%]="s.net > 0 ? (s.paid / s.net) * 100 : 0"></div>
+                <div class="progress-bar bg-secondary" [style.width.%]="s.net > 0 ? (s.waived / s.net) * 100 : 0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+      <div class="col-xl-3 col-lg-4 col-sm-6">
+        <div class="card summary-card" [class.border-danger]="overdueCount() > 0">
+          <div class="card-body">
+            <span class="text-muted small">{{ 'studentFees.statuses.overdue' | translate }}</span>
+            <div class="summary-value" [class.text-danger]="overdueCount() > 0">{{ overdueCount() }}</div>
+            <div class="summary-meta text-muted">{{ filteredFees().length }} / {{ studentFees().length }} {{ 'studentFees.records' | translate }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          @if (!studentId()) {
+            <div class="col-lg-3 col-md-6">
+              <label class="form-label small mb-1">{{ 'common.search' | translate }}</label>
+              <input
+                type="search"
+                class="form-control"
+                [value]="searchTerm()"
+                (input)="setFilter('search', $event)"
+                [placeholder]="'studentFees.searchPlaceholder' | translate"
+              />
+            </div>
+            <div class="col-lg-2 col-md-6">
+              <label class="form-label small mb-1">{{ 'fees.stage' | translate }}</label>
+              <select class="form-select" [value]="stageFilter()" (change)="setFilter('stage', $event)">
+                <option value="">{{ 'fees.allStages' | translate }}</option>
+                @for (s of stages(); track s.id) {
+                  <option [value]="s.id">{{ getName(s) }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-lg-2 col-md-4">
+              <label class="form-label small mb-1">{{ 'fees.grade' | translate }}</label>
+              <select class="form-select" [value]="gradeFilter()" (change)="setFilter('grade', $event)">
+                <option value="">{{ 'fees.allGrades' | translate }}</option>
+                @for (g of filterGrades(); track g.id) {
+                  <option [value]="g.id">{{ getName(g) }}</option>
+                }
+              </select>
+            </div>
+          }
+          <div class="col-lg-2 col-md-4">
+            <label class="form-label small mb-1">{{ 'studentFees.status' | translate }}</label>
+            <select class="form-select" [value]="statusFilter()" (change)="setFilter('status', $event)">
+              <option value="">{{ 'studentFees.allStatuses' | translate }}</option>
+              @for (s of statuses; track s.value) {
+                <option [value]="s.value">{{ s.key | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <div class="form-check mb-2">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="outstandingOnly"
+                [checked]="outstandingOnly()"
+                (change)="toggleOutstanding($event)"
+              />
+              <label class="form-check-label" for="outstandingOnly">{{ 'studentFees.outstandingOnly' | translate }}</label>
+            </div>
+          </div>
+          <div class="col-lg-1 col-md-12 text-lg-end">
+            <button type="button" class="btn btn-outline-secondary w-100" (click)="clearFilters()" [disabled]="!hasActiveFilters()">
+              {{ 'fees.clear' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <div class="card-body">
+        @if (filteredFees().length === 0) {
+          <p class="text-muted text-center py-4 mb-0">{{ 'studentFees.noMatches' | translate }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  @if (!studentId()) {
+                    <th>{{ 'studentFees.student' | translate }}</th>
+                  }
+                  <th>{{ 'studentFees.dueDate' | translate }}</th>
+                  <th class="text-end">{{ 'studentFees.total' | translate }}</th>
+                  <th class="text-end">{{ 'studentFees.discount' | translate }}</th>
+                  <th class="text-end">{{ 'studentFees.net' | translate }}</th>
+                  <th style="min-width: 160px;">{{ 'studentFees.paid' | translate }}</th>
+                  <th class="text-end">{{ 'studentFees.balance' | translate }}</th>
+                  <th>{{ 'studentFees.status' | translate }}</th>
+                  <th style="width: 150px;">{{ 'common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (fee of filteredFees(); track fee.id) {
+                  <tr>
+                    @if (!studentId()) {
+                      <td>
+                        <a href="javascript:void(0)" class="fw-semibold" (click)="viewStudent(fee.studentId)">
+                          {{ studentName(fee.studentId) }}
+                        </a>
+                        <small class="d-block text-muted">{{ studentGrade(fee.studentId) }}</small>
+                      </td>
+                    }
+                    <td class="text-nowrap" [class.text-danger]="isPastDue(fee) && fee.balance > 0">
+                      {{ formatDate(fee.dueDate) }}
+                    </td>
+                    <td class="text-end text-nowrap">{{ formatAmount(fee.totalAmount) }}</td>
+                    <td class="text-end text-nowrap text-muted">
+                      {{ fee.discountAmount > 0 ? '−' + formatAmount(fee.discountAmount) : '—' }}
+                    </td>
+                    <td class="text-end text-nowrap fw-semibold">{{ formatAmount(fee.netAmount, fee.currency) }}</td>
+                    <td>
+                      <div class="d-flex justify-content-between small">
+                        <span>{{ formatAmount(fee.paidAmount) }}</span>
+                        <span class="text-muted">{{ paidPercent(fee) }}%</span>
+                      </div>
+                      <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-success" [style.width.%]="paidPercent(fee)"></div>
+                      </div>
+                    </td>
+                    <td class="text-end text-nowrap fw-semibold" [class.text-danger]="fee.balance > 0">
+                      {{ formatAmount(fee.balance, fee.currency) }}
+                      @if (fee.waivedAmount > 0) {
+                        <small class="d-block fw-normal text-secondary">
+                          {{ 'studentFees.waive.waived' | translate }}: {{ formatAmount(fee.waivedAmount) }}
+                        </small>
+                      }
+                    </td>
+                    <td>
+                      <span class="badge" [ngClass]="statusInfo(fee).badge" [title]="fee.waiveReason || ''">
+                        {{ statusInfo(fee).key | translate }}
+                      </span>
+                      @if (isWaived(fee) && fee.waiveReason) {
+                        <small class="d-block text-muted waive-reason" [title]="fee.waiveReason">{{ fee.waiveReason }}</small>
+                      } @else if (isWaived(fee) && !fee.waivedAmount) {
+                        <small class="d-block text-muted">{{ 'studentFees.waive.byDiscount' | translate }}</small>
+                      }
+                    </td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button
+                          class="btn btn-outline-success"
+                          (click)="openPayment(fee, paymentModal)"
+                          [disabled]="!(fee.balance > 0) || isWaived(fee) || isBusy()"
+                          title="{{ 'studentFees.applyPayment' | translate }}"
+                        >
+                          <i class="pe-7s-cash"></i>
+                        </button>
+                        @if (canRestore(fee)) {
+                          <button
+                            class="btn btn-outline-secondary"
+                            (click)="openRestore(fee, restoreModal)"
+                            [disabled]="isBusy()"
+                            title="{{ 'studentFees.waive.restore' | translate }}"
+                          >
+                            <i class="pe-7s-back"></i>
+                          </button>
+                        } @else {
+                          <button
+                            class="btn btn-outline-warning"
+                            (click)="openWaive(fee, waiveModal)"
+                            [disabled]="!canWaive(fee) || isBusy()"
+                            title="{{ 'studentFees.waive.button' | translate }}"
+                          >
+                            <i class="pe-7s-gift"></i>
+                          </button>
+                        }
+                        <button
+                          class="btn btn-outline-danger"
+                          (click)="openDeleteConfirmation(fee, deleteModal)"
+                          [disabled]="isBusy()"
+                          title="{{ 'common.delete' | translate }}"
+                        >
+                          <i class="pe-7s-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Apply Payment Modal -->
+<ng-template #paymentModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'studentFees.applyPayment' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()" [disabled]="isPaying()"></button>
+  </div>
+  @if (feeToPay(); as fee) {
+    <form [formGroup]="paymentForm" (ngSubmit)="confirmPayment()">
+      <div class="modal-body">
+        <p class="mb-2"><strong>{{ studentName(fee.studentId) }}</strong></p>
+        <div class="d-flex justify-content-between small text-muted mb-3">
+          <span>{{ 'studentFees.net' | translate }}: {{ formatAmount(fee.netAmount, fee.currency) }}</span>
+          <span>{{ 'studentFees.paid' | translate }}: {{ formatAmount(fee.paidAmount, fee.currency) }}</span>
+          <span class="text-danger fw-semibold">{{ 'studentFees.balance' | translate }}: {{ formatAmount(fee.balance, fee.currency) }}</span>
+        </div>
+
+        <label for="paymentAmount" class="form-label">
+          {{ 'studentFees.paymentAmount' | translate }} <span class="text-danger">*</span>
+        </label>
+        <div class="input-group">
+          <input
+            type="number"
+            id="paymentAmount"
+            class="form-control"
+            formControlName="amount"
+            min="0.01"
+            [max]="fee.balance"
+            step="0.01"
+            [class.is-invalid]="paymentForm.get('amount')?.invalid && paymentForm.get('amount')?.touched"
+          />
+          <span class="input-group-text">{{ fee.currency }}</span>
+          <button type="button" class="btn btn-outline-secondary" (click)="payFullBalance()">
+            {{ 'studentFees.fullBalance' | translate }}
+          </button>
+        </div>
+        @if (paymentForm.get('amount')?.touched) {
+          @if (paymentForm.get('amount')?.hasError('required') || paymentForm.get('amount')?.hasError('min')) {
+            <div class="invalid-feedback d-block">{{ 'fees.amountPositive' | translate }}</div>
+          }
+          @if (paymentForm.get('amount')?.hasError('exceedsBalance')) {
+            <div class="invalid-feedback d-block">{{ 'studentFees.exceedsBalance' | translate }}</div>
+          }
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isPaying()">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button type="submit" class="btn btn-success" [disabled]="paymentForm.invalid || isPaying()">
+          @if (isPaying()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ 'studentFees.confirmPayment' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</ng-template>
+
+<!-- Waive Modal -->
+<ng-template #waiveModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'studentFees.waive.title' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()" [disabled]="isWaiving()"></button>
+  </div>
+  @if (feeToWaive(); as fee) {
+    <form [formGroup]="waiveForm" (ngSubmit)="confirmWaive()">
+      <div class="modal-body">
+        <p class="mb-2"><strong>{{ studentName(fee.studentId) }}</strong> — {{ formatDate(fee.dueDate) }}</p>
+        <div class="d-flex justify-content-between small text-muted mb-2">
+          <span>{{ 'studentFees.net' | translate }}: {{ formatAmount(fee.netAmount, fee.currency) }}</span>
+          <span>{{ 'studentFees.paid' | translate }}: {{ formatAmount(fee.paidAmount, fee.currency) }}</span>
+        </div>
+        <div class="alert alert-warning py-2 small">
+          {{ 'studentFees.waive.amountToWaive' | translate: { amount: formatAmount(fee.balance, fee.currency) } }}
+          @if (fee.paidAmount > 0) {
+            <div class="mt-1">{{ 'studentFees.waive.paymentsKept' | translate }}</div>
+          }
+        </div>
+
+        <label for="waiveReason" class="form-label">
+          {{ 'studentFees.waive.reason' | translate }} <span class="text-danger">*</span>
+        </label>
+        <textarea
+          id="waiveReason"
+          class="form-control"
+          rows="3"
+          formControlName="reason"
+          [attr.maxlength]="maxWaiveReasonLength"
+          [placeholder]="'studentFees.waive.reasonPlaceholder' | translate"
+          [class.is-invalid]="waiveForm.get('reason')?.invalid && waiveForm.get('reason')?.touched"
+        ></textarea>
+        <div class="d-flex justify-content-between">
+          <div>
+            @if (waiveForm.get('reason')?.touched && waiveForm.get('reason')?.hasError('required')) {
+              <div class="invalid-feedback d-block">{{ 'studentFees.waive.reasonRequired' | translate }}</div>
+            }
+          </div>
+          <small class="text-muted">{{ waiveForm.get('reason')?.value?.length || 0 }} / {{ maxWaiveReasonLength }}</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isWaiving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button type="submit" class="btn btn-warning" [disabled]="waiveForm.invalid || isWaiving()">
+          @if (isWaiving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ 'studentFees.waive.confirm' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</ng-template>
+
+<!-- Restore Waiver Modal -->
+<ng-template #restoreModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'studentFees.waive.restoreTitle' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()" [disabled]="isRestoring()"></button>
+  </div>
+  @if (feeToRestore(); as fee) {
+    <div class="modal-body">
+      <p class="mb-2"><strong>{{ studentName(fee.studentId) }}</strong> — {{ formatDate(fee.dueDate) }}</p>
+      <p class="mb-2">
+        {{ 'studentFees.waive.restoreConfirm' | translate: { amount: formatAmount(fee.waivedAmount, fee.currency) } }}
+      </p>
+      @if (fee.waiveReason) {
+        <div class="small text-muted">
+          <strong>{{ 'studentFees.waive.reason' | translate }}:</strong> {{ fee.waiveReason }}
+        </div>
+      }
+      @if (fee.waivedAt) {
+        <div class="small text-muted">
+          <strong>{{ 'studentFees.waive.waivedOn' | translate }}:</strong> {{ formatDate(fee.waivedAt) }}
+        </div>
+      }
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isRestoring()">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary" (click)="confirmRestore()" [disabled]="isRestoring()">
+        @if (isRestoring()) {
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        }
+        {{ 'studentFees.waive.restore' | translate }}
+      </button>
+    </div>
+  }
+</ng-template>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'studentFees.deleteStudentFee' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="closeModal()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-1">{{ 'studentFees.confirmDelete' | translate }}</p>
+    @if (feeToDelete(); as f) {
+      <p class="mb-0">
+        <strong>{{ studentName(f.studentId) }}</strong> — {{ formatAmount(f.netAmount, f.currency) }}
+        ({{ formatDate(f.dueDate) }})
+      </p>
+      @if (f.paidAmount > 0) {
+        <div class="alert alert-warning py-2 mt-2 mb-0 small">{{ 'studentFees.deletePaidWarning' | translate }}</div>
+      }
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

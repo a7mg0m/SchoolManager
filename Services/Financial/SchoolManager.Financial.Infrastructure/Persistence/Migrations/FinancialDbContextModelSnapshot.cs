@@ -248,6 +248,16 @@ namespace SchoolManager.Financial.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("StudentId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("WaiveReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("WaivedAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("WaivedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.ToTable("StudentFees", (string)null);

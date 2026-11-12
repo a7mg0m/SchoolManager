@@ -1,0 +1,105 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'revenueCategories.editCategory' | translate }}
+        } @else {
+          {{ 'revenueCategories.newCategory' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <!-- Name -->
+          <div class="mb-3">
+            <label for="name" class="form-label">
+              {{ 'common.name' | translate }} <span class="text-danger">*</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              class="form-control"
+              formControlName="name"
+              [maxlength]="nameMax"
+              [placeholder]="'revenueCategories.namePlaceholder' | translate"
+              [class.is-invalid]="hasError('name', 'required') || hasError('name', 'maxlength')"
+            />
+            @if (hasError('name', 'required')) {
+              <div class="invalid-feedback">{{ 'common.nameRequired' | translate }}</div>
+            }
+            @if (hasError('name', 'maxlength')) {
+              <div class="invalid-feedback">{{ 'common.nameMaxLength' | translate }}</div>
+            }
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label for="description" class="form-label">
+              {{ 'revenueCategories.description' | translate }}
+            </label>
+            <textarea
+              id="description"
+              class="form-control"
+              rows="4"
+              formControlName="description"
+              [maxlength]="descriptionMax"
+              [placeholder]="'revenueCategories.descriptionPlaceholder' | translate"
+              [class.is-invalid]="hasError('description', 'maxlength')"
+            ></textarea>
+            <div class="d-flex justify-content-between">
+              @if (hasError('description', 'maxlength')) {
+                <div class="invalid-feedback d-block">{{ 'revenueCategories.descriptionMaxLength' | translate }}</div>
+              } @else {
+                <span></span>
+              }
+              <small class="text-muted">{{ length('description') }} / {{ descriptionMax }}</small>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              }
+              {{ 'common.save' | translate }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+              {{ 'common.cancel' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

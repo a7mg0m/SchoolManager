@@ -45,12 +45,12 @@
       },
       "notification-cluster": {
         "Destinations": {
-          "notification-api": { "Address": "http://localhost:5233/" }
+          "notification-api": { "Address": "http://localhost:62295/" }
         }
       },
       "financial-cluster": {
         "Destinations": {
-          "financial-api": { "Address": "http://localhost:5128/" }
+          "financial-api": { "Address": "http://localhost:61194/" }
         }
       }
     }

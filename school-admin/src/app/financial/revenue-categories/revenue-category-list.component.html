@@ -1,0 +1,143 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'revenueCategories.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'revenueCategories.newCategory' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && categories().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-piggy text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'revenueCategories.noCategories' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'revenueCategories.newCategory' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Categories Table -->
+  @if (!isLoading() && categories().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <input
+              type="search"
+              class="form-control"
+              [value]="searchTerm()"
+              (input)="onSearch($event)"
+              [placeholder]="'revenueCategories.searchPlaceholder' | translate"
+            />
+          </div>
+          <div class="col-md-6 text-md-end align-self-center">
+            <small class="text-muted">
+              {{ filteredCategories().length }} / {{ categories().length }}
+            </small>
+          </div>
+        </div>
+
+        @if (filteredCategories().length === 0) {
+          <p class="text-muted text-center py-4 mb-0">{{ 'revenueCategories.noMatches' | translate }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'common.name' | translate }}</th>
+                  <th>{{ 'revenueCategories.description' | translate }}</th>
+                  <th style="width: 120px;">{{ 'common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (category of filteredCategories(); track category.id) {
+                  <tr>
+                    <td><strong>{{ category.name }}</strong></td>
+                    <td class="text-muted">{{ category.description || '—' }}</td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button
+                          class="btn btn-outline-primary"
+                          (click)="navigateToEdit(category.id)"
+                          title="{{ 'common.edit' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-note"></i>
+                        </button>
+                        <button
+                          class="btn btn-outline-danger"
+                          (click)="openDeleteConfirmation(category, deleteModal)"
+                          title="{{ 'common.delete' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'revenueCategories.deleteCategory' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-1">{{ 'revenueCategories.confirmDelete' | translate }}</p>
+    @if (categoryToDelete()) {
+      <p class="mb-0"><strong>{{ categoryToDelete()!.name }}</strong></p>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

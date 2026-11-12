@@ -20,3 +20,21 @@ export { ParentListComponent } from './management/parents/parent-list.component'
 export { ParentSaveComponent } from './management/parents/parent-save.component';
 export { TimetableListComponent } from './management/timetables/timetable-list.component';
 export { TimetableSaveComponent } from './management/timetables/timetable-save.component';
+export { StudentListComponent } from './management/students/student-list.component';
+export { StudentProfileComponent } from './management/students/student-profile.component';
+// Financial components
+export { ExpenseCategoryListComponent } from './financial/expense-categories/expense-category-list.component';
+export { ExpenseCategorySaveComponent } from './financial/expense-categories/expense-category-save.component';
+export { RevenueCategoryListComponent } from './financial/revenue-categories/revenue-category-list.component';
+export { RevenueCategorySaveComponent } from './financial/revenue-categories/revenue-category-save.component';
+export { ExpenseListComponent } from './financial/expenses/expense-list.component';
+export { ExpenseSaveComponent } from './financial/expenses/expense-save.component';
+export { RevenueListComponent } from './financial/revenues/revenue-list.component';
+export { RevenueSaveComponent } from './financial/revenues/revenue-save.component';
+export { FeeListComponent } from './financial/fees/fee-list.component';
+export { FeeSaveComponent } from './financial/fees/fee-save.component';
+export { StudentFeeListComponent } from './financial/student-fees/student-fee-list.component';
+export { StudentFeeAssignComponent } from './financial/student-fees/student-fee-assign.component';
+// Notification components
+export { SchoolEventListComponent } from './notification/school-events/school-event-list.component';
+export { SchoolEventSaveComponent } from './notification/school-events/school-event-save.component';

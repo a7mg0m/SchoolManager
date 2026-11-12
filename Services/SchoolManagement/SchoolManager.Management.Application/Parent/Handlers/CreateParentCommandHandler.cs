@@ -9,16 +9,23 @@ namespace SchoolManager.Management.Application
 		private readonly IParentRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IGradeRepository _gradeRepository;
+		private readonly IStudentRepository _studentRepository;
 
-		public CreateParentCommandHandler(IParentRepository repository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
+		public CreateParentCommandHandler(IParentRepository repository, IStudentRepository studentRepository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
 		{
 			_gradeRepository = gradeRepository;
+			_studentRepository = studentRepository;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
 
 		public async Task<Guid> Handle(CreateParentCommand command, CancellationToken cancellationToken)
 		{
+			var existingIds = await _studentRepository.GetExistingNationalIdsAsync(
+				command.Students.Select(s => s.NationalId), cancellationToken);
+			if (existingIds.Count > 0)
+				throw new DuplicateNationalIdException(existingIds);
+
 			var entity = new Parent(
 				new NameLocalized(command.FullNameAr, command.FullNameEn),
                 command.PhoneNumber,

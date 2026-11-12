@@ -1,0 +1,224 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'revenues.editRevenue' | translate }}
+        } @else {
+          {{ 'revenues.newRevenue' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    @if (categories().length === 0) {
+      <div class="alert alert-warning d-flex justify-content-between align-items-center">
+        <span>{{ 'revenues.noCategoriesHint' | translate }}</span>
+        <button type="button" class="btn btn-sm btn-warning" (click)="navigateToCategories()">
+          {{ 'revenueCategories.newCategory' | translate }}
+        </button>
+      </div>
+    }
+
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <!-- Title -->
+            <div class="col-md-8 mb-3">
+              <label for="title" class="form-label">
+                {{ 'revenues.revenueTitle' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                id="title"
+                class="form-control"
+                formControlName="title"
+                [maxlength]="titleMax"
+                [placeholder]="'revenues.titlePlaceholder' | translate"
+                [class.is-invalid]="isInvalid('title')"
+              />
+              @if (hasError('title', 'required')) {
+                <div class="invalid-feedback">{{ 'revenues.titleRequired' | translate }}</div>
+              }
+            </div>
+
+            <!-- Revenue Date -->
+            <div class="col-md-4 mb-3">
+              <label for="revenueDate" class="form-label">
+                {{ 'revenues.revenueDate' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                id="revenueDate"
+                class="form-control"
+                formControlName="revenueDate"
+                [class.is-invalid]="isInvalid('revenueDate')"
+              />
+              @if (hasError('revenueDate', 'required')) {
+                <div class="invalid-feedback">{{ 'revenues.dateRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Category -->
+            <div class="col-md-6 mb-3">
+              <label for="categoryId" class="form-label">
+                {{ 'revenues.category' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="categoryId"
+                class="form-select"
+                formControlName="categoryId"
+                [class.is-invalid]="isInvalid('categoryId')"
+              >
+                <option value="" disabled>{{ 'common.chooseOne' | translate }}</option>
+                @for (c of categories(); track c.id) {
+                  <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+              @if (hasError('categoryId', 'required')) {
+                <div class="invalid-feedback">{{ 'revenues.categoryRequired' | translate }}</div>
+              }
+            </div>
+
+            <!-- Type -->
+            <div class="col-md-6 mb-3">
+              <label for="type" class="form-label">
+                {{ 'revenues.type' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="type"
+                class="form-select"
+                formControlName="type"
+                [class.is-invalid]="isInvalid('type')"
+              >
+                @for (t of revenueTypes; track t.value) {
+                  <option [ngValue]="t.value">{{ t.key | translate }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <!-- Amount -->
+            <div class="col-md-6 mb-3">
+              <label for="amount" class="form-label">
+                {{ 'revenues.amount' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="number"
+                id="amount"
+                class="form-control"
+                formControlName="amount"
+                min="0.01"
+                step="0.01"
+                placeholder="0.00"
+                [class.is-invalid]="isInvalid('amount')"
+              />
+              @if (hasError('amount', 'required')) {
+                <div class="invalid-feedback">{{ 'revenues.amountRequired' | translate }}</div>
+              }
+              @if (hasError('amount', 'min')) {
+                <div class="invalid-feedback">{{ 'revenues.amountPositive' | translate }}</div>
+              }
+            </div>
+
+            <!-- Currency -->
+            <div class="col-md-6 mb-3">
+              <label for="currency" class="form-label">
+                {{ 'revenues.currency' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                id="currency"
+                class="form-control text-uppercase"
+                formControlName="currency"
+                list="currencyOptions"
+                [maxlength]="currencyMax"
+                placeholder="e.g., EGP"
+                [class.is-invalid]="isInvalid('currency')"
+              />
+              <datalist id="currencyOptions">
+                @for (c of currencies; track c) {
+                  <option [value]="c"></option>
+                }
+              </datalist>
+              @if (hasError('currency', 'required')) {
+                <div class="invalid-feedback">{{ 'revenues.currencyRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- Reference -->
+          <div class="mb-3">
+            <label for="reference" class="form-label">{{ 'revenues.reference' | translate }}</label>
+            <input
+              type="text"
+              id="reference"
+              class="form-control"
+              formControlName="reference"
+              [maxlength]="referenceMax"
+              [placeholder]="'revenues.referencePlaceholder' | translate"
+            />
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label for="description" class="form-label">{{ 'revenues.description' | translate }}</label>
+            <textarea
+              id="description"
+              class="form-control"
+              rows="3"
+              formControlName="description"
+              [maxlength]="descriptionMax"
+            ></textarea>
+            <div class="text-end">
+              <small class="text-muted">{{ length('description') }} / {{ descriptionMax }}</small>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              }
+              {{ 'common.save' | translate }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+              {{ 'common.cancel' | translate }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

@@ -29,6 +29,56 @@ namespace SchoolManager.Financial.Application
         }
     }
 
+    public class WaiveStudentFeeCommandHandler : ICommandHandler<WaiveStudentFeeCommand, bool>
+    {
+        private readonly IStudentFeeRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public WaiveStudentFeeCommandHandler(IStudentFeeRepository repository, IUnitOfWork unitOfWork)
+        {
+            _repository = repository;
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<bool> Handle(WaiveStudentFeeCommand command, CancellationToken cancellationToken)
+        {
+            var entity = await _repository.GetByIdAsync(command.Id);
+            if (entity is null) return false;
+
+            entity.Waive(command.Reason, DateTime.UtcNow);
+
+            await _repository.UpdateAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+    }
+
+    public class RestoreStudentFeeWaiverCommandHandler : ICommandHandler<RestoreStudentFeeWaiverCommand, bool>
+    {
+        private readonly IStudentFeeRepository _repository;
+        private readonly IUnitOfWork _unitOfWork;
+
+        public RestoreStudentFeeWaiverCommandHandler(IStudentFeeRepository repository, IUnitOfWork unitOfWork)
+        {
+            _repository = repository;
+            _unitOfWork = unitOfWork;
+        }
+
+        public async Task<bool> Handle(RestoreStudentFeeWaiverCommand command, CancellationToken cancellationToken)
+        {
+            var entity = await _repository.GetByIdAsync(command.Id);
+            if (entity is null) return false;
+
+            entity.RestoreWaiver();
+
+            await _repository.UpdateAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
+
+            return true;
+        }
+    }
+
     public class DeleteStudentFeeCommandHandler : ICommandHandler<DeleteStudentFeeCommand, bool>
     {
         private readonly IStudentFeeRepository _repository;

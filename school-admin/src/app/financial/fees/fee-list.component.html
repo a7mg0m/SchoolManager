@@ -1,0 +1,237 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'fees.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'fees.newFee' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && fees().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-wallet text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'fees.noFees' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'fees.newFee' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && fees().length > 0) {
+    <!-- Filters -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-lg-3 col-md-6">
+            <label class="form-label small mb-1">{{ 'common.search' | translate }}</label>
+            <input
+              type="search"
+              class="form-control"
+              [value]="searchTerm()"
+              (input)="setFilter('search', $event)"
+              [placeholder]="'fees.searchPlaceholder' | translate"
+            />
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label class="form-label small mb-1">{{ 'fees.stage' | translate }}</label>
+            <select class="form-select" [value]="stageFilter()" (change)="setFilter('stage', $event)">
+              <option value="">{{ 'fees.allStages' | translate }}</option>
+              @for (s of stages(); track s.id) {
+                <option [value]="s.id">{{ getName(s) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <label class="form-label small mb-1">{{ 'fees.grade' | translate }}</label>
+            <select class="form-select" [value]="gradeFilter()" (change)="setFilter('grade', $event)">
+              <option value="">{{ 'fees.allGrades' | translate }}</option>
+              @for (g of filterGrades(); track g.id) {
+                <option [value]="g.id">{{ getName(g) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <label class="form-label small mb-1">{{ 'fees.type' | translate }}</label>
+            <select class="form-select" [value]="typeFilter()" (change)="setFilter('type', $event)">
+              <option value="">{{ 'fees.allTypes' | translate }}</option>
+              @for (t of feeTypes; track t.value) {
+                <option [value]="t.value">{{ t.key | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <label class="form-label small mb-1">{{ 'fees.requirement' | translate }}</label>
+            <select class="form-select" [value]="mandatoryFilter()" (change)="setFilter('mandatory', $event)">
+              <option value="">{{ 'fees.all' | translate }}</option>
+              <option value="mandatory">{{ 'fees.mandatory' | translate }}</option>
+              <option value="optional">{{ 'fees.optional' | translate }}</option>
+            </select>
+          </div>
+          <div class="col-lg-1 col-md-12 text-lg-end">
+            <button
+              type="button"
+              class="btn btn-outline-secondary w-100"
+              (click)="clearFilters()"
+              [disabled]="!hasActiveFilters()"
+            >
+              {{ 'fees.clear' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-muted small mb-2">
+      {{ filteredFees().length }} / {{ fees().length }} {{ 'fees.records' | translate }}
+    </p>
+
+    @if (groups().length === 0) {
+      <div class="card">
+        <div class="card-body text-center text-muted py-4">{{ 'fees.noMatches' | translate }}</div>
+      </div>
+    }
+
+    <!-- One card per grade -->
+    @for (group of groups(); track group.gradeId) {
+      <div class="card mb-3">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <div>
+            <h5 class="mb-0">{{ group.gradeName }}</h5>
+            @if (group.stageName) {
+              <small class="text-muted">{{ group.stageName }}</small>
+            }
+          </div>
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            @for (t of group.mandatoryTotals; track t.currency) {
+              <span class="badge total-mandatory">
+                {{ 'fees.mandatoryTotal' | translate }}: {{ formatAmount(t.amount, t.currency) }}
+              </span>
+            }
+            @for (t of group.allTotals; track t.currency) {
+              <span class="badge total-all">
+                {{ 'fees.allTotal' | translate }}: {{ formatAmount(t.amount, t.currency) }}
+              </span>
+            }
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              (click)="navigateToCreate(group.gradeId)"
+              title="{{ 'fees.addToGrade' | translate }}"
+            >
+              <i class="pe-7s-plus"></i>
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'common.name' | translate }}</th>
+                  <th>{{ 'fees.type' | translate }}</th>
+                  <th>{{ 'fees.requirement' | translate }}</th>
+                  <th class="text-end">{{ 'fees.amount' | translate }}</th>
+                  <th style="width: 110px;">{{ 'common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (fee of group.fees; track fee.id) {
+                  <tr>
+                    <td><strong>{{ fee.name }}</strong></td>
+                    <td><span class="badge bg-light text-dark border">{{ typeKey(fee.type) | translate }}</span></td>
+                    <td>
+                      @if (fee.isMandatory) {
+                        <span class="badge bg-primary">{{ 'fees.mandatory' | translate }}</span>
+                      } @else {
+                        <span class="badge bg-secondary">{{ 'fees.optional' | translate }}</span>
+                      }
+                    </td>
+                    <td class="text-end text-nowrap fw-semibold">{{ formatAmount(fee.amount, fee.currency) }}</td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button
+                          class="btn btn-outline-primary"
+                          (click)="navigateToEdit(fee.id)"
+                          title="{{ 'common.edit' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-note"></i>
+                        </button>
+                        <button
+                          class="btn btn-outline-danger"
+                          (click)="openDeleteConfirmation(fee, deleteModal)"
+                          title="{{ 'common.delete' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'fees.deleteFee' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-1">{{ 'fees.confirmDelete' | translate }}</p>
+    @if (feeToDelete(); as f) {
+      <p class="mb-0">
+        <strong>{{ f.name }}</strong> — {{ gradeNameOf(f) }} — {{ formatAmount(f.amount, f.currency) }}
+      </p>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

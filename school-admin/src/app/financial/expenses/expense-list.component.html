@@ -1,0 +1,213 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'expenses.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'expenses.newExpense' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && expenses().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-cash text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'expenses.noExpenses' | translate }}</p>
+        @if (categories().length === 0) {
+          <p class="text-muted small">{{ 'expenses.noCategoriesHint' | translate }}</p>
+          <button class="btn btn-outline-primary me-2" (click)="navigateToCategories()">
+            {{ 'sidebar.expenseCategories' | translate }}
+          </button>
+        }
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'expenses.newExpense' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && expenses().length > 0) {
+    <!-- Filters -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-lg-3 col-md-6">
+            <label class="form-label small mb-1">{{ 'common.search' | translate }}</label>
+            <input
+              type="search"
+              class="form-control"
+              [value]="searchTerm()"
+              (input)="setFilter('search', $event)"
+              [placeholder]="'expenses.searchPlaceholder' | translate"
+            />
+          </div>
+          <div class="col-lg-2 col-md-6">
+            <label class="form-label small mb-1">{{ 'expenses.category' | translate }}</label>
+            <select class="form-select" [value]="categoryFilter()" (change)="setFilter('category', $event)">
+              <option value="">{{ 'expenses.allCategories' | translate }}</option>
+              @for (c of categories(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <label class="form-label small mb-1">{{ 'expenses.type' | translate }}</label>
+            <select class="form-select" [value]="typeFilter()" (change)="setFilter('type', $event)">
+              <option value="">{{ 'expenses.allTypes' | translate }}</option>
+              @for (t of expenseTypes; track t.value) {
+                <option [value]="t.value">{{ t.key | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <label class="form-label small mb-1">{{ 'expenses.dateFrom' | translate }}</label>
+            <input type="date" class="form-control" [value]="dateFrom()" (change)="setFilter('from', $event)" />
+          </div>
+          <div class="col-lg-2 col-md-4">
+            <label class="form-label small mb-1">{{ 'expenses.dateTo' | translate }}</label>
+            <input type="date" class="form-control" [value]="dateTo()" (change)="setFilter('to', $event)" />
+          </div>
+          <div class="col-lg-1 col-md-12 text-lg-end">
+            <button
+              type="button"
+              class="btn btn-outline-secondary w-100"
+              (click)="clearFilters()"
+              [disabled]="!hasActiveFilters()"
+            >
+              {{ 'expenses.clear' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Totals -->
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+      <span class="text-muted small">
+        {{ filteredExpenses().length }} / {{ expenses().length }} {{ 'expenses.records' | translate }}
+      </span>
+      @for (t of totals(); track t.currency) {
+        <span class="badge total-badge">
+          {{ 'expenses.total' | translate }}: {{ formatAmount(t.amount, t.currency) }}
+        </span>
+      }
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <div class="card-body">
+        @if (filteredExpenses().length === 0) {
+          <p class="text-muted text-center py-4 mb-0">{{ 'expenses.noMatches' | translate }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'expenses.expenseDate' | translate }}</th>
+                  <th>{{ 'expenses.expenseTitle' | translate }}</th>
+                  <th>{{ 'expenses.category' | translate }}</th>
+                  <th>{{ 'expenses.type' | translate }}</th>
+                  <th class="text-end">{{ 'expenses.amount' | translate }}</th>
+                  <th>{{ 'expenses.reference' | translate }}</th>
+                  <th style="width: 110px;">{{ 'common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (expense of filteredExpenses(); track expense.id) {
+                  <tr>
+                    <td class="text-nowrap">{{ formatDate(expense.expenseDate) }}</td>
+                    <td>
+                      <strong>{{ expense.title }}</strong>
+                      @if (expense.description) {
+                        <small class="d-block text-muted text-truncate description">{{ expense.description }}</small>
+                      }
+                    </td>
+                    <td>{{ categoryName(expense) }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ typeKey(expense.type) | translate }}</span></td>
+                    <td class="text-end text-nowrap fw-semibold">{{ formatAmount(expense.amount, expense.currency) }}</td>
+                    <td class="text-muted">{{ expense.reference || '—' }}</td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button
+                          class="btn btn-outline-primary"
+                          (click)="navigateToEdit(expense.id)"
+                          title="{{ 'common.edit' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-note"></i>
+                        </button>
+                        <button
+                          class="btn btn-outline-danger"
+                          (click)="openDeleteConfirmation(expense, deleteModal)"
+                          title="{{ 'common.delete' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'expenses.deleteExpense' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-1">{{ 'expenses.confirmDelete' | translate }}</p>
+    @if (expenseToDelete(); as e) {
+      <p class="mb-0">
+        <strong>{{ e.title }}</strong> — {{ formatAmount(e.amount, e.currency) }} ({{ formatDate(e.expenseDate) }})
+      </p>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

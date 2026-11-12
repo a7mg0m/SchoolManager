@@ -1,0 +1,37 @@
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid #e3e6f0;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--bs-primary, #3f6ad8);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-inline-end: 0.4rem;
+}
+
+.pick-list {
+  max-height: 360px;
+  overflow-y: auto;
+
+  .list-group-item {
+    cursor: pointer;
+  }
+
+  .active-pick {
+    background-color: #f0f5ff;
+  }
+}
+
+.summary {
+  max-width: 420px;
+  margin-inline-start: auto;
+  font-variant-numeric: tabular-nums;
+}

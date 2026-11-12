@@ -454,7 +454,12 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
             // Navigate back after 1 second (keep isSaving to block duplicate submits)
             setTimeout(() => this.router.navigate(['/management/parents']), 1000);
           } else {
-            this.errorMessage.set(response.message || this.translate.instant(failKey));
+            if (response.message === 'NationalIdAlreadyExists') {
+              const ids = Array.isArray(response.errors) ? response.errors.join(', ') : '';
+              this.errorMessage.set(this.translate.instant('parents.nationalIdExists', { ids }));
+            } else {
+              this.errorMessage.set(response.message || this.translate.instant(failKey));
+            }
             this.isSaving.set(false);
           }
         },

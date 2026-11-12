@@ -113,7 +113,6 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SchoolManager.Notification.Domain.EventTarget", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("EventId")
@@ -205,7 +204,6 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SchoolManager.Notification.Domain.NotificationTarget", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("GradeId")

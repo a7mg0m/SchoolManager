@@ -11,5 +11,9 @@ namespace SchoolManager.Management.Infrastructure
 
 		public override Task<AcademicYear?> GetByIdAsync(Guid id)
 			=> _dbSet.Include(a => a.Semesters).FirstOrDefaultAsync(a => a.Id == id);
+
+		// Include semesters here too: lists (e.g. school event form) pick a semester from the year
+		public override async Task<List<AcademicYear>> GetAllAsync()
+			=> await _dbSet.Include(a => a.Semesters).AsNoTracking().ToListAsync();
 	}
 }

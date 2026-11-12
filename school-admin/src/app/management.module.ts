@@ -17,6 +17,8 @@ import { ParentListComponent } from './management/parents/parent-list.component'
 import { ParentSaveComponent } from './management/parents/parent-save.component';
 import { TimetableListComponent } from './management/timetables/timetable-list.component';
 import { TimetableSaveComponent } from './management/timetables/timetable-save.component';
+import { StudentListComponent } from './management/students/student-list.component';
+import { StudentProfileComponent } from './management/students/student-profile.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +36,9 @@ import { TimetableSaveComponent } from './management/timetables/timetable-save.c
     ParentListComponent,
     ParentSaveComponent,
     TimetableListComponent,
-    TimetableSaveComponent
+    TimetableSaveComponent,
+    StudentListComponent,
+    StudentProfileComponent
   ],
   imports: [
     SharedModule
@@ -54,7 +58,9 @@ import { TimetableSaveComponent } from './management/timetables/timetable-save.c
     ParentListComponent,
     ParentSaveComponent,
     TimetableListComponent,
-    TimetableSaveComponent
+    TimetableSaveComponent,
+    StudentListComponent,
+    StudentProfileComponent
   ]
 })
 export class ManagementModule { }

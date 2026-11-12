@@ -15,6 +15,8 @@ namespace SchoolManager.Financial.Infrastructure
             builder.Property(x => x.StudentId).IsRequired();
             builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(50);
             builder.Property(x => x.DueDate).IsRequired();
+            builder.Property(x => x.WaivedAmount).HasColumnType("decimal(18,2)");
+            builder.Property(x => x.WaiveReason).HasMaxLength(StudentFee.MaxWaiveReasonLength);
 
             builder.Ignore(x => x.NetAmount);
             builder.Ignore(x => x.Balance);

@@ -1,0 +1,23 @@
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid #e3e6f0;
+  max-width: 900px;
+}
+
+.form-switch .form-check-input {
+  cursor: pointer;
+  width: 2.5rem;
+  height: 1.5rem;
+  margin-top: 0;
+
+  &:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+  }
+}
+
+.form-switch .form-check-label {
+  cursor: pointer;
+  margin-left: 0.5rem;
+  line-height: 1.5rem;
+}
