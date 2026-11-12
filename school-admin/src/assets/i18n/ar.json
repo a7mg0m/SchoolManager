@@ -34,7 +34,6 @@
     "nameMinLength": "يجب أن يكون الاسم بطول 2 أحرف على الأقل",
     "nameMaxLength": "لا يجب أن يتجاوز الاسم 100 حرف"
   },
-  
   "header": {
     "dashboard": "لوحة التحكم",
     "notifications": "الإشعارات",
@@ -59,7 +58,8 @@
     "parents": "أولياء الأمور",
     "reports": "التقارير",
     "settings": "الإعدادات",
-    "documentation": "الوثائق"
+    "documentation": "الوثائق",
+    "timetables": "الجداول الدراسية"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -389,5 +389,48 @@
     "loadingData": "جاري تحميل البيانات...",
     "noData": "لا توجد بيانات متاحة",
     "somethingWentWrong": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
+  },
+  "timetables": {
+    "title": "الجداول الدراسية",
+    "newTimetable": "+ جدول جديد",
+    "editTimetable": "تعديل الجدول",
+    "deleteTimetable": "حذف الجدول",
+    "confirmDeleteTimetable": "هل أنت متأكد من حذف هذا الجدول وجميع حصصه؟ لا يمكن التراجع عن هذا الإجراء.",
+    "noTimetables": "لا توجد جداول. أنشئ جدولاً للبدء.",
+    "stage": "المرحلة",
+    "grade": "السنة الدراسية",
+    "academicYear": "السنة الأكاديمية",
+    "gradeRequired": "السنة الدراسية مطلوبة",
+    "academicYearRequired": "السنة الأكاديمية مطلوبة",
+    "slots": "الحصص",
+    "sections": "الفصول",
+    "addSlot": "+ إضافة حصة",
+    "duplicateSlot": "نسخ الحصة",
+    "sortSlots": "ترتيب حسب اليوم/الوقت",
+    "viewSlots": "عرض الحصص",
+    "noSlots": "لم تتم إضافة حصص. اضغط \"إضافة حصة\" للإضافة.",
+    "selectGradeFirst": "يرجى اختيار السنة الدراسية أولاً لإضافة الحصص.",
+    "noSectionsForGrade": "لا توجد فصول لهذه السنة الدراسية.",
+    "noSubjectsForGrade": "لا توجد مواد لهذه السنة الدراسية.",
+    "day": "اليوم",
+    "section": "الفصل",
+    "subject": "المادة",
+    "teacher": "المعلم",
+    "startTime": "وقت البداية",
+    "endTime": "وقت النهاية",
+    "endTimeAfterStart": "يجب أن يكون وقت النهاية بعد وقت البداية",
+    "overlappingSlots": "توجد حصتان متداخلتان في نفس اليوم والفصل",
+    "days": {
+      "sunday": "الأحد",
+      "monday": "الاثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة",
+      "saturday": "السبت"
+    },
+    "stageRequired": "المرحلة مطلوبة",
+    "selectStageFirst": "اختر المرحلة أولاً",
+    "noGradesForStage": "لا توجد سنوات دراسية نشطة لهذه المرحلة"
   }
 }

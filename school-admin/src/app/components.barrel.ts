@@ -18,3 +18,5 @@ export { SubjectListComponent } from './management/subjects/subject-list.compone
 export { SubjectSaveComponent } from './management/subjects/subject-save.component';
 export { ParentListComponent } from './management/parents/parent-list.component';
 export { ParentSaveComponent } from './management/parents/parent-save.component';
+export { TimetableListComponent } from './management/timetables/timetable-list.component';
+export { TimetableSaveComponent } from './management/timetables/timetable-save.component';

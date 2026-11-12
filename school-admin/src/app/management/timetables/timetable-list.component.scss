@@ -1,0 +1,35 @@
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.week-day {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+}
+
+.week-day-title {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.slot-card {
+  border-inline-start: 3px solid var(--bs-primary, #3f6ad8);
+  background: #f8f9fa;
+  border-radius: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}

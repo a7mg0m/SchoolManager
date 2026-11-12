@@ -11,6 +11,7 @@ namespace SchoolManager.Management.Infrastructure
             builder.ToTable("Timetables");
             builder.HasKey(x => x.Id);
 
+            builder.HasOne(x => x.Stage).WithMany().HasForeignKey(x => x.StageId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(x => x.Grade).WithMany().HasForeignKey(x => x.GradeId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(x => x.AcademicYear).WithMany().HasForeignKey(x => x.AcademicYearId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(x => x.Slots).WithOne().HasForeignKey("TimetableId").OnDelete(DeleteBehavior.Cascade);

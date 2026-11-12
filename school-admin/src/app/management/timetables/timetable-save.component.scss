@@ -1,0 +1,12 @@
+.slots-table {
+  min-width: 1100px;
+
+  select,
+  input {
+    min-width: 110px;
+  }
+
+  input[type='time'] {
+    min-width: 100px;
+  }
+}

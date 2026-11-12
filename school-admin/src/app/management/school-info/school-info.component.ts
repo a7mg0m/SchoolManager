@@ -1,7 +1,5 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
 import { SchoolInfoService } from '../../core/services/school-info.service';
 import { SchoolInfo, CreateSchoolInfoRequest, UpdateSchoolInfoRequest } from '../../core/models/school-info.model';
 import { Subject } from 'rxjs';
@@ -31,9 +29,7 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
 
   constructor(
     private formBuilder: FormBuilder,
-    private schoolInfoService: SchoolInfoService,
-    private translate: TranslateService,
-    private router: Router
+    private schoolInfoService: SchoolInfoService
   ) {}
 
   ngOnInit(): void {
@@ -84,7 +80,7 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
           this.isLoading.set(false);
           // Don't show error if it's a 404 (no school info exists yet)
           if (error.status !== 404) {
-            this.errorMessage.set(error.error?.message || this.translate.instant('schoolInfo.loadFailed'));
+            this.errorMessage.set(error.error?.message || 'Failed to load school information');
           }
         }
       });
@@ -118,13 +114,13 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
     }
 
     if (!file.type.startsWith('image/')) {
-      this.logoError.set(this.translate.instant('schoolInfo.logoInvalidType'));
+      this.logoError.set('Please select an image file');
       input.value = '';
       return;
     }
 
     if (file.size > this.maxLogoSizeBytes) {
-      this.logoError.set(this.translate.instant('schoolInfo.logoTooLarge'));
+      this.logoError.set('Logo must not exceed 1 MB');
       input.value = '';
       return;
     }
@@ -138,7 +134,7 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
       this.form.get('logo')?.markAsDirty();
       this.logoPreview.set(dataUrl);
     };
-    reader.onerror = () => this.logoError.set(this.translate.instant('schoolInfo.logoReadFailed'));
+    reader.onerror = () => this.logoError.set('Failed to read the selected file');
     reader.readAsDataURL(file);
   }
 
@@ -178,7 +174,7 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
    */
   onSubmit(): void {
     if (!this.form.valid) {
-      this.errorMessage.set(this.translate.instant('schoolInfo.invalidForm'));
+      this.errorMessage.set('Please fill in all required fields correctly');
       return;
     }
 
@@ -201,23 +197,22 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
           next: (response) => {
             this.isSaving.set(false);
             if (response.status === 200) {
-              this.successMessage.set(this.translate.instant('schoolInfo.updated'));
+              this.successMessage.set(response.message || 'School information updated successfully');
               if (response.data) {
                 this.existingSchoolInfo = response.data;
                 this.populateForm(response.data);
               } else {
                 this.existingSchoolInfo = { ...formValue, id: this.existingSchoolInfo?.id };
               }
-              // Navigate home after 1 second
-              setTimeout(() => this.router.navigate(['/home']), 1000);
+              setTimeout(() => this.successMessage.set(null), 3000);
             } else {
-              this.errorMessage.set(response.message || this.translate.instant('schoolInfo.updateFailed'));
+              this.errorMessage.set(response.message || 'Failed to update school information');
             }
           },
           error: (error) => {
             this.isSaving.set(false);
             console.error('Error updating school info:', error);
-            this.errorMessage.set(error.error?.message || this.translate.instant('schoolInfo.updateFailed'));
+            this.errorMessage.set(error.error?.message || 'An error occurred while updating school information');
           }
         });
     } else {
@@ -230,7 +225,7 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
           next: (response) => {
             this.isSaving.set(false);
             if (response.status === 200) {
-              this.successMessage.set(this.translate.instant('schoolInfo.created'));
+              this.successMessage.set(response.message || 'School information created successfully');
               if (response.data) {
                 this.existingSchoolInfo = response.data;
                 this.populateForm(response.data);
@@ -239,16 +234,15 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
                 this.existingSchoolInfo = { ...formValue, id: response.insertedId || undefined };
               }
               this.isEditMode.set(true);
-              // Navigate home after 1 second
-              setTimeout(() => this.router.navigate(['/home']), 1000);
+              setTimeout(() => this.successMessage.set(null), 3000);
             } else {
-              this.errorMessage.set(response.message || this.translate.instant('schoolInfo.createFailed'));
+              this.errorMessage.set(response.message || 'Failed to create school information');
             }
           },
           error: (error) => {
             this.isSaving.set(false);
             console.error('Error creating school info:', error);
-            this.errorMessage.set(error.error?.message || this.translate.instant('schoolInfo.createFailed'));
+            this.errorMessage.set(error.error?.message || 'An error occurred while creating school information');
           }
         });
     }

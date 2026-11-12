@@ -58,7 +58,8 @@
     "parents": "Parents",
     "reports": "Reports",
     "settings": "Settings",
-    "documentation": "Documentation"
+    "documentation": "Documentation",
+    "timetables": "Timetables"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -388,5 +389,48 @@
     "loadingData": "Loading data...",
     "noData": "No data available",
     "somethingWentWrong": "Something went wrong. Please try again."
+  },
+  "timetables": {
+    "title": "Timetables",
+    "newTimetable": "+ New Timetable",
+    "editTimetable": "Edit Timetable",
+    "deleteTimetable": "Delete Timetable",
+    "confirmDeleteTimetable": "Are you sure you want to delete this timetable and all its slots? This action cannot be undone.",
+    "noTimetables": "No timetables found. Create one to get started.",
+    "stage": "Stage",
+    "grade": "Grade",
+    "academicYear": "Academic Year",
+    "gradeRequired": "Grade is required",
+    "academicYearRequired": "Academic year is required",
+    "slots": "Slots",
+    "sections": "Sections",
+    "addSlot": "+ Add Slot",
+    "duplicateSlot": "Duplicate slot",
+    "sortSlots": "Sort by day/time",
+    "viewSlots": "View slots",
+    "noSlots": "No slots added. Click \"Add Slot\" to add one.",
+    "selectGradeFirst": "Please select a grade first to add slots.",
+    "noSectionsForGrade": "No sections found for this grade.",
+    "noSubjectsForGrade": "No subjects found for this grade.",
+    "day": "Day",
+    "section": "Section",
+    "subject": "Subject",
+    "teacher": "Teacher",
+    "startTime": "Start Time",
+    "endTime": "End Time",
+    "endTimeAfterStart": "End time must be after start time",
+    "overlappingSlots": "Two slots overlap on the same day and section",
+    "days": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    },
+    "stageRequired": "Stage is required",
+    "selectStageFirst": "Select a stage first",
+    "noGradesForStage": "No active grades for this stage"
   }
 }

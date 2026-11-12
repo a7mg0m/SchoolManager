@@ -15,6 +15,8 @@ import { SubjectListComponent } from './management/subjects/subject-list.compone
 import { SubjectSaveComponent } from './management/subjects/subject-save.component';
 import { ParentListComponent } from './management/parents/parent-list.component';
 import { ParentSaveComponent } from './management/parents/parent-save.component';
+import { TimetableListComponent } from './management/timetables/timetable-list.component';
+import { TimetableSaveComponent } from './management/timetables/timetable-save.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +32,9 @@ import { ParentSaveComponent } from './management/parents/parent-save.component'
     SubjectListComponent,
     SubjectSaveComponent,
     ParentListComponent,
-    ParentSaveComponent
+    ParentSaveComponent,
+    TimetableListComponent,
+    TimetableSaveComponent
   ],
   imports: [
     SharedModule
@@ -48,7 +52,9 @@ import { ParentSaveComponent } from './management/parents/parent-save.component'
     SubjectListComponent,
     SubjectSaveComponent,
     ParentListComponent,
-    ParentSaveComponent
+    ParentSaveComponent,
+    TimetableListComponent,
+    TimetableSaveComponent
   ]
 })
 export class ManagementModule { }

@@ -10,6 +10,35 @@
   }
 }
 
+.form-switch {
+  .form-check-input {
+    cursor: pointer;
+    width: 2.5rem;
+    height: 1.5rem;
+
+    &:checked {
+      background-color: #28a745;
+      border-color: #28a745;
+    }
+
+    &:focus {
+      border-color: #28a745;
+      box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    }
+  }
+
+  .form-check-label {
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-switch .form-check-label {
+    display: none;
+  }
+}
+
 .form-select {
   border: 1px solid #e3e6f0;
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;

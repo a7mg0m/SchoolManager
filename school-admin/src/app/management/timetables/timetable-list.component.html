@@ -1,0 +1,163 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'timetables.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'timetables.newTimetable' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && timetables().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-clock text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'timetables.noTimetables' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'timetables.newTimetable' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Timetables Table -->
+  @if (!isLoading() && timetables().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 40px;"></th>
+                <th>{{ 'timetables.stage' | translate }}</th>
+                <th>{{ 'timetables.grade' | translate }}</th>
+                <th>{{ 'timetables.academicYear' | translate }}</th>
+                <th>{{ 'timetables.slots' | translate }}</th>
+                <th>{{ 'timetables.sections' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (timetable of timetables(); track timetable.id) {
+                <tr>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-link p-0"
+                      (click)="toggleExpand(timetable.id)"
+                      [disabled]="!timetable.slots?.length"
+                      title="{{ 'timetables.viewSlots' | translate }}"
+                    >
+                      <i [class]="expandedId() === timetable.id ? 'pe-7s-angle-down' : 'pe-7s-angle-right'" style="font-size: 1.4rem;"></i>
+                    </button>
+                  </td>
+                  <td>{{ stageName(timetable.stageId) }}</td>
+                  <td><strong>{{ gradeName(timetable.gradeId) }}</strong></td>
+                  <td>{{ academicYearName(timetable.academicYearId) }}</td>
+                  <td><span class="badge bg-info">{{ timetable.slots?.length || 0 }}</span></td>
+                  <td><span class="badge bg-secondary">{{ sectionCount(timetable) }}</span></td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-primary"
+                        (click)="navigateToEdit(timetable.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        (click)="openDeleteConfirmation(timetable, deleteModal)"
+                        title="{{ 'common.delete' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Weekly view of slots -->
+                @if (expandedId() === timetable.id) {
+                  <tr class="table-light">
+                    <td colspan="7">
+                      <div class="week-grid">
+                        @for (day of usedDays(timetable); track day.value) {
+                          <div class="week-day">
+                            <div class="week-day-title">{{ day.key | translate }}</div>
+                            @for (slot of slotsForDay(timetable, day.value); track slot.id) {
+                              <div class="slot-card">
+                                <div class="d-flex justify-content-between">
+                                  <strong>{{ slotName(slot) }}</strong>
+                                  <small class="text-muted">{{ formatTime(slot.startTime) }} - {{ formatTime(slot.endTime) }}</small>
+                                </div>
+                                <div>{{ subjectName(slot.subjectId) }}</div>
+                                <small class="text-muted d-block">
+                                  {{ teacherName(slot.teacherId) }} · {{ sectionName(slot.sectionId) }}
+                                </small>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'timetables.deleteTimetable' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'timetables.confirmDeleteTimetable' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

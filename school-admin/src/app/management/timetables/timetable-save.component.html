@@ -1,0 +1,313 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'timetables.editTimetable' | translate }}
+        } @else {
+          {{ 'timetables.newTimetable' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Header card -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <div class="row">
+            <!-- Stage -->
+            <div class="col-md-4 mb-3">
+              <label for="stageId" class="form-label">
+                {{ 'timetables.stage' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="stageId"
+                class="form-select"
+                formControlName="stageId"
+                [class.is-invalid]="hasError('stageId', 'required')"
+              >
+                <option value="" disabled>{{ 'common.chooseOne' | translate }}</option>
+                @for (stage of stages(); track stage.id) {
+                  <option [value]="stage.id">{{ getName(stage) }}</option>
+                }
+              </select>
+              @if (hasError('stageId', 'required')) {
+                <div class="invalid-feedback">{{ 'timetables.stageRequired' | translate }}</div>
+              }
+            </div>
+
+            <!-- Grade (filtered by stage) -->
+            <div class="col-md-4 mb-3">
+              <label for="gradeId" class="form-label">
+                {{ 'timetables.grade' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="gradeId"
+                class="form-select"
+                formControlName="gradeId"
+                [class.is-invalid]="hasError('gradeId', 'required')"
+              >
+                <option value="" disabled>
+                  {{ (form.get('stageId')?.value ? 'common.chooseOne' : 'timetables.selectStageFirst') | translate }}
+                </option>
+                @for (grade of stageGrades; track grade.id) {
+                  <option [value]="grade.id">{{ getName(grade) }}</option>
+                }
+              </select>
+              @if (hasError('gradeId', 'required')) {
+                <div class="invalid-feedback">{{ 'timetables.gradeRequired' | translate }}</div>
+              }
+              @if (form.get('stageId')?.value && stageGrades.length === 0) {
+                <small class="text-muted">{{ 'timetables.noGradesForStage' | translate }}</small>
+              }
+            </div>
+
+            <!-- Academic Year -->
+            <div class="col-md-4 mb-3">
+              <label for="academicYearId" class="form-label">
+                {{ 'timetables.academicYear' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="academicYearId"
+                class="form-select"
+                formControlName="academicYearId"
+                [class.is-invalid]="hasError('academicYearId', 'required')"
+              >
+                <option value="" disabled>{{ 'common.chooseOne' | translate }}</option>
+                @for (year of academicYears(); track year.id) {
+                  <option [value]="year.id">
+                    {{ year.name }}@if (year.isActive) { ({{ 'common.active' | translate }})}
+                  </option>
+                }
+              </select>
+              @if (hasError('academicYearId', 'required')) {
+                <div class="invalid-feedback">{{ 'timetables.academicYearRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slots card -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <h5 class="mb-0">
+            {{ 'timetables.slots' | translate }}
+            <span class="badge bg-secondary ms-1">{{ slots.length }}</span>
+          </h5>
+          <div class="d-flex gap-2">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="sortSlots()"
+              [disabled]="isSaving() || slots.length < 2"
+            >
+              {{ 'timetables.sortSlots' | translate }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-primary"
+              (click)="addSlot()"
+              [disabled]="isSaving() || !form.get('gradeId')?.value"
+            >
+              <i class="pe-7s-plus"></i> {{ 'timetables.addSlot' | translate }}
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          @if (!form.get('gradeId')?.value) {
+            <p class="text-muted mb-0">{{ 'timetables.selectGradeFirst' | translate }}</p>
+          } @else if (slots.length === 0) {
+            <p class="text-muted mb-0">{{ 'timetables.noSlots' | translate }}</p>
+          } @else {
+            @if (slots.hasError('overlappingSlots')) {
+              <div class="alert alert-warning py-2">
+                {{ 'timetables.overlappingSlots' | translate }}
+                (#{{ slots.getError('overlappingSlots').first }} / #{{ slots.getError('overlappingSlots').second }})
+              </div>
+            }
+            @if (gradeSections().length === 0) {
+              <div class="alert alert-info py-2">{{ 'timetables.noSectionsForGrade' | translate }}</div>
+            }
+            @if (gradeSubjects().length === 0) {
+              <div class="alert alert-info py-2">{{ 'timetables.noSubjectsForGrade' | translate }}</div>
+            }
+
+            <div class="table-responsive">
+              <table class="table table-sm align-middle slots-table">
+                <thead class="table-light">
+                  <tr>
+                    <th>#</th>
+                    <th>{{ 'timetables.day' | translate }}</th>
+                    <th>{{ 'timetables.section' | translate }}</th>
+                    <th>{{ 'common.nameAr' | translate }}</th>
+                    <th>{{ 'common.nameEn' | translate }}</th>
+                    <th>{{ 'timetables.startTime' | translate }}</th>
+                    <th>{{ 'timetables.endTime' | translate }}</th>
+                    <th>{{ 'timetables.subject' | translate }}</th>
+                    <th>{{ 'timetables.teacher' | translate }}</th>
+                    <th>{{ 'common.actions' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (slot of slots.controls; let i = $index; track slot) {
+                    <tr>
+                      <td class="text-muted">{{ i + 1 }}</td>
+                      <td>
+                        <select
+                          class="form-select form-select-sm"
+                          [formControl]="slotControl(i, 'day')"
+                          [class.is-invalid]="hasSlotError(i, 'day', 'required')"
+                        >
+                          <option [ngValue]="null" disabled>—</option>
+                          @for (d of weekDays; track d.value) {
+                            <option [ngValue]="d.value">{{ d.key | translate }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          class="form-select form-select-sm"
+                          [formControl]="slotControl(i, 'sectionId')"
+                          [class.is-invalid]="hasSlotError(i, 'sectionId', 'required')"
+                        >
+                          <option value="" disabled>—</option>
+                          @for (s of gradeSections(); track s.id) {
+                            <option [value]="s.id">{{ getName(s) }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          [formControl]="slotControl(i, 'nameAr')"
+                          placeholder="الحصة الأولى"
+                          [class.is-invalid]="hasSlotError(i, 'nameAr', 'required')"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          [formControl]="slotControl(i, 'nameEn')"
+                          placeholder="Period 1"
+                          [class.is-invalid]="hasSlotError(i, 'nameEn', 'required')"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="time"
+                          class="form-control form-control-sm"
+                          [formControl]="slotControl(i, 'startTime')"
+                          [class.is-invalid]="hasSlotError(i, 'startTime', 'required')"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="time"
+                          class="form-control form-control-sm"
+                          [formControl]="slotControl(i, 'endTime')"
+                          [class.is-invalid]="hasSlotError(i, 'endTime', 'required') || slots.at(i).hasError('endTimeMustBeGreater')"
+                        />
+                        @if (slots.at(i).hasError('endTimeMustBeGreater')) {
+                          <div class="invalid-feedback d-block">{{ 'timetables.endTimeAfterStart' | translate }}</div>
+                        }
+                      </td>
+                      <td>
+                        <select
+                          class="form-select form-select-sm"
+                          [formControl]="slotControl(i, 'subjectId')"
+                          [class.is-invalid]="hasSlotError(i, 'subjectId', 'required')"
+                        >
+                          <option value="" disabled>—</option>
+                          @for (s of gradeSubjects(); track s.id) {
+                            <option [value]="s.id">{{ getName(s) }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <select
+                          class="form-select form-select-sm"
+                          [formControl]="slotControl(i, 'teacherId')"
+                          [class.is-invalid]="hasSlotError(i, 'teacherId', 'required')"
+                        >
+                          <option value="" disabled>—</option>
+                          @for (t of getTeachersForSubject(slotControl(i, 'subjectId').value); track t.id) {
+                            <option [value]="t.id">{{ getTeacherName(t) }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td class="text-nowrap">
+                        <div class="btn-group btn-group-sm">
+                          <button
+                            type="button"
+                            class="btn btn-outline-secondary"
+                            (click)="duplicateSlot(i)"
+                            [disabled]="isSaving()"
+                            title="{{ 'timetables.duplicateSlot' | translate }}"
+                          >
+                            <i class="pe-7s-copy-file"></i>
+                          </button>
+                          <button
+                            type="button"
+                            class="btn btn-outline-danger"
+                            (click)="removeSlot(i)"
+                            [disabled]="isSaving()"
+                            title="{{ 'common.delete' | translate }}"
+                          >
+                            <i class="pe-7s-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ 'common.save' | translate }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

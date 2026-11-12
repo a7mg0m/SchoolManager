@@ -23,7 +23,9 @@ import {
   SubjectListComponent,
   SubjectSaveComponent,
   ParentListComponent,
-  ParentSaveComponent
+  ParentSaveComponent,
+  TimetableListComponent,
+  TimetableSaveComponent
 } from './components.barrel';
 
 // Import user pages
@@ -66,6 +68,9 @@ const routes: Routes = [
       {path: 'management/parents', component: ParentListComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/parents/save', component: ParentSaveComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/parents/save/:id', component: ParentSaveComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/timetables', component: TimetableListComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/timetables/save', component: TimetableSaveComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/timetables/save/:id', component: TimetableSaveComponent, data: {extraParameter: 'managementMenu'}},
     ]
   },
   {

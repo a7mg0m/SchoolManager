@@ -9,16 +9,20 @@ namespace SchoolManager.Management.Application
 		{
 			CreateMap<CreateTimetableDto, CreateTimetableCommand>()
 				.ConstructUsing(src => new CreateTimetableCommand(
+					src.StageId,
 					src.GradeId,
                     src.AcademicYearId,
-                    Guid.NewGuid()));
+                    Guid.NewGuid(),
+                    src.Slots));
 
             CreateMap<UpdateTimetableDto, UpdateTimetableCommand>()
                 .ConstructUsing(src => new UpdateTimetableCommand(
                     src.Id,
+                    src.StageId,
                     src.GradeId,
                     src.AcademicYearId,
-                    Guid.NewGuid()));
+                    Guid.NewGuid(),
+                    src.Slots));
 
 			CreateMap<Timetable, TimetableDto>()
 ;

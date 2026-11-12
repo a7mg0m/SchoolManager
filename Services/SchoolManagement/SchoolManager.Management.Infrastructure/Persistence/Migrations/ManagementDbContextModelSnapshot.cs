@@ -457,11 +457,16 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("GradeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("StageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AcademicYearId");
 
                     b.HasIndex("GradeId");
+
+                    b.HasIndex("StageId");
 
                     b.ToTable("Timetables", (string)null);
                 });
@@ -1428,6 +1433,12 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SchoolManager.Management.Domain.Stage", "Stage")
+                        .WithMany()
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
                         {
                             b1.Property<Guid>("TimetableId")
@@ -1463,6 +1474,8 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Grade");
+
+                    b.Navigation("Stage");
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.TimetableSlot", b =>

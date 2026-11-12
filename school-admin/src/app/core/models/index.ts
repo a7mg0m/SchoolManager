@@ -7,3 +7,4 @@ export * from './section.model';
 export * from './teacher.model';
 export * from './subject.model';
 export * from './parent.model';
+export * from './timetable.model';

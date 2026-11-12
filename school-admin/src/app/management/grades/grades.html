@@ -105,21 +105,25 @@
                     </span>
                   </td>
                   <td>
-                    <button
-                      type="button"
-                      class="btn btn-sm"
-                      [ngClass]="{
-                        'btn-success': !grade.isActive,
-                        'btn-danger': grade.isActive
-                      }"
-                      (click)="toggleGradeStatus(grade)"
-                    >
-                      @if (grade.isActive) {
-                        {{ 'common.deactivate' | translate }}
-                      } @else {
-                        {{ 'common.activate' | translate }}
-                      }
-                    </button>
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        [id]="'switch-' + grade.id"
+                        [checked]="grade.isActive"
+                        (change)="toggleGradeStatus(grade)"
+                      />
+                      <label
+                        class="form-check-label"
+                        [for]="'switch-' + grade.id"
+                      >
+                        {{
+                          grade.isActive
+                            ? ('common.deactivate' | translate)
+                            : ('common.activate' | translate)
+                        }}
+                      </label>
+                    </div>
                   </td>
                 </tr>
               }
