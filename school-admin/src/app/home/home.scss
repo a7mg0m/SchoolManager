@@ -1,0 +1,274 @@
+// Dashboard tokens (dataviz reference palette, light surface)
+.dashboard {
+  --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --gridline: #e1e0d9;
+  --border-ring: rgba(11, 11, 11, 0.1);
+  --success-ink: #006300;
+  --critical: #d03b3b;
+}
+
+.card {
+  background-color: var(--surface-1);
+  border: 1px solid #e3e6f0;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+  font-weight: 600;
+  background-color: transparent;
+  border-bottom: 1px solid #eef0f4;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Stat tiles (proportional figures – these are standalone numbers)
+// ---------------------------------------------------------------------------
+.stat-tile {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.7rem 0.9rem;
+  text-align: start;
+  background-color: var(--surface-1);
+  border: 1px solid #e3e6f0;
+  border-radius: 0.375rem;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: #3f6ad8;
+    box-shadow: 0 0.3rem 0.8rem rgba(0, 0, 0, 0.08);
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+
+    i {
+      font-size: 1rem;
+      vertical-align: -2px;
+    }
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-primary);
+  }
+
+  .stat-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Hero figures
+// ---------------------------------------------------------------------------
+.hero-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.hero-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.hero-secondary {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.text-success-ink {
+  color: var(--success-ink) !important;
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 2px;
+  vertical-align: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Fee collection: segmented bar + legend (state = icon + label + color)
+// ---------------------------------------------------------------------------
+.segment-bar {
+  display: flex;
+  gap: 2px; // 2px surface gap between fills
+  height: 14px;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: var(--surface-1);
+
+  .segment {
+    min-width: 3px;
+    height: 100%;
+  }
+}
+
+.segment-legend {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem 1rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+
+    &.dimmed {
+      opacity: 0.55;
+    }
+
+    i {
+      font-size: 1rem;
+      color: var(--text-secondary);
+    }
+  }
+
+  .legend-label {
+    flex-grow: 1;
+  }
+
+  .legend-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .legend-pct {
+    min-width: 2.5rem;
+    text-align: end;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.overdue-callout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--critical);
+  background-color: rgba(208, 59, 59, 0.06);
+  border: 1px solid rgba(208, 59, 59, 0.25);
+  border-radius: 0.375rem;
+  text-align: start;
+
+  &:hover {
+    background-color: rgba(208, 59, 59, 0.1);
+  }
+
+  i {
+    font-size: 1.1rem;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Charts & tables
+// ---------------------------------------------------------------------------
+.chart-box {
+  position: relative;
+  height: 260px;
+}
+
+.data-table {
+  th {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  td {
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.table-scroll {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+// ---------------------------------------------------------------------------
+// Lists
+// ---------------------------------------------------------------------------
+.date-block {
+  flex: 0 0 auto;
+  width: 3rem;
+  height: 3.25rem;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(42, 120, 214, 0.1);
+  color: #1c5cab;
+
+  .date-day {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .date-month {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    margin-top: 0.1rem;
+  }
+
+  &.date-today {
+    background-color: #2a78d6;
+    color: #fff;
+  }
+}
+
+.type-icon {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+
+.empty-widget {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+
+  i {
+    font-size: 2.25rem;
+    opacity: 0.6;
+  }
+
+  p {
+    margin: 0.5rem 0 0.75rem;
+  }
+}

@@ -1,1 +1,331 @@
-<p>home works!</p>
+<div class="container-fluid dashboard">
+  <!-- Header -->
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">{{ 'dashboard.title' | translate }}</h2>
+      @if (currentYear(); as year) {
+        <small class="text-muted">
+          {{ year.name }}
+          @if (currentSemester(); as sem) { · {{ sem.name }} }
+        </small>
+      }
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      @if (currencies().length > 1) {
+        <div class="btn-group btn-group-sm" role="group" [attr.aria-label]="'dashboard.currency' | translate">
+          @for (c of currencies(); track c) {
+            <button type="button" class="btn" [class.btn-dark]="c === currency()" [class.btn-outline-secondary]="c !== currency()" (click)="setCurrency(c)">
+              {{ c }}
+            </button>
+          }
+        </div>
+      }
+      <button class="btn btn-outline-secondary btn-sm" (click)="loadData()" [disabled]="isLoading()">
+        <i class="pe-7s-refresh-2"></i> {{ 'students.refresh' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (failedSources().length && !isLoading()) {
+    <div class="alert alert-warning py-2 small">
+      {{ 'dashboard.partialData' | translate }}
+      @for (s of failedSources(); track s) {
+        <span class="badge bg-light text-dark border ms-1">{{ 'dashboard.services.' + s | translate }}</span>
+      }
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  } @else {
+    <!-- Stat tiles -->
+    <div class="row g-2 mb-3">
+      <div class="col-xl col-md-4 col-6">
+        <button type="button" class="stat-tile" (click)="go('/management/students')">
+          <span class="stat-label"><i class="pe-7s-users"></i> {{ 'dashboard.students' | translate }}</span>
+          <span class="stat-value">{{ stats().students }}</span>
+          <span class="stat-meta">{{ 'dashboard.activeCount' | translate: { count: stats().activeStudents } }}</span>
+        </button>
+      </div>
+      <div class="col-xl col-md-4 col-6">
+        <button type="button" class="stat-tile" (click)="go('/management/teachers')">
+          <span class="stat-label"><i class="pe-7s-id"></i> {{ 'dashboard.teachers' | translate }}</span>
+          <span class="stat-value">{{ stats().teachers }}</span>
+          <span class="stat-meta">{{ 'dashboard.activeTeachers' | translate }}</span>
+        </button>
+      </div>
+      <div class="col-xl col-md-4 col-6">
+        <button type="button" class="stat-tile" (click)="go('/management/parents')">
+          <span class="stat-label"><i class="pe-7s-home"></i> {{ 'dashboard.parents' | translate }}</span>
+          <span class="stat-value">{{ stats().parents }}</span>
+          <span class="stat-meta">{{ 'dashboard.families' | translate }}</span>
+        </button>
+      </div>
+      <div class="col-xl col-md-6 col-6">
+        <button type="button" class="stat-tile" (click)="go('/management/sections')">
+          <span class="stat-label"><i class="pe-7s-albums"></i> {{ 'dashboard.sections' | translate }}</span>
+          <span class="stat-value">{{ stats().sections }}</span>
+          <span class="stat-meta">{{ 'dashboard.classes' | translate }}</span>
+        </button>
+      </div>
+      <div class="col-xl col-md-6 col-12">
+        <button type="button" class="stat-tile" (click)="go('/notification/school-events')">
+          <span class="stat-label"><i class="pe-7s-date"></i> {{ 'dashboard.upcomingEvents' | translate }}</span>
+          <span class="stat-value">{{ stats().upcomingEvents }}</span>
+          <span class="stat-meta">{{ 'dashboard.scheduled' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <!-- Fee collection -->
+      <div class="col-xl-5">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'dashboard.feeCollection' | translate }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0" (click)="go('/financial/student-fees')">{{ 'dashboard.viewAll' | translate }}</button>
+          </div>
+          <div class="card-body">
+            @let fee = feeOverview();
+            @if (fee.feeCount === 0) {
+              <div class="empty-widget">
+                <i class="pe-7s-cash"></i>
+                <p>{{ 'dashboard.noFees' | translate }}</p>
+                <button class="btn btn-primary btn-sm" (click)="go('/financial/student-fees/assign')">{{ 'studentFees.assign.button' | translate }}</button>
+              </div>
+            } @else {
+              <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
+                <div>
+                  <div class="hero-label">{{ 'dashboard.collectionRate' | translate }}</div>
+                  <div class="hero-value">{{ fee.collectionRate }}%</div>
+                </div>
+                <div class="text-end">
+                  <div class="hero-label">{{ 'dashboard.collected' | translate }}</div>
+                  <div class="hero-secondary">{{ formatAmount(fee.collected, fee.currency) }}</div>
+                  <div class="small text-muted">{{ 'dashboard.ofNet' | translate: { amount: formatAmount(fee.net, fee.currency) } }}</div>
+                </div>
+              </div>
+
+              <!-- Segmented bar: 2px surface gaps between fills; each state has icon + label below -->
+              <div
+                class="segment-bar"
+                role="img"
+                [attr.aria-label]="'dashboard.feeCollection' | translate"
+              >
+                @for (s of fee.segments; track s.key) {
+                  @if (s.percent > 0) {
+                    <div
+                      class="segment"
+                      [style.flex-grow]="s.percent"
+                      [style.background-color]="s.color"
+                      [title]="(('dashboard.feeStates.' + s.key) | translate) + ': ' + formatAmount(s.amount, fee.currency) + ' (' + (s.percent | number: '1.0-0') + '%)'"
+                    ></div>
+                  }
+                }
+              </div>
+
+              <ul class="segment-legend">
+                @for (s of fee.segments; track s.key) {
+                  <li [class.dimmed]="s.amount === 0">
+                    <span class="swatch" [style.background-color]="s.color"></span>
+                    <i [class]="s.icon"></i>
+                    <span class="legend-label">{{ 'dashboard.feeStates.' + s.key | translate }}</span>
+                    <span class="legend-value">{{ formatAmount(s.amount) }}</span>
+                    <span class="legend-pct">{{ s.percent | number: '1.0-0' }}%</span>
+                  </li>
+                }
+              </ul>
+
+              @if (fee.overdueCount > 0) {
+                <button type="button" class="overdue-callout" (click)="go('/financial/student-fees')">
+                  <i class="pe-7s-attention"></i>
+                  {{ 'dashboard.overdueFees' | translate: { count: fee.overdueCount } }}
+                  <i class="pe-7s-angle-right ms-auto"></i>
+                </button>
+              }
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Revenue vs expenses -->
+      <div class="col-xl-7">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'dashboard.financeTitle' | translate: { months: 6 } }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0" (click)="toggleTable('finance')">
+              {{ (isTable('finance') ? 'dashboard.showChart' : 'dashboard.showTable') | translate }}
+            </button>
+          </div>
+          <div class="card-body">
+            @let totals = financeTotals();
+            <div class="d-flex flex-wrap gap-4 mb-2">
+              <div>
+                <div class="hero-label"><span class="swatch" [style.background-color]="'#2a78d6'"></span> {{ 'dashboard.revenue' | translate }}</div>
+                <div class="hero-secondary">{{ formatAmount(totals.revenue, currency()) }}</div>
+              </div>
+              <div>
+                <div class="hero-label"><span class="swatch" [style.background-color]="'#eb6834'"></span> {{ 'dashboard.expenses' | translate }}</div>
+                <div class="hero-secondary">{{ formatAmount(totals.expense, currency()) }}</div>
+              </div>
+              <div>
+                <div class="hero-label">{{ 'dashboard.net' | translate }}</div>
+                <div class="hero-secondary" [class.text-success-ink]="totals.net > 0" [class.text-danger]="totals.net < 0">
+                  @if (totals.net > 0) { <i class="pe-7s-angle-up"></i> } @else if (totals.net < 0) { <i class="pe-7s-angle-down"></i> }
+                  {{ formatAmount(totals.net, currency()) }}
+                </div>
+              </div>
+            </div>
+
+            @if (totals.revenue === 0 && totals.expense === 0) {
+              <div class="empty-widget">
+                <i class="pe-7s-graph1"></i>
+                <p>{{ 'dashboard.noFinance' | translate }}</p>
+              </div>
+            } @else if (isTable('finance')) {
+              <div class="table-responsive">
+                <table class="table table-sm mb-0 data-table">
+                  <thead>
+                    <tr>
+                      <th>{{ 'dashboard.month' | translate }}</th>
+                      <th class="text-end">{{ 'dashboard.revenue' | translate }}</th>
+                      <th class="text-end">{{ 'dashboard.expenses' | translate }}</th>
+                      <th class="text-end">{{ 'dashboard.net' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (m of monthRows(); track m.key) {
+                      <tr>
+                        <td>{{ m.label }}</td>
+                        <td class="text-end">{{ formatAmount(m.revenue) }}</td>
+                        <td class="text-end">{{ formatAmount(m.expense) }}</td>
+                        <td class="text-end" [class.text-danger]="m.revenue - m.expense < 0">{{ formatAmount(m.revenue - m.expense) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="chart-box">
+                <canvas baseChart type="line" [data]="financeChartData()" [options]="financeChartOptions()"></canvas>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <!-- Students per grade -->
+      <div class="col-xl-7">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'dashboard.studentsPerGrade' | translate }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0" (click)="toggleTable('grades')">
+              {{ (isTable('grades') ? 'dashboard.showChart' : 'dashboard.showTable') | translate }}
+            </button>
+          </div>
+          <div class="card-body">
+            @if (gradeRows().length === 0) {
+              <div class="empty-widget">
+                <i class="pe-7s-study"></i>
+                <p>{{ 'dashboard.noGrades' | translate }}</p>
+              </div>
+            } @else if (isTable('grades')) {
+              <div class="table-responsive table-scroll">
+                <table class="table table-sm mb-0 data-table">
+                  <thead>
+                    <tr>
+                      <th>{{ 'parents.stage' | translate }}</th>
+                      <th>{{ 'parents.grade' | translate }}</th>
+                      <th class="text-end">{{ 'dashboard.students' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (g of gradeRows(); track g.id) {
+                      <tr>
+                        <td class="text-muted">{{ g.stage }}</td>
+                        <td>{{ g.label }}</td>
+                        <td class="text-end">{{ g.count }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <div class="chart-box">
+                <canvas baseChart type="bar" [data]="gradeChartData()" [options]="gradeChartOptions()"></canvas>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming events -->
+      <div class="col-xl-5">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'dashboard.upcomingEvents' | translate }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0" (click)="go('/notification/school-events')">{{ 'dashboard.viewAll' | translate }}</button>
+          </div>
+          <div class="list-group list-group-flush">
+            @for (e of nextEvents(); track e.id) {
+              <div class="list-group-item d-flex gap-3 align-items-center">
+                <div class="date-block" [class.date-today]="isToday(e.eventDate)">
+                  <span class="date-day">{{ dayOfMonth(e.eventDate) }}</span>
+                  <span class="date-month">{{ monthShort(e.eventDate) }}</span>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="fw-semibold text-truncate">{{ e.title }}</div>
+                  <small class="text-muted">
+                    @if (isToday(e.eventDate)) { <span class="text-primary fw-semibold">{{ 'schoolEvents.today' | translate }}</span> · }
+                    {{ formatTime(e.startTime) }} – {{ formatTime(e.endTime) }}
+                  </small>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-widget">
+                <i class="pe-7s-date"></i>
+                <p>{{ 'schoolEvents.noUpcoming' | translate }}</p>
+                <button class="btn btn-primary btn-sm" (click)="go('/notification/school-events/save')">{{ 'schoolEvents.newEvent' | translate }}</button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest notifications -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>{{ 'dashboard.latestNotifications' | translate }}</span>
+        <button type="button" class="btn btn-link btn-sm p-0" (click)="go('/notification/notifications')">{{ 'dashboard.viewAll' | translate }}</button>
+      </div>
+      <div class="list-group list-group-flush">
+        @for (n of latestNotifications(); track n.id) {
+          @let type = notificationType(n);
+          <div class="list-group-item d-flex gap-3 align-items-center">
+            <span class="type-icon" [ngClass]="type.badge"><i [class]="type.icon"></i></span>
+            <div class="flex-grow-1 min-w-0">
+              <div class="d-flex align-items-center gap-2">
+                <span class="fw-semibold text-truncate">{{ n.title }}</span>
+                <span class="badge" [ngClass]="type.badge">{{ type.key | translate }}</span>
+              </div>
+              <small class="text-muted text-truncate d-block">{{ n.description }}</small>
+            </div>
+            <small class="text-muted text-nowrap">{{ formatDate(n.sentOn) }}</small>
+          </div>
+        } @empty {
+          <div class="empty-widget">
+            <i class="pe-7s-bell"></i>
+            <p>{{ 'notifications.noNotifications' | translate }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
