@@ -16,7 +16,7 @@ namespace SchoolManager.ExamsHomework.Domain
 
         private ExamResult() { }
 
-        public ExamResult(Guid examId, Guid studentId, int score, AuditInfo auditInfo)
+        public ExamResult(Guid examId, Guid studentId, double score, AuditInfo auditInfo)
         {
             ExamId = examId;
             StudentId = studentId;

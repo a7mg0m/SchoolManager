@@ -19,6 +19,7 @@ namespace SchoolManager.ExamsHomework.Application
         {
             var entity = new Exam(
                 command.SubjectId,
+                command.StageId,
                 command.GradeId,
                 command.SectionId,
                 command.AcademicYearId,
@@ -28,6 +29,8 @@ namespace SchoolManager.ExamsHomework.Application
                 command.StartTime,
                 command.EndTime,
                 command.Duration,
+                command.Weight,
+                command.SuccessScore,
                 command.AnswerModelUrl,
                 new AuditInfo(DateTime.Now, command.CreatedBy));
 

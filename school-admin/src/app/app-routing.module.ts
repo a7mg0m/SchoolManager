@@ -48,14 +48,22 @@ import {
   SchoolEventSaveComponent,
   NotificationListComponent,
   NotificationSaveComponent,
-  NotificationTargetsComponent
+  NotificationTargetsComponent,
+
+  // Exam components
+  ExamListComponent,
+  ExamSaveComponent,
+  ExamResultsComponent
 } from './components.barrel';
 
 // Import user pages
 import {UserPagesModule} from './user-pages.module';
 import {LoginBoxedComponent} from './UserPages/login-boxed/login-boxed.component';
+import {NotAuthorizedComponent} from './UserPages/not-authorized/not-authorized.component';
 
 const routes: Routes = [
+  // App always opens on the login page
+  {path: '', redirectTo: '/login', pathMatch: 'full'},
   {
     path: 'login',
     component: PagesLayoutComponent,
@@ -64,12 +72,19 @@ const routes: Routes = [
     ]
   },
   {
+    path: 'not-authorized',
+    component: PagesLayoutComponent,
+    children: [
+      {path: '', component: NotAuthorizedComponent}
+    ]
+  },
+  {
     path: '',
     component: BaseLayoutComponent,
     canActivate: [AuthGuard],
+    canActivateChild: [AuthGuard],
     children: [
       // Dashboards
-      {path: '', redirectTo: '/home', pathMatch: 'full'},
       {path: 'home', component: HomeComponent, data: {extraParameter: 'dashboardsMenu'}},
 
       // Management
@@ -125,6 +140,12 @@ const routes: Routes = [
       {path: 'notification/notifications/save', component: NotificationSaveComponent, data: {extraParameter: 'notificationMenu'}},
       {path: 'notification/notifications/save/:id', component: NotificationSaveComponent, data: {extraParameter: 'notificationMenu'}},
       {path: 'notification/notifications/:id/recipients', component: NotificationTargetsComponent, data: {extraParameter: 'notificationMenu'}},
+
+      // Exam
+      {path: 'exam/exams', component: ExamListComponent, data: {extraParameter: 'examMenu'}},
+      {path: 'exam/exams/save', component: ExamSaveComponent, data: {extraParameter: 'examMenu'}},
+      {path: 'exam/exams/save/:id', component: ExamSaveComponent, data: {extraParameter: 'examMenu'}},
+      {path: 'exam/exams/:id/results', component: ExamResultsComponent, data: {extraParameter: 'examMenu'}},
     ]
   },
   {

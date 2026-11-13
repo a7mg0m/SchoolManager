@@ -1,0 +1,223 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'exams.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'exams.newExam' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && exams().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-note2 text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'exams.noExams' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'exams.newExam' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && exams().length > 0) {
+    <!-- Filters -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label for="filterAcademicYear" class="form-label small mb-1">{{ 'exams.academicYear' | translate }}</label>
+            <select id="filterAcademicYear" class="form-select form-select-sm"
+                    [value]="filterAcademicYearId()" (change)="filterAcademicYearId.set($any($event.target).value)">
+              <option value="">{{ 'exams.all' | translate }}</option>
+              @for (year of academicYears(); track year.id) {
+                <option [value]="year.id">{{ year.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="filterStage" class="form-label small mb-1">{{ 'exams.stage' | translate }}</label>
+            <select id="filterStage" class="form-select form-select-sm"
+                    [value]="filterStageId()" (change)="onStageFilterChange($any($event.target).value)">
+              <option value="">{{ 'exams.all' | translate }}</option>
+              @for (stage of stages(); track stage.id) {
+                <option [value]="stage.id">{{ getName(stage) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="filterGrade" class="form-label small mb-1">{{ 'exams.grade' | translate }}</label>
+            <select id="filterGrade" class="form-select form-select-sm"
+                    [value]="filterGradeId()" (change)="filterGradeId.set($any($event.target).value)">
+              <option value="">{{ 'exams.all' | translate }}</option>
+              @for (grade of filterGrades(); track grade.id) {
+                <option [value]="grade.id" [selected]="grade.id === filterGradeId()">{{ getName(grade) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="filterType" class="form-label small mb-1">{{ 'exams.examType' | translate }}</label>
+            <select id="filterType" class="form-select form-select-sm"
+                    [value]="filterExamType()" (change)="filterExamType.set($any($event.target).value)">
+              <option value="">{{ 'exams.all' | translate }}</option>
+              @for (type of examTypes; track type.value) {
+                <option [value]="type.value">{{ type.key | translate }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-3 text-md-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFilters()">
+              {{ 'exams.clearFilters' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exams Table -->
+    <div class="card">
+      <div class="card-body">
+        @if (filteredExams().length === 0) {
+          <p class="text-muted text-center my-4">{{ 'exams.noMatchingExams' | translate }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'exams.subject' | translate }}</th>
+                  <th>{{ 'exams.examType' | translate }}</th>
+                  <th>{{ 'exams.stage' | translate }}</th>
+                  <th>{{ 'exams.grade' | translate }} / {{ 'exams.section' | translate }}</th>
+                  <th>{{ 'exams.academicYear' | translate }} / {{ 'exams.semester' | translate }}</th>
+                  <th>{{ 'exams.examDate' | translate }}</th>
+                  <th>{{ 'exams.time' | translate }}</th>
+                  <th>{{ 'exams.duration' | translate }}</th>
+                  <th>{{ 'exams.marks' | translate }}</th>
+                  <th>{{ 'exams.answerModel' | translate }}</th>
+                  <th>{{ 'common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (exam of filteredExams(); track exam.id) {
+                  <tr>
+                    <td><strong>{{ subjectName(exam.subjectId) }}</strong></td>
+                    <td><span class="badge" [class]="examTypeBadge(exam.examType)">{{ examTypeKey(exam.examType) | translate }}</span></td>
+                    <td>{{ stageName(exam) }}</td>
+                    <td>
+                      {{ gradeName(exam.gradeId) }}
+                      <small class="text-muted d-block">
+                        @if (exam.sectionId) {
+                          {{ sectionName(exam.sectionId) }}
+                        } @else {
+                          {{ 'exams.allSections' | translate }}
+                        }
+                      </small>
+                    </td>
+                    <td>
+                      {{ academicYearName(exam.academicYearId) }}
+                      <small class="text-muted d-block">{{ semesterName(exam.semesterId) }}</small>
+                    </td>
+                    <td class="text-nowrap">{{ exam.examDate | date: 'mediumDate' }}</td>
+                    <td class="text-nowrap">{{ formatTime(exam.startTime) }} - {{ formatTime(exam.endTime) }}</td>
+                    <td class="text-nowrap">{{ exam.duration }} {{ 'exams.minutes' | translate }}</td>
+                    <td class="text-nowrap">
+                      <strong>{{ exam.weight }}</strong>
+                      <small class="text-muted d-block">{{ 'exams.passAt' | translate }} {{ exam.successScore }}</small>
+                    </td>
+                    <td>
+                      @if (exam.answerModelUrl) {
+                        <a [href]="exam.answerModelUrl" target="_blank" rel="noopener noreferrer">
+                          <i class="pe-7s-link"></i> {{ 'exams.view' | translate }}
+                        </a>
+                      } @else {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button
+                          class="btn btn-outline-success"
+                          (click)="navigateToResults(exam.id)"
+                          title="{{ 'examResults.title' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-medal"></i>
+                        </button>
+                        <button
+                          class="btn btn-outline-primary"
+                          (click)="navigateToEdit(exam.id)"
+                          title="{{ 'common.edit' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-note"></i>
+                        </button>
+                        <button
+                          class="btn btn-outline-danger"
+                          (click)="openDeleteConfirmation(exam, deleteModal)"
+                          title="{{ 'common.delete' | translate }}"
+                          [disabled]="isDeleting()"
+                        >
+                          <i class="pe-7s-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'exams.deleteExam' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'exams.confirmDeleteExam' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

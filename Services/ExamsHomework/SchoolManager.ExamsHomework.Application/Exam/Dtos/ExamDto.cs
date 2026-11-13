@@ -7,7 +7,8 @@ namespace SchoolManager.ExamsHomework.Application
         public Guid Id { get; set; }
         public Guid SubjectId { get; set; }
         public Guid GradeId { get; set; }
-        public Guid SectionId { get; set; }
+        public Guid StageId { get; set; }
+        public Guid? SectionId { get; set; }
         public Guid AcademicYearId { get; set; }
         public Guid SemesterId { get; set; }
         public ExamType ExamType { get; set; }
@@ -15,6 +16,8 @@ namespace SchoolManager.ExamsHomework.Application
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
         public double Duration { get; set; }
+        public double Weight { get; set; }
+        public double SuccessScore { get; set; }
         public string? AnswerModelUrl { get; set; }
     }
 }

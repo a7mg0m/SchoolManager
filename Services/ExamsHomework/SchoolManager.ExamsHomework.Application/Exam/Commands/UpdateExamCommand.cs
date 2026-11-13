@@ -6,8 +6,9 @@ namespace SchoolManager.ExamsHomework.Application
     public record UpdateExamCommand(
         Guid Id,
         Guid SubjectId,
+        Guid StageId,
         Guid GradeId,
-        Guid SectionId,
+        Guid? SectionId,
         Guid AcademicYearId,
         Guid SemesterId,
         ExamType ExamType,
@@ -15,6 +16,8 @@ namespace SchoolManager.ExamsHomework.Application
         TimeOnly StartTime,
         TimeOnly EndTime,
         double Duration,
+        double Weight,
+        double SuccessScore,
         string? AnswerModelUrl,
         Guid UpdatedBy
     ) : ICommand;

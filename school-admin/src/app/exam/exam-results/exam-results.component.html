@@ -1,0 +1,190 @@
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+      <h2 class="mb-0">{{ 'examResults.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-md-end mt-2 mt-md-0">
+      <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="isSaving()">
+        {{ 'common.back' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && exam(); as exam) {
+    <!-- Exam summary -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <small class="text-muted d-block">{{ 'exams.subject' | translate }}</small>
+            <strong>{{ subjectName(exam.subjectId) }}</strong>
+            <span class="badge bg-secondary ms-1">{{ examTypeKey(exam.examType) | translate }}</span>
+          </div>
+          <div class="col-6 col-md-3">
+            <small class="text-muted d-block">{{ 'exams.grade' | translate }} / {{ 'exams.section' | translate }}</small>
+            <strong>{{ gradeName(exam.gradeId) }}</strong>
+            · {{ exam.sectionId ? sectionName(exam.sectionId) : ('exams.allSections' | translate) }}
+          </div>
+          <div class="col-6 col-md-3">
+            <small class="text-muted d-block">{{ 'exams.examDate' | translate }}</small>
+            <strong>{{ exam.examDate | date: 'mediumDate' }}</strong>
+            · {{ formatTime(exam.startTime) }} - {{ formatTime(exam.endTime) }}
+          </div>
+          <div class="col-6 col-md-3">
+            <small class="text-muted d-block">{{ 'exams.marks' | translate }}</small>
+            <strong>{{ 'exams.weight' | translate }}: {{ exam.weight }}</strong>
+            · {{ 'exams.successScore' | translate }}: {{ exam.successScore }}
+          </div>
+        </div>
+        <hr class="my-3">
+        <div class="row g-3 text-center">
+          <div class="col-4 col-md-2">
+            <small class="text-muted d-block">{{ 'examResults.entered' | translate }}</small>
+            <strong>{{ stats().entered }} / {{ stats().total }}</strong>
+          </div>
+          <div class="col-4 col-md-2">
+            <small class="text-muted d-block">{{ 'examResults.passed' | translate }}</small>
+            <strong class="text-success">{{ stats().passed }}</strong>
+          </div>
+          <div class="col-4 col-md-2">
+            <small class="text-muted d-block">{{ 'examResults.failed' | translate }}</small>
+            <strong class="text-danger">{{ stats().failed }}</strong>
+          </div>
+          <div class="col-4 col-md-2">
+            <small class="text-muted d-block">{{ 'examResults.passRate' | translate }}</small>
+            <strong>{{ stats().passRate !== null ? stats().passRate + '%' : '—' }}</strong>
+          </div>
+          <div class="col-4 col-md-2">
+            <small class="text-muted d-block">{{ 'examResults.average' | translate }}</small>
+            <strong>{{ stats().average ?? '—' }}</strong>
+          </div>
+          <div class="col-4 col-md-2">
+            <small class="text-muted d-block">{{ 'examResults.highest' | translate }} / {{ 'examResults.lowest' | translate }}</small>
+            <strong>{{ stats().highest ?? '—' }} / {{ stats().lowest ?? '—' }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (rows().length === 0) {
+      <div class="card text-center">
+        <div class="card-body py-5">
+          <i class="pe-7s-users text-muted" style="font-size: 3rem;"></i>
+          <p class="text-muted mt-3 mb-0">{{ 'examResults.noStudents' | translate }}</p>
+        </div>
+      </div>
+    } @else {
+      <div class="card">
+        <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+          <input type="search" class="form-control form-control-sm" style="max-width: 280px;"
+                 [placeholder]="'examResults.searchStudent' | translate"
+                 [value]="search()" (input)="search.set($any($event.target).value)">
+          <div class="d-flex gap-2 align-items-center">
+            @if (changes().length > 0) {
+              <small class="text-warning">{{ 'examResults.unsavedChanges' | translate: { count: changes().length } }}</small>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="resetChanges()" [disabled]="isSaving()">
+                {{ 'examResults.discard' | translate }}
+              </button>
+            }
+            <button type="button" class="btn btn-sm btn-primary" (click)="save()"
+                    [disabled]="isSaving() || changes().length === 0 || invalidIds().size > 0">
+              @if (isSaving()) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              }
+              {{ 'examResults.saveResults' | translate }}
+            </button>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>{{ 'examResults.student' | translate }}</th>
+                  <th>{{ 'exams.section' | translate }}</th>
+                  <th style="width: 200px;">{{ 'examResults.score' | translate }}</th>
+                  <th style="width: 110px;">{{ 'examResults.result' | translate }}</th>
+                  <th style="width: 120px;">{{ 'common.status' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Rows hidden (not removed) by search, so typed scores stay in their inputs -->
+                @for (row of rows(); track row.student.id + '-' + resetVersion(); let i = $index) {
+                  <tr [class.table-warning]="isChanged(row)" [hidden]="!visibleIds().has(row.student.id)">
+                    <td class="text-muted">{{ i + 1 }}</td>
+                    <td>
+                      <strong>{{ studentName(row.student) }}</strong>
+                      @if (row.isFormer) {
+                        <small class="text-muted d-block">{{ 'examResults.notInClassAnymore' | translate }}</small>
+                      }
+                    </td>
+                    <td>{{ sectionName(row.student.sectionId) }}</td>
+                    <td>
+                      <div class="input-group input-group-sm">
+                      <input type="number" min="0" [attr.max]="exam.weight" step="0.25" inputmode="decimal"
+                             class="form-control form-control-sm"
+                             [attr.aria-label]="('examResults.score' | translate) + ' - ' + studentName(row.student)"
+                             [class.is-invalid]="invalidIds().has(row.student.id)"
+                             [value]="initialScores()[row.student.id] ?? ''"
+                             (input)="setScore(row.student.id, $any($event.target).value)"
+                             [disabled]="isSaving()">
+                        <span class="input-group-text">/ {{ exam.weight }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      @switch (rowPassed(row)) {
+                        @case (true) { <span class="badge bg-success">{{ 'examResults.pass' | translate }}</span> }
+                        @case (false) { <span class="badge bg-danger">{{ 'examResults.fail' | translate }}</span> }
+                        @default { <span class="text-muted">—</span> }
+                      }
+                    </td>
+                    <td>
+                      @if (invalidIds().has(row.student.id)) {
+                        <span class="badge bg-danger">{{ 'examResults.invalid' | translate }}</span>
+                      } @else if (isChanged(row)) {
+                        <span class="badge bg-warning text-dark">{{ 'examResults.changed' | translate }}</span>
+                      } @else if (row.savedScore !== null) {
+                        <span class="badge bg-success">{{ 'examResults.saved' | translate }}</span>
+                      } @else {
+                        <span class="badge bg-light text-muted">{{ 'examResults.notEntered' | translate }}</span>
+                      }
+                    </td>
+                  </tr>
+                }
+                @if (visibleIds().size === 0) {
+                  <tr><td colspan="6" class="text-center text-muted py-4">{{ 'examResults.noMatchingStudents' | translate }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

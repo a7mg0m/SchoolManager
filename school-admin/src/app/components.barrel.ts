@@ -41,3 +41,8 @@ export { SchoolEventSaveComponent } from './notification/school-events/school-ev
 export { NotificationListComponent } from './notification/notifications/notification-list.component';
 export { NotificationSaveComponent } from './notification/notifications/notification-save.component';
 export { NotificationTargetsComponent } from './notification/notifications/notification-targets.component';
+
+// Exam components
+export { ExamListComponent } from './exam/exams/exam-list.component';
+export { ExamSaveComponent } from './exam/exams/exam-save.component';
+export { ExamResultsComponent } from './exam/exam-results/exam-results.component';

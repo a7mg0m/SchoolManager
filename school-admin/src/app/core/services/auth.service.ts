@@ -23,6 +23,7 @@ export class AuthService {
   private readonly TOKEN_KEY = 'token';
   private readonly LOGIN_NAME_KEY = 'loginName';
   private readonly USER_ID_KEY = 'userId';
+  readonly NOT_AUTHORIZED_URL = '/not-authorized';
 
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
@@ -70,7 +71,7 @@ export class AuthService {
    * @param loginRequest - LoginRequest object with loginName and password
    * @returns Observable<LoginResponse> - API response with authentication data
    */
-  login(loginRequest: LoginRequest): Observable<LoginResponse> {
+  login(loginRequest: LoginRequest, returnUrl?: string | null): Observable<LoginResponse> {
     const loginUrl = '/api/user/login';
     
     return this.apiService.post<LoginResponse>(loginUrl, loginRequest).pipe(
@@ -102,8 +103,8 @@ export class AuthService {
           // Log successful login (without logging the token)
           console.debug('User authentication successful');
 
-          // Navigate to home page
-          this.router.navigate(['/home']);
+          // Navigate to the page the user originally requested, or home
+          this.router.navigateByUrl(this.getSafeReturnUrl(returnUrl));
         } else {
           // Response status is not 200 or data is null
           throw new Error(`Authentication failed: ${response.message || 'Invalid response'}`);
@@ -124,19 +125,65 @@ export class AuthService {
    * Navigates to login page
    */
   logout(): void {
-    // Clear all stored authentication data
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.LOGIN_NAME_KEY);
-    localStorage.removeItem(this.USER_ID_KEY);
-
-    // Update authentication state
-    this.isAuthenticatedSubject.next(false);
-    this.currentUserSubject.next(null);
-
+    this.clearSession();
     console.debug('User logged out');
 
     // Navigate to login page
     this.router.navigate(['/login']);
+  }
+
+  /**
+   * Remove all stored authentication data and reset auth state (no navigation)
+   */
+  clearSession(): void {
+    localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.LOGIN_NAME_KEY);
+    localStorage.removeItem(this.USER_ID_KEY);
+
+    this.isAuthenticatedSubject.next(false);
+    this.currentUserSubject.next(null);
+  }
+
+  /**
+   * Central handler for unauthorized access (no/expired/rejected token or forbidden).
+   * Opens the Not Authorized page, remembering where the user was going.
+   * @param reason 'unauthenticated' clears the session; 'forbidden' keeps it
+   * @param returnUrl URL to come back to after logging in (defaults to current URL)
+   */
+  handleUnauthorized(reason: 'unauthenticated' | 'forbidden' = 'unauthenticated', returnUrl?: string): void {
+    if (reason === 'unauthenticated') {
+      this.clearSession();
+    }
+
+    const currentUrl = this.router.url;
+    // Already showing the page — avoid navigation loops
+    if (currentUrl.startsWith(this.NOT_AUTHORIZED_URL)) {
+      return;
+    }
+
+    const target = returnUrl ?? currentUrl;
+    const queryParams: Record<string, string> = { reason };
+    if (target && !target.startsWith('/login')) {
+      queryParams['returnUrl'] = target;
+    }
+
+    this.router.navigate([this.NOT_AUTHORIZED_URL], { queryParams });
+  }
+
+  /**
+   * Only allow in-app relative URLs as redirect targets (prevents open redirects)
+   */
+  getSafeReturnUrl(returnUrl?: string | null): string {
+    if (
+      returnUrl &&
+      returnUrl.startsWith('/') &&
+      !returnUrl.startsWith('//') &&
+      !returnUrl.startsWith('/login') &&
+      !returnUrl.startsWith(this.NOT_AUTHORIZED_URL)
+    ) {
+      return returnUrl;
+    }
+    return '/home';
   }
 
   /**
@@ -152,7 +199,32 @@ export class AuthService {
    * @returns Boolean indicating authentication status
    */
   isAuthenticated(): boolean {
-    return this.hasToken();
+    const token = this.getToken();
+    return !!token && !this.isTokenExpired(token);
+  }
+
+  /**
+   * Check whether a JWT is expired (or malformed) by reading its `exp` claim.
+   * Signature is NOT verified here — the API gateway does that.
+   */
+  isTokenExpired(token: string): boolean {
+    try {
+      const payloadPart = token.split('.')[1];
+      if (!payloadPart) {
+        return true;
+      }
+      const base64 = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+      const payload = JSON.parse(atob(padded));
+
+      if (typeof payload.exp !== 'number') {
+        return false; // No expiry claim — let the server decide
+      }
+      // 10s clock-skew margin
+      return Date.now() >= (payload.exp * 1000) - 10_000;
+    } catch {
+      return true;
+    }
   }
 
   /**
@@ -184,7 +256,7 @@ export class AuthService {
    * @returns Boolean indicating token availability
    */
   private hasToken(): boolean {
-    return !!localStorage.getItem(this.TOKEN_KEY);
+    return this.isAuthenticated();
   }
 
   /**
@@ -197,7 +269,7 @@ export class AuthService {
       const userId = localStorage.getItem(this.USER_ID_KEY);
       const loginName = localStorage.getItem(this.LOGIN_NAME_KEY);
 
-      if (token && userId && loginName) {
+      if (token && userId && loginName && !this.isTokenExpired(token)) {
         return { token, userId, loginName };
       }
       return null;

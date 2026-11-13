@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/theme/app_theme.dart';
-import 'features/home/home_screen.dart';
+import 'features/auth/login_screen.dart';
 
 class ParentApp extends StatelessWidget {
   const ParentApp({super.key});
@@ -20,7 +20,7 @@ class ParentApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const HomeScreen(),
+      home: const LoginScreen(),
     );
   }
 }

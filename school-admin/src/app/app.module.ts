@@ -33,6 +33,7 @@ import { SharedModule } from './shared.module';
 import { ManagementModule } from './management.module';
 import { FinancialModule } from './financial.module';
 import { NotificationModule } from './notification.module';
+import { ExamModule } from './exam.module';
 
 // LAYOUT
 import {BaseLayoutComponent} from './Layout/base-layout/base-layout.component';
@@ -105,6 +106,7 @@ import {ThemeOptions} from './theme-options';
     ManagementModule,
     FinancialModule,
     NotificationModule,
+    ExamModule,
   ],
   providers: [
     ConfigService,

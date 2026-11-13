@@ -13,7 +13,7 @@
       },
       "examshomework-route": {
         "ClusterId": "examshomework-cluster",
-        "Match": { "Path": "/api/{resource:regex(^(exam|homework|homework-question|homework-publish)$)}/{**catch-all}" },
+        "Match": { "Path": "/api/{resource:regex(^(exam|exam-result|homework|homework-question|homework-publish)$)}/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:62055" } ]
       },
       "notification-route": {

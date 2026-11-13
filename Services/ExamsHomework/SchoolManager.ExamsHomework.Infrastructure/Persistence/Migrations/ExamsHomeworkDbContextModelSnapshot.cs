@@ -50,10 +50,13 @@ namespace SchoolManager.ExamsHomework.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("GradeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("SectionId")
+                    b.Property<Guid?>("SectionId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("SemesterId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StageId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<TimeOnly>("StartTime")
@@ -61,6 +64,12 @@ namespace SchoolManager.ExamsHomework.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("SubjectId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("SuccessScore")
+                        .HasColumnType("float");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -226,7 +235,7 @@ namespace SchoolManager.ExamsHomework.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SchoolManager.ExamsHomework.Domain.ExamResult", b =>
                 {
                     b.HasOne("SchoolManager.ExamsHomework.Domain.Exam", null)
-                        .WithMany()
+                        .WithMany("ExamResults")
                         .HasForeignKey("ExamId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -379,6 +388,11 @@ namespace SchoolManager.ExamsHomework.Infrastructure.Persistence.Migrations
 
                     b.Navigation("AuditInfo")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.ExamsHomework.Domain.Exam", b =>
+                {
+                    b.Navigation("ExamResults");
                 });
 
             modelBuilder.Entity("SchoolManager.ExamsHomework.Domain.Homework", b =>

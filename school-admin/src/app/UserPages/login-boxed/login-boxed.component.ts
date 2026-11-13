@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -29,6 +29,7 @@ export class LoginBoxedComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private loadingService: LoadingService,
     private router: Router,
+    private route: ActivatedRoute,
     private translateService: TranslateService,
     private languageService: LanguageService
   ) {
@@ -85,7 +86,10 @@ export class LoginBoxedComponent implements OnInit, OnDestroy {
     // Call auth service to login
     // On success: AuthService stores auth data and navigates to /home
     // On error: Component displays error message
-    this.authService.login({ loginName, password })
+    // Return to the page the user was trying to open (set by AuthGuard / Not Authorized page)
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+    this.authService.login({ loginName, password }, returnUrl)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {

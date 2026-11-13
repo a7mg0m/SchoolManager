@@ -8,7 +8,7 @@ namespace SchoolManager.ExamsHomework.Application
         {
             RuleFor(x => x.SubjectId).NotEmpty().WithMessage("SubjectRequired");
             RuleFor(x => x.GradeId).NotEmpty().WithMessage("GradeRequired");
-            RuleFor(x => x.SectionId).NotEmpty().WithMessage("SectionRequired");
+            RuleFor(x => x.StageId).NotEmpty().WithMessage("StageRequired");
             RuleFor(x => x.AcademicYearId).NotEmpty().WithMessage("AcademicYearRequired");
             RuleFor(x => x.SemesterId).NotEmpty().WithMessage("SemesterRequired");
         }

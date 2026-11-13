@@ -1,0 +1,309 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'exams.editExam' | translate }}
+        } @else {
+          {{ 'exams.newExam' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Class & subject -->
+      <div class="card mb-4">
+        <div class="card-header">{{ 'exams.classAndSubject' | translate }}</div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Stage -->
+            <div class="col-md-3 mb-3">
+              <label for="stageId" class="form-label">
+                {{ 'exams.stage' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select id="stageId" class="form-select" formControlName="stageId"
+                      [class.is-invalid]="hasError('stageId', 'required')">
+                <option value="" disabled>{{ 'common.chooseOne' | translate }}</option>
+                @for (stage of stages(); track stage.id) {
+                  <option [value]="stage.id">{{ getName(stage) }}</option>
+                }
+              </select>
+              @if (hasError('stageId', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.stageRequired' | translate }}</div>
+              }
+            </div>
+
+            <!-- Grade (filtered by stage) -->
+            <div class="col-md-3 mb-3">
+              <label for="gradeId" class="form-label">
+                {{ 'exams.grade' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select id="gradeId" class="form-select" formControlName="gradeId"
+                      [class.is-invalid]="hasError('gradeId', 'required')">
+                <option value="" disabled>
+                  {{ (form.get('stageId')?.value ? 'common.chooseOne' : 'exams.selectStageFirst') | translate }}
+                </option>
+                @for (grade of stageGrades(); track grade.id) {
+                  <option [value]="grade.id">{{ getName(grade) }}</option>
+                }
+              </select>
+              @if (hasError('gradeId', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.gradeRequired' | translate }}</div>
+              }
+              @if (form.get('stageId')?.value && stageGrades().length === 0) {
+                <small class="text-muted">{{ 'exams.noGradesForStage' | translate }}</small>
+              }
+            </div>
+
+            <!-- Section (optional, filtered by grade) -->
+            <div class="col-md-3 mb-3">
+              <label for="sectionId" class="form-label">
+                {{ 'exams.section' | translate }}
+                <small class="text-muted">({{ 'exams.optional' | translate }})</small>
+              </label>
+              <select id="sectionId" class="form-select" formControlName="sectionId">
+                <option value="">
+                  {{ (form.get('gradeId')?.value ? 'exams.allSections' : 'exams.selectGradeFirst') | translate }}
+                </option>
+                @for (section of gradeSections(); track section.id) {
+                  <option [value]="section.id">{{ getName(section) }}</option>
+                }
+              </select>
+              @if (form.get('gradeId')?.value && gradeSections().length === 0) {
+                <small class="text-muted">{{ 'exams.noSectionsForGrade' | translate }}</small>
+              }
+            </div>
+
+            <!-- Subject (filtered by grade) -->
+            <div class="col-md-3 mb-3">
+              <label for="subjectId" class="form-label">
+                {{ 'exams.subject' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select id="subjectId" class="form-select" formControlName="subjectId"
+                      [class.is-invalid]="hasError('subjectId', 'required')">
+                <option value="" disabled>
+                  {{ (form.get('gradeId')?.value ? 'common.chooseOne' : 'exams.selectGradeFirst') | translate }}
+                </option>
+                @for (subject of gradeSubjects(); track subject.id) {
+                  <option [value]="subject.id">{{ getName(subject) }}</option>
+                }
+              </select>
+              @if (hasError('subjectId', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.subjectRequired' | translate }}</div>
+              }
+              @if (form.get('gradeId')?.value && gradeSubjects().length === 0) {
+                <small class="text-muted">{{ 'exams.noSubjectsForGrade' | translate }}</small>
+              }
+            </div>
+
+            <!-- Academic Year -->
+            <div class="col-md-4 mb-3">
+              <label for="academicYearId" class="form-label">
+                {{ 'exams.academicYear' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select id="academicYearId" class="form-select" formControlName="academicYearId"
+                      [class.is-invalid]="hasError('academicYearId', 'required')">
+                <option value="" disabled>{{ 'common.chooseOne' | translate }}</option>
+                @for (year of academicYears(); track year.id) {
+                  <option [value]="year.id">
+                    {{ year.name }}@if (year.isActive) { ({{ 'common.active' | translate }})}
+                  </option>
+                }
+              </select>
+              @if (hasError('academicYearId', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.academicYearRequired' | translate }}</div>
+              }
+            </div>
+
+            <!-- Semester (filtered by academic year) -->
+            <div class="col-md-4 mb-3">
+              <label for="semesterId" class="form-label">
+                {{ 'exams.semester' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select id="semesterId" class="form-select" formControlName="semesterId"
+                      [class.is-invalid]="hasError('semesterId', 'required')">
+                <option value="" disabled>
+                  {{ (form.get('academicYearId')?.value ? 'common.chooseOne' : 'exams.selectAcademicYearFirst') | translate }}
+                </option>
+                @for (semester of yearSemesters(); track semester.id) {
+                  <option [value]="semester.id">{{ semester.name }}</option>
+                }
+              </select>
+              @if (hasError('semesterId', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.semesterRequired' | translate }}</div>
+              }
+              @if (form.get('academicYearId')?.value && yearSemesters().length === 0) {
+                <small class="text-muted">{{ 'exams.noSemestersForYear' | translate }}</small>
+              }
+            </div>
+
+            <!-- Exam Type -->
+            <div class="col-md-4 mb-3">
+              <label for="examType" class="form-label">
+                {{ 'exams.examType' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select id="examType" class="form-select" formControlName="examType"
+                      [class.is-invalid]="hasError('examType', 'required')">
+                <option [ngValue]="null" disabled>{{ 'common.chooseOne' | translate }}</option>
+                @for (type of examTypes; track type.value) {
+                  <option [ngValue]="type.value">{{ type.key | translate }}</option>
+                }
+              </select>
+              @if (hasError('examType', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.examTypeRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule -->
+      <div class="card mb-4">
+        <div class="card-header">{{ 'exams.schedule' | translate }}</div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Exam Date -->
+            <div class="col-md-3 mb-3">
+              <label for="examDate" class="form-label">
+                {{ 'exams.examDate' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input id="examDate" type="date" class="form-control" formControlName="examDate"
+                     [class.is-invalid]="hasError('examDate', 'required')">
+              @if (hasError('examDate', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.examDateRequired' | translate }}</div>
+              }
+            </div>
+
+            <!-- Start Time -->
+            <div class="col-md-3 mb-3">
+              <label for="startTime" class="form-label">
+                {{ 'exams.startTime' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input id="startTime" type="time" class="form-control" formControlName="startTime"
+                     [class.is-invalid]="hasError('startTime', 'required')">
+              @if (hasError('startTime', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.startTimeRequired' | translate }}</div>
+              }
+            </div>
+
+            <!-- End Time -->
+            <div class="col-md-3 mb-3">
+              <label for="endTime" class="form-label">
+                {{ 'exams.endTime' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input id="endTime" type="time" class="form-control" formControlName="endTime"
+                     [class.is-invalid]="hasError('endTime', 'required') || timeRangeInvalid">
+              @if (hasError('endTime', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.endTimeRequired' | translate }}</div>
+              }
+              @if (timeRangeInvalid) {
+                <div class="invalid-feedback">{{ 'exams.endTimeAfterStart' | translate }}</div>
+              }
+            </div>
+
+            <!-- Duration -->
+            <div class="col-md-3 mb-3">
+              <label for="duration" class="form-label">
+                {{ 'exams.duration' | translate }} ({{ 'exams.minutes' | translate }}) <span class="text-danger">*</span>
+              </label>
+              <input id="duration" type="number" min="1" max="1440" class="form-control" formControlName="duration"
+                     [class.is-invalid]="hasError('duration', 'required') || hasError('duration', 'min') || hasError('duration', 'max')">
+              @if (hasError('duration', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.durationRequired' | translate }}</div>
+              }
+              @if (hasError('duration', 'min') || hasError('duration', 'max')) {
+                <div class="invalid-feedback">{{ 'exams.durationRange' | translate }}</div>
+              }
+              <small class="text-muted">{{ 'exams.durationHelper' | translate }}</small>
+            </div>
+
+            <!-- Weight (full mark) -->
+            <div class="col-md-3 mb-3">
+              <label for="weight" class="form-label">
+                {{ 'exams.weight' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input id="weight" type="number" min="0.01" step="0.5" class="form-control" formControlName="weight"
+                     [class.is-invalid]="hasError('weight', 'required') || hasError('weight', 'min') || hasError('weight', 'max')">
+              @if (hasError('weight', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.weightRequired' | translate }}</div>
+              }
+              @if (hasError('weight', 'min') || hasError('weight', 'max')) {
+                <div class="invalid-feedback">{{ 'exams.weightRange' | translate }}</div>
+              }
+              <small class="text-muted">{{ 'exams.weightHelper' | translate }}</small>
+            </div>
+
+            <!-- Success score (pass mark) -->
+            <div class="col-md-3 mb-3">
+              <label for="successScore" class="form-label">
+                {{ 'exams.successScore' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input id="successScore" type="number" min="0" step="0.5" class="form-control" formControlName="successScore"
+                     [class.is-invalid]="hasError('successScore', 'required') || hasError('successScore', 'min') || successScoreAboveWeight">
+              @if (hasError('successScore', 'required')) {
+                <div class="invalid-feedback">{{ 'exams.successScoreRequired' | translate }}</div>
+              }
+              @if (hasError('successScore', 'min') || successScoreAboveWeight) {
+                <div class="invalid-feedback">{{ 'exams.successScoreRange' | translate }}</div>
+              }
+            </div>
+
+            <!-- Answer model URL -->
+            <div class="col-md-6 mb-3">
+              <label for="answerModelUrl" class="form-label">{{ 'exams.answerModelUrl' | translate }}</label>
+              <input id="answerModelUrl" type="url" class="form-control" formControlName="answerModelUrl"
+                     placeholder="https://..."
+                     [class.is-invalid]="hasError('answerModelUrl', 'pattern') || hasError('answerModelUrl', 'maxlength')">
+              @if (hasError('answerModelUrl', 'pattern')) {
+                <div class="invalid-feedback">{{ 'exams.invalidUrl' | translate }}</div>
+              }
+              @if (hasError('answerModelUrl', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'exams.urlTooLong' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex justify-content-end gap-2 mb-4">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ (isEditMode() ? 'common.update' : 'common.save') | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

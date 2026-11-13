@@ -9,7 +9,6 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
-import { Router } from '@angular/router';
 
 /**
  * Error Handling Interceptor
@@ -25,7 +24,6 @@ import { Router } from '@angular/router';
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
   
-  private isRedirectingToLogin = false;
 
   constructor(private injector: Injector) {}
 
@@ -106,39 +104,37 @@ export class ErrorInterceptor implements HttpInterceptor {
    * Prevents redirect loops by tracking redirect state
    */
   private handleUnauthorized(error: HttpErrorResponse): void {
-    // Prevent infinite redirect loops
-    if (this.isRedirectingToLogin) {
+    // Wrong credentials on the login request are shown by the login form itself
+    if (this.isPublicAuthEndpoint(error.url)) {
       return;
     }
 
-    this.isRedirectingToLogin = true;
-
-    // Get services from injector (avoids circular dependency)
+    // Get service from injector (avoids circular dependency)
     const authService = this.injector.get(AuthService);
-    const router = this.injector.get(Router);
 
-    // Logout user
-    authService.logout();
-
-    // Show message
     this.showNotification(
       'Your session has expired. Please log in again.',
       'warning'
     );
 
-    // Redirect to login
-    router.navigate(['/login']).then(() => {
-      // Reset redirect flag after navigation completes
-      this.isRedirectingToLogin = false;
-    });
+    // Clear session and open the Not Authorized page (loop-safe)
+    authService.handleUnauthorized('unauthenticated');
   }
 
   /**
    * Handle 403 Forbidden
+   * The user is logged in but not allowed — keep the session, show Not Authorized page
    */
   private handleForbidden(error: HttpErrorResponse): void {
     const message = 'You do not have permission to access this resource.';
     this.showNotification(message, 'error');
+
+    this.injector.get(AuthService).handleUnauthorized('forbidden');
+  }
+
+  private isPublicAuthEndpoint(url: string | null): boolean {
+    return !!url && ['/api/user/login', '/api/user/register', '/api/user/forgot-password']
+      .some(endpoint => url.includes(endpoint));
   }
 
   /**

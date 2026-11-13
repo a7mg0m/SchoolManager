@@ -1,0 +1,45 @@
+<div class="vh-100 bg-plum-plate bg-animation" [dir]="(isArabic$ | async) ? 'rtl' : 'ltr'">
+  <div class="d-flex h-100 justify-content-center align-items-center p-3">
+    <div class="w-100 app-login-box" style="max-width: 500px;">
+      <!-- Language Switcher -->
+      <div class="position-absolute top-0 end-0 p-3">
+        <app-language-switcher></app-language-switcher>
+      </div>
+
+      <div class="card shadow-lg border-0">
+        <div class="card-body p-4 p-md-5 text-center">
+          <div class="mb-3 text-danger" style="font-size: 4rem; line-height: 1;" aria-hidden="true">
+            <i class="pe-7s-lock"></i>
+          </div>
+          <h3 class="mb-2 fw-normal">{{ 'auth.notAuthorizedTitle' | translate }}</h3>
+          <p class="text-muted mb-0">
+            @if (isForbidden) {
+              {{ 'auth.notAuthorizedForbidden' | translate }}
+            } @else {
+              {{ 'auth.notAuthorizedMessage' | translate }}
+            }
+          </p>
+        </div>
+
+        <div class="card-footer bg-transparent border-0 p-4 pt-0">
+          <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+            @if (isLoggedIn) {
+              <button type="button" class="btn btn-outline-primary btn-lg px-4" (click)="goHome()">
+                {{ 'auth.backToHome' | translate }}
+              </button>
+            }
+            <button type="button" class="btn btn-primary btn-lg px-4" (click)="goToLogin()">
+              {{ 'auth.goToLogin' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center text-white mt-4">
+        <p class="mb-0 opacity-75 small">
+          {{ 'common.copyright' | translate }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

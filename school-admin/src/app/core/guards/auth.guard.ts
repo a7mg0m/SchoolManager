@@ -1,17 +1,25 @@
 import { Injectable } from '@angular/core';
-import { Router, CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import {
+  Router,
+  CanActivate,
+  CanActivateChild,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+  UrlTree
+} from '@angular/router';
 import { AuthService } from '../services/auth.service';
 
 /**
  * Authentication Guard
- * Protects routes from unauthenticated access
- * Redirects to login page if user is not authenticated
+ * Protects every route (and every child route) that requires a logged-in user.
+ * If there is no valid (present and non-expired) token, the session is cleared
+ * and the user is sent to the Not Authorized page with a returnUrl.
  */
 @Injectable({
   providedIn: 'root'
 })
-export class AuthGuard implements CanActivate {
-  
+export class AuthGuard implements CanActivate, CanActivateChild {
+
   constructor(
     private authService: AuthService,
     private router: Router
@@ -20,13 +28,27 @@ export class AuthGuard implements CanActivate {
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
-  ): boolean {
+  ): boolean | UrlTree {
+    return this.check(state.url);
+  }
+
+  canActivateChild(
+    childRoute: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean | UrlTree {
+    return this.check(state.url);
+  }
+
+  private check(url: string): boolean | UrlTree {
     if (this.authService.isAuthenticated()) {
       return true;
     }
 
-    // Redirect to login page with return URL
-    this.router.navigate(['/login'], { queryParams: { returnUrl: state.url } });
-    return false;
+    // Remove any stale/expired token before leaving
+    this.authService.clearSession();
+
+    return this.router.createUrlTree([this.authService.NOT_AUTHORIZED_URL], {
+      queryParams: { reason: 'unauthenticated', returnUrl: url }
+    });
   }
 }

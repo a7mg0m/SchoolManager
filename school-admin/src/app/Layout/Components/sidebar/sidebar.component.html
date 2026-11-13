@@ -153,6 +153,24 @@
               </div>
             </div>
 
+            <!-- Exam -->
+            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('examMenu')">
+              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('examMenu')">
+                <i class="vsm-icon pe-7s-note2"></i>
+                <span class="vsm-title">{{ 'sidebar.exam' | translate }}</span>
+                <i class="vsm-arrow"></i>
+              </a>
+              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('examMenu')">
+                <div class="vsm-list">
+                  <div class="vsm-item">
+                    <a routerLink="/exam/exams" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.exams' | translate }}</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

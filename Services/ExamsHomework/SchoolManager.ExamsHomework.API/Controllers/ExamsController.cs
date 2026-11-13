@@ -35,8 +35,12 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateExamDto dto, CancellationToken cancellationToken)
         {
-            var command = new CreateExamCommand(dto.SubjectId, dto.GradeId, dto.SectionId, dto.AcademicYearId,
-                dto.SemesterId, dto.ExamType, dto.ExamDate, dto.StartTime, dto.EndTime, dto.Duration, dto.AnswerModelUrl, CurrentUserId);
+            var markError = ValidateMarks(dto.Weight, dto.SuccessScore);
+            if (markError is not null)
+                return BadRequest(new ApiResponse(400, markError));
+
+            var command = new CreateExamCommand(dto.SubjectId, dto.StageId, dto.GradeId, dto.SectionId, dto.AcademicYearId,
+                dto.SemesterId, dto.ExamType, dto.ExamDate, dto.StartTime, dto.EndTime, dto.Duration, dto.Weight, dto.SuccessScore, dto.AnswerModelUrl, CurrentUserId);
             var id = await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { InsertedId = id.ToString() });
         }
@@ -44,8 +48,27 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] UpdateExamCommand command, CancellationToken cancellationToken)
         {
+            var markError = ValidateMarks(command.Weight, command.SuccessScore);
+            if (markError is not null)
+                return BadRequest(new ApiResponse(400, markError));
+
+            // The full mark can't drop below scores already given
+            var results = await _mediator.Send(new GetExamResultsByExamIdQuery(command.Id), cancellationToken);
+            if (results.Any(r => r.Score > command.Weight))
+                return BadRequest(new ApiResponse(400, "WeightBelowExistingScores"));
+
             await _mediator.Send(command with { UpdatedBy = CurrentUserId }, cancellationToken);
             return Ok(new ApiResponse { message = "Updated Successfully" });
+        }
+
+        /// <summary>Weight (full mark) must be > 0 and SuccessScore within 0..Weight</summary>
+        private static string? ValidateMarks(double weight, double successScore)
+        {
+            if (!double.IsFinite(weight) || weight <= 0)
+                return "WeightInvalid";
+            if (!double.IsFinite(successScore) || successScore < 0 || successScore > weight)
+                return "SuccessScoreInvalid";
+            return null;
         }
 
         [HttpDelete("delete/{id}")]

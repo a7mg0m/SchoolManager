@@ -6,5 +6,8 @@ namespace SchoolManager.ExamsHomework.Application
         public Guid ExamId { get; set; }
         public Guid StudentId { get; set; }
         public double Score { get; set; }
+
+        /// <summary>Score >= the exam's SuccessScore</summary>
+        public bool IsPassed { get; set; }
     }
 }

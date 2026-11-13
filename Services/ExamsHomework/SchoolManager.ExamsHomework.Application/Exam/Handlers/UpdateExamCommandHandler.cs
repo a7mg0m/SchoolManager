@@ -23,6 +23,7 @@ namespace SchoolManager.ExamsHomework.Application
 
             entity.Update(
                 command.SubjectId,
+                command.StageId,
                 command.GradeId,
                 command.SectionId,
                 command.AcademicYearId,
@@ -32,6 +33,8 @@ namespace SchoolManager.ExamsHomework.Application
                 command.StartTime,
                 command.EndTime,
                 command.Duration,
+                command.Weight,
+                command.SuccessScore,
                 command.AnswerModelUrl,
                 new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, command.UpdatedBy));
 

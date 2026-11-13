@@ -3,26 +3,27 @@ import {
   HttpRequest,
   HttpHandler,
   HttpEvent,
-  HttpInterceptor
+  HttpInterceptor,
+  HttpErrorResponse
 } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 /**
  * Authentication Interceptor
- * Automatically attaches JWT access token to outgoing HTTP requests
- * 
- * Responsibilities:
- * - Attach Bearer token to Authorization header
- * - Skip token attachment for public endpoints if needed
- * - Handle missing tokens gracefully
- * 
- * The interceptor will add the Authorization header with format:
- * Authorization: Bearer {accessToken}
+ * Handles authorization for every outgoing API request.
+ *
+ * - Public endpoints (login/register/forgot-password) pass through untouched.
+ * - Requests to our API gateway get `Authorization: Bearer {token}`.
+ * - If a protected API request is made without a valid (non-expired) token,
+ *   the request is NOT sent: the session is cleared, the user is sent to the
+ *   Not Authorized page, and a 401 error is returned to the caller.
+ * - Requests to other origins (e.g. translation files in /assets) never get the token.
  */
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  
+
   // Public endpoints that don't require authentication
   private publicEndpoints = [
     '/api/user/login',
@@ -33,16 +34,21 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    // Check if this is a public endpoint
-    const isPublicEndpoint = this.isPublicEndpoint(request.url);
+    // Only our API needs (and may receive) the token
+    if (!this.isApiRequest(request.url) || this.isPublicEndpoint(request.url)) {
+      return next.handle(request);
+    }
 
-    // Get JWT token from localStorage via auth service
     const token = this.authService.getToken();
 
-    // If no token or this is a public endpoint, pass request as is
-    // The error interceptor will handle 401 responses
-    if (!token || isPublicEndpoint) {
-      return next.handle(request);
+    if (!token || this.authService.isTokenExpired(token)) {
+      this.authService.handleUnauthorized('unauthenticated');
+      return throwError(() => new HttpErrorResponse({
+        status: 401,
+        statusText: 'Unauthorized',
+        url: request.url,
+        error: { message: 'Not authorized. Please log in.' }
+      }));
     }
 
     // Clone request and add Authorization header with Bearer token
@@ -53,6 +59,14 @@ export class AuthInterceptor implements HttpInterceptor {
     });
 
     return next.handle(authenticatedRequest);
+  }
+
+  /**
+   * Check if the request targets our API gateway
+   */
+  private isApiRequest(url: string): boolean {
+    const gatewayUrl = environment.gatewayUrl?.replace(/\/+$/, '');
+    return (!!gatewayUrl && url.startsWith(gatewayUrl)) || url.startsWith('/api/');
   }
 
   /**
