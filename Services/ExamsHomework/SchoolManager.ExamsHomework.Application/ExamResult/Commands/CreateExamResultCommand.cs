@@ -5,7 +5,6 @@ namespace SchoolManager.ExamsHomework.Application
     public record CreateExamResultCommand(
         Guid ExamId,
         Guid StudentId,
-        double Score,
-        Guid CreatedBy
+        double Score
     ) : ICommand<Guid>;
 }

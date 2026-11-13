@@ -1,3 +1,4 @@
+using BuildingBlocks;
 using FluentValidation;
 using SchoolManager.Financial.Infrastructure;
 
@@ -15,6 +16,9 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(SchoolManager.Financial.Applic
 
 builder.Services.AddValidatorsFromAssembly(typeof(SchoolManager.Financial.Application.CreateFeeCommand).Assembly);
 
+// Validates the JWT and exposes the logged-in user (ICurrentUserService) for CreatedBy/UpdatedBy
+builder.Services.AddJwtCurrentUser(builder.Configuration);
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -24,6 +28,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

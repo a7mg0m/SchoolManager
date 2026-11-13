@@ -12,7 +12,6 @@ namespace SchoolManager.Management.Application
         Guid GradeId,
         Guid SectionId,
         Guid SubjectId,
-        Guid TeacherId,
-        Guid UpdatedBy
+        Guid TeacherId
     ) : ICommand<bool>;
 }

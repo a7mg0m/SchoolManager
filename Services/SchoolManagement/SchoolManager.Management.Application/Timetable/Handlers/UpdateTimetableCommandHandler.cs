@@ -11,12 +11,15 @@ namespace SchoolManager.Management.Application
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IGradeRepository _gradeRepository;
 
-		public UpdateTimetableCommandHandler(
+		private readonly ICurrentUserService _currentUser;
+
+		public UpdateTimetableCommandHandler(ICurrentUserService currentUser, 
 			ITimetableRepository repository,
 			ITimetableSlotRepository slotRepository,
 			IGradeRepository gradeRepository,
 			IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
 			_repository = repository;
 			_slotRepository = slotRepository;
@@ -40,8 +43,8 @@ namespace SchoolManager.Management.Application
 			// Sharing one instance across entities leaves the others' audit columns NULL.
 			var now = DateTime.Now;
 			AuditInfo Updated(AuditInfo? current) => current is null
-				? new AuditInfo(now, request.UpdatedBy)
-				: new AuditInfo(current.CreatedOn, current.CreatedBy, now, request.UpdatedBy);
+				? new AuditInfo(now, _currentUser.UserId)
+				: new AuditInfo(current.CreatedOn, current.CreatedBy, now, _currentUser.UserId);
 
 			entity.Update(
 				request.StageId,
@@ -73,7 +76,7 @@ namespace SchoolManager.Management.Application
 				else
 				{
 					var slot = new TimetableSlot(dto.Day, name, dto.StartTime, dto.EndTime,
-						dto.SubjectId, dto.TeacherId, dto.GradeId, dto.SectionId, new AuditInfo(now, request.UpdatedBy));
+						dto.SubjectId, dto.TeacherId, dto.GradeId, dto.SectionId, new AuditInfo(now, _currentUser.UserId));
 
 					entity.AddSlot(slot);
 					// Mark explicitly as Added (client-generated Guid would otherwise be treated as Modified)

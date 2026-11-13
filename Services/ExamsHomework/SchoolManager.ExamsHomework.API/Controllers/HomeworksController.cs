@@ -36,7 +36,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateHomeworkDto dto, CancellationToken cancellationToken)
         {
             var command = new CreateHomeworkCommand(dto.SubjectId, dto.TeacherId, dto.GradeId, dto.AcademicYearId,
-                dto.SemesterId, dto.Title, dto.Description, dto.DueDate, dto.AttachmentUrl, CurrentUserId);
+                dto.SemesterId, dto.Title, dto.Description, dto.DueDate, dto.AttachmentUrl);
             var id = await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { InsertedId = id.ToString() });
         }
@@ -44,7 +44,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] UpdateHomeworkCommand command, CancellationToken cancellationToken)
         {
-            await _mediator.Send(command with { UpdatedBy = CurrentUserId }, cancellationToken);
+            await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { message = "Updated Successfully" });
         }
 

@@ -9,7 +9,6 @@ namespace SchoolManager.Management.Application
         string? Address,
         string? Phone,
         string? Email,
-        byte[]? Logo,
-        Guid UpdatedBy
+        byte[]? Logo
     ) : ICommand<bool>;
 }

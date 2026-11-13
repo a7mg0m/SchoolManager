@@ -6,7 +6,6 @@ namespace SchoolManager.Identity.Application
         Guid Id,
         string LoginName,
         string? Email,
-        Guid RoleId,
-        Guid UpdatedBy
+        Guid RoleId
     ) : ICommand<bool>;
 }

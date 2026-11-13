@@ -10,8 +10,7 @@ namespace SchoolManager.Financial.Application
             CreateMap<CreatePaymentMethodDto, CreatePaymentMethodCommand>()
                 .ConstructUsing(src => new CreatePaymentMethodCommand(
                     src.Name,
-                    src.Type,
-                    Guid.NewGuid()));
+                    src.Type));
 
             CreateMap<PaymentMethod, PaymentMethodDto>();
         }

@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
 		private readonly ITimetableSlotRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 
-		public UpdateTimetableSlotCommandHandler(ITimetableSlotRepository repository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public UpdateTimetableSlotCommandHandler(ICurrentUserService currentUser, ITimetableSlotRepository repository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -31,7 +34,7 @@ namespace SchoolManager.Management.Application
                 request.SectionId,
                 request.SubjectId,
                 request.TeacherId,
-                new AuditInfo(DateTime.Now, request.UpdatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			await _unitOfWork.SaveChangesAsync();
 

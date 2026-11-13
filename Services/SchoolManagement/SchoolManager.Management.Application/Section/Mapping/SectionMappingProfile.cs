@@ -12,8 +12,7 @@ namespace SchoolManager.Management.Application
 					src.NameAr,
                     src.NameEn,
                     src.GradeId,
-                    src.StageId,
-                    Guid.NewGuid()));
+                    src.StageId));
 
             CreateMap<UpdateSectionDto, UpdateSectionCommand>()
                 .ConstructUsing(src => new UpdateSectionCommand(
@@ -21,8 +20,7 @@ namespace SchoolManager.Management.Application
                     src.NameAr,
                     src.NameEn,
 					src.GradeId,
-					src.StageId,
-					Guid.NewGuid()));
+					src.StageId));
 
 			CreateMap<Section, SectionDto>()
                 .ForMember(d => d.NameAr, o => o.MapFrom(s => s.Name.Arabic))

@@ -9,7 +9,6 @@ namespace SchoolManager.Identity.Application
         string Email,
         string PhoneNumber,
         string Address,
-        byte[] ProfileImage,
-        Guid UpdatedBy
+        byte[] ProfileImage
     ) : ICommand<bool>;
 }

@@ -6,7 +6,6 @@ namespace SchoolManager.Management.Application
         string Name,
         DateOnly StartDate,
         DateOnly EndDate,
-        List<AcademicYearSemesterDto> Semesters,
-        Guid CreatedBy
+        List<AcademicYearSemesterDto> Semesters
     ) : ICommand<Guid>;
 }

@@ -10,15 +10,13 @@ namespace SchoolManager.Management.Application
 			CreateMap<CreateStageDto, CreateStageCommand>()
 				.ConstructUsing(src => new CreateStageCommand(
 					src.NameAr,
-                    src.NameEn,
-                    Guid.NewGuid()));
+                    src.NameEn));
 
             CreateMap<UpdateStageDto, UpdateStageCommand>()
                 .ConstructUsing(src => new UpdateStageCommand(
                     src.Id,
                     src.NameAr,
-                    src.NameEn,
-                    Guid.NewGuid()));
+                    src.NameEn));
 
 			CreateMap<Stage, StageDto>()
                 .ForMember(d => d.NameAr, o => o.MapFrom(s => s.Name.Arabic))

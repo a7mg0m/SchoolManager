@@ -10,8 +10,11 @@ namespace SchoolManager.Notification.Application
         private readonly ISchoolEventRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateSchoolEventCommandHandler(ISchoolEventRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateSchoolEventCommandHandler(ICurrentUserService currentUser, ISchoolEventRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -31,7 +34,7 @@ namespace SchoolManager.Notification.Application
                 command.EventFor,
                 command.AcademicYearId,
                 command.SemesterId,
-                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, command.UpdatedBy));
+                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, _currentUser.UserId));
 
             if (command.Targets is not null)
             {
@@ -39,7 +42,7 @@ namespace SchoolManager.Notification.Application
                 foreach (var target in command.Targets)
                 {
                     entity.AddTarget(entity.Id, target.GradeId, target.SectionId, target.TeacherId, target.StudentId,
-                        new AuditInfo(DateTime.Now, command.UpdatedBy));
+                        new AuditInfo(DateTime.Now, _currentUser.UserId));
                 }
             }
 

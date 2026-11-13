@@ -10,11 +10,14 @@ namespace SchoolManager.Financial.Application
         private readonly IRevenueCategoryRepository _categoryRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateRevenueCommandHandler(
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateRevenueCommandHandler(ICurrentUserService currentUser, 
             IRevenueRepository repository,
             IRevenueCategoryRepository categoryRepository,
             IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _categoryRepository = categoryRepository;
             _unitOfWork = unitOfWork;
@@ -33,7 +36,7 @@ namespace SchoolManager.Financial.Application
                 new Money(command.Amount, command.Currency),
                 command.RevenueDate,
                 command.Reference,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
             await _repository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();

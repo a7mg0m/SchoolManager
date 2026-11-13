@@ -1,3 +1,4 @@
+using BuildingBlocks;
 using FluentValidation;
 using SchoolManager.ExamsHomework.Infrastructure;
 
@@ -18,6 +19,9 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(SchoolManager.ExamsHomework.Ap
 
 builder.Services.AddValidatorsFromAssembly(typeof(SchoolManager.ExamsHomework.Application.CreateExamCommand).Assembly);
 
+// Validates the JWT and exposes the logged-in user (ICurrentUserService) for CreatedBy/UpdatedBy
+builder.Services.AddJwtCurrentUser(builder.Configuration);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -28,6 +32,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -11,7 +11,6 @@ namespace SchoolManager.Management.Application
         Guid SubjectId,
         Guid TeacherId,
         Guid GradeId,
-        Guid SectionId,
-        Guid CreatedBy
+        Guid SectionId
     ) : ICommand<Guid>;
 }

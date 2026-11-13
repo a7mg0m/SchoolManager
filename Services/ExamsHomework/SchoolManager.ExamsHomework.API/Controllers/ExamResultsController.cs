@@ -48,7 +48,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             if (!IsValidScore(dto.Score, exam.Weight))
                 return BadRequest(new ApiResponse(400, "ScoreInvalid"));
 
-            var command = new CreateExamResultCommand(dto.ExamId, dto.StudentId, dto.Score, CurrentUserId);
+            var command = new CreateExamResultCommand(dto.ExamId, dto.StudentId, dto.Score);
             var id = await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { InsertedId = id.ToString() });
         }
@@ -79,7 +79,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             if (results.Any(r => r.Score is double s && !IsValidScore(s, exam.Weight)))
                 return BadRequest(new ApiResponse(400, "ScoreInvalid"));
 
-            var summary = await _mediator.Send(new SaveExamResultsCommand(dto.ExamId, results, CurrentUserId), cancellationToken);
+            var summary = await _mediator.Send(new SaveExamResultsCommand(dto.ExamId, results), cancellationToken);
             if (summary is null)
                 return NotFound(new ApiResponse(404, "ExamNotFound"));
 
@@ -98,7 +98,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             if (!IsValidScore(command.Score, exam.Weight))
                 return BadRequest(new ApiResponse(400, "ScoreInvalid"));
 
-            await _mediator.Send(command with { UpdatedBy = CurrentUserId }, cancellationToken);
+            await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { message = "Updated Successfully" });
         }
 

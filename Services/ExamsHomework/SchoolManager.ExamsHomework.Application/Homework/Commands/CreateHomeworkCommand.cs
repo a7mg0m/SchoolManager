@@ -11,7 +11,6 @@ namespace SchoolManager.ExamsHomework.Application
         string Title,
         string Description,
         DateOnly DueDate,
-        string? AttachmentUrl,
-        Guid CreatedBy
+        string? AttachmentUrl
     ) : ICommand<Guid>;
 }

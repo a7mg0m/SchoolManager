@@ -9,15 +9,18 @@ namespace SchoolManager.ExamsHomework.Application
         private readonly IExamRepository _examRepository;
         private readonly IExamResultRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUser;
 
         public SaveExamResultsCommandHandler(
             IExamRepository examRepository,
             IExamResultRepository repository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUser)
         {
             _examRepository = examRepository;
             _repository = repository;
             _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
         }
 
         public async Task<SaveExamResultsSummary?> Handle(SaveExamResultsCommand command, CancellationToken cancellationToken)
@@ -66,7 +69,7 @@ namespace SchoolManager.ExamsHomework.Application
                         command.ExamId,
                         item.StudentId,
                         item.Score.Value,
-                        new AuditInfo(now, command.UserId)));
+                        new AuditInfo(now, _currentUser.UserId)));
                     created++;
                 }
                 else if (result.Score != item.Score.Value)
@@ -74,7 +77,7 @@ namespace SchoolManager.ExamsHomework.Application
                     result.UpdateScore(
                         item.StudentId,
                         item.Score.Value,
-                        result.AuditInfo.Updated(now, command.UserId));
+                        result.AuditInfo.Updated(now, _currentUser.UserId));
                     await _repository.UpdateAsync(result);
                     updated++;
                 }

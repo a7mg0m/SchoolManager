@@ -11,8 +11,11 @@ namespace SchoolManager.Management.Application
 		private readonly IGradeRepository _gradeRepository;
 		private readonly IStudentRepository _studentRepository;
 
-		public UpdateParentCommandHandler(IParentRepository repository, IStudentRepository studentRepository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public UpdateParentCommandHandler(ICurrentUserService currentUser, IParentRepository repository, IStudentRepository studentRepository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
 			_studentRepository = studentRepository;
 			_repository = repository;
@@ -31,9 +34,9 @@ namespace SchoolManager.Management.Application
                 request.PhoneNumber,
                 request.Email,
                 request.Address,
-                new AuditInfo(DateTime.Now, request.UpdatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
-            AuditInfo NewAudit() => new AuditInfo(DateTime.Now, request.UpdatedBy);
+            AuditInfo NewAudit() => new AuditInfo(DateTime.Now, _currentUser.UserId);
             var incomingIds = request.Students.Where(s => s.Id.HasValue).Select(s => s.Id!.Value).ToHashSet();
 
             // New students (no Id) must not reuse a national ID that already belongs to someone

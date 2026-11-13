@@ -9,8 +9,11 @@ namespace SchoolManager.Financial.Application
         private readonly IFeesRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateFeeCommandHandler(IFeesRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateFeeCommandHandler(ICurrentUserService currentUser, IFeesRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -26,7 +29,7 @@ namespace SchoolManager.Financial.Application
                 command.Type,
                 new Money(command.Amount, command.Currency),
                 command.IsMandatory,
-                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, command.UpdatedBy));
+                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, _currentUser.UserId));
 
             await _repository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

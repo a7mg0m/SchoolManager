@@ -5,7 +5,6 @@ namespace SchoolManager.Financial.Application
 {
     public record CreatePaymentMethodCommand(
         string Name,
-        PaymentType Type,
-        Guid CreatedBy
+        PaymentType Type
     ) : ICommand<Guid>;
 }

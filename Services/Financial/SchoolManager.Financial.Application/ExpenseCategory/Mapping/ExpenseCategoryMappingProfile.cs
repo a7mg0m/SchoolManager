@@ -10,8 +10,7 @@ namespace SchoolManager.Financial.Application
             CreateMap<CreateExpenseCategoryDto, CreateExpenseCategoryCommand>()
                 .ConstructUsing(src => new CreateExpenseCategoryCommand(
                     src.Name,
-                    src.Description,
-                    Guid.NewGuid()));
+                    src.Description));
 
             CreateMap<ExpenseCategory, ExpenseCategoryDto>();
         }

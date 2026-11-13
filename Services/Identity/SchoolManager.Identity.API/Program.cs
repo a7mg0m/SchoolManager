@@ -1,8 +1,6 @@
+using BuildingBlocks;
 using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using SchoolManager.Identity.Infrastructure;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,21 +19,8 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(SchoolManager.Identity.Applica
 
 builder.Services.AddValidatorsFromAssembly(typeof(SchoolManager.Identity.Application.CreateUserCommand).Assembly);
 
-var jwtSection = builder.Configuration.GetSection("Jwt");
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSection["Issuer"],
-            ValidAudience = jwtSection["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection["Key"] ?? string.Empty))
-        };
-    });
+// Validates the JWT and exposes the logged-in user (ICurrentUserService) for CreatedBy/UpdatedBy
+builder.Services.AddJwtCurrentUser(builder.Configuration);
 
 builder.Services.AddAuthorization();
 

@@ -11,8 +11,11 @@ namespace SchoolManager.Management.Application
 		private readonly IGradeRepository _gradeRepository;
 		private readonly IStudentRepository _studentRepository;
 
-		public CreateParentCommandHandler(IParentRepository repository, IStudentRepository studentRepository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public CreateParentCommandHandler(ICurrentUserService currentUser, IParentRepository repository, IStudentRepository studentRepository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
 			_studentRepository = studentRepository;
 			_repository = repository;
@@ -31,7 +34,7 @@ namespace SchoolManager.Management.Application
                 command.PhoneNumber,
                 command.Email,
                 command.Address,
-				new AuditInfo(DateTime.Now, command.CreatedBy));
+				new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			foreach (var s in command.Students)
 			{
@@ -51,7 +54,7 @@ namespace SchoolManager.Management.Application
 					s.SectionId,
 					s.AcademicYearId,
 					entity.Id,
-					new AuditInfo(DateTime.Now, command.CreatedBy)));
+					new AuditInfo(DateTime.Now, _currentUser.UserId)));
 			}
 
 			await _repository.AddAsync(entity);

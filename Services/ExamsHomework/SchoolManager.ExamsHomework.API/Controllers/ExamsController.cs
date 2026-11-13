@@ -40,7 +40,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
                 return BadRequest(new ApiResponse(400, markError));
 
             var command = new CreateExamCommand(dto.SubjectId, dto.StageId, dto.GradeId, dto.SectionId, dto.AcademicYearId,
-                dto.SemesterId, dto.ExamType, dto.ExamDate, dto.StartTime, dto.EndTime, dto.Duration, dto.Weight, dto.SuccessScore, dto.AnswerModelUrl, CurrentUserId);
+                dto.SemesterId, dto.ExamType, dto.ExamDate, dto.StartTime, dto.EndTime, dto.Duration, dto.Weight, dto.SuccessScore, dto.AnswerModelUrl);
             var id = await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { InsertedId = id.ToString() });
         }
@@ -57,7 +57,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             if (results.Any(r => r.Score > command.Weight))
                 return BadRequest(new ApiResponse(400, "WeightBelowExistingScores"));
 
-            await _mediator.Send(command with { UpdatedBy = CurrentUserId }, cancellationToken);
+            await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { message = "Updated Successfully" });
         }
 

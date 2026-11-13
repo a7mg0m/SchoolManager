@@ -9,8 +9,11 @@ namespace SchoolManager.Notification.Application
         private readonly ISchoolEventRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateSchoolEventCommandHandler(ISchoolEventRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateSchoolEventCommandHandler(ICurrentUserService currentUser, ISchoolEventRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -27,12 +30,12 @@ namespace SchoolManager.Notification.Application
                 command.EventFor,
                 command.AcademicYearId,
                 command.SemesterId,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
             foreach (var target in command.Targets ?? [])
             {
                 entity.AddTarget(entity.Id, target.GradeId, target.SectionId, target.TeacherId, target.StudentId,
-                    new AuditInfo(DateTime.Now, command.CreatedBy));
+                    new AuditInfo(DateTime.Now, _currentUser.UserId));
             }
 
             await _repository.AddAsync(entity);

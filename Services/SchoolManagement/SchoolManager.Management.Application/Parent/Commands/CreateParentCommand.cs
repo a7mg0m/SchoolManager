@@ -8,7 +8,6 @@ namespace SchoolManager.Management.Application
         string PhoneNumber,
         string? Email,
         string Address,
-        List<ParentStudentDto> Students,
-        Guid CreatedBy
+        List<ParentStudentDto> Students
     ) : ICommand<Guid>;
 }

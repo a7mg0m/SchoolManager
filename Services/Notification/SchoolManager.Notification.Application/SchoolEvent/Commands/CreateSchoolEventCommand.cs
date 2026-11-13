@@ -13,7 +13,6 @@ namespace SchoolManager.Notification.Application
         EventForEnum EventFor,
         Guid AcademicYearId,
         Guid SemesterId,
-        List<TargetInputDto>? Targets,
-        Guid CreatedBy
+        List<TargetInputDto>? Targets
     ) : ICommand<Guid>;
 }

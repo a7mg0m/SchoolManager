@@ -13,8 +13,7 @@ namespace SchoolManager.Management.Application
                     src.NameEn,
                     src.StageId,
                     src.GradeId,
-                    src.TeacherIds,
-                    Guid.NewGuid()));
+                    src.TeacherIds));
 
             CreateMap<UpdateSubjectDto, UpdateSubjectCommand>()
                 .ConstructUsing(src => new UpdateSubjectCommand(
@@ -23,8 +22,7 @@ namespace SchoolManager.Management.Application
                     src.NameEn,
                     src.StageId,
                     src.GradeId,
-                    src.TeacherIds,
-                    Guid.NewGuid()));
+                    src.TeacherIds));
 
             CreateMap<Subject, SubjectDto>()
                 .ForMember(d => d.NameAr, o => o.MapFrom(s => s.Name.Arabic))

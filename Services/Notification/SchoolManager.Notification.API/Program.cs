@@ -1,3 +1,4 @@
+using BuildingBlocks;
 using FluentValidation;
 using SchoolManager.Notification.Application;
 using SchoolManager.Notification.Infrastructure;
@@ -25,6 +26,9 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(CreateNotificationCommand).Ass
 
 builder.Services.AddValidatorsFromAssembly(typeof(CreateNotificationCommand).Assembly);
 
+// Validates the JWT and exposes the logged-in user (ICurrentUserService) for CreatedBy/UpdatedBy
+builder.Services.AddJwtCurrentUser(builder.Configuration);
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
@@ -37,6 +41,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

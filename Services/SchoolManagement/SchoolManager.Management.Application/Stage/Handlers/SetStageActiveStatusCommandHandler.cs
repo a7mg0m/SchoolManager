@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
         private readonly IStageRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public SetStageActiveStatusCommandHandler(IStageRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public SetStageActiveStatusCommandHandler(ICurrentUserService currentUser, IStageRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -22,7 +25,7 @@ namespace SchoolManager.Management.Application
             if (entity is null)
                 return false;
 
-            var auditInfo = new AuditInfo(DateTime.Now, request.UpdatedBy);
+            var auditInfo = new AuditInfo(DateTime.Now, _currentUser.UserId);
 
             if (request.IsActive)
                 entity.Activate(auditInfo);

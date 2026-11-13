@@ -9,8 +9,11 @@ namespace SchoolManager.Identity.Application
         private readonly IUserRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateUserCommandHandler(IUserRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateUserCommandHandler(ICurrentUserService currentUser, IUserRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -27,7 +30,7 @@ namespace SchoolManager.Identity.Application
                 request.LoginName,
                 request.Email,
                 request.RoleId,
-                new AuditInfo(DateTime.Now, request.UpdatedBy)
+                new AuditInfo(DateTime.Now, _currentUser.UserId)
             );
 
             await _unitOfWork.SaveChangesAsync();

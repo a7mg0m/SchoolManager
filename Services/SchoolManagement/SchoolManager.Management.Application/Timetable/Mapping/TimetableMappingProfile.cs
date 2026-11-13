@@ -12,7 +12,6 @@ namespace SchoolManager.Management.Application
 					src.StageId,
 					src.GradeId,
                     src.AcademicYearId,
-                    Guid.NewGuid(),
                     src.Slots));
 
             CreateMap<UpdateTimetableDto, UpdateTimetableCommand>()
@@ -21,7 +20,6 @@ namespace SchoolManager.Management.Application
                     src.StageId,
                     src.GradeId,
                     src.AcademicYearId,
-                    Guid.NewGuid(),
                     src.Slots));
 
 			CreateMap<Timetable, TimetableDto>()

@@ -10,8 +10,11 @@ namespace SchoolManager.ExamsHomework.Application
         private readonly IHomeworkQuestionRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateHomeworkQuestionCommandHandler(IHomeworkQuestionRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateHomeworkQuestionCommandHandler(ICurrentUserService currentUser, IHomeworkQuestionRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -25,7 +28,7 @@ namespace SchoolManager.ExamsHomework.Application
                 command.QuestionHeader,
                 command.Questions,
                 command.ImageUrl,
-                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, command.UpdatedBy));
+                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, _currentUser.UserId));
 
             await _repository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

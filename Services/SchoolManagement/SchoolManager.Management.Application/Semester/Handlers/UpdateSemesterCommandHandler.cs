@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
 		private readonly ISemesterRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 
-		public UpdateSemesterCommandHandler(ISemesterRepository repository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public UpdateSemesterCommandHandler(ICurrentUserService currentUser, ISemesterRepository repository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -27,7 +30,7 @@ namespace SchoolManager.Management.Application
                 request.AcademicYearId,
                 request.StartDate,
                 request.EndDate,
-                new AuditInfo(DateTime.Now, request.UpdatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			await _unitOfWork.SaveChangesAsync();
 

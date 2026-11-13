@@ -17,7 +17,6 @@ namespace SchoolManager.ExamsHomework.Application
         double Duration,
         double Weight,
         double SuccessScore,
-        string? AnswerModelUrl,
-        Guid CreatedBy
+        string? AnswerModelUrl
     ) : ICommand<Guid>;
 }

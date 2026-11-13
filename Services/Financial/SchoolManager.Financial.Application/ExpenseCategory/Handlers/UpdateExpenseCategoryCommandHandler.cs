@@ -9,8 +9,11 @@ namespace SchoolManager.Financial.Application
         private readonly IExpenseCategoryRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateExpenseCategoryCommandHandler(IExpenseCategoryRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateExpenseCategoryCommandHandler(ICurrentUserService currentUser, IExpenseCategoryRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -24,7 +27,7 @@ namespace SchoolManager.Financial.Application
             entity.Update(
                 command.Name,
                 command.Description,
-                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, command.UpdatedBy));
+                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, _currentUser.UserId));
 
             await _repository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

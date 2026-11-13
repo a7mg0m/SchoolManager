@@ -8,7 +8,6 @@ namespace SchoolManager.Management.Application
         string NameEn,
         Guid StageId,
         Guid GradeId,
-        List<Guid> TeacherIds,
-        Guid UpdatedBy
+        List<Guid> TeacherIds
     ) : ICommand<bool>;
 }

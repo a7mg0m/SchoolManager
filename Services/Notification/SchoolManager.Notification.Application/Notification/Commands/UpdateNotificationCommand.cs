@@ -10,7 +10,6 @@ namespace SchoolManager.Notification.Application
         DateOnly SentOn,
         NotificationTypeEnum NotificationType,
         string? ImageUrl,
-        List<TargetInputDto>? Targets,
-        Guid UpdatedBy
+        List<TargetInputDto>? Targets
     ) : ICommand;
 }

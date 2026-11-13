@@ -17,8 +17,7 @@ namespace SchoolManager.Management.Application
                     src.SubjectId,
                     src.TeacherId,
                     src.GradeId,
-                    src.SectionId,
-                    Guid.NewGuid()));
+                    src.SectionId));
 
             CreateMap<UpdateTimetableSlotDto, UpdateTimetableSlotCommand>()
                 .ConstructUsing(src => new UpdateTimetableSlotCommand(
@@ -31,8 +30,7 @@ namespace SchoolManager.Management.Application
                     src.GradeId,
                     src.SectionId,
                     src.SubjectId,
-                    src.TeacherId,
-                    Guid.NewGuid()));
+                    src.TeacherId));
 
 			CreateMap<TimetableSlot, TimetableSlotDto>()
                 .ForMember(d => d.NameAr, o => o.MapFrom(s => s.Name.Arabic))

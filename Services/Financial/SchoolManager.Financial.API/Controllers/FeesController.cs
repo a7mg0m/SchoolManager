@@ -47,7 +47,7 @@ namespace SchoolManager.Financial.API.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateFeeDto dto, CancellationToken cancellationToken)
         {
-            var command = new UpdateFeeCommand(id, dto.Name, dto.Type, dto.Amount, dto.Currency, dto.IsMandatory, Guid.NewGuid());
+            var command = new UpdateFeeCommand(id, dto.Name, dto.Type, dto.Amount, dto.Currency, dto.IsMandatory);
             var success = await _mediator.Send(command, cancellationToken);
 
             if (!success)

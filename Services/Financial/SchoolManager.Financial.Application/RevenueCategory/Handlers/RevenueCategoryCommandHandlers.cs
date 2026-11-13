@@ -9,8 +9,11 @@ namespace SchoolManager.Financial.Application
         private readonly IRevenueCategoryRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateRevenueCategoryCommandHandler(IRevenueCategoryRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateRevenueCategoryCommandHandler(ICurrentUserService currentUser, IRevenueCategoryRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -20,7 +23,7 @@ namespace SchoolManager.Financial.Application
             var entity = RevenueCategory.Create(
                 command.Name,
                 command.Description,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
             await _repository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();
@@ -34,8 +37,11 @@ namespace SchoolManager.Financial.Application
         private readonly IRevenueCategoryRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateRevenueCategoryCommandHandler(IRevenueCategoryRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateRevenueCategoryCommandHandler(ICurrentUserService currentUser, IRevenueCategoryRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -49,7 +55,7 @@ namespace SchoolManager.Financial.Application
             entity.Update(
                 command.Name,
                 command.Description,
-                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, command.UpdatedBy));
+                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, _currentUser.UserId));
 
             await _repository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

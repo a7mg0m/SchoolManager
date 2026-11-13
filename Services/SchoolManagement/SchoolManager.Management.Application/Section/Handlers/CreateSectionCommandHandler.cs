@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
 		private readonly ISectionRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 
-		public CreateSectionCommandHandler(ISectionRepository repository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public CreateSectionCommandHandler(ICurrentUserService currentUser, ISectionRepository repository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -21,7 +24,7 @@ namespace SchoolManager.Management.Application
 				new NameLocalized(command.NameAr, command.NameEn),
                 command.GradeId,
                 command.StageId,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			await _repository.AddAsync(entity);
 			await _unitOfWork.SaveChangesAsync();

@@ -7,7 +7,6 @@ namespace SchoolManager.Identity.Application
         string LoginName,
         string Email,
         string HashPassword,
-        Guid RoleId,
-        Guid CreatedBy
+        Guid RoleId
     ) : ICommand<Guid>;
 }

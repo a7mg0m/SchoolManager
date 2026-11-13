@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
 		private readonly ITeacherRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 
-		public UpdateTeacherCommandHandler(ITeacherRepository repository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public UpdateTeacherCommandHandler(ICurrentUserService currentUser, ITeacherRepository repository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -28,7 +31,7 @@ namespace SchoolManager.Management.Application
                 request.Email,
                 request.Address,
                 request.IsActive,
-                new AuditInfo(DateTime.Now, request.UpdatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			await _unitOfWork.SaveChangesAsync();
 

@@ -14,8 +14,7 @@ namespace SchoolManager.Financial.Application
                     src.Type,
                     src.Amount,
                     src.Currency,
-                    src.IsMandatory,
-                    Guid.NewGuid()));
+                    src.IsMandatory));
 
             CreateMap<Fee, FeeDto>()
                 .ForMember(d => d.Amount, o => o.MapFrom(s => s.Amount.Amount))

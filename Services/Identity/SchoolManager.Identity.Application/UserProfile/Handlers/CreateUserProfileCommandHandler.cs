@@ -9,8 +9,11 @@ namespace SchoolManager.Identity.Application
         private readonly IUserProfileRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateUserProfileCommandHandler(IUserProfileRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateUserProfileCommandHandler(ICurrentUserService currentUser, IUserProfileRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -25,7 +28,7 @@ namespace SchoolManager.Identity.Application
                 command.PhoneNumber,
                 command.Address,
                 command.ProfileImage,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
             await _repository.AddAsync(profile);
             await _unitOfWork.SaveChangesAsync();

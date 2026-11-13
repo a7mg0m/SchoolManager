@@ -7,7 +7,6 @@ namespace SchoolManager.ExamsHomework.Application
         Guid HomeworkId,
         Guid GradeId,
         Guid SectionId,
-        HomeworkStatusEnum Status,
-        Guid CreatedBy
+        HomeworkStatusEnum Status
     ) : ICommand<Guid>;
 }

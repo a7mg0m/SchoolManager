@@ -47,7 +47,7 @@ namespace SchoolManager.Financial.API.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateExpenseCategoryDto dto, CancellationToken cancellationToken)
         {
-            var success = await _mediator.Send(new UpdateExpenseCategoryCommand(id, dto.Name, dto.Description, Guid.NewGuid()), cancellationToken);
+            var success = await _mediator.Send(new UpdateExpenseCategoryCommand(id, dto.Name, dto.Description), cancellationToken);
 
             if (!success)
                 return Ok(new ApiResponse { status = -1, message = "Update Failed" });

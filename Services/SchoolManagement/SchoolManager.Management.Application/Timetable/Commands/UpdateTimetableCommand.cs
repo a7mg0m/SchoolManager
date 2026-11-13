@@ -7,7 +7,6 @@ namespace SchoolManager.Management.Application
         Guid StageId,
         Guid GradeId,
         Guid AcademicYearId,
-        Guid UpdatedBy,
         List<TimetableSlotItemDto> Slots
     ) : ICommand<bool>;
 }

@@ -11,7 +11,6 @@ namespace SchoolManager.Management.Application
         string PhoneNumber,
         string? Email,
         string Address,
-        bool IsActive,
-        Guid CreatedBy
+        bool IsActive
     ) : ICommand<Guid>;
 }

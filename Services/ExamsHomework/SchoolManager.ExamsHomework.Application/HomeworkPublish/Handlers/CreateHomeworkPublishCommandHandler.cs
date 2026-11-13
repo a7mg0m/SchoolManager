@@ -9,8 +9,11 @@ namespace SchoolManager.ExamsHomework.Application
         private readonly IHomeworkPublishRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateHomeworkPublishCommandHandler(IHomeworkPublishRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateHomeworkPublishCommandHandler(ICurrentUserService currentUser, IHomeworkPublishRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -22,7 +25,7 @@ namespace SchoolManager.ExamsHomework.Application
                 command.GradeId,
                 command.SectionId,
                 command.Status,
-                command.CreatedBy);
+                _currentUser.UserId);
 
             await _repository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();

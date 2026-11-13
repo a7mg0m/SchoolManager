@@ -17,8 +17,7 @@ namespace SchoolManager.Management.Application
                     src.PhoneNumber,
                     src.Email,
                     src.Address,
-                    src.IsActive,
-                    Guid.NewGuid()));
+                    src.IsActive));
 
             CreateMap<UpdateTeacherDto, UpdateTeacherCommand>()
                 .ConstructUsing(src => new UpdateTeacherCommand(
@@ -28,8 +27,7 @@ namespace SchoolManager.Management.Application
                     src.PhoneNumber,
                     src.Email,
 					src.Address,
-					src.IsActive,
-					Guid.NewGuid()));
+					src.IsActive));
 
 			CreateMap<Teacher, TeacherDto>()
                 .ForMember(d => d.FullNameAr, o => o.MapFrom(s => s.FullName.Arabic))

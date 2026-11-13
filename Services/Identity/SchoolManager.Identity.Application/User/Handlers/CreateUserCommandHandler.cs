@@ -12,8 +12,11 @@ namespace SchoolManager.Identity.Application
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordHasher _passwordHasher;
 
-        public CreateUserCommandHandler(IUserRepository repository, IUnitOfWork unitOfWork, IPasswordHasher passwordHasher)
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateUserCommandHandler(ICurrentUserService currentUser, IUserRepository repository, IUnitOfWork unitOfWork, IPasswordHasher passwordHasher)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
             _passwordHasher = passwordHasher;
@@ -32,7 +35,7 @@ namespace SchoolManager.Identity.Application
                 false,
                 null,
                 command.RoleId,
-                new AuditInfo(DateTime.Now, command.CreatedBy)
+                new AuditInfo(DateTime.Now, _currentUser.UserId)
             );
 
             await _repository.AddAsync(user);

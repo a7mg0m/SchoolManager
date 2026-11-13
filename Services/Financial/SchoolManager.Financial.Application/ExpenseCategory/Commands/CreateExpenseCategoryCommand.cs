@@ -4,7 +4,6 @@ namespace SchoolManager.Financial.Application
 {
     public record CreateExpenseCategoryCommand(
         string Name,
-        string? Description,
-        Guid CreatedBy
+        string? Description
     ) : ICommand<Guid>;
 }

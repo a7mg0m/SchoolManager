@@ -9,8 +9,11 @@ namespace SchoolManager.Notification.Application
         private readonly INotificationRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateNotificationCommandHandler(INotificationRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateNotificationCommandHandler(ICurrentUserService currentUser, INotificationRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -23,12 +26,12 @@ namespace SchoolManager.Notification.Application
                 command.SentOn,
                 command.NotificationType,
                 command.ImageUrl,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
             foreach (var target in command.Targets ?? [])
             {
                 entity.AddTarget(target.GradeId, target.SectionId, target.TeacherId, target.StudentId,
-                    new AuditInfo(DateTime.Now, command.CreatedBy));
+                    new AuditInfo(DateTime.Now, _currentUser.UserId));
             }
 
             await _repository.AddAsync(entity);

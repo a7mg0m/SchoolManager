@@ -5,7 +5,6 @@ namespace SchoolManager.Financial.Application
     public record UpdateRevenueCategoryCommand(
         Guid Id,
         string Name,
-        string? Description,
-        Guid UpdatedBy
+        string? Description
     ) : ICommand<bool>;
 }

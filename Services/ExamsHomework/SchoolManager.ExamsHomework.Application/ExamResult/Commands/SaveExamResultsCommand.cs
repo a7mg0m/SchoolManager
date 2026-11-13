@@ -8,7 +8,6 @@ namespace SchoolManager.ExamsHomework.Application
     /// </summary>
     public record SaveExamResultsCommand(
         Guid ExamId,
-        List<StudentScoreDto> Results,
-        Guid UserId
+        List<StudentScoreDto> Results
     ) : ICommand<SaveExamResultsSummary?>;
 }

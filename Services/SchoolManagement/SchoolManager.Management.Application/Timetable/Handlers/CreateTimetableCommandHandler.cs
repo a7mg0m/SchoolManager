@@ -10,8 +10,11 @@ namespace SchoolManager.Management.Application
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IGradeRepository _gradeRepository;
 
-		public CreateTimetableCommandHandler(ITimetableRepository repository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public CreateTimetableCommandHandler(ICurrentUserService currentUser, ITimetableRepository repository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
@@ -29,7 +32,7 @@ namespace SchoolManager.Management.Application
 				command.StageId,
 				command.GradeId,
                 command.AcademicYearId,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			foreach (var slot in command.Slots)
 			{
@@ -42,7 +45,7 @@ namespace SchoolManager.Management.Application
 					slot.TeacherId,
 					slot.GradeId,
 					slot.SectionId,
-					new AuditInfo(DateTime.Now, command.CreatedBy)));
+					new AuditInfo(DateTime.Now, _currentUser.UserId)));
 			}
 
 			await _repository.AddAsync(entity);

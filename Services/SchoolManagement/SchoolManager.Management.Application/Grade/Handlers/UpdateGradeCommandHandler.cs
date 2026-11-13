@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
 		private readonly IGradeRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 
-		public UpdateGradeCommandHandler(IGradeRepository repository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public UpdateGradeCommandHandler(ICurrentUserService currentUser, IGradeRepository repository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -25,7 +28,7 @@ namespace SchoolManager.Management.Application
 			entity.Update(
 				new NameLocalized(request.NameAr, request.NameEn),
                 request.StageId,
-                new AuditInfo(DateTime.Now, request.UpdatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			await _unitOfWork.SaveChangesAsync();
 

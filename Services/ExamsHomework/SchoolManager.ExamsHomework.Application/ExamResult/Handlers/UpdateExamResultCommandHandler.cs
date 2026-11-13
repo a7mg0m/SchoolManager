@@ -10,8 +10,11 @@ namespace SchoolManager.ExamsHomework.Application
         private readonly IExamResultRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateExamResultCommandHandler(IExamResultRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateExamResultCommandHandler(ICurrentUserService currentUser, IExamResultRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -24,7 +27,7 @@ namespace SchoolManager.ExamsHomework.Application
             entity.UpdateScore(
                 command.StudentId,
                 command.Score,
-                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, command.UpdatedBy));
+                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, _currentUser.UserId));
 
             await _repository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

@@ -12,7 +12,6 @@ namespace SchoolManager.Financial.Application
         decimal Amount,
         string Currency,
         DateTime ExpenseDate,
-        string? Reference,
-        Guid CreatedBy
+        string? Reference
     ) : ICommand<Guid>;
 }

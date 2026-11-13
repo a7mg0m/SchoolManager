@@ -10,8 +10,11 @@ namespace SchoolManager.Notification.Application
         private readonly INotificationRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public UpdateNotificationCommandHandler(INotificationRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateNotificationCommandHandler(ICurrentUserService currentUser, INotificationRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -27,7 +30,7 @@ namespace SchoolManager.Notification.Application
                 command.SentOn,
                 command.NotificationType,
                 command.ImageUrl,
-                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, command.UpdatedBy));
+                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, _currentUser.UserId));
 
             if (command.Targets is not null)
             {
@@ -35,7 +38,7 @@ namespace SchoolManager.Notification.Application
                 foreach (var target in command.Targets)
                 {
                     entity.AddTarget(target.GradeId, target.SectionId, target.TeacherId, target.StudentId,
-                        new AuditInfo(DateTime.Now, command.UpdatedBy));
+                        new AuditInfo(DateTime.Now, _currentUser.UserId));
                 }
             }
 

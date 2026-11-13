@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
         private readonly ISchoolInfoRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CreateSchoolInfoCommandHandler(ISchoolInfoRepository repository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public CreateSchoolInfoCommandHandler(ICurrentUserService currentUser, ISchoolInfoRepository repository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
         }
@@ -22,7 +25,7 @@ namespace SchoolManager.Management.Application
                 command.Address,
                 command.Phone,
                 command.Email,
-                command.Logo,                new AuditInfo(DateTime.Now, command.CreatedBy));
+                command.Logo,                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
             await _repository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();

@@ -8,7 +8,6 @@ namespace SchoolManager.Management.Application
         string? Address,
         string? Phone,
         string? Email,
-        byte[]? Logo,
-        Guid CreatedBy
+        byte[]? Logo
     ) : ICommand<Guid>;
 }

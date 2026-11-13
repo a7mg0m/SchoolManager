@@ -10,8 +10,11 @@ namespace SchoolManager.Management.Application
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IGradeRepository _gradeRepository;
 
-		public CreateStudentCommandHandler(IStudentRepository repository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public CreateStudentCommandHandler(ICurrentUserService currentUser, IStudentRepository repository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
@@ -39,7 +42,7 @@ namespace SchoolManager.Management.Application
                 command.SectionId,
                 command.AcademicYearId,
                 command.ParentId,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			await _repository.AddAsync(entity);
 			await _unitOfWork.SaveChangesAsync();

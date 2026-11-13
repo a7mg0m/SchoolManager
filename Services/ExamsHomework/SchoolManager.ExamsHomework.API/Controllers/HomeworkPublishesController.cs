@@ -42,7 +42,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateHomeworkPublishDto dto, CancellationToken cancellationToken)
         {
-            var command = new CreateHomeworkPublishCommand(dto.HomeworkId, dto.GradeId, dto.SectionId, dto.Status, CurrentUserId);
+            var command = new CreateHomeworkPublishCommand(dto.HomeworkId, dto.GradeId, dto.SectionId, dto.Status);
             var id = await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { InsertedId = id.ToString() });
         }

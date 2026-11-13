@@ -42,7 +42,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateHomeworkQuestionDto dto, CancellationToken cancellationToken)
         {
-            var command = new CreateHomeworkQuestionCommand(dto.HomeworkId, dto.QuestionHeader, dto.Questions, dto.ImageUrl, CurrentUserId);
+            var command = new CreateHomeworkQuestionCommand(dto.HomeworkId, dto.QuestionHeader, dto.Questions, dto.ImageUrl);
             var id = await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { InsertedId = id.ToString() });
         }
@@ -50,7 +50,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] UpdateHomeworkQuestionCommand command, CancellationToken cancellationToken)
         {
-            await _mediator.Send(command with { UpdatedBy = CurrentUserId }, cancellationToken);
+            await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { message = "Updated Successfully" });
         }
 

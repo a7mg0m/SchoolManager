@@ -14,8 +14,7 @@ namespace SchoolManager.Identity.Application
                     src.LoginName,
                     src.Email,
                     src.HashPassword,
-                    src.RoleId,
-                    Guid.NewGuid()));
+                    src.RoleId));
 
             // DTO → Command (Login)
             CreateMap<LoginDto, LoginCommand>();
@@ -26,8 +25,7 @@ namespace SchoolManager.Identity.Application
                     src.Id,
                     src.LoginName,
                     null,
-                    src.RoleId,
-                    Guid.NewGuid()));
+                    src.RoleId));
 
             // Entity
             CreateMap<User, UserDto>();

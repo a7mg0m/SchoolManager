@@ -36,7 +36,7 @@ namespace SchoolManager.Notification.API.Controllers
         public async Task<IActionResult> Create([FromBody] CreateSchoolEventDto dto, CancellationToken cancellationToken)
         {
             var command = new CreateSchoolEventCommand(dto.Title, dto.Description, dto.EventDate, dto.StartTime,
-                dto.EndTime, dto.ImageUrl, dto.EventFor, dto.AcademicYearId, dto.SemesterId, dto.Targets, CurrentUserId);
+                dto.EndTime, dto.ImageUrl, dto.EventFor, dto.AcademicYearId, dto.SemesterId, dto.Targets);
             var id = await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { InsertedId = id.ToString() });
         }
@@ -44,7 +44,7 @@ namespace SchoolManager.Notification.API.Controllers
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] UpdateSchoolEventCommand command, CancellationToken cancellationToken)
         {
-            await _mediator.Send(command with { UpdatedBy = CurrentUserId }, cancellationToken);
+            await _mediator.Send(command, cancellationToken);
             return Ok(new ApiResponse { message = "Updated Successfully" });
         }
 

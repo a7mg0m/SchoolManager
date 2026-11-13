@@ -6,7 +6,6 @@ namespace SchoolManager.ExamsHomework.Application
         Guid HomeworkId,
         string QuestionHeader,
         List<string>? Questions,
-        string? ImageUrl,
-        Guid CreatedBy
+        string? ImageUrl
     ) : ICommand<Guid>;
 }

@@ -15,8 +15,7 @@ namespace SchoolManager.Identity.Application
                     src.Email,
                     src.PhoneNumber,
                     src.Address,
-                    src.ProfileImage,
-                    Guid.NewGuid()));
+                    src.ProfileImage));
 
             CreateMap<UpdateUserProfileDto, UpdateUserProfileCommand>()
                 .ConstructUsing(src => new UpdateUserProfileCommand(
@@ -26,8 +25,7 @@ namespace SchoolManager.Identity.Application
                     src.Email,
                     src.PhoneNumber,
                     src.Address,
-                    src.ProfileImage,
-                    Guid.NewGuid()));
+                    src.ProfileImage));
 
             CreateMap<UserProfile, UserProfileDto>();
         }

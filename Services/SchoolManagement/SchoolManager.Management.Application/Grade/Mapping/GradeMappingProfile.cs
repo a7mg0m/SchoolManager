@@ -11,16 +11,14 @@ namespace SchoolManager.Management.Application
 				.ConstructUsing(src => new CreateGradeCommand(
 					src.NameAr,
                     src.NameEn,
-                    src.StageId,
-                    Guid.NewGuid()));
+                    src.StageId));
 
             CreateMap<UpdateGradeDto, UpdateGradeCommand>()
                 .ConstructUsing(src => new UpdateGradeCommand(
                     src.Id,
                     src.NameAr,
                     src.NameEn,
-                    src.StageId,
-                    Guid.NewGuid()));
+                    src.StageId));
 
 			CreateMap<Grade, GradeDto>()
                 .ForMember(d => d.NameAr, o => o.MapFrom(s => s.Name.Arabic))

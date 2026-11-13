@@ -6,7 +6,6 @@ namespace SchoolManager.Management.Application
         Guid StageId,
         Guid GradeId,
         Guid AcademicYearId,
-        Guid CreatedBy,
         List<CreateTimetableSlotDto> Slots
     ) : ICommand<Guid>;
 }

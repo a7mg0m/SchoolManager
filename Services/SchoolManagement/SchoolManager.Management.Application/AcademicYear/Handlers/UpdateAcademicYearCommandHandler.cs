@@ -11,8 +11,11 @@ namespace SchoolManager.Management.Application
 
         private readonly ISemesterRepository _semesterRepository;
 
-        public UpdateAcademicYearCommandHandler(IAcademicYearRepository repository, ISemesterRepository semesterRepository, IUnitOfWork unitOfWork)
+        private readonly ICurrentUserService _currentUser;
+
+        public UpdateAcademicYearCommandHandler(ICurrentUserService currentUser, IAcademicYearRepository repository, ISemesterRepository semesterRepository, IUnitOfWork unitOfWork)
         {
+            _currentUser = currentUser;
             _repository = repository;
             _semesterRepository = semesterRepository;
             _unitOfWork = unitOfWork;
@@ -33,7 +36,7 @@ namespace SchoolManager.Management.Application
                 request.StartDate,
                 request.EndDate,
                 request.IsActive,
-                entity.AuditInfo.Updated(now, request.UpdatedBy));
+                entity.AuditInfo.Updated(now, _currentUser.UserId));
 
             var incoming = request.Semesters ?? new();
             var incomingIds = incoming.Where(s => s.Id.HasValue).Select(s => s.Id!.Value).ToHashSet();
@@ -49,9 +52,9 @@ namespace SchoolManager.Management.Application
                 var existing = dto.Id.HasValue ? entity.Semesters.FirstOrDefault(s => s.Id == dto.Id.Value) : null;
                 // One AuditInfo per semester (owned type – a shared instance would be saved for only one row)
                 if (existing is not null)
-                    existing.Update(dto.Name, entity.Id, dto.StartDate, dto.EndDate, existing.AuditInfo.Updated(now, request.UpdatedBy));
+                    existing.Update(dto.Name, entity.Id, dto.StartDate, dto.EndDate, existing.AuditInfo.Updated(now, _currentUser.UserId));
                 else
-                    await _semesterRepository.AddAsync(new Semester(dto.Name, entity.Id, dto.StartDate, dto.EndDate, new AuditInfo(now, request.UpdatedBy)));
+                    await _semesterRepository.AddAsync(new Semester(dto.Name, entity.Id, dto.StartDate, dto.EndDate, new AuditInfo(now, _currentUser.UserId)));
             }
 
             await _unitOfWork.SaveChangesAsync();

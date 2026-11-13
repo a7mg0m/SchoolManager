@@ -41,9 +41,9 @@ namespace SchoolManager.Management.API.Controllers
 		}
 
 		[HttpPut("activate/{id}")]
-		public async Task<IActionResult> Activate(Guid id, [FromQuery] Guid updatedBy, CancellationToken cancellationToken)
+		public async Task<IActionResult> Activate(Guid id, CancellationToken cancellationToken)
 		{
-			var success = await _mediator.Send(new SetGradeActiveStatusCommand(id, true, updatedBy), cancellationToken);
+			var success = await _mediator.Send(new SetGradeActiveStatusCommand(id, true), cancellationToken);
 
 			if (!success)
 				return NotFound();
@@ -52,9 +52,9 @@ namespace SchoolManager.Management.API.Controllers
 		}
 
 		[HttpPut("deactivate/{id}")]
-		public async Task<IActionResult> Deactivate(Guid id, [FromQuery] Guid updatedBy, CancellationToken cancellationToken)
+		public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
 		{
-			var success = await _mediator.Send(new SetGradeActiveStatusCommand(id, false, updatedBy), cancellationToken);
+			var success = await _mediator.Send(new SetGradeActiveStatusCommand(id, false), cancellationToken);
 
 			if (!success)
 				return NotFound();

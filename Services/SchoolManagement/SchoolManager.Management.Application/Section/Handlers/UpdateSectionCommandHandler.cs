@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
 		private readonly ISectionRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 
-		public UpdateSectionCommandHandler(ISectionRepository repository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public UpdateSectionCommandHandler(ICurrentUserService currentUser, ISectionRepository repository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -26,7 +29,7 @@ namespace SchoolManager.Management.Application
 				new NameLocalized(request.NameAr, request.NameEn),
                 request.GradeId,
                 request.StageId,
-                new AuditInfo(DateTime.Now, request.UpdatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			await _unitOfWork.SaveChangesAsync();
 

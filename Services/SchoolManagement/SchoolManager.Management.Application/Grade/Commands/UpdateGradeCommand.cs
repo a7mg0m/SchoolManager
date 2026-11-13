@@ -6,7 +6,6 @@ namespace SchoolManager.Management.Application
         Guid Id,
         string NameAr,
         string NameEn,
-        Guid StageId,
-        Guid UpdatedBy
+        Guid StageId
     ) : ICommand<bool>;
 }

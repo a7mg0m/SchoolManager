@@ -9,8 +9,11 @@ namespace SchoolManager.Management.Application
 		private readonly IGradeRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 
-		public CreateGradeCommandHandler(IGradeRepository repository, IUnitOfWork unitOfWork)
+		private readonly ICurrentUserService _currentUser;
+
+		public CreateGradeCommandHandler(ICurrentUserService currentUser, IGradeRepository repository, IUnitOfWork unitOfWork)
 		{
+			_currentUser = currentUser;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -20,7 +23,7 @@ namespace SchoolManager.Management.Application
 			var entity = new Grade(
 				new NameLocalized(command.NameAr, command.NameEn),
                 command.StageId,
-                new AuditInfo(DateTime.Now, command.CreatedBy));
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			await _repository.AddAsync(entity);
 			await _unitOfWork.SaveChangesAsync();
