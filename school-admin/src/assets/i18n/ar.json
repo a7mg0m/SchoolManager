@@ -17,7 +17,7 @@
     "success": "نجح",
     "warning": "تحذير",
     "info": "معلومة",
-    "copyright": "حقوق النشر © ArchitectUI 2026",
+    "copyright": "حقوق النشر © Al-Eman Company 2026",
     "name": "الاسم",
     "nameAr": "الاسم بالعربية",
     "nameEn": "الاسم بالإنجليزية",
@@ -44,6 +44,11 @@
     "language": "اللغة",
     "search": "بحث",
     "logout": "تسجيل الخروج"
+  },
+  "pageTitle": {
+    "appName": "إدارة المدرسة",
+    "login": "تسجيل الدخول",
+    "notAuthorized": "غير مصرح"
   },
   "sidebar": {
     "home": "الرئيسية",
@@ -76,7 +81,10 @@
     "exams": "الامتحانات",
     "users": "المستخدمون",
     "employeeGroups": "مجموعات الموظفين",
-    "employees": "الموظفون"
+    "employees": "الموظفون",
+    "groupPermissions": "صلاحيات المجموعات",
+    "noMenuItems": "لا توجد صفحات متاحة لحسابك.",
+    "menuLoadFailed": "تعذر تحميل القائمة. حدّث الصفحة للمحاولة مرة أخرى."
   },
   "dashboard": {
     "studentsUnit": "طالب",
@@ -940,11 +948,55 @@
     "deactivated": "تم إيقاف مجموعة الموظفين",
     "statusFailed": "فشل تغيير حالة مجموعة الموظفين.",
     "viewEmployees": "عرض موظفي هذه المجموعة",
+    "permissions": "الصلاحيات",
     "errors": {
       "EmployeeGroupNameExists": "توجد مجموعة موظفين بنفس الاسم العربي أو الإنجليزي",
       "EmployeeGroupNameRequired": "الاسم العربي والإنجليزي مطلوبان",
       "EmployeeGroupNotFound": "مجموعة الموظفين غير موجودة",
       "EmployeeGroupHasEmployees": "هذه المجموعة تحتوي على موظفين. انقلهم أو احذفهم أولًا."
+    }
+  },
+  "groupPermissions": {
+    "title": "صلاحيات المجموعات",
+    "subtitle": "اختر ما يمكن لكل مجموعة موظفين رؤيته وفعله في كل صفحة",
+    "backToGroups": "مجموعات الموظفين",
+    "employeeGroup": "مجموعة الموظفين",
+    "chooseGroup": "اختر مجموعة...",
+    "noGroups": "لا توجد مجموعات موظفين بعد.",
+    "createGroup": "إنشاء مجموعة",
+    "selectGroupHint": "اختر مجموعة موظفين لإدارة صلاحياتها",
+    "groupInactiveHint": "هذه المجموعة غير مفعلة: لن يرى موظفوها أي قائمة حتى يتم تفعيلها.",
+    "noMenuItems": "لا توجد عناصر في القائمة",
+    "searchPlaceholder": "ابحث في عناصر القائمة",
+    "expandAll": "توسيع الكل",
+    "collapseAll": "طي الكل",
+    "expand": "توسيع",
+    "collapse": "طي",
+    "menuItem": "عنصر القائمة",
+    "view": "عرض",
+    "add": "إضافة",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "all": "الكل",
+    "selectColumn": "تحديد الكل",
+    "selectEverything": "تحديد كل الصلاحيات",
+    "granted": "صلاحية على {{count}} من {{total}} عنصر",
+    "unsavedChanges": "{{count}} تغيير غير محفوظ",
+    "discard": "تجاهل",
+    "save": "حفظ الصلاحيات",
+    "saved": "تم حفظ الصلاحيات",
+    "savedSummary": "تم حفظ الصلاحيات ({{created}} إضافة، {{updated}} تحديث، {{removed}} حذف)",
+    "saveFailed": "فشل حفظ الصلاحيات.",
+    "loadFailed": "فشل تحميل الصلاحيات.",
+    "loadGroupsFailed": "فشل تحميل مجموعات الموظفين.",
+    "noMatches": "لا توجد عناصر مطابقة للبحث",
+    "confirmDiscard": "لديك تغييرات غير محفوظة. هل تريد تجاهلها والانتقال لمجموعة أخرى؟",
+    "rulesHint": "الإضافة والتعديل والحذف تمنح العرض أيضًا. إلغاء العرض يلغي كل صلاحيات العنصر. علامة الاختيار على مجموعة في القائمة تُطبق على كل عناصرها.",
+    "errors": {
+      "EmployeeGroupNotFound": "مجموعة الموظفين غير موجودة",
+      "EmployeeGroupRequired": "يرجى اختيار مجموعة موظفين",
+      "GroupPermissionMenuItemRequired": "تم إرسال صلاحية بدون عنصر قائمة",
+      "GroupPermissionDuplicateMenuItem": "تم إرسال عنصر قائمة أكثر من مرة"
     }
   },
   "myProfile": {

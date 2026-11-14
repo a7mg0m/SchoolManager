@@ -95,6 +95,40 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                     b.ToTable("EmployeeGroups", (string)null);
                 });
 
+            modelBuilder.Entity("SchoolManager.Identity.Domain.GroupPermission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("CanAdd")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanDelete")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanEdit")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanView")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("EmployeeGroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("MenuItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuItemId");
+
+                    b.HasIndex("EmployeeGroupId", "MenuItemId")
+                        .IsUnique();
+
+                    b.ToTable("GroupPermissions", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Identity.Domain.MenuItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -123,6 +157,227 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                     b.HasIndex("ParentId", "Order");
 
                     b.ToTable("MenuItems", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000001"),
+                            Icon = "pe-7s-rocket",
+                            IsActive = true,
+                            Order = 1,
+                            Route = "/home"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Icon = "pe-7s-note2",
+                            IsActive = true,
+                            Order = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002001"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/school-info"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/stages"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002003"),
+                            IsActive = true,
+                            Order = 3,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/grades"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002004"),
+                            IsActive = true,
+                            Order = 4,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/sections"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002005"),
+                            IsActive = true,
+                            Order = 5,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/academic-years"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002006"),
+                            IsActive = true,
+                            Order = 6,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/teachers"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002007"),
+                            IsActive = true,
+                            Order = 7,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/subjects"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002008"),
+                            IsActive = true,
+                            Order = 8,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/students"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002009"),
+                            IsActive = true,
+                            Order = 9,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/parents"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002010"),
+                            IsActive = true,
+                            Order = 10,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/timetables"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Icon = "pe-7s-cash",
+                            IsActive = true,
+                            Order = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000003001"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/fees"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000003002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/student-fees"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000003003"),
+                            IsActive = true,
+                            Order = 3,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/expenses"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000003004"),
+                            IsActive = true,
+                            Order = 4,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/revenues"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000003005"),
+                            IsActive = true,
+                            Order = 5,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/expense-categories"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000003006"),
+                            IsActive = true,
+                            Order = 6,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/revenue-categories"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
+                            Icon = "pe-7s-bell",
+                            IsActive = true,
+                            Order = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000004001"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
+                            Route = "/notification/notifications"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000004002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
+                            Route = "/notification/school-events"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
+                            Icon = "pe-7s-note2",
+                            IsActive = true,
+                            Order = 5
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005001"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
+                            Route = "/exam/exams"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                            Icon = "pe-7s-users",
+                            IsActive = true,
+                            Order = 6
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000006001"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                            Route = "/users/employee-groups"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000006002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                            Route = "/users/employees"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000006003"),
+                            IsActive = true,
+                            Order = 3,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                            Route = "/users/group-permissions"
+                        });
                 });
 
             modelBuilder.Entity("SchoolManager.Identity.Domain.Role", b =>
@@ -400,6 +655,57 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SchoolManager.Identity.Domain.GroupPermission", b =>
+                {
+                    b.HasOne("SchoolManager.Identity.Domain.EmployeeGroup", "EmployeeGroup")
+                        .WithMany()
+                        .HasForeignKey("EmployeeGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManager.Identity.Domain.MenuItem", "MenuItem")
+                        .WithMany()
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("GroupPermissionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("GroupPermissionId");
+
+                            b1.ToTable("GroupPermissions");
+
+                            b1.WithOwner()
+                                .HasForeignKey("GroupPermissionId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("EmployeeGroup");
+
+                    b.Navigation("MenuItem");
+                });
+
             modelBuilder.Entity("SchoolManager.Identity.Domain.MenuItem", b =>
                 {
                     b.HasOne("SchoolManager.Identity.Domain.MenuItem", "Parent")
@@ -434,6 +740,176 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("MenuItemId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002005"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002006"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002007"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002008"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002009"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002010"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003005"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003006"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                });
                         });
 
                     b.OwnsOne("BuildingBlocks.NameLocalized", "Name", b1 =>
@@ -459,6 +935,176 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("MenuItemId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000001"),
+                                    Arabic = "الرئيسية",
+                                    English = "Home"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                                    Arabic = "الإدارة",
+                                    English = "Management"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002001"),
+                                    Arabic = "بيانات المدرسة",
+                                    English = "School Info"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002002"),
+                                    Arabic = "المراحل",
+                                    English = "Stages"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002003"),
+                                    Arabic = "السنوات الدراسية",
+                                    English = "Grades"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002004"),
+                                    Arabic = "الفصول",
+                                    English = "Sections"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002005"),
+                                    Arabic = "السنوات الأكاديمية",
+                                    English = "Academic Years"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002006"),
+                                    Arabic = "المعلمين",
+                                    English = "Teachers"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002007"),
+                                    Arabic = "المواد الدراسية",
+                                    English = "Subjects"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002008"),
+                                    Arabic = "الطلاب",
+                                    English = "Students"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002009"),
+                                    Arabic = "أولياء الأمور",
+                                    English = "Parents"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002010"),
+                                    Arabic = "الجداول الدراسية",
+                                    English = "Timetables"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                                    Arabic = "المالية",
+                                    English = "Financial"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003001"),
+                                    Arabic = "الرسوم",
+                                    English = "Fees"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003002"),
+                                    Arabic = "رسوم الطلاب",
+                                    English = "Student Fees"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003003"),
+                                    Arabic = "المصروفات",
+                                    English = "Expenses"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003004"),
+                                    Arabic = "الإيرادات",
+                                    English = "Revenues"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003005"),
+                                    Arabic = "فئات المصروفات",
+                                    English = "Expense Categories"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003006"),
+                                    Arabic = "فئات الإيرادات",
+                                    English = "Revenue Categories"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
+                                    Arabic = "الإشعارات",
+                                    English = "Notification"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004001"),
+                                    Arabic = "الإشعارات",
+                                    English = "Notifications"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004002"),
+                                    Arabic = "فعاليات المدرسة",
+                                    English = "School Events"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
+                                    Arabic = "الامتحانات والواجبات",
+                                    English = "Exams & Homework"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005001"),
+                                    Arabic = "الامتحانات",
+                                    English = "Exams"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                                    Arabic = "المستخدمون",
+                                    English = "Users"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006001"),
+                                    Arabic = "مجموعات الموظفين",
+                                    English = "Employee Groups"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006002"),
+                                    Arabic = "الموظفون",
+                                    English = "Employees"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006003"),
+                                    Arabic = "صلاحيات المجموعات",
+                                    English = "Group Permissions"
+                                });
                         });
 
                     b.Navigation("AuditInfo")

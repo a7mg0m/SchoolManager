@@ -53,3 +53,4 @@ export { EmployeeGroupSaveComponent } from './users/employee-groups/employee-gro
 export { EmployeeListComponent } from './users/employees/employee-list.component';
 export { EmployeeSaveComponent } from './users/employees/employee-save.component';
 export { MyProfileComponent } from './users/my-profile/my-profile.component';
+export { GroupPermissionsComponent } from './users/group-permissions/group-permissions.component';

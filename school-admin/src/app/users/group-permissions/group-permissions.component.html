@@ -1,0 +1,222 @@
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+      <h2 class="mb-0">{{ 'groupPermissions.title' | translate }}</h2>
+      <small class="text-muted">{{ 'groupPermissions.subtitle' | translate }}</small>
+    </div>
+    <div class="col-md-6 text-md-end mt-2 mt-md-0">
+      <button type="button" class="btn btn-secondary" (click)="goToGroups()">
+        <i class="pe-7s-users"></i> {{ 'groupPermissions.backToGroups' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Group selection -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label for="groupSelect" class="form-label">{{ 'groupPermissions.employeeGroup' | translate }}</label>
+          <select id="groupSelect" class="form-select" [value]="selectedGroupId()" (change)="onGroupChange($event)"
+                  [disabled]="isLoadingGroups() || isSaving()">
+            <option value="">{{ 'groupPermissions.chooseGroup' | translate }}</option>
+            @for (group of groups(); track group.id) {
+              <option [value]="group.id" [selected]="group.id === selectedGroupId()">{{ getGroupName(group) }}</option>
+            }
+          </select>
+          @if (!isLoadingGroups() && groups().length === 0) {
+            <div class="form-text">
+              {{ 'groupPermissions.noGroups' | translate }}
+              <a *appCan="'add'; route: '/users/employee-groups'" routerLink="/users/employee-groups/save">{{ 'groupPermissions.createGroup' | translate }}</a>
+            </div>
+          }
+        </div>
+        @if (rows().length > 0) {
+          <div class="col-md-4">
+            <label for="menuSearch" class="form-label">{{ 'common.search' | translate }}</label>
+            <input id="menuSearch" type="search" class="form-control" [value]="search()" (input)="onSearch($event)"
+                   [placeholder]="'groupPermissions.searchPlaceholder' | translate" />
+          </div>
+          <div class="col-md-3 text-md-end">
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-secondary" (click)="expandAll()">
+                {{ 'groupPermissions.expandAll' | translate }}
+              </button>
+              <button type="button" class="btn btn-outline-secondary" (click)="collapseAll()">
+                {{ 'groupPermissions.collapseAll' | translate }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+      @if (selectedGroup(); as group) {
+        @if (!group.isActive) {
+          <div class="alert alert-warning mt-3 mb-0 py-2">
+            <i class="pe-7s-attention"></i> {{ 'groupPermissions.groupInactiveHint' | translate }}
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- No group selected -->
+  @if (!isLoading() && !selectedGroupId()) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-shield text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3 mb-0">{{ 'groupPermissions.selectGroupHint' | translate }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Menu has no items -->
+  @if (!isLoading() && selectedGroupId() && rows().length === 0 && !errorMessage()) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-menu text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3 mb-0">{{ 'groupPermissions.noMenuItems' | translate }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Permission matrix -->
+  @if (!isLoading() && rows().length > 0) {
+    <div class="card">
+      <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <span>
+          {{ 'groupPermissions.granted' | translate: { count: grantedCount(), total: rows().length } }}
+        </span>
+        <div class="d-flex gap-2 align-items-center">
+          @if (changesCount() > 0) {
+            <small class="text-warning">{{ 'groupPermissions.unsavedChanges' | translate: { count: changesCount() } }}</small>
+            <button type="button" class="btn btn-sm btn-outline-secondary" *appCan="'edit'" (click)="discardChanges()" [disabled]="isSaving()">
+              {{ 'groupPermissions.discard' | translate }}
+            </button>
+          }
+          <button type="button" class="btn btn-sm btn-primary" *appCan="'edit'" (click)="save()" [disabled]="isSaving() || changesCount() === 0">
+            @if (isSaving()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            }
+            {{ 'groupPermissions.save' | translate }}
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 permission-table">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'groupPermissions.menuItem' | translate }}</th>
+                @for (key of keys; track key) {
+                  <th class="text-center perm-col">
+                    <div class="d-flex flex-column align-items-center gap-1">
+                      <span>{{ keyLabels[key] | translate }}</span>
+                      <input type="checkbox" class="form-check-input"
+                             [checked]="columnState(key).checked"
+                             [indeterminate]="columnState(key).indeterminate"
+                             (change)="toggleColumn(key, $event)"
+                             [disabled]="isSaving()"
+                             [attr.aria-label]="('groupPermissions.selectColumn' | translate) + ' ' + (keyLabels[key] | translate)" />
+                    </div>
+                  </th>
+                }
+                <th class="text-center perm-col">
+                  <div class="d-flex flex-column align-items-center gap-1">
+                    <span>{{ 'groupPermissions.all' | translate }}</span>
+                    <input type="checkbox" class="form-check-input"
+                           [checked]="allState().checked"
+                           [indeterminate]="allState().indeterminate"
+                           (change)="toggleAll($event)"
+                           [disabled]="isSaving()"
+                           [attr.aria-label]="'groupPermissions.selectEverything' | translate" />
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of visibleRows(); track row.item.menuItemId) {
+                <tr [class.table-warning]="isRowChanged(row)" [class.group-row]="row.hasChildren">
+                  <td>
+                    <div class="d-flex align-items-center" [style.padding-inline-start.rem]="row.depth * 1.5">
+                      @if (row.hasChildren) {
+                        <button type="button" class="btn btn-link btn-sm p-0 me-2 collapse-btn"
+                                (click)="toggleCollapse(row)"
+                                [attr.aria-expanded]="!isCollapsed(row)"
+                                [title]="(isCollapsed(row) ? 'groupPermissions.expand' : 'groupPermissions.collapse') | translate">
+                          <i [class]="isCollapsed(row) ? 'pe-7s-angle-right' : 'pe-7s-angle-down'"></i>
+                        </button>
+                      } @else {
+                        <span class="me-2 collapse-spacer"></span>
+                      }
+                      @if (row.item.icon) {
+                        <i [class]="row.item.icon + ' me-2 text-muted'"></i>
+                      }
+                      <div>
+                        <span [class.fw-semibold]="row.hasChildren">{{ getName(row.item) }}</span>
+                        @if (!row.item.isActive) {
+                          <span class="badge bg-light text-muted ms-1">{{ 'common.inactive' | translate }}</span>
+                        }
+                        @if (row.item.route) {
+                          <small class="text-muted d-block" dir="ltr">{{ row.item.route }}</small>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  @for (key of keys; track key) {
+                    <td class="text-center">
+                      <input type="checkbox" class="form-check-input"
+                             [checked]="cellState(row, key).checked"
+                             [indeterminate]="cellState(row, key).indeterminate"
+                             (change)="toggleCell(row, key, $event)"
+                             [disabled]="isSaving()"
+                             [attr.aria-label]="getName(row.item) + ' - ' + (keyLabels[key] | translate)" />
+                    </td>
+                  }
+                  <td class="text-center">
+                    <input type="checkbox" class="form-check-input"
+                           [checked]="rowState(row).checked"
+                           [indeterminate]="rowState(row).indeterminate"
+                           (change)="toggleRow(row, $event)"
+                           [disabled]="isSaving()"
+                           [attr.aria-label]="getName(row.item) + ' - ' + ('groupPermissions.all' | translate)" />
+                  </td>
+                </tr>
+              }
+              @if (visibleRows().length === 0) {
+                <tr><td [attr.colspan]="keys.length + 2" class="text-center text-muted py-4">{{ 'groupPermissions.noMatches' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer small text-muted">
+        <i class="pe-7s-info"></i> {{ 'groupPermissions.rulesHint' | translate }}
+      </div>
+    </div>
+  }
+</div>

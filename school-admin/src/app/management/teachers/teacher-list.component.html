@@ -6,7 +6,7 @@
     <div class="col-md-6 text-end">
       <button
         class="btn btn-primary"
-        (click)="navigateToCreate()"
+        *appCan="'add'" (click)="navigateToCreate()"
         [disabled]="isLoading()"
       >
         <i class="pe-7s-plus"></i> {{ 'teachers.newTeacher' | translate }}
@@ -81,7 +81,7 @@
       <div class="card-body py-5">
         <i class="pe-7s-users text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mt-3">{{ 'teachers.noTeachers' | translate }}</p>
-        <button class="btn btn-primary" (click)="navigateToCreate()">
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
           {{ 'teachers.newTeacher' | translate }}
         </button>
       </div>
@@ -144,7 +144,7 @@
                       </button>
                       <button
                         class="btn btn-outline-primary"
-                        (click)="navigateToEdit(teacher.id)"
+                        *appCan="'edit'" (click)="navigateToEdit(teacher.id)"
                         title="{{ 'common.edit' | translate }}"
                         [disabled]="isDeleting()"
                       >
@@ -152,7 +152,7 @@
                       </button>
                       <button
                         class="btn btn-outline-danger"
-                        (click)="openDeleteConfirmation(teacher, deleteModal)"
+                        *appCan="'delete'" (click)="openDeleteConfirmation(teacher, deleteModal)"
                         title="{{ 'common.delete' | translate }}"
                         [disabled]="isDeleting()"
                       >
@@ -232,7 +232,7 @@
   </div>
   <div class="modal-footer">
     @if (viewedTeacher(); as t) {
-      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(t.id)">
+      <button type="button" class="btn btn-primary" *appCan="'edit'" (click)="modal.close(); navigateToEdit(t.id)">
         {{ 'common.edit' | translate }}
       </button>
     }

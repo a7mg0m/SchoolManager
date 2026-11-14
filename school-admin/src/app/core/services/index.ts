@@ -22,3 +22,6 @@ export * from './exam-result.service';
 export * from './employee-group.service';
 export * from './employee.service';
 export * from './my-profile.service';
+export * from './group-permission.service';
+export * from './menu-permission.service';
+export * from './page-title.service';

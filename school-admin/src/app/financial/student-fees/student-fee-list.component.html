@@ -14,7 +14,7 @@
       }
     </div>
     <div class="col-auto align-self-end">
-      <button class="btn btn-primary" (click)="navigateToAssign()" [disabled]="isLoading()">
+      <button class="btn btn-primary" *appCan="'add'" (click)="navigateToAssign()" [disabled]="isLoading()">
         <i class="pe-7s-plus"></i> {{ 'studentFees.assign.button' | translate }}
       </button>
     </div>
@@ -52,7 +52,7 @@
         <i class="pe-7s-id text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mt-3 mb-1">{{ 'studentFees.noStudentFees' | translate }}</p>
         <p class="text-muted small">{{ 'studentFees.assignedHint' | translate }}</p>
-        <button class="btn btn-primary" (click)="navigateToAssign()">
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToAssign()">
           {{ 'studentFees.assign.button' | translate }}
         </button>
       </div>
@@ -189,7 +189,7 @@
                   <tr>
                     @if (!studentId()) {
                       <td>
-                        <a href="javascript:void(0)" class="fw-semibold" (click)="viewStudent(fee.studentId)">
+                        <a href="javascript:void(0)" class="fw-semibold" *appCan="'view'; route: '/management/students'" (click)="viewStudent(fee.studentId)">
                           {{ studentName(fee.studentId) }}
                         </a>
                         <small class="d-block text-muted">{{ studentGrade(fee.studentId) }}</small>
@@ -234,7 +234,7 @@
                       <div class="btn-group btn-group-sm" role="group">
                         <button
                           class="btn btn-outline-success"
-                          (click)="openPayment(fee, paymentModal)"
+                          *appCan="'edit'" (click)="openPayment(fee, paymentModal)"
                           [disabled]="!(fee.balance > 0) || isWaived(fee) || isBusy()"
                           title="{{ 'studentFees.applyPayment' | translate }}"
                         >
@@ -243,7 +243,7 @@
                         @if (canRestore(fee)) {
                           <button
                             class="btn btn-outline-secondary"
-                            (click)="openRestore(fee, restoreModal)"
+                            *appCan="'edit'" (click)="openRestore(fee, restoreModal)"
                             [disabled]="isBusy()"
                             title="{{ 'studentFees.waive.restore' | translate }}"
                           >
@@ -252,7 +252,7 @@
                         } @else {
                           <button
                             class="btn btn-outline-warning"
-                            (click)="openWaive(fee, waiveModal)"
+                            *appCan="'edit'" (click)="openWaive(fee, waiveModal)"
                             [disabled]="!canWaive(fee) || isBusy()"
                             title="{{ 'studentFees.waive.button' | translate }}"
                           >
@@ -261,7 +261,7 @@
                         }
                         <button
                           class="btn btn-outline-danger"
-                          (click)="openDeleteConfirmation(fee, deleteModal)"
+                          *appCan="'delete'" (click)="openDeleteConfirmation(fee, deleteModal)"
                           [disabled]="isBusy()"
                           title="{{ 'common.delete' | translate }}"
                         >

@@ -17,7 +17,7 @@
     "success": "Success",
     "warning": "Warning",
     "info": "Info",
-    "copyright": "Copyright © ArchitectUI 2026",
+    "copyright": "Copyright © Al-Eman Company 2026",
     "name": "Name",
     "nameAr": "Arabic Name",
     "nameEn": "English Name",
@@ -44,6 +44,11 @@
     "language": "Language",
     "search": "Search",
     "logout": "Logout"
+  },
+  "pageTitle": {
+    "appName": "School Manager",
+    "login": "Login",
+    "notAuthorized": "Not Authorized"
   },
   "sidebar": {
     "home": "Home",
@@ -76,7 +81,10 @@
     "exams": "Exams",
     "users": "Users",
     "employeeGroups": "Employee Groups",
-    "employees": "Employees"
+    "employees": "Employees",
+    "groupPermissions": "Group Permissions",
+    "noMenuItems": "No pages are available for your account.",
+    "menuLoadFailed": "Could not load the menu. Refresh the page to try again."
   },
   "dashboard": {
     "studentsUnit": "students",
@@ -940,11 +948,55 @@
     "deactivated": "Employee group deactivated",
     "statusFailed": "Failed to change the employee group status.",
     "viewEmployees": "View employees of this group",
+    "permissions": "Permissions",
     "errors": {
       "EmployeeGroupNameExists": "An employee group with the same Arabic or English name already exists",
       "EmployeeGroupNameRequired": "Arabic and English names are required",
       "EmployeeGroupNotFound": "Employee group not found",
       "EmployeeGroupHasEmployees": "This group has employees. Move or delete them first."
+    }
+  },
+  "groupPermissions": {
+    "title": "Group Permissions",
+    "subtitle": "Choose what each employee group can see and do in every page",
+    "backToGroups": "Employee Groups",
+    "employeeGroup": "Employee Group",
+    "chooseGroup": "Choose a group...",
+    "noGroups": "No employee groups yet.",
+    "createGroup": "Create one",
+    "selectGroupHint": "Select an employee group to manage its permissions",
+    "groupInactiveHint": "This group is inactive: its employees see no menu until it is activated.",
+    "noMenuItems": "There are no menu items",
+    "searchPlaceholder": "Search menu items",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "menuItem": "Menu Item",
+    "view": "View",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "all": "All",
+    "selectColumn": "Select all",
+    "selectEverything": "Select all permissions",
+    "granted": "Access to {{count}} of {{total}} menu items",
+    "unsavedChanges": "{{count}} unsaved change(s)",
+    "discard": "Discard",
+    "save": "Save Permissions",
+    "saved": "Permissions saved",
+    "savedSummary": "Permissions saved ({{created}} added, {{updated}} updated, {{removed}} removed)",
+    "saveFailed": "Failed to save the permissions.",
+    "loadFailed": "Failed to load the permissions.",
+    "loadGroupsFailed": "Failed to load employee groups.",
+    "noMatches": "No menu items match the search",
+    "confirmDiscard": "You have unsaved changes. Discard them and switch group?",
+    "rulesHint": "Add, Edit and Delete also give View. Removing View removes all permissions of the item. A checkbox on a menu group applies to all its items.",
+    "errors": {
+      "EmployeeGroupNotFound": "Employee group not found",
+      "EmployeeGroupRequired": "Please choose an employee group",
+      "GroupPermissionMenuItemRequired": "A permission without a menu item was sent",
+      "GroupPermissionDuplicateMenuItem": "A menu item was sent more than once"
     }
   },
   "myProfile": {

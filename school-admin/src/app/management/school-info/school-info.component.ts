@@ -153,20 +153,7 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
    * Convert a base64 logo from the API into an <img> src
    */
   private toImageSrc(logo: string | null | undefined): string | null {
-    if (!logo) {
-      return null;
-    }
-    if (logo.startsWith('data:')) {
-      return logo;
-    }
-    // Detect the image type from the base64 signature
-    const mime =
-      logo.startsWith('/9j/') ? 'image/jpeg' :
-      logo.startsWith('R0lGOD') ? 'image/gif' :
-      logo.startsWith('UklGR') ? 'image/webp' :
-      logo.startsWith('PHN2Zy') || logo.startsWith('PD94bWw') ? 'image/svg+xml' :
-      'image/png';
-    return `data:${mime};base64,${logo}`;
+    return SchoolInfoService.toImageSrc(logo);
   }
 
   /**
@@ -204,6 +191,8 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
               } else {
                 this.existingSchoolInfo = { ...formValue, id: this.existingSchoolInfo?.id };
               }
+              // Sidebar shows the school name
+              this.schoolInfoService.setCurrent(this.existingSchoolInfo);
               setTimeout(() => this.successMessage.set(null), 3000);
             } else {
               this.errorMessage.set(response.message || 'Failed to update school information');
@@ -233,6 +222,8 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
                 // Create endpoint returns only the inserted id
                 this.existingSchoolInfo = { ...formValue, id: response.insertedId || undefined };
               }
+              // Sidebar shows the school name
+              this.schoolInfoService.setCurrent(this.existingSchoolInfo);
               this.isEditMode.set(true);
               setTimeout(() => this.successMessage.set(null), 3000);
             } else {

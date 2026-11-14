@@ -4,7 +4,7 @@
       <h2>{{ 'timetables.title' | translate }}</h2>
     </div>
     <div class="col-md-6 text-end">
-      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+      <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()" [disabled]="isLoading()">
         <i class="pe-7s-plus"></i> {{ 'timetables.newTimetable' | translate }}
       </button>
     </div>
@@ -41,7 +41,7 @@
       <div class="card-body py-5">
         <i class="pe-7s-clock text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mt-3">{{ 'timetables.noTimetables' | translate }}</p>
-        <button class="btn btn-primary" (click)="navigateToCreate()">
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
           {{ 'timetables.newTimetable' | translate }}
         </button>
       </div>
@@ -87,7 +87,7 @@
                     <div class="btn-group btn-group-sm" role="group">
                       <button
                         class="btn btn-outline-primary"
-                        (click)="navigateToEdit(timetable.id)"
+                        *appCan="'edit'" (click)="navigateToEdit(timetable.id)"
                         title="{{ 'common.edit' | translate }}"
                         [disabled]="isDeleting()"
                       >
@@ -95,7 +95,7 @@
                       </button>
                       <button
                         class="btn btn-outline-danger"
-                        (click)="openDeleteConfirmation(timetable, deleteModal)"
+                        *appCan="'delete'" (click)="openDeleteConfirmation(timetable, deleteModal)"
                         title="{{ 'common.delete' | translate }}"
                         [disabled]="isDeleting()"
                       >

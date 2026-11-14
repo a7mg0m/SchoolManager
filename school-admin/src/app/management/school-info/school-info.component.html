@@ -188,7 +188,7 @@
                       <button
                         type="button"
                         class="btn btn-sm btn-outline-danger"
-                        (click)="removeLogo(logoInput)"
+                        *appCan="'edit'" (click)="removeLogo(logoInput)"
                         [disabled]="isSaving()"
                       >
                         <i class="pe-7s-trash"></i> {{ 'schoolInfo.removeLogo' | translate }}
@@ -205,6 +205,7 @@
             <div class="col">
               <div class="d-flex gap-2">
                 <button
+                  *appCan="'edit'"
                   type="submit"
                   class="btn btn-primary"
                   [disabled]="!form.valid || isSaving()"
@@ -217,7 +218,7 @@
                 <button
                   type="button"
                   class="btn btn-secondary"
-                  (click)="onReset()"
+                  *appCan="'edit'" (click)="onReset()"
                   [disabled]="isSaving()"
                 >
                   {{ 'schoolInfo.reset' | translate }}

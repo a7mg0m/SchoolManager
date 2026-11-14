@@ -141,7 +141,7 @@
               @if (availableGroups().length === 0) {
                 <div class="form-text">
                   {{ 'employees.noGroupsAvailable' | translate }}
-                  <a routerLink="/users/employee-groups/save">{{ 'employees.createGroup' | translate }}</a>
+                  <a *appCan="'add'; route: '/users/employee-groups'" routerLink="/users/employee-groups/save">{{ 'employees.createGroup' | translate }}</a>
                 </div>
               }
             </div>

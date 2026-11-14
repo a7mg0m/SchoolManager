@@ -3,7 +3,7 @@
     "Routes": {
       "identity-route": {
         "ClusterId": "identity-cluster",
-        "Match": { "Path": "/api/{resource:regex(^(role|user|user-profile|employee|employee-group|menu-item)$)}/{**catch-all}" },
+        "Match": { "Path": "/api/{resource:regex(^(role|user|user-profile|employee|employee-group|menu-item|group-permission)$)}/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:59463" } ]
       },
       "management-route": {

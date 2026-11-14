@@ -7,7 +7,11 @@
       </div>
 
       <!-- Logo -->
-      <div class="app-logo-inverse mx-auto mb-4 d-block" style="width: 60px; height: 60px; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
+      <div class="text-center mb-4">
+        <img src="assets/images/logo.png"
+             [alt]="'pageTitle.appName' | translate"
+             class="login-logo">
+      </div>
       
       <!-- Login Card -->
       <div class="card shadow-lg border-0">
@@ -98,15 +102,7 @@
             <!-- Divider -->
             <hr class="my-4">
 
-            <!-- Sign up link -->
-            <div class="text-center mb-0">
-              <p class="mb-0">
-                {{ 'auth.noAccountSignUp' | translate }} 
-                <a [routerLink]="'/pages/register-boxed'" class="text-primary text-decoration-none fw-medium" [class.disabled]="loading$ | async">
-                  {{ 'auth.signUpNow' | translate }}
-                </a>
-              </p>
-            </div>
+        
           </form>
         </div>
         

@@ -7,7 +7,7 @@
       }
     </div>
     <div class="col-md-6 text-end">
-      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+      <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()" [disabled]="isLoading()">
         <i class="pe-7s-plus"></i> {{ 'notifications.newNotification' | translate }}
       </button>
     </div>
@@ -40,7 +40,7 @@
       <div class="card-body py-5">
         <i class="pe-7s-bell text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mt-3">{{ 'notifications.noNotifications' | translate }}</p>
-        <button class="btn btn-primary" (click)="navigateToCreate()">{{ 'notifications.newNotification' | translate }}</button>
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">{{ 'notifications.newNotification' | translate }}</button>
       </div>
     </div>
   }
@@ -141,10 +141,10 @@
                   <button class="btn btn-outline-secondary" (click)="navigateToRecipients(n.id)" title="{{ 'notifications.recipients' | translate }}">
                     <i class="pe-7s-users"></i>
                   </button>
-                  <button class="btn btn-outline-primary" (click)="navigateToEdit(n.id)" [disabled]="isDeleting()" title="{{ 'common.edit' | translate }}">
+                  <button class="btn btn-outline-primary" *appCan="'edit'" (click)="navigateToEdit(n.id)" [disabled]="isDeleting()" title="{{ 'common.edit' | translate }}">
                     <i class="pe-7s-note"></i>
                   </button>
-                  <button class="btn btn-outline-danger" (click)="openDeleteConfirmation(n, deleteModal)" [disabled]="isDeleting()" title="{{ 'common.delete' | translate }}">
+                  <button class="btn btn-outline-danger" *appCan="'delete'" (click)="openDeleteConfirmation(n, deleteModal)" [disabled]="isDeleting()" title="{{ 'common.delete' | translate }}">
                     <i class="pe-7s-trash"></i>
                   </button>
                 </div>
@@ -210,7 +210,7 @@
       <button type="button" class="btn btn-outline-secondary" (click)="modal.close(); navigateToRecipients(n.id)">
         {{ 'notifications.recipients' | translate }}
       </button>
-      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(n.id)">{{ 'common.edit' | translate }}</button>
+      <button type="button" class="btn btn-primary" *appCan="'edit'" (click)="modal.close(); navigateToEdit(n.id)">{{ 'common.edit' | translate }}</button>
     }
     <button type="button" class="btn btn-secondary" (click)="modal.close()">{{ 'common.close' | translate }}</button>
   </div>

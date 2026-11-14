@@ -1,0 +1,13 @@
+users/employees/employee-save.component.html:144:                  <a routerLink="/users/employee-groups/save">{{ 'employees.createGroup' | translate }}</a>
+users/group-permissions/group-permissions.component.html:46:              <a routerLink="/users/employee-groups/save">{{ 'groupPermissions.createGroup' | translate }}</a>
+users/employees/employee-save.component.html-141-              @if (availableGroups().length === 0) {
+users/employees/employee-save.component.html-142-                <div class="form-text">
+users/employees/employee-save.component.html-143-                  {{ 'employees.noGroupsAvailable' | translate }}
+users/employees/employee-save.component.html:144:                  <a routerLink="/users/employee-groups/save">{{ 'employees.createGroup' | translate }}</a>
+users/employees/employee-save.component.html-145-                </div>
+--
+users/group-permissions/group-permissions.component.html-43-          @if (!isLoadingGroups() && groups().length === 0) {
+users/group-permissions/group-permissions.component.html-44-            <div class="form-text">
+users/group-permissions/group-permissions.component.html-45-              {{ 'groupPermissions.noGroups' | translate }}
+users/group-permissions/group-permissions.component.html:46:              <a routerLink="/users/employee-groups/save">{{ 'groupPermissions.createGroup' | translate }}</a>
+users/group-permissions/group-permissions.component.html-47-            </div>

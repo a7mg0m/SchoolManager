@@ -4,7 +4,7 @@
       <h2>{{ 'fees.title' | translate }}</h2>
     </div>
     <div class="col-md-6 text-end">
-      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+      <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()" [disabled]="isLoading()">
         <i class="pe-7s-plus"></i> {{ 'fees.newFee' | translate }}
       </button>
     </div>
@@ -41,7 +41,7 @@
       <div class="card-body py-5">
         <i class="pe-7s-wallet text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mt-3">{{ 'fees.noFees' | translate }}</p>
-        <button class="btn btn-primary" (click)="navigateToCreate()">
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
           {{ 'fees.newFee' | translate }}
         </button>
       </div>
@@ -146,7 +146,7 @@
             <button
               type="button"
               class="btn btn-sm btn-outline-primary"
-              (click)="navigateToCreate(group.gradeId)"
+              *appCan="'add'" (click)="navigateToCreate(group.gradeId)"
               title="{{ 'fees.addToGrade' | translate }}"
             >
               <i class="pe-7s-plus"></i>
@@ -182,7 +182,7 @@
                       <div class="btn-group btn-group-sm" role="group">
                         <button
                           class="btn btn-outline-primary"
-                          (click)="navigateToEdit(fee.id)"
+                          *appCan="'edit'" (click)="navigateToEdit(fee.id)"
                           title="{{ 'common.edit' | translate }}"
                           [disabled]="isDeleting()"
                         >
@@ -190,7 +190,7 @@
                         </button>
                         <button
                           class="btn btn-outline-danger"
-                          (click)="openDeleteConfirmation(fee, deleteModal)"
+                          *appCan="'delete'" (click)="openDeleteConfirmation(fee, deleteModal)"
                           title="{{ 'common.delete' | translate }}"
                           [disabled]="isDeleting()"
                         >

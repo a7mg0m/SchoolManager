@@ -1,0 +1,65 @@
+management/stages/stages.html:12:      <button
+management/stages/stages.html:15:        (click)="successMessage.set(null)"
+management/stages/stages.html:24:      <button
+management/stages/stages.html:27:        (click)="errorMessage.set(null)"
+management/grades/grades.html:12:      <button
+management/grades/grades.html:15:        (click)="successMessage.set(null)"
+management/grades/grades.html:24:      <button
+management/grades/grades.html:27:        (click)="errorMessage.set(null)"
+management/school-info/school-info.component.html:19:      <button
+management/school-info/school-info.component.html:22:        (click)="successMessage.set(null)"
+management/school-info/school-info.component.html:31:      <button
+management/school-info/school-info.component.html:34:        (click)="errorMessage.set(null)"
+management/school-info/school-info.component.html:52:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+management/school-info/school-info.component.html:188:                      <button
+management/school-info/school-info.component.html:191:                        (click)="removeLogo(logoInput)"
+management/school-info/school-info.component.html:207:                <button
+management/school-info/school-info.component.html:208:                  type="submit"
+management/school-info/school-info.component.html:217:                <button
+management/school-info/school-info.component.html:220:                  (click)="onReset()"
+exam/exam-results/exam-results.component.html:7:      <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="isSaving()">
+exam/exam-results/exam-results.component.html:17:      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+exam/exam-results/exam-results.component.html:25:      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+exam/exam-results/exam-results.component.html:110:              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="resetChanges()" [disabled]="isSaving()">
+exam/exam-results/exam-results.component.html:114:            <button type="button" class="btn btn-sm btn-primary" (click)="save()"
+---
+financial/expense-categories/expense-category-save.component.html:42:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+financial/expense-categories/expense-category-save.component.html:91:            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+financial/expenses/expense-save.component.html:51:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+financial/expenses/expense-save.component.html:210:            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+financial/fees/fee-save.component.html:42:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+financial/fees/fee-save.component.html:191:            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+financial/revenue-categories/revenue-category-save.component.html:42:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+financial/revenue-categories/revenue-category-save.component.html:91:            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+financial/revenues/revenue-save.component.html:51:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+financial/revenues/revenue-save.component.html:210:            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+financial/student-fees/student-fee-list.component.html:290:    <form [formGroup]="paymentForm" (ngSubmit)="confirmPayment()">
+financial/student-fees/student-fee-list.component.html:331:        <button type="submit" class="btn btn-success" [disabled]="paymentForm.invalid || isPaying()">
+financial/student-fees/student-fee-list.component.html:349:    <form [formGroup]="waiveForm" (ngSubmit)="confirmWaive()">
+financial/student-fees/student-fee-list.component.html:388:        <button type="submit" class="btn btn-warning" [disabled]="waiveForm.invalid || isWaiving()">
+notification/notifications/notification-save.component.html:34:    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+notification/notifications/notification-save.component.html:150:        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+notification/school-events/school-event-save.component.html:36:    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+notification/school-events/school-event-save.component.html:185:        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+exam/exams/exam-save.component.html:40:    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+exam/exams/exam-save.component.html:300:        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+users/employee-groups/employee-group-save.component.html:43:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+users/employee-groups/employee-group-save.component.html:146:                <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+users/employees/employee-save.component.html:41:    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+users/employees/employee-save.component.html:253:        <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+users/my-profile/my-profile.component.html:98:            <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+users/my-profile/my-profile.component.html:157:                <button type="submit" class="btn btn-primary"
+users/my-profile/my-profile.component.html:190:            <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+users/my-profile/my-profile.component.html:231:              <button type="submit" class="btn btn-warning" [disabled]="!passwordForm.valid || isChangingPassword()">
+management/academic-years/academic-year-save.component.html:51:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+management/academic-years/academic-year-save.component.html:270:                  type="submit"
+management/parents/parent-save.component.html:40:    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+management/parents/parent-save.component.html:378:        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+management/sections/section-save.component.html:51:        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+management/sections/section-save.component.html:159:                  type="submit"
+management/subjects/subject-save.component.html:43:        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+management/subjects/subject-save.component.html:237:            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+management/teachers/teacher-save.component.html:43:        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+management/teachers/teacher-save.component.html:245:            <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+management/timetables/timetable-save.component.html:40:    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+management/timetables/timetable-save.component.html:301:        <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">

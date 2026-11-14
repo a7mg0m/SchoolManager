@@ -1,13 +1,16 @@
-<div [class]="'app-sidebar sidebar-shadow ' + (config$ | async)?.sidebarTheme" 
+<div [class]="'app-sidebar sidebar-shadow ' + (config$ | async)?.sidebarTheme"
      (mouseenter)="onSidebarMouseEnter()"
      (mouseleave)="onSidebarMouseLeave()">
   <div class="app-header__logo">
-    <div class="logo-src">
+    <a routerLink="/home" class="logo-src sidebar-logo" (click)="onNavigate()">
+      <!-- School Info logo when set (and valid), else the default logo -->
+      <img [src]="logoSrc()" [alt]="schoolName() || ('pageTitle.appName' | translate)"
+           class="sidebar-logo__img" (error)="onLogoError()">
+      <!-- Name hidden when the sidebar is collapsed (closed-sidebar styles hide .logo-full) -->
       <span class="logo-text">
-        <span class="logo-full">ArchitectUI</span>
-        <span class="logo-collapsed">A</span>
+        <span class="logo-full" [title]="schoolName() || ('pageTitle.appName' | translate)">{{ schoolName() || ('pageTitle.appName' | translate) }}</span>
       </span>
-    </div>
+    </a>
   </div>
   <div class="app-sidebar-content">
     <div class="app-sidebar-scroll">
@@ -15,184 +18,15 @@
         <div class="v-sidebar-menu vsm-default">
           <div class="vsm-list">
             <div class="vsm-header"></div>
-            
-            <!-- Home -->
-            <div class="vsm-item" [class.vsm-active]="extraParameter === 'dashboardsMenu'">
-              <a routerLink="/home" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                <i class="vsm-icon pe-7s-rocket"></i>
-                <span class="vsm-title">{{ 'sidebar.home' | translate }}</span>
-              </a>
-            </div>
 
-            <!-- Management -->
-            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('managementMenu')">
-              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('managementMenu')">
-                <i class="vsm-icon pe-7s-note2"></i>
-                <span class="vsm-title">{{ 'sidebar.management' | translate }}</span>
-                <i class="vsm-arrow"></i>
-              </a>
-              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('managementMenu')">
-                <div class="vsm-list">
-                  <div class="vsm-item">
-                    <a routerLink="/management/school-info" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.schoolInfo' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/stages" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.stages' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/grades" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.grades' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/sections" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.sections' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/academic-years" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.academicYears' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/teachers" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.teachers' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/subjects" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.subjects' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/students" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.students' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/parents" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.parents' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/management/timetables" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.timetables' | translate }}</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- Items the logged-in user may view (from /api/group-permission/my-menu) -->
+            <ng-container *ngTemplateOutlet="menuLevel; context: { $implicit: menuItems, parents: [], top: true }"></ng-container>
 
-            <!-- Financial -->
-            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('financialMenu')">
-              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('financialMenu')">
-                <i class="vsm-icon pe-7s-cash"></i>
-                <span class="vsm-title">{{ 'sidebar.financial' | translate }}</span>
-                <i class="vsm-arrow"></i>
-              </a>
-              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('financialMenu')">
-                <div class="vsm-list">
-                  <div class="vsm-item">
-                    <a routerLink="/financial/fees" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.fees' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/financial/student-fees" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.studentFees' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/financial/expenses" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.expenses' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/financial/revenues" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.revenues' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/financial/expense-categories" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.expenseCategories' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/financial/revenue-categories" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.revenueCategories' | translate }}</span>
-                    </a>
-                  </div>
-                </div>
+            @if (menu.isLoaded() && !menu.isLoading() && !menuItems.length) {
+              <div class="vsm-state">
+                {{ (menu.loadFailed() ? 'sidebar.menuLoadFailed' : 'sidebar.noMenuItems') | translate }}
               </div>
-            </div>
-
-            <!-- Notification -->
-            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('notificationMenu')">
-              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('notificationMenu')">
-                <i class="vsm-icon pe-7s-bell"></i>
-                <span class="vsm-title">{{ 'sidebar.notification' | translate }}</span>
-                <i class="vsm-arrow"></i>
-              </a>
-              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('notificationMenu')">
-                <div class="vsm-list">
-                  <div class="vsm-item">
-                    <a routerLink="/notification/notifications" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.notifications' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/notification/school-events" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.schoolEvents' | translate }}</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Exam -->
-            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('examMenu')">
-              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('examMenu')">
-                <i class="vsm-icon pe-7s-note2"></i>
-                <span class="vsm-title">{{ 'sidebar.exam' | translate }}</span>
-                <i class="vsm-arrow"></i>
-              </a>
-              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('examMenu')">
-                <div class="vsm-list">
-                  <div class="vsm-item">
-                    <a routerLink="/exam/exams" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.exams' | translate }}</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Users -->
-            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('usersMenu')">
-              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('usersMenu')">
-                <i class="vsm-icon pe-7s-users"></i>
-                <span class="vsm-title">{{ 'sidebar.users' | translate }}</span>
-                <i class="vsm-arrow"></i>
-              </a>
-              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('usersMenu')">
-                <div class="vsm-list">
-                  <div class="vsm-item">
-                    <a routerLink="/users/employee-groups" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.employeeGroups' | translate }}</span>
-                    </a>
-                  </div>
-                  <div class="vsm-item">
-                    <a routerLink="/users/employees" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
-                      <span class="vsm-title">{{ 'sidebar.employees' | translate }}</span>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
+            }
 
           </div>
         </div>
@@ -200,3 +34,38 @@
     </div>
   </div>
 </div>
+
+<ng-template #menuLevel let-items let-parents="parents" let-top="top">
+  @for (item of items; track item.menuItemId) {
+    @if (hasChildren(item)) {
+      <!-- Group with sub items -->
+      <div class="vsm-item has-sub"
+           [class.vsm-open]="isOpen(item)"
+           [class.vsm-active]="isActiveBranch(item)">
+        <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu(item.menuItemId, parents)">
+          @if (top) {
+            <i class="vsm-icon" [ngClass]="item.icon || 'pe-7s-menu'"></i>
+          }
+          <span class="vsm-title">{{ getName(item) }}</span>
+          <i class="vsm-arrow"></i>
+        </a>
+        <div class="vsm-dropdown" [class.vsm-dropdown-show]="isOpen(item)">
+          <div class="vsm-list">
+            <ng-container *ngTemplateOutlet="menuLevel; context: { $implicit: item.children, parents: parents.concat(item.menuItemId), top: false }"></ng-container>
+          </div>
+        </div>
+      </div>
+    } @else if (item.route) {
+      <!-- Page -->
+      <div class="vsm-item" [class.vsm-active]="top && isActiveBranch(item)">
+        <a [routerLink]="item.route" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+          @if (top) {
+            <i class="vsm-icon" [ngClass]="item.icon || 'pe-7s-angle-right'"></i>
+          }
+          <span class="vsm-title">{{ getName(item) }}</span>
+        </a>
+      </div>
+    }
+    <!-- A group whose children are all hidden / a group without route has nothing to open: not shown -->
+  }
+</ng-template>

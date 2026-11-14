@@ -14,7 +14,7 @@
       }
     </div>
     @if (notification()) {
-      <button class="btn btn-outline-primary btn-sm" (click)="editNotification()">
+      <button class="btn btn-outline-primary btn-sm" *appCan="'edit'" (click)="editNotification()">
         <i class="pe-7s-note"></i> {{ 'notifications.editRecipients' | translate }}
       </button>
     }

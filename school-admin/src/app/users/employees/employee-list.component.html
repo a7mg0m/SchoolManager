@@ -11,7 +11,7 @@
       }
     </div>
     <div class="col-md-6 text-end">
-      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+      <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()" [disabled]="isLoading()">
         <i class="pe-7s-plus"></i> {{ 'employees.newEmployee' | translate }}
       </button>
     </div>
@@ -91,7 +91,7 @@
       <div class="card-body py-5">
         <i class="pe-7s-id text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mt-3">{{ 'employees.noEmployees' | translate }}</p>
-        <button class="btn btn-primary" (click)="navigateToCreate()">
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
           {{ 'employees.newEmployee' | translate }}
         </button>
       </div>
@@ -167,7 +167,7 @@
                     <div class="btn-group btn-group-sm" role="group">
                       <button
                         class="btn btn-outline-primary"
-                        (click)="navigateToEdit(employee.id)"
+                        *appCan="'edit'" (click)="navigateToEdit(employee.id)"
                         title="{{ 'common.edit' | translate }}"
                         [disabled]="isDeleting() || togglingId() === employee.id"
                       >
@@ -177,7 +177,7 @@
                         class="btn"
                         [class.btn-outline-warning]="employee.isActive"
                         [class.btn-outline-success]="!employee.isActive"
-                        (click)="toggleActive(employee)"
+                        *appCan="'edit'" (click)="toggleActive(employee)"
                         title="{{ (employee.isActive ? 'common.deactivate' : 'common.activate') | translate }}"
                         [disabled]="isDeleting() || !!togglingId()"
                       >
@@ -189,7 +189,7 @@
                       </button>
                       <button
                         class="btn btn-outline-danger"
-                        (click)="openDeleteConfirmation(employee, deleteModal)"
+                        *appCan="'delete'" (click)="openDeleteConfirmation(employee, deleteModal)"
                         title="{{ 'common.delete' | translate }}"
                         [disabled]="isDeleting()"
                       >

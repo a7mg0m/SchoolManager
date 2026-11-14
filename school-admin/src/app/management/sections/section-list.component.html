@@ -6,7 +6,7 @@
     <div class="col-md-6 text-end">
       <button
         class="btn btn-primary"
-        (click)="navigateToCreate()"
+        *appCan="'add'" (click)="navigateToCreate()"
         [disabled]="isLoading()"
       >
         <i class="pe-7s-plus"></i> {{ 'sections.newSection' | translate }}
@@ -107,7 +107,7 @@
         </p>
         <button
           class="btn btn-primary"
-          (click)="navigateToCreate()"
+          *appCan="'add'" (click)="navigateToCreate()"
         >
           {{ 'sections.newSection' | translate }}
         </button>
@@ -159,7 +159,7 @@
                     <div class="btn-group btn-group-sm" role="group">
                       <button
                         class="btn btn-outline-primary"
-                        (click)="navigateToEdit(section.id)"
+                        *appCan="'edit'" (click)="navigateToEdit(section.id)"
                         title="{{ 'common.edit' | translate }}"
                         [disabled]="isDeleting()"
                       >
@@ -167,7 +167,7 @@
                       </button>
                       <button
                         class="btn btn-outline-danger"
-                        (click)="openDeleteConfirmation(section, deleteModal)"
+                        *appCan="'delete'" (click)="openDeleteConfirmation(section, deleteModal)"
                         title="{{ 'common.delete' | translate }}"
                         [disabled]="isDeleting()"
                       >

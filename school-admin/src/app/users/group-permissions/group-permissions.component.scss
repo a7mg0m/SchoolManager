@@ -1,0 +1,27 @@
+.permission-table {
+  .perm-col {
+    width: 90px;
+  }
+
+  .form-check-input {
+    cursor: pointer;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0;
+  }
+
+  .group-row td {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  .collapse-btn {
+    font-size: 1.25rem;
+    line-height: 1;
+    text-decoration: none;
+  }
+
+  .collapse-spacer {
+    display: inline-block;
+    width: 1.25rem;
+  }
+}

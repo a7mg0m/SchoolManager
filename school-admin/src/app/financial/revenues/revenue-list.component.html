@@ -4,7 +4,7 @@
       <h2>{{ 'revenues.title' | translate }}</h2>
     </div>
     <div class="col-md-6 text-end">
-      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+      <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()" [disabled]="isLoading()">
         <i class="pe-7s-plus"></i> {{ 'revenues.newRevenue' | translate }}
       </button>
     </div>
@@ -43,11 +43,11 @@
         <p class="text-muted mt-3">{{ 'revenues.noRevenues' | translate }}</p>
         @if (categories().length === 0) {
           <p class="text-muted small">{{ 'revenues.noCategoriesHint' | translate }}</p>
-          <button class="btn btn-outline-primary me-2" (click)="navigateToCategories()">
+          <button class="btn btn-outline-primary me-2" *appCan="'view'; route: '/financial/revenue-categories'" (click)="navigateToCategories()">
             {{ 'sidebar.revenueCategories' | translate }}
           </button>
         }
-        <button class="btn btn-primary" (click)="navigateToCreate()">
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
           {{ 'revenues.newRevenue' | translate }}
         </button>
       </div>
@@ -158,7 +158,7 @@
                       <div class="btn-group btn-group-sm" role="group">
                         <button
                           class="btn btn-outline-primary"
-                          (click)="navigateToEdit(revenue.id)"
+                          *appCan="'edit'" (click)="navigateToEdit(revenue.id)"
                           title="{{ 'common.edit' | translate }}"
                           [disabled]="isDeleting()"
                         >
@@ -166,7 +166,7 @@
                         </button>
                         <button
                           class="btn btn-outline-danger"
-                          (click)="openDeleteConfirmation(revenue, deleteModal)"
+                          *appCan="'delete'" (click)="openDeleteConfirmation(revenue, deleteModal)"
                           title="{{ 'common.delete' | translate }}"
                           [disabled]="isDeleting()"
                         >

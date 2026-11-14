@@ -1,0 +1,126 @@
+import { Injectable } from '@angular/core';
+import { ApiService } from './api.service';
+import { Observable } from 'rxjs';
+import {
+  SchoolInfo,
+  SchoolInfoResponse,
+  SchoolInfoSingleResponse,
+  CreateSchoolInfoRequest,
+  UpdateSchoolInfoRequest
+} from '../models/school-info.model';
+
+/**
+ * School Info Service
+ * Handles all school information-related API operations
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class SchoolInfoService {
+  private readonly schoolInfoEndpoint = '/api/school-info';
+
+  constructor(private apiService: ApiService) {}
+
+  /**
+   * Get school information
+   * @returns Observable of school info response
+   */
+  get(): Observable<SchoolInfoSingleResponse> {
+    return this.apiService.get<SchoolInfoSingleResponse>(
+      `${this.schoolInfoEndpoint}/get`
+    );
+  }
+
+  /**
+   * Create new school information
+   * @param request - The school info data to create
+   * @returns Observable of school info response
+   */
+  create(request: CreateSchoolInfoRequest): Observable<SchoolInfoSingleResponse> {
+    return this.apiService.post<SchoolInfoSingleResponse>(
+      `${this.schoolInfoEndpoint}/create`,
+      request
+    );
+  }
+
+  /**
+   * Update existing school information
+   * @param request - The school info data to update
+   * @returns Observable of school info response
+   */
+  update(request: UpdateSchoolInfoRequest): Observable<SchoolInfoSingleResponse> {
+    return this.apiService.put<SchoolInfoSingleResponse>(
+      `${this.schoolInfoEndpoint}/update`,
+      request
+    );
+  }
+}
+----
+1:/**
+2: * School Info Model
+3: * Represents school information and settings with bilingual support
+4: */
+5:export interface SchoolInfo {
+6:  id?: string;
+7:  nameAr: string;
+8:  nameEn: string;
+9:  address?: string;
+10:  phone?: string;
+11:  email?: string;
+12:  logo?: string | null;
+13:}
+14:
+15:/**
+16: * Request model for creating a new school info
+17: */
+18:export interface CreateSchoolInfoRequest {
+19:  nameAr: string;
+20:  nameEn: string;
+21:  address?: string;
+22:  phone?: string;
+23:  email?: string;
+24:  logo?: string | null;
+25:}
+26:
+27:/**
+28: * Request model for updating school info
+29: */
+30:export interface UpdateSchoolInfoRequest {
+31:  id: string;
+32:  nameAr: string;
+33:  nameEn: string;
+34:  address?: string;
+35:  phone?: string;
+36:  email?: string;
+37:  logo?: string | null;
+38:}
+39:
+40:/**
+41: * API Response wrapper returned by the backend
+42: */
+43:export interface SchoolInfoApiResponse<T> {
+44:  status: number;
+45:  insertedId: string | null;
+46:  message: string;
+47:  data: T | null;
+48:  errors: any;
+49:}
+50:
+51:/**
+52: * API Response for single school info
+53: */
+54:export type SchoolInfoResponse = SchoolInfoApiResponse<SchoolInfo>;
+55:
+56:/**
+57: * API Response for school info operations
+58: */
+59:export type SchoolInfoSingleResponse = SchoolInfoApiResponse<SchoolInfo>;
+----
+66:    this.schoolInfoService.get()
+173:   * Submit the form to create or update school information
+175:  onSubmit(): void {
+189:      const updateRequest: UpdateSchoolInfoRequest = {
+194:      this.schoolInfoService.update(updateRequest)
+200:              this.successMessage.set(response.message || 'School information updated successfully');
+209:              this.errorMessage.set(response.message || 'Failed to update school information');
+222:      this.schoolInfoService.create(createRequest)

@@ -82,7 +82,7 @@
                         type="checkbox"
                         [id]="'switch-' + stage.id"
                         [checked]="stage.isActive"
-                        (change)="toggleStageStatus(stage)"
+                        [appCanDisable]="'edit'" (change)="toggleStageStatus(stage)"
                       />
                       <label
                         class="form-check-label"

@@ -1,0 +1,4 @@
+10: * Shown when the user has no valid session (reason=unauthenticated)
+11: * or the API rejected the request with 403 (reason=forbidden).
+19:export class NotAuthorizedComponent {
+32:    this.isForbidden = params.get('reason') === 'forbidden';

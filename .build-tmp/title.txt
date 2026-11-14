@@ -1,0 +1,103 @@
+2:  "common": {
+6:    "edit": "Edit",
+7:    "add": "Add",
+38:  "header": {
+48:  "sidebar": {
+84:  "dashboard": {
+124:    "title": "Dashboard",
+134:  "management": {
+135:    "title": "Management",
+169:  "sections": {
+170:    "title": "Section Management",
+201:  "teachers": {
+204:    "title": "Teacher Management",
+247:  "subjects": {
+248:    "title": "Subject Management",
+294:  "parents": {
+295:    "title": "Parent Management",
+368:  "students": {
+369:    "title": "Students",
+409:  "schoolInfo": {
+410:    "title": "School Information",
+446:  "forms": {
+458:  "auth": {
+464:    "login": "Login",
+492:  "messages": {
+501:  "timetables": {
+502:    "title": "Timetables",
+544:  "expenseCategories": {
+545:    "title": "Expense Categories",
+558:  "revenueCategories": {
+559:    "title": "Revenue Categories",
+572:  "expenses": {
+573:    "title": "Expenses",
+616:  "revenues": {
+617:    "title": "Revenues",
+657:  "fees": {
+658:    "title": "Fees",
+703:  "studentFees": {
+704:    "title": "Student Fees",
+740:      "title": "Assign Fees to Students",
+765:      "title": "Waive fee",
+784:  "schoolEvents": {
+785:    "title": "School Events",
+852:  "notifications": {
+853:    "title": "Notifications",
+910:  "employeeGroups": {
+911:    "title": "Employee Groups",
+954:  "groupPermissions": {
+955:    "title": "Group Permissions",
+972:    "add": "Add",
+973:    "edit": "Edit",
+997:  "myProfile": {
+998:    "title": "My Profile",
+1055:  "employees": {
+1056:    "title": "Employees",
+1147:  "exams": {
+1148:    "title": "Exams",
+1215:  "examResults": {
+1216:    "title": "Exam Results",
+----
+import {Component, ChangeDetectionStrategy} from '@angular/core';
+import { LanguageService } from './ThemeOptions/store/language.service';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false
+})
+export class AppComponent {
+  title = 'ArchitectUI - Angular 20 Bootstrap 5 & Material Design Admin Dashboard Template';
+
+  constructor(private languageService: LanguageService) {
+    // Initialize language on app load
+    this.languageService.setLanguage(this.languageService.getCurrentLanguage());
+  }
+}
+----
+8:export class LanguageService {
+9-  private currentLanguage = new BehaviorSubject<string>('en');
+10-  private readonly LANGUAGE_KEY = 'selectedLanguage';
+11-  private readonly SUPPORTED_LANGUAGES = ['en', 'ar'];
+--
+43:  getCurrentLanguage(): string {
+44-    return this.currentLanguage.value;
+45-  }
+46-
+--
+51:    const newLanguage = this.getCurrentLanguage() === 'en' ? 'ar' : 'en';
+52-    this.setLanguage(newLanguage);
+53-  }
+54-
+--
+59:    return this.getCurrentLanguage() === 'ar';
+60-  }
+61-
+62-  /**
+--
+66:    return this.getCurrentLanguage() === 'en';
+67-  }
+68-
+69-  /**
+----

@@ -22,3 +22,4 @@ export * from './exam-result.model';
 export * from './employee-group.model';
 export * from './employee.model';
 export * from './my-profile.model';
+export * from './group-permission.model';

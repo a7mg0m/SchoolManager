@@ -46,6 +46,10 @@
     .logo-src {
       display: block;
       order: 2;
+      // School logo (square image, scaled to fit the header)
+      width: 44px;
+      height: 44px;
+      background: url('../../../assets/images/logo.png') center / contain no-repeat;
     }
 
     .app-header__mobile-menu {
@@ -210,10 +214,6 @@
   }
 
   .app-header.text-lighter {
-    .logo-src {
-      background-image: url('../../../assets/images/logo.png');
-    }
-
     .app-header__menu {
       & > span .btn,
       & > .btn {

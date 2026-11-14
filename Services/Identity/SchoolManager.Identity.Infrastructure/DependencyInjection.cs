@@ -25,6 +25,7 @@ namespace SchoolManager.Identity.Infrastructure
             services.AddScoped<IEmployeeGroupRepository, EmployeeGroupRepository>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
             services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+            services.AddScoped<IGroupPermissionRepository, GroupPermissionRepository>();
             services.AddScoped<EmployeeAccountService>();
             services.AddScoped<MyProfileReader>();
             services.AddScoped<ProfileSyncService>();

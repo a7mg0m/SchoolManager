@@ -9,10 +9,10 @@
         <button class="btn btn-outline-secondary btn-sm" (click)="reload()">
           <i class="pe-7s-refresh-2"></i> {{ 'students.refresh' | translate }}
         </button>
-        <button class="btn btn-outline-primary btn-sm" (click)="editViaParent()" [disabled]="!student()?.parentId">
+        <button class="btn btn-outline-primary btn-sm" *appCan="'edit'; route: '/management/parents'" (click)="editViaParent()" [disabled]="!student()?.parentId">
           <i class="pe-7s-note"></i> {{ 'students.editViaParent' | translate }}
         </button>
-        <button class="btn btn-primary btn-sm" (click)="manageFees()">
+        <button class="btn btn-primary btn-sm" *appCan="'view'; route: '/financial/student-fees'" (click)="manageFees()">
           <i class="pe-7s-cash"></i> {{ 'students.manageFees' | translate }}
         </button>
       </div>
@@ -121,7 +121,7 @@
           <div class="card-header d-flex justify-content-between align-items-center">
             <span>{{ 'students.parentInfo' | translate }}</span>
             @if (parent()) {
-              <button class="btn btn-link btn-sm p-0" (click)="editViaParent()">{{ 'common.edit' | translate }}</button>
+              <button class="btn btn-link btn-sm p-0" *appCan="'edit'; route: '/management/parents'" (click)="editViaParent()">{{ 'common.edit' | translate }}</button>
             }
           </div>
           <div class="card-body">
@@ -165,7 +165,7 @@
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
             <span>{{ 'students.feesTitle' | translate }} <span class="badge bg-secondary ms-1">{{ fees().length }}</span></span>
-            <button class="btn btn-outline-primary btn-sm" (click)="assignFees()" [disabled]="feesUnavailable()">
+            <button class="btn btn-outline-primary btn-sm" *appCan="'add'; route: '/financial/student-fees'" (click)="assignFees()" [disabled]="feesUnavailable()">
               <i class="pe-7s-plus"></i> {{ 'studentFees.assign.button' | translate }}
             </button>
           </div>
@@ -176,7 +176,7 @@
               <div class="text-center py-4">
                 <i class="pe-7s-cash text-muted" style="font-size: 2.5rem;"></i>
                 <p class="text-muted mt-2 mb-2">{{ 'students.noFees' | translate }}</p>
-                <button class="btn btn-primary btn-sm" (click)="assignFees()">{{ 'studentFees.assign.button' | translate }}</button>
+                <button class="btn btn-primary btn-sm" *appCan="'add'; route: '/financial/student-fees'" (click)="assignFees()">{{ 'studentFees.assign.button' | translate }}</button>
               </div>
             } @else {
               <!-- Summary -->

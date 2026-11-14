@@ -10,10 +10,15 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { PageTitleComponent } from './Layout/Components/page-title/page-title.component';
 import { LanguageSwitcherComponent } from './Layout/Components/header/elements/language-switcher/language-switcher.component';
 
+// Permission directives (*appCan / [appCanDisable])
+import { CanDirective, CanDisableDirective } from './core/directives/can.directive';
+
 @NgModule({
   declarations: [
     PageTitleComponent,
-    LanguageSwitcherComponent
+    LanguageSwitcherComponent,
+    CanDirective,
+    CanDisableDirective
   ],
   imports: [
     CommonModule,
@@ -27,6 +32,8 @@ import { LanguageSwitcherComponent } from './Layout/Components/header/elements/l
   exports: [
     PageTitleComponent,
     LanguageSwitcherComponent,
+    CanDirective,
+    CanDisableDirective,
     // Re-export commonly used modules for convenience
     CommonModule,
     FormsModule,

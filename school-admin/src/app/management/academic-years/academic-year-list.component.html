@@ -6,7 +6,7 @@
     <div class="col-md-6 text-end">
       <button
         class="btn btn-primary"
-        (click)="navigateToCreate()"
+        *appCan="'add'" (click)="navigateToCreate()"
         [disabled]="isLoading()"
       >
         <i class="pe-7s-plus"></i> {{ 'management.newAcademicYear' | translate }}
@@ -57,7 +57,7 @@
         </p>
         <button
           class="btn btn-primary"
-          (click)="navigateToCreate()"
+          *appCan="'add'" (click)="navigateToCreate()"
         >
           {{ 'management.newAcademicYear' | translate }}
         </button>
@@ -106,7 +106,7 @@
                     <div class="btn-group btn-group-sm" role="group">
                       <button
                         class="btn btn-outline-primary"
-                        (click)="navigateToEdit(academicYear.id)"
+                        *appCan="'edit'" (click)="navigateToEdit(academicYear.id)"
                         title="{{ 'common.edit' | translate }}"
                         [disabled]="isDeleting()"
                       >
@@ -114,7 +114,7 @@
                       </button>
                       <button
                         class="btn btn-outline-danger"
-                        (click)="openDeleteConfirmation(academicYear, deleteModal)"
+                        *appCan="'delete'" (click)="openDeleteConfirmation(academicYear, deleteModal)"
                         title="{{ 'common.delete' | translate }}"
                         [disabled]="isDeleting()"
                       >

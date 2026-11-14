@@ -1,0 +1,37 @@
+-rw-r--r-- 1 USER 197121 1212173 Nov 14 04:09 assets/images/logo.png
+----
+app/UserPages/login-boxed/login-boxed.component.html:10:      <div class="app-logo-inverse mx-auto mb-4 d-block" style="width: 60px; height: 60px; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
+app/Layout/Components/header/elements/user-box/user-box.component.html:39:        {{ 'common.logout' | translate }}
+app/Layout/Components/header/elements/user-box/user-box.component.ts:14:  /** Logged-in user with profile (updates on login / logout / profile change) */
+app/Layout/Components/header/elements/user-box/user-box.component.ts:67:    this.authService.logout();
+app/Layout/Components/header/header.component.html:2:  <div class="logo-src"></div>
+app/Layout/Components/sidebar/sidebar.component.html:4:  <div class="app-header__logo">
+app/Layout/Components/sidebar/sidebar.component.html:5:    <div class="logo-src">
+app/Layout/Components/sidebar/sidebar.component.html:6:      <span class="logo-text">
+app/Layout/Components/sidebar/sidebar.component.html:7:        <span class="logo-full">ArchitectUI</span>
+app/Layout/Components/sidebar/sidebar.component.html:8:        <span class="logo-collapsed">A</span>
+----
+assets/layout/header/_header-base.scss:13:  .logo-src {
+assets/layout/responsive/_responsive-base.scss:46:    .logo-src {
+assets/layout/responsive/_responsive-base.scss:213:    .logo-src {
+assets/layout/sidebar/modifiers/_closed-sidebar.scss:37:    .logo-src {
+assets/layout/sidebar/modifiers/_closed-sidebar.scss:43:      .logo-text {
+assets/layout/sidebar/modifiers/_closed-sidebar.scss:44:        .logo-full {
+assets/layout/sidebar/modifiers/_closed-sidebar.scss:50:        .logo-collapsed {
+assets/layout/sidebar/modifiers/_closed-sidebar.scss:122:      .logo-src {
+assets/layout/sidebar/modifiers/_closed-sidebar.scss:127:        .logo-text {
+assets/layout/sidebar/modifiers/_closed-sidebar.scss:128:          .logo-full {
+assets/layout/sidebar/modifiers/_closed-sidebar.scss:135:          .logo-collapsed {
+assets/layout/sidebar/themes/_sidebar-dark.scss:13:    .logo-src {
+assets/layout/sidebar/themes/_sidebar-dark.scss:14:      .logo-text {
+assets/layout/sidebar/themes/_sidebar-dark.scss:17:        .logo-collapsed {
+assets/layout/sidebar/themes/_sidebar-light.scss:13:    .logo-src {
+assets/layout/sidebar/themes/_sidebar-light.scss:14:      .logo-text {
+assets/layout/sidebar/themes/_sidebar-light.scss:17:        .logo-collapsed {
+assets/layout/sidebar/_sidebar-base.scss:116:.logo-src {
+assets/layout/sidebar/_sidebar-base.scss:124:  .logo-text {
+assets/layout/sidebar/_sidebar-base.scss:134:    .logo-full {
+assets/layout/sidebar/_sidebar-base.scss:140:    .logo-collapsed {
+assets/pages/_userpages.scss:3:.app-logo {
+assets/pages/_userpages.scss:9:.app-logo-inverse {
+assets/pages/_userpages.scss:16:  .app-logo {

@@ -107,11 +107,11 @@
           <div class="d-flex gap-2 align-items-center">
             @if (changes().length > 0) {
               <small class="text-warning">{{ 'examResults.unsavedChanges' | translate: { count: changes().length } }}</small>
-              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="resetChanges()" [disabled]="isSaving()">
+              <button type="button" class="btn btn-sm btn-outline-secondary" *appCan="'edit'" (click)="resetChanges()" [disabled]="isSaving()">
                 {{ 'examResults.discard' | translate }}
               </button>
             }
-            <button type="button" class="btn btn-sm btn-primary" (click)="save()"
+            <button type="button" class="btn btn-sm btn-primary" *appCan="'edit'" (click)="save()"
                     [disabled]="isSaving() || changes().length === 0 || invalidIds().size > 0">
               @if (isSaving()) {
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>

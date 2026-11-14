@@ -1,0 +1,178 @@
+financial/expense-categories/expense-category-list.component.html:7:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+financial/expense-categories/expense-category-list.component.html:44:        <button class="btn btn-primary" (click)="navigateToCreate()">
+financial/expense-categories/expense-category-list.component.html:93:                          (click)="navigateToEdit(category.id)"
+financial/expense-categories/expense-category-list.component.html:101:                          (click)="openDeleteConfirmation(category, deleteModal)"
+financial/expense-categories/expense-category-list.component.html:133:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+financial/expense-categories/expense-category-list.component.html:136:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+financial/expense-categories/expense-category-save.component.html:97:            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+financial/expenses/expense-list.component.html:7:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+financial/expenses/expense-list.component.html:46:          <button class="btn btn-outline-primary me-2" (click)="navigateToCategories()">
+financial/expenses/expense-list.component.html:50:        <button class="btn btn-primary" (click)="navigateToCreate()">
+financial/expenses/expense-list.component.html:74:            <select class="form-select" [value]="categoryFilter()" (change)="setFilter('category', $event)">
+financial/expenses/expense-list.component.html:83:            <select class="form-select" [value]="typeFilter()" (change)="setFilter('type', $event)">
+financial/expenses/expense-list.component.html:92:            <input type="date" class="form-control" [value]="dateFrom()" (change)="setFilter('from', $event)" />
+financial/expenses/expense-list.component.html:96:            <input type="date" class="form-control" [value]="dateTo()" (change)="setFilter('to', $event)" />
+financial/expenses/expense-list.component.html:161:                          (click)="navigateToEdit(expense.id)"
+financial/expenses/expense-list.component.html:169:                          (click)="openDeleteConfirmation(expense, deleteModal)"
+financial/expenses/expense-list.component.html:203:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+financial/expenses/expense-list.component.html:206:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+financial/expenses/expense-save.component.html:43:        <button type="button" class="btn btn-sm btn-warning" (click)="navigateToCategories()">
+financial/expenses/expense-save.component.html:216:            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+financial/fees/fee-list.component.html:7:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+financial/fees/fee-list.component.html:44:        <button class="btn btn-primary" (click)="navigateToCreate()">
+financial/fees/fee-list.component.html:68:            <select class="form-select" [value]="stageFilter()" (change)="setFilter('stage', $event)">
+financial/fees/fee-list.component.html:77:            <select class="form-select" [value]="gradeFilter()" (change)="setFilter('grade', $event)">
+financial/fees/fee-list.component.html:86:            <select class="form-select" [value]="typeFilter()" (change)="setFilter('type', $event)">
+financial/fees/fee-list.component.html:95:            <select class="form-select" [value]="mandatoryFilter()" (change)="setFilter('mandatory', $event)">
+financial/fees/fee-list.component.html:149:              (click)="navigateToCreate(group.gradeId)"
+financial/fees/fee-list.component.html:185:                          (click)="navigateToEdit(fee.id)"
+financial/fees/fee-list.component.html:193:                          (click)="openDeleteConfirmation(fee, deleteModal)"
+financial/fees/fee-list.component.html:227:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+financial/fees/fee-list.component.html:230:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+financial/fees/fee-save.component.html:197:            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+financial/revenue-categories/revenue-category-list.component.html:7:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+financial/revenue-categories/revenue-category-list.component.html:44:        <button class="btn btn-primary" (click)="navigateToCreate()">
+financial/revenue-categories/revenue-category-list.component.html:93:                          (click)="navigateToEdit(category.id)"
+financial/revenue-categories/revenue-category-list.component.html:101:                          (click)="openDeleteConfirmation(category, deleteModal)"
+financial/revenue-categories/revenue-category-list.component.html:133:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+financial/revenue-categories/revenue-category-list.component.html:136:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+financial/revenue-categories/revenue-category-save.component.html:97:            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+financial/revenues/revenue-list.component.html:7:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+financial/revenues/revenue-list.component.html:46:          <button class="btn btn-outline-primary me-2" (click)="navigateToCategories()">
+financial/revenues/revenue-list.component.html:50:        <button class="btn btn-primary" (click)="navigateToCreate()">
+financial/revenues/revenue-list.component.html:74:            <select class="form-select" [value]="categoryFilter()" (change)="setFilter('category', $event)">
+financial/revenues/revenue-list.component.html:83:            <select class="form-select" [value]="typeFilter()" (change)="setFilter('type', $event)">
+financial/revenues/revenue-list.component.html:92:            <input type="date" class="form-control" [value]="dateFrom()" (change)="setFilter('from', $event)" />
+financial/revenues/revenue-list.component.html:96:            <input type="date" class="form-control" [value]="dateTo()" (change)="setFilter('to', $event)" />
+financial/revenues/revenue-list.component.html:161:                          (click)="navigateToEdit(revenue.id)"
+financial/revenues/revenue-list.component.html:169:                          (click)="openDeleteConfirmation(revenue, deleteModal)"
+financial/revenues/revenue-list.component.html:203:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+financial/revenues/revenue-list.component.html:206:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+financial/revenues/revenue-save.component.html:43:        <button type="button" class="btn btn-sm btn-warning" (click)="navigateToCategories()">
+financial/revenues/revenue-save.component.html:216:            <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+financial/student-fees/student-fee-assign.component.html:4:      <button type="button" class="btn btn-link px-0 mb-1" (click)="navigateBack()">
+financial/student-fees/student-fee-assign.component.html:44:            <select id="stage" class="form-select" [value]="stageId()" (change)="onStageChange($event)">
+financial/student-fees/student-fee-assign.component.html:53:            <select id="grade" class="form-select" [value]="gradeId()" (change)="onGradeChange($event)" [disabled]="!stageId()">
+financial/student-fees/student-fee-assign.component.html:87:                  <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="toggleAllVisible()">
+financial/student-fees/student-fee-assign.component.html:98:                        (change)="toggleStudent(s.id)"
+financial/student-fees/student-fee-assign.component.html:130:                <button type="button" class="btn btn-sm btn-outline-primary" (click)="navigateToFees()">
+financial/student-fees/student-fee-assign.component.html:141:                        (change)="toggleFee(f.id)"
+financial/student-fees/student-fee-assign.component.html:199:                (change)="onDueDateChange($event)"
+financial/student-fees/student-fee-assign.component.html:232:            <button type="button" class="btn btn-primary" (click)="onSubmit()" [disabled]="!canSubmit()">
+financial/student-fees/student-fee-assign.component.html:241:            <button type="button" class="btn btn-secondary" (click)="navigateBack()" [disabled]="isSaving()">
+financial/student-fees/student-fee-list.component.html:5:        <button type="button" class="btn btn-link px-0 mb-1" (click)="backToAll()">
+financial/student-fees/student-fee-list.component.html:17:      <button class="btn btn-primary" (click)="navigateToAssign()" [disabled]="isLoading()">
+financial/student-fees/student-fee-list.component.html:55:        <button class="btn btn-primary" (click)="navigateToAssign()">
+financial/student-fees/student-fee-list.component.html:117:              <select class="form-select" [value]="stageFilter()" (change)="setFilter('stage', $event)">
+financial/student-fees/student-fee-list.component.html:126:              <select class="form-select" [value]="gradeFilter()" (change)="setFilter('grade', $event)">
+financial/student-fees/student-fee-list.component.html:136:            <select class="form-select" [value]="statusFilter()" (change)="setFilter('status', $event)">
+financial/student-fees/student-fee-list.component.html:150:                (change)="toggleOutstanding($event)"
+financial/student-fees/student-fee-list.component.html:192:                        <a href="javascript:void(0)" class="fw-semibold" (click)="viewStudent(fee.studentId)">
+financial/student-fees/student-fee-list.component.html:237:                          (click)="openPayment(fee, paymentModal)"
+financial/student-fees/student-fee-list.component.html:246:                            (click)="openRestore(fee, restoreModal)"
+financial/student-fees/student-fee-list.component.html:255:                            (click)="openWaive(fee, waiveModal)"
+financial/student-fees/student-fee-list.component.html:264:                          (click)="openDeleteConfirmation(fee, deleteModal)"
+financial/student-fees/student-fee-list.component.html:314:          <button type="button" class="btn btn-outline-secondary" (click)="payFullBalance()">
+financial/student-fees/student-fee-list.component.html:328:        <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isPaying()">
+financial/student-fees/student-fee-list.component.html:385:        <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isWaiving()">
+financial/student-fees/student-fee-list.component.html:423:      <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isRestoring()">
+financial/student-fees/student-fee-list.component.html:426:      <button type="button" class="btn btn-primary" (click)="confirmRestore()" [disabled]="isRestoring()">
+financial/student-fees/student-fee-list.component.html:455:    <button type="button" class="btn btn-secondary" (click)="closeModal()" [disabled]="isDeleting()">
+financial/student-fees/student-fee-list.component.html:458:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+notification/notifications/notification-list.component.html:10:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+notification/notifications/notification-list.component.html:43:        <button class="btn btn-primary" (click)="navigateToCreate()">{{ 'notifications.newNotification' | translate }}</button>
+notification/notifications/notification-list.component.html:57:          (click)="toggleType(t.value)"
+notification/notifications/notification-list.component.html:83:            <select id="typeFilter" class="form-select" [value]="typeFilter()" (change)="setFilter('type', $event)">
+notification/notifications/notification-list.component.html:92:            <select id="statusFilter" class="form-select" [value]="statusFilter()" (change)="setFilter('status', $event)">
+notification/notifications/notification-list.component.html:125:                    <a href="javascript:void(0)" class="notification-title" (click)="openView(n, viewModal)">{{ n.title }}</a>
+notification/notifications/notification-list.component.html:138:                  <button class="btn btn-outline-info" (click)="openView(n, viewModal)" title="{{ 'schoolEvents.view' | translate }}">
+notification/notifications/notification-list.component.html:141:                  <button class="btn btn-outline-secondary" (click)="navigateToRecipients(n.id)" title="{{ 'notifications.recipients' | translate }}">
+notification/notifications/notification-list.component.html:144:                  <button class="btn btn-outline-primary" (click)="navigateToEdit(n.id)" [disabled]="isDeleting()" title="{{ 'common.edit' | translate }}">
+notification/notifications/notification-list.component.html:147:                  <button class="btn btn-outline-danger" (click)="openDeleteConfirmation(n, deleteModal)" [disabled]="isDeleting()" title="{{ 'common.delete' | translate }}">
+notification/notifications/notification-list.component.html:210:      <button type="button" class="btn btn-outline-secondary" (click)="modal.close(); navigateToRecipients(n.id)">
+notification/notifications/notification-list.component.html:213:      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(n.id)">{{ 'common.edit' | translate }}</button>
+notification/notifications/notification-list.component.html:215:    <button type="button" class="btn btn-secondary" (click)="modal.close()">{{ 'common.close' | translate }}</button>
+notification/notifications/notification-list.component.html:232:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">{{ 'common.cancel' | translate }}</button>
+notification/notifications/notification-list.component.html:233:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+notification/notifications/notification-save.component.html:3:    <button type="button" class="btn btn-link px-0 mb-1" (click)="cancel()">
+notification/notifications/notification-save.component.html:50:                    (click)="setType(t.value)"
+notification/notifications/notification-save.component.html:149:        <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="isSaving()">{{ 'common.cancel' | translate }}</button>
+notification/notifications/notification-targets.component.html:4:      <button type="button" class="btn btn-link px-0 mb-1" (click)="backToList()">
+notification/notifications/notification-targets.component.html:17:      <button class="btn btn-outline-primary btn-sm" (click)="editNotification()">
+notification/notifications/notification-targets.component.html:91:                  (click)="toggleKind(k)"
+notification/school-events/school-event-list.component.html:10:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+notification/school-events/school-event-list.component.html:44:        <button class="btn btn-primary" (click)="navigateToCreate()">{{ 'schoolEvents.newEvent' | translate }}</button>
+notification/school-events/school-event-list.component.html:55:            <button type="button" class="nav-link" [class.active]="tab() === 'upcoming'" (click)="tab.set('upcoming')">
+notification/school-events/school-event-list.component.html:63:            <button type="button" class="nav-link" [class.active]="tab() === 'past'" (click)="tab.set('past')">
+notification/school-events/school-event-list.component.html:86:            <select id="eventForFilter" class="form-select" [value]="eventForFilter()" (change)="setFilter('eventFor', $event)">
+notification/school-events/school-event-list.component.html:95:            <select id="yearFilter" class="form-select" [value]="academicYearFilter()" (change)="setFilter('academicYear', $event)">
+notification/school-events/school-event-list.component.html:155:                  <button class="btn btn-outline-info" (click)="openView(e, viewModal)" title="{{ 'schoolEvents.view' | translate }}">
+notification/school-events/school-event-list.component.html:158:                  <button class="btn btn-outline-primary" (click)="navigateToEdit(e.id)" [disabled]="isDeleting()" title="{{ 'common.edit' | translate }}">
+notification/school-events/school-event-list.component.html:161:                  <button class="btn btn-outline-danger" (click)="openDeleteConfirmation(e, deleteModal)" [disabled]="isDeleting()" title="{{ 'common.delete' | translate }}">
+notification/school-events/school-event-list.component.html:216:      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(e.id)">{{ 'common.edit' | translate }}</button>
+notification/school-events/school-event-list.component.html:218:    <button type="button" class="btn btn-secondary" (click)="modal.close()">{{ 'common.close' | translate }}</button>
+notification/school-events/school-event-list.component.html:235:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">{{ 'common.cancel' | translate }}</button>
+notification/school-events/school-event-list.component.html:236:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+notification/school-events/school-event-save.component.html:4:      <button type="button" class="btn btn-link px-0 mb-1" (click)="cancel()">
+notification/school-events/school-event-save.component.html:184:        <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="isSaving()">{{ 'common.cancel' | translate }}</button>
+notification/shared/audience-picker.component.html:9:      (click)="setAudience(o.value)"
+notification/shared/audience-picker.component.html:33:      <select class="form-select form-select-sm grade-filter" [value]="gradeFilter()" (change)="onGradeFilter($event)">
+notification/shared/audience-picker.component.html:49:        (change)="toggleAllVisible()"
+notification/shared/audience-picker.component.html:56:        <button type="button" class="btn btn-link btn-sm p-0" (click)="clearSelection()">{{ 'schoolEvents.clearSelection' | translate }}</button>
+notification/shared/audience-picker.component.html:68:          <input type="checkbox" class="form-check-input mt-0" [checked]="isSelected(item.id)" (change)="toggle(item.id)" />
+exam/exam-results/exam-results.component.html:7:      <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="isSaving()">
+exam/exam-results/exam-results.component.html:110:              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="resetChanges()" [disabled]="isSaving()">
+exam/exam-results/exam-results.component.html:114:            <button type="button" class="btn btn-sm btn-primary" (click)="save()"
+exam/exams/exam-list.component.html:7:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+exam/exams/exam-list.component.html:44:        <button class="btn btn-primary" (click)="navigateToCreate()">
+exam/exams/exam-list.component.html:59:                    [value]="filterAcademicYearId()" (change)="filterAcademicYearId.set($any($event.target).value)">
+exam/exams/exam-list.component.html:69:                    [value]="filterStageId()" (change)="onStageFilterChange($any($event.target).value)">
+exam/exams/exam-list.component.html:79:                    [value]="filterGradeId()" (change)="filterGradeId.set($any($event.target).value)">
+exam/exams/exam-list.component.html:89:                    [value]="filterExamType()" (change)="filterExamType.set($any($event.target).value)">
+exam/exams/exam-list.component.html:168:                          (click)="navigateToResults(exam.id)"
+exam/exams/exam-list.component.html:176:                          (click)="navigateToEdit(exam.id)"
+exam/exams/exam-list.component.html:184:                          (click)="openDeleteConfirmation(exam, deleteModal)"
+exam/exams/exam-list.component.html:213:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+exam/exams/exam-list.component.html:216:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+exam/exams/exam-save.component.html:297:        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+users/employee-groups/employee-group-list.component.html:9:        (click)="navigateToCreate()"
+users/employee-groups/employee-group-list.component.html:55:              (change)="onStatusFilterChange($event)"
+users/employee-groups/employee-group-list.component.html:92:        <button class="btn btn-primary" (click)="navigateToCreate()">
+users/employee-groups/employee-group-list.component.html:135:                    <a [routerLink]="['/users/employees']" [queryParams]="{ groupId: group.id }"
+users/employee-groups/employee-group-list.component.html:150:                        (click)="navigateToEdit(group.id)"
+users/employee-groups/employee-group-list.component.html:158:                        [routerLink]="['/users/group-permissions', group.id]"
+users/employee-groups/employee-group-list.component.html:167:                        (click)="toggleActive(group)"
+users/employee-groups/employee-group-list.component.html:179:                        (click)="openDeleteConfirmation(group, deleteModal)"
+users/employee-groups/employee-group-list.component.html:205:      (click)="cancelDelete()"
+users/employee-groups/employee-group-list.component.html:216:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+users/employee-groups/employee-group-list.component.html:219:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+users/employee-groups/employee-group-save.component.html:152:                <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+users/employees/employee-list.component.html:14:      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+users/employees/employee-list.component.html:54:            <select id="groupFilter" class="form-select" [value]="groupFilter()" (change)="onGroupFilterChange($event)">
+users/employees/employee-list.component.html:63:            <select id="statusFilter" class="form-select" [value]="statusFilter()" (change)="onStatusFilterChange($event)">
+users/employees/employee-list.component.html:94:        <button class="btn btn-primary" (click)="navigateToCreate()">
+users/employees/employee-list.component.html:170:                        (click)="navigateToEdit(employee.id)"
+users/employees/employee-list.component.html:180:                        (click)="toggleActive(employee)"
+users/employees/employee-list.component.html:192:                        (click)="openDeleteConfirmation(employee, deleteModal)"
+users/employees/employee-list.component.html:226:    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+users/employees/employee-list.component.html:229:    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+users/employees/employee-save.component.html:144:                  <a routerLink="/users/employee-groups/save">{{ 'employees.createGroup' | translate }}</a>
+users/employees/employee-save.component.html:223:                <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
+users/employees/employee-save.component.html:259:        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+users/group-permissions/group-permissions.component.html:8:      <button type="button" class="btn btn-secondary" (click)="goToGroups()">
+users/group-permissions/group-permissions.component.html:36:          <select id="groupSelect" class="form-select" [value]="selectedGroupId()" (change)="onGroupChange($event)"
+users/group-permissions/group-permissions.component.html:46:              <a routerLink="/users/employee-groups/save">{{ 'groupPermissions.createGroup' | translate }}</a>
+users/group-permissions/group-permissions.component.html:58:              <button type="button" class="btn btn-outline-secondary" (click)="expandAll()">
+users/group-permissions/group-permissions.component.html:61:              <button type="button" class="btn btn-outline-secondary" (click)="collapseAll()">
+users/group-permissions/group-permissions.component.html:117:            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="discardChanges()" [disabled]="isSaving()">
+users/group-permissions/group-permissions.component.html:121:          <button type="button" class="btn btn-sm btn-primary" (click)="save()" [disabled]="isSaving() || changesCount() === 0">
+users/group-permissions/group-permissions.component.html:142:                             (change)="toggleColumn(key, $event)"
+users/group-permissions/group-permissions.component.html:154:                           (change)="toggleAll($event)"
+users/group-permissions/group-permissions.component.html:168:                                (click)="toggleCollapse(row)"
+users/group-permissions/group-permissions.component.html:195:                             (change)="toggleCell(row, key, $event)"
+users/group-permissions/group-permissions.component.html:204:                           (change)="toggleRow(row, $event)"
+users/my-profile/my-profile.component.html:20:      <button type="button" class="btn btn-sm btn-outline-danger" (click)="loadProfile()">{{ 'myProfile.retry' | translate }}</button>
+users/my-profile/my-profile.component.html:41:                <input type="file" accept="image/*" class="d-none" (change)="onImageSelected($event)" [disabled]="isSavingProfile()">
+users/my-profile/my-profile.component.html:44:                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeCurrentImage()" [disabled]="isSavingProfile()">
+users/my-profile/my-profile.component.html:164:                <button type="button" class="btn btn-secondary" (click)="resetProfile()"
+users/my-profile/my-profile.component.html:227:                <input class="form-check-input" type="checkbox" id="showPasswords" [checked]="showPasswords()" (change)="togglePasswords()">

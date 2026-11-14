@@ -4,7 +4,7 @@
       <h2 class="mb-0">{{ 'parents.title' | translate }}</h2>
     </div>
     <div class="col-md-6 text-end">
-      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+      <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()" [disabled]="isLoading()">
         <i class="pe-7s-plus"></i> {{ 'parents.newParent' | translate }}
       </button>
     </div>
@@ -69,7 +69,7 @@
       <div class="card-body py-5">
         <i class="pe-7s-users text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mt-3">{{ 'parents.noParents' | translate }}</p>
-        <button class="btn btn-primary" (click)="navigateToCreate()">
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
           {{ 'parents.newParent' | translate }}
         </button>
       </div>
@@ -132,7 +132,7 @@
                       </button>
                       <button
                         class="btn btn-outline-primary"
-                        (click)="navigateToEdit(parent.id)"
+                        *appCan="'edit'" (click)="navigateToEdit(parent.id)"
                         title="{{ 'common.edit' | translate }}"
                         [disabled]="isDeleting()"
                       >
@@ -140,7 +140,7 @@
                       </button>
                       <button
                         class="btn btn-outline-danger"
-                        (click)="openDeleteConfirmation(parent, deleteModal)"
+                        *appCan="'delete'" (click)="openDeleteConfirmation(parent, deleteModal)"
                         title="{{ 'common.delete' | translate }}"
                         [disabled]="isDeleting()"
                       >
@@ -254,7 +254,7 @@
   </div>
   <div class="modal-footer">
     @if (viewedParent(); as p) {
-      <button type="button" class="btn btn-primary" (click)="modal.close(); navigateToEdit(p.id)">
+      <button type="button" class="btn btn-primary" *appCan="'edit'" (click)="modal.close(); navigateToEdit(p.id)">
         {{ 'common.edit' | translate }}
       </button>
     }

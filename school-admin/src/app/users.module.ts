@@ -7,6 +7,7 @@ import { EmployeeGroupSaveComponent } from './users/employee-groups/employee-gro
 import { EmployeeListComponent } from './users/employees/employee-list.component';
 import { EmployeeSaveComponent } from './users/employees/employee-save.component';
 import { MyProfileComponent } from './users/my-profile/my-profile.component';
+import { GroupPermissionsComponent } from './users/group-permissions/group-permissions.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { MyProfileComponent } from './users/my-profile/my-profile.component';
     EmployeeGroupSaveComponent,
     EmployeeListComponent,
     EmployeeSaveComponent,
-    MyProfileComponent
+    MyProfileComponent,
+    GroupPermissionsComponent
   ],
   imports: [
     SharedModule
@@ -24,7 +26,8 @@ import { MyProfileComponent } from './users/my-profile/my-profile.component';
     EmployeeGroupSaveComponent,
     EmployeeListComponent,
     EmployeeSaveComponent,
-    MyProfileComponent
+    MyProfileComponent,
+    GroupPermissionsComponent
   ]
 })
 export class UsersModule { }

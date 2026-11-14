@@ -111,7 +111,7 @@
                         type="checkbox"
                         [id]="'switch-' + grade.id"
                         [checked]="grade.isActive"
-                        (change)="toggleGradeStatus(grade)"
+                        [appCanDisable]="'edit'" (change)="toggleGradeStatus(grade)"
                       />
                       <label
                         class="form-check-label"

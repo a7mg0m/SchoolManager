@@ -1,0 +1,115 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { TranslatePipe } from '@ngx-translate/core';
+
+// Shared Components
+import { PageTitleComponent } from './Layout/Components/page-title/page-title.component';
+import { LanguageSwitcherComponent } from './Layout/Components/header/elements/language-switcher/language-switcher.component';
+
+@NgModule({
+  declarations: [
+    PageTitleComponent,
+    LanguageSwitcherComponent
+  ],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
+    NgbModule,
+    FontAwesomeModule,
+    TranslatePipe
+  ],
+  exports: [
+    PageTitleComponent,
+    LanguageSwitcherComponent,
+    // Re-export commonly used modules for convenience
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
+    NgbModule,
+    FontAwesomeModule,
+    TranslatePipe
+  ]
+})
+export class SharedModule { }----
+app.module.ts
+charts.module.ts
+components.module.ts
+dashboards.module.ts
+elements.module.ts
+exam.module.ts
+financial.module.ts
+forms.module.ts
+management.module.ts
+notification.module.ts
+shared.module.ts
+tables.module.ts
+user-pages.module.ts
+users.module.ts
+widgets.module.ts
+----
+ls: cannot access 'core/directives': No such file or directory
+core/guards:
+auth.guard.ts
+index.ts
+import { Injectable } from '@angular/core';
+import {
+  Router,
+  CanActivate,
+  CanActivateChild,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+  UrlTree
+} from '@angular/router';
+import { AuthService } from '../services/auth.service';
+
+/**
+ * Authentication Guard
+ * Protects every route (and every child route) that requires a logged-in user.
+ * If there is no valid (present and non-expired) token, the session is cleared
+ * and the user is sent to the Not Authorized page with a returnUrl.
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class AuthGuard implements CanActivate, CanActivateChild {
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean | UrlTree {
+    return this.check(state.url);
+  }
+
+  canActivateChild(
+    childRoute: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean | UrlTree {
+    return this.check(state.url);
+  }
+
+  private check(url: string): boolean | UrlTree {
+    if (this.authService.isAuthenticated()) {
+      return true;
+    }
+
+    // Remove any stale/expired token before leaving
+    this.authService.clearSession();
+
+    return this.router.createUrlTree([this.authService.NOT_AUTHORIZED_URL], {
+      queryParams: { reason: 'unauthenticated', returnUrl: url }
+    });
+  }
+}
+export * from './auth.guard';

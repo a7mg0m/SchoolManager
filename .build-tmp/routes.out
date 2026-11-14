@@ -1,0 +1,5 @@
+routes tagged: 33
+34
+7:import { PermissionGuard } from './core/guards/permission.guard';
+94:    // AuthGuard: signed in; PermissionGuard: group permissions (route data `permission`, default 'view')
+95:    canActivateChild: [AuthGuard, PermissionGuard],

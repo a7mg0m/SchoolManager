@@ -15,6 +15,7 @@ namespace SchoolManager.Identity.Infrastructure
         public DbSet<EmployeeGroup> EmployeeGroups => Set<EmployeeGroup>();
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+        public DbSet<GroupPermission> GroupPermissions => Set<GroupPermission>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -6,7 +6,7 @@
     <div class="col-md-6 text-end">
       <button
         class="btn btn-primary"
-        (click)="navigateToCreate()"
+        *appCan="'add'" (click)="navigateToCreate()"
         [disabled]="isLoading()"
       >
         <i class="pe-7s-plus"></i> {{ 'employeeGroups.newGroup' | translate }}
@@ -89,7 +89,7 @@
       <div class="card-body py-5">
         <i class="pe-7s-users text-muted" style="font-size: 3rem;"></i>
         <p class="text-muted mt-3">{{ 'employeeGroups.noGroups' | translate }}</p>
-        <button class="btn btn-primary" (click)="navigateToCreate()">
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
           {{ 'employeeGroups.newGroup' | translate }}
         </button>
       </div>
@@ -132,9 +132,13 @@
                   <td dir="ltr"><strong>{{ group.nameEn }}</strong></td>
                   <td class="text-muted description-cell">{{ group.description || '—' }}</td>
                   <td class="text-center">
-                    <a [routerLink]="['/users/employees']" [queryParams]="{ groupId: group.id }"
+                    <a *appCan="'view'; route: '/users/employees'; else employeesCountPlain"
+                       [routerLink]="['/users/employees']" [queryParams]="{ groupId: group.id }"
                        class="badge bg-secondary text-decoration-none"
                        [title]="'employeeGroups.viewEmployees' | translate">{{ group.employeesCount }}</a>
+                    <ng-template #employeesCountPlain>
+                      <span class="badge bg-secondary">{{ group.employeesCount }}</span>
+                    </ng-template>
                   </td>
                   <td>
                     @if (group.isActive) {
@@ -147,17 +151,25 @@
                     <div class="btn-group btn-group-sm" role="group">
                       <button
                         class="btn btn-outline-primary"
-                        (click)="navigateToEdit(group.id)"
+                        *appCan="'edit'" (click)="navigateToEdit(group.id)"
                         title="{{ 'common.edit' | translate }}"
                         [disabled]="isDeleting() || togglingId() === group.id"
                       >
                         <i class="pe-7s-note"></i>
                       </button>
+                      <a
+                        class="btn btn-outline-info"
+                        *appCan="'view'; route: '/users/group-permissions'"
+                        [routerLink]="['/users/group-permissions', group.id]"
+                        title="{{ 'employeeGroups.permissions' | translate }}"
+                      >
+                        <i class="pe-7s-shield"></i>
+                      </a>
                       <button
                         class="btn"
                         [class.btn-outline-warning]="group.isActive"
                         [class.btn-outline-success]="!group.isActive"
-                        (click)="toggleActive(group)"
+                        *appCan="'edit'" (click)="toggleActive(group)"
                         title="{{ (group.isActive ? 'common.deactivate' : 'common.activate') | translate }}"
                         [disabled]="isDeleting() || !!togglingId()"
                       >
@@ -169,7 +181,7 @@
                       </button>
                       <button
                         class="btn btn-outline-danger"
-                        (click)="openDeleteConfirmation(group, deleteModal)"
+                        *appCan="'delete'" (click)="openDeleteConfirmation(group, deleteModal)"
                         [title]="(group.employeesCount > 0 ? 'employeeGroups.cannotDeleteHasEmployees' : 'common.delete') | translate"
                         [disabled]="isDeleting() || group.employeesCount > 0"
                       >

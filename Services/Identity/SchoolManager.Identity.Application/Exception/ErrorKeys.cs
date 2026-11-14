@@ -61,5 +61,9 @@ namespace SchoolManager.Identity.Application
         public const string MenuItemHasChildren = "MenuItemHasChildren";
         public const string MenuItemOrderInvalid = "MenuItemOrderInvalid";
         public const string MenuItemRouteInvalid = "MenuItemRouteInvalid";
+
+        // Group permissions
+        public const string GroupPermissionMenuItemRequired = "GroupPermissionMenuItemRequired";
+        public const string GroupPermissionDuplicateMenuItem = "GroupPermissionDuplicateMenuItem";
     }
 }
