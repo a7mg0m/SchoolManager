@@ -1,41 +1,55 @@
 <div class="header-btn-lg d-flex align-items-center">
   <div class="widget-content-left me-2">
-    <div class="widget-heading">{{ loginName }}</div>
-    <div class="widget-subheading">Administrator</div>
+    <div class="widget-heading">{{ displayName() }}</div>
+    <div class="widget-subheading">{{ email() || user()?.loginName }}</div>
   </div>
   <div ngbDropdown placement="bottom-right">
     <button type="button" class="btn btn-link p-0" ngbDropdownToggle>
-      <img width="42" src="./assets/images/avatars/1.jpg" alt="" class="rounded-circle">
+      <ng-container *ngTemplateOutlet="avatar; context: { size: 42 }"></ng-container>
     </button>
     <div ngbDropdownMenu class="dropdown-menu-sm">
       <div class="dropdown-header text-center">
-        <img src="./assets/images/avatars/1.jpg" alt="Avatar" class="rounded-circle mb-2" width="60">
-        <h6 class="mb-0">{{ loginName }}</h6>
-        <small class="text-muted">user@example.com</small>
+        <div class="mb-2 d-flex justify-content-center">
+          <ng-container *ngTemplateOutlet="avatar; context: { size: 60 }"></ng-container>
+        </div>
+        <h6 class="mb-0">{{ displayName() }}</h6>
+        @if (email()) {
+          <small class="text-muted d-block">{{ email() }}</small>
+        }
+        @if (phoneNumber()) {
+          <small class="text-muted d-block" dir="ltr">{{ phoneNumber() }}</small>
+        }
+        @if (user()?.loginName; as loginName) {
+          <small class="text-muted d-block"><i class="pe-7s-key"></i> {{ loginName }}</small>
+        }
       </div>
       <div class="dropdown-divider"></div>
-      <button type="button" class="dropdown-item">
+      <a routerLink="/my-profile" class="dropdown-item">
         <i class="pe-7s-user me-2"></i>
-        My Profile
-      </button>
-      <button type="button" class="dropdown-item">
-        <i class="pe-7s-settings me-2"></i>
-        Settings
-      </button>
-      <button type="button" class="dropdown-item d-flex align-items-center">
-        <i class="pe-7s-bell me-2"></i>
-        Notifications
-        <span class="badge bg-warning text-dark ms-auto">3</span>
-      </button>
-      <div class="dropdown-divider"></div>
-      <button type="button" class="dropdown-item">
-        <i class="pe-7s-help1 me-2"></i>
-        Help
-      </button>
+        {{ 'myProfile.title' | translate }}
+      </a>
+      <a routerLink="/my-profile" fragment="change-password" class="dropdown-item">
+        <i class="pe-7s-key me-2"></i>
+        {{ 'myProfile.changePassword' | translate }}
+      </a>
+      
+    
       <button type="button" class="dropdown-item text-danger" (click)="onSignOut()">
         <i class="pe-7s-power me-2"></i>
-        Sign Out
+        {{ 'common.logout' | translate }}
       </button>
     </div>
   </div>
 </div>
+
+<!-- Profile image, or the user's initials when there is no image -->
+<ng-template #avatar let-size="size">
+  @if (avatarUrl(); as url) {
+    <img [src]="url" [width]="size" [height]="size" alt="Avatar" class="rounded-circle" style="object-fit: cover;">
+  } @else {
+    <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center fw-bold"
+          [style.width.px]="size" [style.height.px]="size" [style.font-size.px]="size * 0.4">
+      {{ initials() }}
+    </span>
+  }
+</ng-template>

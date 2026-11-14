@@ -1,0 +1,265 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'employees.editEmployee' | translate }}
+        } @else {
+          {{ 'employees.newEmployee' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Personal Information -->
+      <div class="card mb-3">
+        <div class="card-header">{{ 'employees.personalInfo' | translate }}</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="fullNameAr" class="form-label">{{ 'employees.fullNameAr' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" id="fullNameAr" class="form-control" dir="rtl" formControlName="fullNameAr"
+                     [class.is-invalid]="hasError('fullNameAr', 'required') || hasError('fullNameAr', 'maxlength')" />
+              @if (hasError('fullNameAr', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.fullNameArRequired' | translate }}</div>
+              }
+              @if (hasError('fullNameAr', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'employees.maxLength' | translate: { max: 200 } }}</div>
+              }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="fullNameEn" class="form-label">{{ 'employees.fullNameEn' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" id="fullNameEn" class="form-control" dir="ltr" formControlName="fullNameEn"
+                     [class.is-invalid]="hasError('fullNameEn', 'required') || hasError('fullNameEn', 'maxlength')" />
+              @if (hasError('fullNameEn', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.fullNameEnRequired' | translate }}</div>
+              }
+              @if (hasError('fullNameEn', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'employees.maxLength' | translate: { max: 200 } }}</div>
+              }
+              <div class="form-text">{{ 'employees.fullNameEnHint' | translate }}</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="nationalId" class="form-label">{{ 'employees.nationalId' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" id="nationalId" class="form-control" dir="ltr" formControlName="nationalId"
+                     [class.is-invalid]="hasError('nationalId', 'required') || hasError('nationalId', 'maxlength')" />
+              @if (hasError('nationalId', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.nationalIdRequired' | translate }}</div>
+              }
+              @if (hasError('nationalId', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'employees.maxLength' | translate: { max: 50 } }}</div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="phoneNumber" class="form-label">{{ 'employees.phoneNumber' | translate }} <span class="text-danger">*</span></label>
+              <input type="tel" id="phoneNumber" class="form-control" dir="ltr" formControlName="phoneNumber"
+                     [class.is-invalid]="hasError('phoneNumber', 'required') || hasError('phoneNumber', 'maxlength')" />
+              @if (hasError('phoneNumber', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.phoneNumberRequired' | translate }}</div>
+              }
+              @if (hasError('phoneNumber', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'employees.maxLength' | translate: { max: 50 } }}</div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="email" class="form-label">{{ 'employees.email' | translate }} <span class="text-danger">*</span></label>
+              <input type="email" id="email" class="form-control" dir="ltr" formControlName="email"
+                     [class.is-invalid]="hasError('email', 'required') || hasError('email', 'email') || hasError('email', 'maxlength')" />
+              @if (hasError('email', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.emailRequired' | translate }}</div>
+              }
+              @if (hasError('email', 'email')) {
+                <div class="invalid-feedback">{{ 'employees.emailInvalid' | translate }}</div>
+              }
+              @if (hasError('email', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'employees.maxLength' | translate: { max: 256 } }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="mb-1">
+            <label for="address" class="form-label">
+              {{ 'employees.address' | translate }} <small class="text-muted">({{ 'employees.optional' | translate }})</small>
+            </label>
+            <input type="text" id="address" class="form-control" formControlName="address"
+                   [class.is-invalid]="hasError('address', 'maxlength')" />
+            @if (hasError('address', 'maxlength')) {
+              <div class="invalid-feedback">{{ 'employees.maxLength' | translate: { max: 500 } }}</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Job Information -->
+      <div class="card mb-3">
+        <div class="card-header">{{ 'employees.jobInfo' | translate }}</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="employeeGroupId" class="form-label">{{ 'employees.group' | translate }} <span class="text-danger">*</span></label>
+              <select id="employeeGroupId" class="form-select" formControlName="employeeGroupId"
+                      [class.is-invalid]="hasError('employeeGroupId', 'required')">
+                <option value="">{{ 'common.chooseOne' | translate }}</option>
+                @for (group of availableGroups(); track group.id) {
+                  <option [value]="group.id">{{ getGroupName(group) }}</option>
+                }
+              </select>
+              @if (hasError('employeeGroupId', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.groupRequired' | translate }}</div>
+              }
+              @if (availableGroups().length === 0) {
+                <div class="form-text">
+                  {{ 'employees.noGroupsAvailable' | translate }}
+                  <a routerLink="/users/employee-groups/save">{{ 'employees.createGroup' | translate }}</a>
+                </div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="jobTitle" class="form-label">{{ 'employees.jobTitle' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" id="jobTitle" class="form-control" formControlName="jobTitle"
+                     [placeholder]="'employees.jobTitlePlaceholder' | translate"
+                     [class.is-invalid]="hasError('jobTitle', 'required') || hasError('jobTitle', 'maxlength')" />
+              @if (hasError('jobTitle', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.jobTitleRequired' | translate }}</div>
+              }
+              @if (hasError('jobTitle', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'employees.maxLength' | translate: { max: 150 } }}</div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="hireDate" class="form-label">{{ 'employees.hireDate' | translate }} <span class="text-danger">*</span></label>
+              <input type="date" id="hireDate" class="form-control" formControlName="hireDate"
+                     [class.is-invalid]="hasError('hireDate', 'required')" />
+              @if (hasError('hireDate', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.hireDateRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          @if (!isEditMode()) {
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" id="isActive" formControlName="isActive" />
+              <label class="form-check-label" for="isActive">{{ 'common.active' | translate }}</label>
+            </div>
+          } @else {
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+              <span>
+                {{ 'common.status' | translate }}:
+                @if (form.get('isActive')?.value) {
+                  <span class="badge bg-success">{{ 'common.active' | translate }}</span>
+                } @else {
+                  <span class="badge bg-light text-muted">{{ 'common.inactive' | translate }}</span>
+                }
+              </span>
+              <small class="text-muted">{{ 'employees.statusChangeHint' | translate }}</small>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Login Account -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>{{ 'employees.loginAccount' | translate }}</span>
+          <span class="badge bg-primary">{{ 'employees.roleAdmin' | translate }}</span>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">{{ 'employees.loginAccountHint' | translate }}</p>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="loginName" class="form-label">{{ 'employees.loginName' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" id="loginName" class="form-control" dir="ltr" autocomplete="off" formControlName="loginName"
+                     [class.is-invalid]="hasError('loginName', 'required') || hasError('loginName', 'minlength') || hasError('loginName', 'maxlength')" />
+              @if (hasError('loginName', 'required')) {
+                <div class="invalid-feedback">{{ 'employees.loginNameRequired' | translate }}</div>
+              }
+              @if (hasError('loginName', 'minlength')) {
+                <div class="invalid-feedback">{{ 'employees.loginNameMinLength' | translate }}</div>
+              }
+              @if (hasError('loginName', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'employees.maxLength' | translate: { max: 100 } }}</div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="password" class="form-label">
+                {{ (isEditMode() ? 'employees.newPassword' : 'employees.password') | translate }}
+                @if (!isEditMode()) { <span class="text-danger">*</span> }
+              </label>
+              <div class="input-group has-validation">
+                <input [type]="showPassword() ? 'text' : 'password'" id="password" class="form-control" dir="ltr"
+                       autocomplete="new-password" formControlName="password"
+                       [class.is-invalid]="hasError('password', 'required') || hasError('password', 'minlength')" />
+                <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
+                        [title]="(showPassword() ? 'employees.hidePassword' : 'employees.showPassword') | translate">
+                  <i [class]="showPassword() ? 'pe-7s-look' : 'pe-7s-less'"></i>
+                </button>
+                @if (hasError('password', 'required')) {
+                  <div class="invalid-feedback">{{ 'employees.passwordRequired' | translate }}</div>
+                }
+                @if (hasError('password', 'minlength')) {
+                  <div class="invalid-feedback">{{ 'employees.passwordMinLength' | translate: { min: passwordMinLength } }}</div>
+                }
+              </div>
+              @if (isEditMode()) {
+                <div class="form-text">{{ 'employees.keepPasswordHint' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="confirmPassword" class="form-label">{{ 'employees.confirmPassword' | translate }}</label>
+              <input [type]="showPassword() ? 'text' : 'password'" id="confirmPassword" class="form-control" dir="ltr"
+                     autocomplete="new-password" formControlName="confirmPassword"
+                     [class.is-invalid]="passwordMismatch" />
+              @if (passwordMismatch) {
+                <div class="invalid-feedback">{{ 'employees.passwordMismatch' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex gap-2 mb-4">
+        <button type="submit" class="btn btn-primary" [disabled]="!form.valid || isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ 'common.save' | translate }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

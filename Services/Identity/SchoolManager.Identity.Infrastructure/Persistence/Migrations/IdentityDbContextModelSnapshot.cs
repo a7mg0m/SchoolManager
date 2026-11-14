@@ -22,6 +22,109 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("SchoolManager.Identity.Domain.Employee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<Guid>("EmployeeGroupId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("HireDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JobTitle")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("NationalId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeGroupId");
+
+                    b.HasIndex("NationalId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
+
+                    b.ToTable("Employees", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Identity.Domain.EmployeeGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("EmployeeGroups", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Identity.Domain.MenuItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ParentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId", "Order");
+
+                    b.ToTable("MenuItems", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Identity.Domain.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -154,6 +257,217 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("UserProfiles", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Identity.Domain.Employee", b =>
+                {
+                    b.HasOne("SchoolManager.Identity.Domain.EmployeeGroup", "EmployeeGroup")
+                        .WithMany("Employees")
+                        .HasForeignKey("EmployeeGroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManager.Identity.Domain.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("EmployeeId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("EmployeeId");
+
+                            b1.ToTable("Employees");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EmployeeId");
+                        });
+
+                    b.OwnsOne("BuildingBlocks.NameLocalized", "FullName", b1 =>
+                        {
+                            b1.Property<Guid>("EmployeeId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Arabic")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("FullNameAr");
+
+                            b1.Property<string>("English")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("FullNameEn");
+
+                            b1.HasKey("EmployeeId");
+
+                            b1.ToTable("Employees");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EmployeeId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("EmployeeGroup");
+
+                    b.Navigation("FullName")
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SchoolManager.Identity.Domain.EmployeeGroup", b =>
+                {
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("EmployeeGroupId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("EmployeeGroupId");
+
+                            b1.ToTable("EmployeeGroups");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EmployeeGroupId");
+                        });
+
+                    b.OwnsOne("BuildingBlocks.NameLocalized", "Name", b1 =>
+                        {
+                            b1.Property<Guid>("EmployeeGroupId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Arabic")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("NameAr");
+
+                            b1.Property<string>("English")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("NameEn");
+
+                            b1.HasKey("EmployeeGroupId");
+
+                            b1.ToTable("EmployeeGroups");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EmployeeGroupId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("Name")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Identity.Domain.MenuItem", b =>
+                {
+                    b.HasOne("SchoolManager.Identity.Domain.MenuItem", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("MenuItemId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("MenuItemId");
+
+                            b1.ToTable("MenuItems");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MenuItemId");
+                        });
+
+                    b.OwnsOne("BuildingBlocks.NameLocalized", "Name", b1 =>
+                        {
+                            b1.Property<Guid>("MenuItemId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Arabic")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("NameAr");
+
+                            b1.Property<string>("English")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("NameEn");
+
+                            b1.HasKey("MenuItemId");
+
+                            b1.ToTable("MenuItems");
+
+                            b1.WithOwner()
+                                .HasForeignKey("MenuItemId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("Name")
+                        .IsRequired();
+
+                    b.Navigation("Parent");
                 });
 
             modelBuilder.Entity("SchoolManager.Identity.Domain.Role", b =>
@@ -303,6 +617,16 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SchoolManager.Identity.Domain.EmployeeGroup", b =>
+                {
+                    b.Navigation("Employees");
+                });
+
+            modelBuilder.Entity("SchoolManager.Identity.Domain.MenuItem", b =>
+                {
+                    b.Navigation("Children");
                 });
 #pragma warning restore 612, 618
         }

@@ -72,7 +72,8 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       nationalId: ['', [Validators.required, Validators.maxLength(50)]],
       gender: ['', Validators.required],
       phoneNumber: ['', [Validators.required, Validators.maxLength(50)]],
-      email: ['', [Validators.email, Validators.maxLength(256)]],
+      // Required: the teacher's login account (Identity service) needs an email
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(256)]],
       address: ['', [Validators.required, Validators.maxLength(500)]],
       isActive: [true]
     });

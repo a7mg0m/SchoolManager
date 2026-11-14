@@ -171,6 +171,29 @@
               </div>
             </div>
 
+            <!-- Users -->
+            <div class="vsm-item has-sub" [class.vsm-open]="openMenus.includes('usersMenu')">
+              <a href="javascript:void(0);" class="vsm-link" (click)="toggleSubmenu('usersMenu')">
+                <i class="vsm-icon pe-7s-users"></i>
+                <span class="vsm-title">{{ 'sidebar.users' | translate }}</span>
+                <i class="vsm-arrow"></i>
+              </a>
+              <div class="vsm-dropdown" [class.vsm-dropdown-show]="openMenus.includes('usersMenu')">
+                <div class="vsm-list">
+                  <div class="vsm-item">
+                    <a routerLink="/users/employee-groups" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.employeeGroups' | translate }}</span>
+                    </a>
+                  </div>
+                  <div class="vsm-item">
+                    <a routerLink="/users/employees" routerLinkActive="active-item" class="vsm-link" (click)="onNavigate()">
+                      <span class="vsm-title">{{ 'sidebar.employees' | translate }}</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

@@ -6,11 +6,11 @@ namespace SchoolManager.Identity.Infrastructure
 {
     public class RoleConfiguration : IEntityTypeConfiguration<Role>
     {
-        public static readonly Guid SystemAdminId = new("00000000-0000-0000-0000-000000000001");
-        public static readonly Guid AdminId = new("00000000-0000-0000-0000-000000000002");
-        public static readonly Guid TeacherId = new("00000000-0000-0000-0000-000000000003");
-        public static readonly Guid StudentId = new("00000000-0000-0000-0000-000000000004");
-        public static readonly Guid ParentId = new("00000000-0000-0000-0000-000000000005");
+        public static readonly Guid SystemAdminId = RoleIds.SystemAdmin;
+        public static readonly Guid AdminId = RoleIds.Admin;
+        public static readonly Guid TeacherId = RoleIds.Teacher;
+        public static readonly Guid StudentId = RoleIds.Student;
+        public static readonly Guid ParentId = RoleIds.Parent;
 
         public void Configure(EntityTypeBuilder<Role> builder)
         {

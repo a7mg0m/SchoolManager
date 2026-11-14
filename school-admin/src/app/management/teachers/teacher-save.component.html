@@ -173,9 +173,12 @@
               }
             </div>
 
-            <!-- Email (optional) -->
+            <!-- Email (required: used for the teacher's login account) -->
             <div class="col-md-6 mb-3">
-              <label for="email" class="form-label">{{ 'teachers.email' | translate }}</label>
+              <label for="email" class="form-label">
+                {{ 'teachers.email' | translate }}
+                <span class="text-danger">*</span>
+              </label>
               <input
                 type="email"
                 class="form-control"
@@ -184,9 +187,13 @@
                 dir="ltr"
                 [class.is-invalid]="isInvalid('email')"
               />
+              @if (hasError('email', 'required')) {
+                <div class="invalid-feedback">{{ 'teachers.emailRequired' | translate }}</div>
+              }
               @if (hasError('email', 'email')) {
                 <div class="invalid-feedback">{{ 'teachers.emailInvalid' | translate }}</div>
               }
+              <div class="form-text">{{ 'teachers.loginAccountHint' | translate }}</div>
               @if (hasError('email', 'maxlength')) {
                 <div class="invalid-feedback">{{ 'teachers.maxLength' | translate: { max: 256 } }}</div>
               }

@@ -1,0 +1,243 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>{{ 'myProfile.title' | translate }}</h2>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && !profile() && profileError()) {
+    <div class="alert alert-danger d-flex justify-content-between align-items-center" role="alert">
+      <span><strong>{{ 'common.error' | translate }}:</strong> {{ profileError() }}</span>
+      <button type="button" class="btn btn-sm btn-outline-danger" (click)="loadProfile()">{{ 'myProfile.retry' | translate }}</button>
+    </div>
+  }
+
+  @if (!isLoading() && profile(); as p) {
+    <div class="row">
+      <!-- Account summary -->
+      <div class="col-lg-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <div class="avatar-wrapper mx-auto mb-3">
+              @if (avatarUrl(); as url) {
+                <img [src]="url" alt="Avatar" class="avatar rounded-circle">
+              } @else {
+                <span class="avatar avatar-initials rounded-circle bg-primary text-white">{{ initials() }}</span>
+              }
+            </div>
+
+            <div class="d-flex justify-content-center gap-2 mb-2">
+              <label class="btn btn-sm btn-outline-primary mb-0" [class.disabled]="isSavingProfile()">
+                <i class="pe-7s-camera"></i> {{ 'myProfile.changePhoto' | translate }}
+                <input type="file" accept="image/*" class="d-none" (change)="onImageSelected($event)" [disabled]="isSavingProfile()">
+              </label>
+              @if (avatarUrl()) {
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeCurrentImage()" [disabled]="isSavingProfile()">
+                  <i class="pe-7s-trash"></i> {{ 'myProfile.removePhoto' | translate }}
+                </button>
+              }
+            </div>
+            @if (imageError()) {
+              <div class="text-danger small mb-2">{{ imageError() }}</div>
+            }
+            @if (imageChanged()) {
+              <div class="text-warning small mb-2">{{ 'myProfile.photoNotSaved' | translate }}</div>
+            }
+
+            <h5 class="mb-1">{{ [p.firstName, p.lastName].join(' ').trim() || p.loginName }}</h5>
+            @if (roleName()) {
+              <span class="badge bg-primary mb-3">{{ roleName() }}</span>
+            }
+
+            <ul class="list-group list-group-flush text-start small">
+              <li class="list-group-item d-flex justify-content-between">
+                <span class="text-muted">{{ 'myProfile.loginName' | translate }}</span>
+                <strong dir="ltr">{{ p.loginName }}</strong>
+              </li>
+              <li class="list-group-item d-flex justify-content-between">
+                <span class="text-muted">{{ 'myProfile.lastLogin' | translate }}</span>
+                <span>{{ p.lastLogin ? (p.lastLogin | date: 'medium') : '—' }}</span>
+              </li>
+              @if (p.isEmployee) {
+                <li class="list-group-item text-muted">
+                  <i class="pe-7s-info"></i> {{ 'myProfile.employeeSyncHint' | translate }}
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <!-- Profile info -->
+        <div class="card mb-3">
+          <div class="card-header">{{ 'myProfile.personalInfo' | translate }}</div>
+          <div class="card-body">
+            @if (profileSuccess()) {
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ profileSuccess() }}
+                <button type="button" class="btn-close" (click)="profileSuccess.set(null)"></button>
+              </div>
+            }
+            @if (profileError()) {
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ profileError() }}
+                <button type="button" class="btn-close" (click)="profileError.set(null)"></button>
+              </div>
+            }
+
+            <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="firstName" class="form-label">{{ 'myProfile.firstName' | translate }} <span class="text-danger">*</span></label>
+                  <input type="text" id="firstName" class="form-control" formControlName="firstName"
+                         [class.is-invalid]="hasError(profileForm, 'firstName', 'required') || hasError(profileForm, 'firstName', 'maxlength')" />
+                  @if (hasError(profileForm, 'firstName', 'required')) {
+                    <div class="invalid-feedback">{{ 'myProfile.firstNameRequired' | translate }}</div>
+                  }
+                  @if (hasError(profileForm, 'firstName', 'maxlength')) {
+                    <div class="invalid-feedback">{{ 'myProfile.maxLength' | translate: { max: 100 } }}</div>
+                  }
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="lastName" class="form-label">{{ 'myProfile.lastName' | translate }} <span class="text-danger">*</span></label>
+                  <input type="text" id="lastName" class="form-control" formControlName="lastName"
+                         [class.is-invalid]="hasError(profileForm, 'lastName', 'required') || hasError(profileForm, 'lastName', 'maxlength')" />
+                  @if (hasError(profileForm, 'lastName', 'required')) {
+                    <div class="invalid-feedback">{{ 'myProfile.lastNameRequired' | translate }}</div>
+                  }
+                  @if (hasError(profileForm, 'lastName', 'maxlength')) {
+                    <div class="invalid-feedback">{{ 'myProfile.maxLength' | translate: { max: 100 } }}</div>
+                  }
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="email" class="form-label">{{ 'myProfile.email' | translate }} <span class="text-danger">*</span></label>
+                  <input type="email" id="email" class="form-control" dir="ltr" formControlName="email"
+                         [class.is-invalid]="hasError(profileForm, 'email', 'required') || hasError(profileForm, 'email', 'email')" />
+                  @if (hasError(profileForm, 'email', 'required')) {
+                    <div class="invalid-feedback">{{ 'myProfile.emailRequired' | translate }}</div>
+                  }
+                  @if (hasError(profileForm, 'email', 'email')) {
+                    <div class="invalid-feedback">{{ 'myProfile.emailInvalid' | translate }}</div>
+                  }
+                  <div class="form-text">{{ 'myProfile.emailHint' | translate }}</div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label for="phoneNumber" class="form-label">{{ 'myProfile.phoneNumber' | translate }}</label>
+                  <input type="tel" id="phoneNumber" class="form-control" dir="ltr" formControlName="phoneNumber"
+                         [class.is-invalid]="hasError(profileForm, 'phoneNumber', 'maxlength')" />
+                  @if (hasError(profileForm, 'phoneNumber', 'maxlength')) {
+                    <div class="invalid-feedback">{{ 'myProfile.maxLength' | translate: { max: 50 } }}</div>
+                  }
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="address" class="form-label">{{ 'myProfile.address' | translate }}</label>
+                <input type="text" id="address" class="form-control" formControlName="address"
+                       [class.is-invalid]="hasError(profileForm, 'address', 'maxlength')" />
+                @if (hasError(profileForm, 'address', 'maxlength')) {
+                  <div class="invalid-feedback">{{ 'myProfile.maxLength' | translate: { max: 500 } }}</div>
+                }
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"
+                        [disabled]="!profileForm.valid || isSavingProfile() || (!profileForm.dirty && !imageChanged())">
+                  @if (isSavingProfile()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  }
+                  {{ 'myProfile.saveProfile' | translate }}
+                </button>
+                <button type="button" class="btn btn-secondary" (click)="resetProfile()"
+                        [disabled]="isSavingProfile() || (!profileForm.dirty && !imageChanged())">
+                  {{ 'myProfile.discard' | translate }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Change password -->
+        <div class="card mb-3" id="change-password">
+          <div class="card-header">{{ 'myProfile.changePassword' | translate }}</div>
+          <div class="card-body">
+            @if (passwordSuccess()) {
+              <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ passwordSuccess() }}
+                <button type="button" class="btn-close" (click)="passwordSuccess.set(null)"></button>
+              </div>
+            }
+            @if (passwordError()) {
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ passwordError() }}
+                <button type="button" class="btn-close" (click)="passwordError.set(null)"></button>
+              </div>
+            }
+
+            <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label for="currentPassword" class="form-label">{{ 'myProfile.currentPassword' | translate }} <span class="text-danger">*</span></label>
+                  <input [type]="showPasswords() ? 'text' : 'password'" id="currentPassword" class="form-control" dir="ltr"
+                         autocomplete="current-password" formControlName="currentPassword"
+                         [class.is-invalid]="hasError(passwordForm, 'currentPassword', 'required')" />
+                  @if (hasError(passwordForm, 'currentPassword', 'required')) {
+                    <div class="invalid-feedback">{{ 'myProfile.currentPasswordRequired' | translate }}</div>
+                  }
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="newPassword" class="form-label">{{ 'myProfile.newPassword' | translate }} <span class="text-danger">*</span></label>
+                  <input [type]="showPasswords() ? 'text' : 'password'" id="newPassword" class="form-control" dir="ltr"
+                         autocomplete="new-password" formControlName="newPassword"
+                         [class.is-invalid]="hasError(passwordForm, 'newPassword', 'required') || hasError(passwordForm, 'newPassword', 'minlength')" />
+                  @if (hasError(passwordForm, 'newPassword', 'required')) {
+                    <div class="invalid-feedback">{{ 'myProfile.newPasswordRequired' | translate }}</div>
+                  }
+                  @if (hasError(passwordForm, 'newPassword', 'minlength')) {
+                    <div class="invalid-feedback">{{ 'myProfile.passwordMinLength' | translate: { min: passwordMinLength } }}</div>
+                  }
+                </div>
+                <div class="col-md-4 mb-3">
+                  <label for="confirmPassword" class="form-label">{{ 'myProfile.confirmPassword' | translate }} <span class="text-danger">*</span></label>
+                  <input [type]="showPasswords() ? 'text' : 'password'" id="confirmPassword" class="form-control" dir="ltr"
+                         autocomplete="new-password" formControlName="confirmPassword"
+                         [class.is-invalid]="passwordMismatch || hasError(passwordForm, 'confirmPassword', 'required')" />
+                  @if (hasError(passwordForm, 'confirmPassword', 'required')) {
+                    <div class="invalid-feedback">{{ 'myProfile.confirmPasswordRequired' | translate }}</div>
+                  } @else if (passwordMismatch) {
+                    <div class="invalid-feedback">{{ 'myProfile.passwordMismatch' | translate }}</div>
+                  }
+                </div>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="showPasswords" [checked]="showPasswords()" (change)="togglePasswords()">
+                <label class="form-check-label" for="showPasswords">{{ 'myProfile.showPasswords' | translate }}</label>
+              </div>
+
+              <button type="submit" class="btn btn-warning" [disabled]="!passwordForm.valid || isChangingPassword()">
+                @if (isChangingPassword()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                }
+                <i class="pe-7s-key"></i> {{ 'myProfile.changePassword' | translate }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

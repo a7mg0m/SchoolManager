@@ -10,7 +10,11 @@ namespace SchoolManager.Management.Application
             RuleFor(x => x.FullNameAr).NotEmpty().WithMessage("FullNameArRequired");
             RuleFor(x => x.FullNameEn).NotEmpty().WithMessage("FullNameEnRequired");
             RuleFor(x => x.PhoneNumber).NotEmpty().WithMessage("PhoneNumberRequired");
-            RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.Email)).WithMessage("EmailInvalid");
+            // Required: the teacher's login User in the Identity service needs a unique email
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("EmailRequired")
+                .EmailAddress().WithMessage("EmailInvalid")
+                .MaximumLength(256);
             RuleFor(x => x.Address).NotEmpty().WithMessage("AddressRequired");
         }
     }

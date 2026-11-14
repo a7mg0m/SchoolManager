@@ -1,0 +1,236 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'employees.title' | translate }}</h2>
+      @if (!isLoading() && employees().length > 0) {
+        <small class="text-muted">
+          {{ 'employees.total' | translate }}: {{ stats().total }}
+          · <span class="text-success">{{ 'common.active' | translate }}: {{ stats().active }}</span>
+          · {{ 'common.inactive' | translate }}: {{ stats().inactive }}
+        </small>
+      }
+    </div>
+    <div class="col-md-6 text-end">
+      <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="isLoading()">
+        <i class="pe-7s-plus"></i> {{ 'employees.newEmployee' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Filters -->
+  @if (!isLoading() && employees().length > 0) {
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-5">
+            <label for="employeeSearch" class="form-label">{{ 'common.search' | translate }}</label>
+            <input
+              id="employeeSearch"
+              type="search"
+              class="form-control"
+              [placeholder]="'employees.searchPlaceholder' | translate"
+              [value]="search()"
+              (input)="onSearch($event)"
+            />
+          </div>
+          <div class="col-md-3">
+            <label for="groupFilter" class="form-label">{{ 'employees.group' | translate }}</label>
+            <select id="groupFilter" class="form-select" [value]="groupFilter()" (change)="onGroupFilterChange($event)">
+              <option value="">{{ 'employees.allGroups' | translate }}</option>
+              @for (group of groups(); track group.id) {
+                <option [value]="group.id" [selected]="group.id === groupFilter()">{{ getGroupOptionName(group) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="statusFilter" class="form-label">{{ 'common.status' | translate }}</label>
+            <select id="statusFilter" class="form-select" [value]="statusFilter()" (change)="onStatusFilterChange($event)">
+              <option value="">{{ 'employees.allStatuses' | translate }}</option>
+              <option value="active">{{ 'common.active' | translate }}</option>
+              <option value="inactive">{{ 'common.inactive' | translate }}</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="button" class="btn btn-outline-secondary w-100" (click)="clearFilters()" [disabled]="!hasFilters()">
+              {{ 'employees.clearFilters' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && employees().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-id text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'employees.noEmployees' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'employees.newEmployee' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- No Filter Results -->
+  @if (!isLoading() && employees().length > 0 && filteredEmployees().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-filter text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'employees.noMatchingEmployees' | translate }}</p>
+        <button class="btn btn-outline-secondary" (click)="clearFilters()">
+          {{ 'employees.clearFilters' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Employees Table -->
+  @if (!isLoading() && filteredEmployees().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'employees.fullName' | translate }}</th>
+                <th>{{ 'employees.nationalId' | translate }}</th>
+                <th>{{ 'employees.jobTitle' | translate }}</th>
+                <th>{{ 'employees.group' | translate }}</th>
+                <th>{{ 'employees.contact' | translate }}</th>
+                <th>{{ 'employees.loginName' | translate }}</th>
+                <th>{{ 'employees.hireDate' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (employee of filteredEmployees(); track employee.id) {
+                <tr>
+                  <td>
+                    <strong>{{ getName(employee) }}</strong>
+                    <small class="text-muted d-block" [attr.dir]="currentLanguage() === 'ar' ? 'ltr' : 'rtl'">
+                      {{ currentLanguage() === 'ar' ? employee.fullNameEn : employee.fullNameAr }}
+                    </small>
+                  </td>
+                  <td class="text-nowrap">{{ employee.nationalId }}</td>
+                  <td>{{ employee.jobTitle }}</td>
+                  <td>{{ getGroupName(employee) }}</td>
+                  <td class="text-nowrap">
+                    <span dir="ltr">{{ employee.phoneNumber }}</span>
+                    @if (employee.email) {
+                      <small class="text-muted d-block">{{ employee.email }}</small>
+                    }
+                  </td>
+                  <td>
+                    @if (employee.loginName) {
+                      <span class="badge bg-info text-dark"><i class="pe-7s-key"></i> {{ employee.loginName }}</span>
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td class="text-nowrap">{{ employee.hireDate | date: 'mediumDate' }}</td>
+                  <td>
+                    @if (employee.isActive) {
+                      <span class="badge bg-success">{{ 'common.active' | translate }}</span>
+                    } @else {
+                      <span class="badge bg-light text-muted">{{ 'common.inactive' | translate }}</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-primary"
+                        (click)="navigateToEdit(employee.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting() || togglingId() === employee.id"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn"
+                        [class.btn-outline-warning]="employee.isActive"
+                        [class.btn-outline-success]="!employee.isActive"
+                        (click)="toggleActive(employee)"
+                        title="{{ (employee.isActive ? 'common.deactivate' : 'common.activate') | translate }}"
+                        [disabled]="isDeleting() || !!togglingId()"
+                      >
+                        @if (togglingId() === employee.id) {
+                          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        } @else {
+                          <i [class]="employee.isActive ? 'pe-7s-lock' : 'pe-7s-unlock'"></i>
+                        }
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        (click)="openDeleteConfirmation(employee, deleteModal)"
+                        title="{{ 'common.delete' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'employees.deleteEmployee' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelDelete()" [disabled]="isDeleting()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-1">{{ 'employees.confirmDeleteEmployee' | translate }}</p>
+    @if (employeeToDelete(); as employee) {
+      <strong>{{ getName(employee) }}</strong>
+    }
+    <div class="alert alert-warning mt-3 mb-0 py-2">
+      <i class="pe-7s-attention"></i> {{ 'employees.deleteAlsoDeletesUser' | translate }}
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

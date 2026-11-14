@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
-import { LoginRequest, LoginResponse, LoginData } from '../models';
+import { LoginRequest, LoginResponse, UserInfo, UserProfile } from '../models';
 
 /**
  * Authentication Service
@@ -23,12 +23,15 @@ export class AuthService {
   private readonly TOKEN_KEY = 'token';
   private readonly LOGIN_NAME_KEY = 'loginName';
   private readonly USER_ID_KEY = 'userId';
+  /** JSON of UserInfo (userId, loginName, userProfile) */
+  private readonly USER_INFO_KEY = 'userInfo';
   readonly NOT_AUTHORIZED_URL = '/not-authorized';
 
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  private currentUserSubject = new BehaviorSubject<Partial<LoginData> | null>(this.loadStoredUserInfo());
+  /** Logged-in user (with profile), or null when signed out */
+  private currentUserSubject = new BehaviorSubject<UserInfo | null>(this.loadStoredUserInfo());
   public currentUser$ = this.currentUserSubject.asObservable();
 
   constructor(
@@ -78,7 +81,7 @@ export class AuthService {
       tap((response: LoginResponse) => {
         // Validate response structure
         if (response.status === 200 && response.data) {
-          const { token, loginName, userId } = response.data;
+          const { token, loginName, userId, userProfile } = response.data;
 
           // Validate required fields exist
           if (!token || !loginName || !userId) {
@@ -90,12 +93,10 @@ export class AuthService {
           localStorage.setItem(this.LOGIN_NAME_KEY, loginName);
           localStorage.setItem(this.USER_ID_KEY, userId);
 
-          // Update user info subject
-          this.currentUserSubject.next({
-            userId,
-            loginName,
-            token
-          });
+          // Store and publish the user info (with profile)
+          const userInfo: UserInfo = { userId, loginName, userProfile: userProfile ?? null };
+          this.saveUserInfo(userInfo);
+          this.currentUserSubject.next(userInfo);
 
           // Update authentication state
           this.isAuthenticatedSubject.next(true);
@@ -139,6 +140,7 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.LOGIN_NAME_KEY);
     localStorage.removeItem(this.USER_ID_KEY);
+    localStorage.removeItem(this.USER_INFO_KEY);
 
     this.isAuthenticatedSubject.next(false);
     this.currentUserSubject.next(null);
@@ -244,11 +246,89 @@ export class AuthService {
   }
 
   /**
-   * Get current user information
+   * Get current user information (userId, loginName, userProfile)
    * @returns User info object or null if not authenticated
    */
-  getCurrentUser(): Partial<LoginData> | null {
+  getCurrentUser(): UserInfo | null {
     return this.currentUserSubject.value;
+  }
+
+  /**
+   * Get the logged-in user's profile
+   * @returns Profile or null (not authenticated, or the user has no profile)
+   */
+  getUserProfile(): UserProfile | null {
+    return this.currentUserSubject.value?.userProfile ?? null;
+  }
+
+  /**
+   * Name to show for the logged-in user: "First Last" from the profile, else the login name
+   */
+  getDisplayName(): string | null {
+    const user = this.currentUserSubject.value;
+    if (!user) {
+      return this.getLoginName();
+    }
+    const fullName = [user.userProfile?.firstName, user.userProfile?.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    return fullName || user.loginName;
+  }
+
+  /**
+   * Profile image as a data URL for <img src>, or null when there is no image
+   */
+  getProfileImageUrl(): string | null {
+    const image = this.getUserProfile()?.profileImage;
+    if (!image) {
+      return null;
+    }
+    return image.startsWith('data:') ? image : `data:${this.detectImageType(image)};base64,${image}`;
+  }
+
+  /**
+   * Replace the stored profile (e.g. after the user edits it) and notify subscribers
+   */
+  updateUserProfile(userProfile: UserProfile | null): void {
+    const user = this.currentUserSubject.value;
+    if (!user) {
+      return;
+    }
+    const updated: UserInfo = { ...user, userProfile };
+    this.saveUserInfo(updated);
+    this.currentUserSubject.next(updated);
+  }
+
+  /**
+   * Save user info to localStorage. A large profile image can exceed the storage quota;
+   * in that case the info is saved without the image (it stays available in memory).
+   */
+  private saveUserInfo(userInfo: UserInfo): void {
+    try {
+      localStorage.setItem(this.USER_INFO_KEY, JSON.stringify(userInfo));
+    } catch {
+      try {
+        const withoutImage: UserInfo = userInfo.userProfile
+          ? { ...userInfo, userProfile: { ...userInfo.userProfile, profileImage: null } }
+          : userInfo;
+        localStorage.setItem(this.USER_INFO_KEY, JSON.stringify(withoutImage));
+      } catch {
+        console.error('Failed to store user info');
+      }
+    }
+  }
+
+  /**
+   * Guess the image MIME type from the first base64 characters (magic bytes)
+   */
+  private detectImageType(base64: string): string {
+    if (base64.startsWith('/9j/')) return 'image/jpeg';
+    if (base64.startsWith('iVBORw0KGgo')) return 'image/png';
+    if (base64.startsWith('R0lGOD')) return 'image/gif';
+    if (base64.startsWith('UklGR')) return 'image/webp';
+    if (base64.startsWith('PHN2Zy') || base64.startsWith('PD94bW')) return 'image/svg+xml';
+    return 'image/png';
   }
 
   /**
@@ -263,16 +343,27 @@ export class AuthService {
    * Load user information from localStorage
    * @returns User info object or null if not found
    */
-  private loadStoredUserInfo(): Partial<LoginData> | null {
+  private loadStoredUserInfo(): UserInfo | null {
     try {
       const token = localStorage.getItem(this.TOKEN_KEY);
       const userId = localStorage.getItem(this.USER_ID_KEY);
       const loginName = localStorage.getItem(this.LOGIN_NAME_KEY);
 
-      if (token && userId && loginName && !this.isTokenExpired(token)) {
-        return { token, userId, loginName };
+      if (!token || !userId || !loginName || this.isTokenExpired(token)) {
+        return null;
       }
-      return null;
+
+      // Profile saved at login; ignored if it belongs to another user (stale data)
+      let userProfile: UserProfile | null = null;
+      const stored = localStorage.getItem(this.USER_INFO_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as Partial<UserInfo>;
+        if (parsed?.userId === userId) {
+          userProfile = parsed.userProfile ?? null;
+        }
+      }
+
+      return { userId, loginName, userProfile };
     } catch (e) {
       console.error('Failed to load stored user info');
       return null;

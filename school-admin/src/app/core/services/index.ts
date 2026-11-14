@@ -19,3 +19,6 @@ export * from './school-event.service';
 export * from './notification.service';
 export * from './exam.service';
 export * from './exam-result.service';
+export * from './employee-group.service';
+export * from './employee.service';
+export * from './my-profile.service';

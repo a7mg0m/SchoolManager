@@ -31,6 +31,16 @@ namespace SchoolManager.Identity.Domain
             LastLogin = lastLogin;
             AuditInfo = auditInfo;
         }
+        /// <summary>
+        /// User with a given id, e.g. a teacher's login uses the teacher's id from the Management service,
+        /// so both are linked without a mapping table.
+        /// </summary>
+        public User(Guid id, string loginName, string email, string passwordHash, bool isActive, bool isReserved, DateTime? lastLogin, Guid roleId, AuditInfo auditInfo)
+            : this(loginName, email, passwordHash, isActive, isReserved, lastLogin, roleId, auditInfo)
+        {
+            Id = id;
+        }
+
         public void Update(string loginName, string email, Guid roleId, AuditInfo audit)
         {
             RoleId = roleId;

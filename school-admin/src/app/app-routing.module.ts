@@ -53,7 +53,14 @@ import {
   // Exam components
   ExamListComponent,
   ExamSaveComponent,
-  ExamResultsComponent
+  ExamResultsComponent,
+
+  // Users components
+  EmployeeGroupListComponent,
+  EmployeeGroupSaveComponent,
+  EmployeeListComponent,
+  EmployeeSaveComponent,
+  MyProfileComponent
 } from './components.barrel';
 
 // Import user pages
@@ -146,6 +153,17 @@ const routes: Routes = [
       {path: 'exam/exams/save', component: ExamSaveComponent, data: {extraParameter: 'examMenu'}},
       {path: 'exam/exams/save/:id', component: ExamSaveComponent, data: {extraParameter: 'examMenu'}},
       {path: 'exam/exams/:id/results', component: ExamResultsComponent, data: {extraParameter: 'examMenu'}},
+
+      // Users
+      {path: 'users/employee-groups', component: EmployeeGroupListComponent, data: {extraParameter: 'usersMenu'}},
+      {path: 'users/employee-groups/save', component: EmployeeGroupSaveComponent, data: {extraParameter: 'usersMenu'}},
+      {path: 'users/employee-groups/save/:id', component: EmployeeGroupSaveComponent, data: {extraParameter: 'usersMenu'}},
+      {path: 'users/employees', component: EmployeeListComponent, data: {extraParameter: 'usersMenu'}},
+      {path: 'users/employees/save', component: EmployeeSaveComponent, data: {extraParameter: 'usersMenu'}},
+      {path: 'users/employees/save/:id', component: EmployeeSaveComponent, data: {extraParameter: 'usersMenu'}},
+
+      // My profile (opened from the header user box)
+      {path: 'my-profile', component: MyProfileComponent},
     ]
   },
   {

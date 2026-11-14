@@ -1,0 +1,219 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'employeeGroups.title' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        (click)="navigateToCreate()"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'employeeGroups.newGroup' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Filters -->
+  @if (!isLoading() && groups().length > 0) {
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label for="groupSearch" class="form-label">{{ 'common.search' | translate }}</label>
+            <input
+              id="groupSearch"
+              type="search"
+              class="form-control"
+              [placeholder]="'employeeGroups.searchPlaceholder' | translate"
+              [value]="search()"
+              (input)="onSearch($event)"
+            />
+          </div>
+          <div class="col-md-4">
+            <label for="statusFilter" class="form-label">{{ 'common.status' | translate }}</label>
+            <select
+              id="statusFilter"
+              class="form-select"
+              [value]="statusFilter()"
+              (change)="onStatusFilterChange($event)"
+            >
+              <option value="">{{ 'employeeGroups.allStatuses' | translate }}</option>
+              <option value="active">{{ 'common.active' | translate }}</option>
+              <option value="inactive">{{ 'common.inactive' | translate }}</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button
+              type="button"
+              class="btn btn-outline-secondary w-100"
+              (click)="clearFilters()"
+              [disabled]="!hasFilters()"
+            >
+              {{ 'employeeGroups.clearFilters' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && groups().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-users text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'employeeGroups.noGroups' | translate }}</p>
+        <button class="btn btn-primary" (click)="navigateToCreate()">
+          {{ 'employeeGroups.newGroup' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- No Filter Results -->
+  @if (!isLoading() && groups().length > 0 && filteredGroups().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-filter text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'employeeGroups.noMatchingGroups' | translate }}</p>
+        <button class="btn btn-outline-secondary" (click)="clearFilters()">
+          {{ 'employeeGroups.clearFilters' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Groups Table -->
+  @if (!isLoading() && filteredGroups().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'common.nameAr' | translate }}</th>
+                <th>{{ 'common.nameEn' | translate }}</th>
+                <th>{{ 'employeeGroups.description' | translate }}</th>
+                <th class="text-center">{{ 'employeeGroups.employeesCount' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (group of filteredGroups(); track group.id) {
+                <tr>
+                  <td dir="rtl"><strong>{{ group.nameAr }}</strong></td>
+                  <td dir="ltr"><strong>{{ group.nameEn }}</strong></td>
+                  <td class="text-muted description-cell">{{ group.description || '—' }}</td>
+                  <td class="text-center">
+                    <a [routerLink]="['/users/employees']" [queryParams]="{ groupId: group.id }"
+                       class="badge bg-secondary text-decoration-none"
+                       [title]="'employeeGroups.viewEmployees' | translate">{{ group.employeesCount }}</a>
+                  </td>
+                  <td>
+                    @if (group.isActive) {
+                      <span class="badge bg-success">{{ 'common.active' | translate }}</span>
+                    } @else {
+                      <span class="badge bg-light text-muted">{{ 'common.inactive' | translate }}</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-primary"
+                        (click)="navigateToEdit(group.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting() || togglingId() === group.id"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn"
+                        [class.btn-outline-warning]="group.isActive"
+                        [class.btn-outline-success]="!group.isActive"
+                        (click)="toggleActive(group)"
+                        title="{{ (group.isActive ? 'common.deactivate' : 'common.activate') | translate }}"
+                        [disabled]="isDeleting() || !!togglingId()"
+                      >
+                        @if (togglingId() === group.id) {
+                          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        } @else {
+                          <i [class]="group.isActive ? 'pe-7s-lock' : 'pe-7s-unlock'"></i>
+                        }
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        (click)="openDeleteConfirmation(group, deleteModal)"
+                        [title]="(group.employeesCount > 0 ? 'employeeGroups.cannotDeleteHasEmployees' : 'common.delete') | translate"
+                        [disabled]="isDeleting() || group.employeesCount > 0"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'employeeGroups.deleteGroup' | translate }}</h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      (click)="cancelDelete()"
+      [disabled]="isDeleting()"
+    ></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-1">{{ 'employeeGroups.confirmDeleteGroup' | translate }}</p>
+    @if (groupToDelete(); as group) {
+      <strong>{{ getName(group) }}</strong>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

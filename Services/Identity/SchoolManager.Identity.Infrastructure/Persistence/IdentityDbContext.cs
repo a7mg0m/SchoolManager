@@ -12,6 +12,9 @@ namespace SchoolManager.Identity.Infrastructure
         public DbSet<User> Users => Set<User>();
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
+        public DbSet<EmployeeGroup> EmployeeGroups => Set<EmployeeGroup>();
+        public DbSet<Employee> Employees => Set<Employee>();
+        public DbSet<MenuItem> MenuItems => Set<MenuItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

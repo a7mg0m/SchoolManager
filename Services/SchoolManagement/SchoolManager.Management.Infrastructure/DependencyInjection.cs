@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks;
+using BuildingBlocks.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,11 @@ namespace SchoolManager.Management.Infrastructure
             services.AddScoped<ITimetableRepository, TimetableRepository>();
             services.AddScoped<ITimetableSlotRepository, TimetableSlotRepository>();
 			services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Kafka: events are stored in the outbox with the business change, then published in the background
+            services.AddKafkaPublisher(configuration);
+            services.AddScoped<IIntegrationEventOutbox, IntegrationEventOutbox>();
+            services.AddHostedService<OutboxPublisherService>();
 
 			return services;
 		}

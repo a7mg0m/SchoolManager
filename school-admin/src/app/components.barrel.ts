@@ -46,3 +46,10 @@ export { NotificationTargetsComponent } from './notification/notifications/notif
 export { ExamListComponent } from './exam/exams/exam-list.component';
 export { ExamSaveComponent } from './exam/exams/exam-save.component';
 export { ExamResultsComponent } from './exam/exam-results/exam-results.component';
+
+// Users components
+export { EmployeeGroupListComponent } from './users/employee-groups/employee-group-list.component';
+export { EmployeeGroupSaveComponent } from './users/employee-groups/employee-group-save.component';
+export { EmployeeListComponent } from './users/employees/employee-list.component';
+export { EmployeeSaveComponent } from './users/employees/employee-save.component';
+export { MyProfileComponent } from './users/my-profile/my-profile.component';

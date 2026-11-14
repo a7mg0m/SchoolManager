@@ -4,17 +4,26 @@ using SchoolManager.Identity.Domain;
 
 namespace SchoolManager.Identity.Application
 {
+    /// <summary>
+    /// Updates a user profile (admin) and syncs the change to the User email and the linked Employee.
+    /// </summary>
     public class UpdateUserProfileCommandHandler : ICommandHandler<UpdateUserProfileCommand, bool>
     {
         private readonly IUserProfileRepository _repository;
+        private readonly ProfileSyncService _profileSync;
         private readonly IUnitOfWork _unitOfWork;
 
         private readonly ICurrentUserService _currentUser;
 
-        public UpdateUserProfileCommandHandler(ICurrentUserService currentUser, IUserProfileRepository repository, IUnitOfWork unitOfWork)
+        public UpdateUserProfileCommandHandler(
+            ICurrentUserService currentUser,
+            IUserProfileRepository repository,
+            ProfileSyncService profileSync,
+            IUnitOfWork unitOfWork)
         {
             _currentUser = currentUser;
             _repository = repository;
+            _profileSync = profileSync;
             _unitOfWork = unitOfWork;
         }
 
@@ -25,16 +34,22 @@ namespace SchoolManager.Identity.Application
             if (profile is null)
                 return false;
 
-            profile.Update(
-                request.FirstName,
-                request.LastName,
-                request.Email,
-                request.PhoneNumber,
-                request.Address,
-                request.ProfileImage,
-                new AuditInfo(DateTime.Now, _currentUser.UserId));
+            var email = request.Email.Trim();
+            await _profileSync.EnsureEmailAvailableAsync(profile.UserId, email);
 
-            await _unitOfWork.SaveChangesAsync();
+            profile.Update(
+                request.FirstName.Trim(),
+                request.LastName.Trim(),
+                email,
+                request.PhoneNumber?.Trim() ?? string.Empty,
+                request.Address?.Trim() ?? string.Empty,
+                request.ProfileImage,
+                // Keep the original CreatedOn / CreatedBy
+                profile.AuditInfo.Updated(DateTime.Now, _currentUser.UserId));
+
+            await _profileSync.SyncAsync(profile);
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return true;
         }

@@ -13,11 +13,43 @@ namespace SchoolManager.Identity.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly FluentValidation.IValidator<ChangePasswordCommand> _changePasswordValidator;
 
-        public UsersController(IMediator mediator, IMapper mapper)
+        public UsersController(IMediator mediator, IMapper mapper, FluentValidation.IValidator<ChangePasswordCommand> changePasswordValidator)
         {
             _mediator = mediator;
             _mapper = mapper;
+            _changePasswordValidator = changePasswordValidator;
+        }
+
+        /// <summary>Change the logged-in user's password (user id is taken from the JWT).</summary>
+        [Authorize]
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto, CancellationToken cancellationToken)
+        {
+            var command = new ChangePasswordCommand(dto.CurrentPassword ?? string.Empty, dto.NewPassword ?? string.Empty);
+
+            var validation = await _changePasswordValidator.ValidateAsync(command, cancellationToken);
+            if (!validation.IsValid)
+            {
+                var errors = validation.Errors.Select(e => e.ErrorMessage).Distinct().ToList();
+                return BadRequest(new ApiResponse(400, errors.First()) { errors = errors });
+            }
+
+            try
+            {
+                await _mediator.Send(command, cancellationToken);
+                return Ok(new ApiResponse { message = "PasswordChanged" });
+            }
+            catch (DomainException ex) when (ex.Message == ErrorKeys.UserNotAuthenticated)
+            {
+                return Unauthorized(new ApiResponse(401, ex.Message));
+            }
+            catch (DomainException ex)
+            {
+                // CurrentPasswordInvalid is a 400 (not 401) so the app does not log the user out
+                return BadRequest(new ApiResponse(400, ex.Message));
+            }
         }
         [HttpGet("get-all")]
         public async Task<ActionResult<List<UserDto>>> GetAll(CancellationToken cancellationToken)

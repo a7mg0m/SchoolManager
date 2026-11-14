@@ -23,6 +23,9 @@ namespace SchoolManager.Management.Infrastructure
         public DbSet<Timetable> Timetables => Set<Timetable>();
         public DbSet<TimetableSlot> TimetableSlots => Set<TimetableSlot>();
 
+        /// <summary>Integration events waiting to be published to Kafka (transactional outbox).</summary>
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.ApplyConfigurationsFromAssembly(typeof(ManagementDbContext).Assembly);

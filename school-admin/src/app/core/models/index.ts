@@ -19,3 +19,6 @@ export * from './school-event.model';
 export * from './notification.model';
 export * from './exam.model';
 export * from './exam-result.model';
+export * from './employee-group.model';
+export * from './employee.model';
+export * from './my-profile.model';
