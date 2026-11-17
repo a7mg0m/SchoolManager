@@ -1,6 +1,6 @@
 {
-    "name": "school_manager_parent_app",
-    "short_name": "school_manager_parent_app",
+    "name": "smart_school_parent",
+    "short_name": "smart_school_parent",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

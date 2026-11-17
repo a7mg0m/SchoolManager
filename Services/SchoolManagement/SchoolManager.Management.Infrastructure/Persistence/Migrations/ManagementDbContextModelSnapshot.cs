@@ -167,12 +167,20 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("LoginName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LoginName")
+                        .IsUnique()
+                        .HasFilter("[LoginName] IS NOT NULL");
 
                     b.ToTable("Parents", (string)null);
                 });

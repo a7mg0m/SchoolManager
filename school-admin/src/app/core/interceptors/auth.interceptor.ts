@@ -74,6 +74,20 @@ export class AuthInterceptor implements HttpInterceptor {
    * Public endpoints don't require authentication headers
    */
   private isPublicEndpoint(url: string): boolean {
-    return this.publicEndpoints.some(endpoint => url.includes(endpoint));
+    // Compare the whole path: a "contains" check also matched e.g. /api/user/login-name-available
+    const path = this.pathOf(url);
+    return this.publicEndpoints.some(endpoint => path === endpoint);
+  }
+
+  /** "http://host:53607/api/user/login/?x=1" -> "/api/user/login" (lower case) */
+  private pathOf(url: string): string {
+    let path = url.split(/[?#]/)[0];
+    const gatewayUrl = environment.gatewayUrl?.replace(/\/+$/, '');
+    if (gatewayUrl && path.startsWith(gatewayUrl)) {
+      path = path.substring(gatewayUrl.length);
+    } else {
+      path = path.replace(/^https?:\/\/[^/]+/i, '');
+    }
+    return path.replace(/\/+$/, '').toLowerCase();
   }
 }

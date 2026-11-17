@@ -5,5 +5,8 @@ namespace BuildingBlocks.Messaging
     {
         /// <summary>Teacher created / updated / deleted in the Management service (key = teacher id).</summary>
         public const string ManagementTeachers = "management.teachers";
+
+        /// <summary>Parent created / updated / deleted in the Management service (key = parent id).</summary>
+        public const string ManagementParents = "management.parents";
     }
 }

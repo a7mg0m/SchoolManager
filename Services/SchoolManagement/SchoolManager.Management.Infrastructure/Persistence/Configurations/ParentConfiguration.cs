@@ -15,6 +15,8 @@ namespace SchoolManager.Management.Infrastructure
             builder.Property(x => x.PhoneNumber).IsRequired().HasMaxLength(50);
             builder.Property(x => x.Address).IsRequired().HasMaxLength(500);
             builder.Property(x => x.Email).HasMaxLength(256);
+            builder.Property(x => x.LoginName).HasMaxLength(100);
+            builder.HasIndex(x => x.LoginName).IsUnique().HasFilter("[LoginName] IS NOT NULL");
             builder.HasMany(x => x.Students).WithOne(s => s.Parent).HasForeignKey(s => s.ParentId).OnDelete(DeleteBehavior.Restrict);
             builder.ConfigureAudit(x => x.AuditInfo);
 		}

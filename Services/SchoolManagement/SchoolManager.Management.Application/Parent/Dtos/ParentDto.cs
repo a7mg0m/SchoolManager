@@ -8,6 +8,9 @@
         public string PhoneNumber { get; set; } = string.Empty;
         public string? Email { get; set; }
         public string Address { get; set; } = string.Empty;
+
+        /// <summary>Login name of the parent's account; null for parents saved before it existed (they use the phone number).</summary>
+        public string? LoginName { get; set; }
         public List<StudentDto> Students { get; set; } = new();
     }
 }

@@ -7,6 +7,7 @@ import {
   CreateParentRequest,
   UpdateParentRequest
 } from '../models/parent.model';
+import { ApiResponse } from '../models/stage.model';
 
 /**
  * Parent Service
@@ -64,6 +65,19 @@ export class ParentService {
       `${this.parentEndpoint}/update`,
       request
     );
+  }
+
+  /**
+   * Whether a login name is free in the Identity service (logins of employees, teachers and parents).
+   * The parent's own account (same id as the parent) is ignored.
+   * @returns Observable of response whose data is true when the name is free
+   */
+  isLoginNameAvailable(loginName: string, parentId?: string | null): Observable<ApiResponse<boolean>> {
+    const params = new URLSearchParams({ loginName });
+    if (parentId) {
+      params.set('userId', parentId);
+    }
+    return this.apiService.get<ApiResponse<boolean>>(`/api/user/login-name-available?${params.toString()}`);
   }
 
   /**

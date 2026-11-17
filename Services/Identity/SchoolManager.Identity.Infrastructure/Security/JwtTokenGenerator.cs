@@ -1,3 +1,4 @@
+using BuildingBlocks;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SchoolManager.Identity.Application;
@@ -17,15 +18,23 @@ namespace SchoolManager.Identity.Infrastructure
             _settings = options.Value;
         }
 
-        public string GenerateToken(User user)
+        public string GenerateToken(User user, UserProfile? profile = null)
         {
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.LoginName),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
+
+            // Who the user is in the school (read by ICurrentUserService in every service)
+            if (profile?.EmployeeId is Guid employeeId)
+                claims.Add(new Claim(AppClaimTypes.EmployeeId, employeeId.ToString()));
+            if (profile?.TeacherId is Guid teacherId)
+                claims.Add(new Claim(AppClaimTypes.TeacherId, teacherId.ToString()));
+            if (profile?.ParentId is Guid parentId)
+                claims.Add(new Claim(AppClaimTypes.ParentId, parentId.ToString()));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

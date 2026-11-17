@@ -25,7 +25,10 @@ namespace SchoolManager.Identity.Application
                 Email = p.Email,
                 PhoneNumber = p.PhoneNumber,
                 Address = p.Address,
-                ProfileImage = p.ProfileImage
+                ProfileImage = p.ProfileImage,
+                EmployeeId = p.EmployeeId,
+                TeacherId = p.TeacherId,
+                ParentId = p.ParentId
             }).ToList();
         }
     }

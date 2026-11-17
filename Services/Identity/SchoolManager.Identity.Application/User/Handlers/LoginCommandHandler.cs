@@ -48,10 +48,11 @@ namespace SchoolManager.Identity.Application
             user.RecordLogin(DateTime.Now);
             await _unitOfWork.SaveChangesAsync();
 
-            var token = _jwtTokenGenerator.GenerateToken(user);
-
             // One profile per user (unique index on UserProfiles.UserId)
             var profile = (await _profileRepository.SearchAsync(p => p.UserId == user.Id)).FirstOrDefault();
+
+            // Profile's employee / teacher / parent ids go into the token as claims
+            var token = _jwtTokenGenerator.GenerateToken(user, profile);
 
             return new LoginResultDto
             {

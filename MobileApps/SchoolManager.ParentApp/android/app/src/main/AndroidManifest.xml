@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Calls the school API -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="school_manager_parent_app"
+        android:usesCleartextTraffic="true"
+        android:label="smart_school_parent"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

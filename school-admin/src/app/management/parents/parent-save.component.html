@@ -116,6 +116,72 @@
         </div>
       </div>
 
+      <!-- ===== Login account (parent app) ===== -->
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">{{ 'parents.loginAccount' | translate }}</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">{{ 'parents.loginAccountHint' | translate }}</p>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="loginName" class="form-label">
+                {{ 'parents.loginName' | translate }} <span class="text-danger">*</span>
+              </label>
+              <input type="text" id="loginName" class="form-control" dir="ltr" autocomplete="off" formControlName="loginName"
+                     [class.is-invalid]="isInvalid('loginName')" />
+              @if (hasError('loginName', 'required')) {
+                <div class="invalid-feedback">{{ 'parents.loginNameRequired' | translate }}</div>
+              }
+              @if (hasError('loginName', 'minlength')) {
+                <div class="invalid-feedback">{{ 'parents.loginNameMinLength' | translate: { min: loginNameMinLength } }}</div>
+              }
+              @if (hasError('loginName', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'parents.loginNameMaxLength' | translate: { max: loginNameMaxLength } }}</div>
+              }
+              @if (hasError('loginName', 'taken')) {
+                <div class="invalid-feedback">{{ 'parents.loginNameExists' | translate }}</div>
+              }
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="password" class="form-label">
+                {{ (isEditMode() ? 'parents.newPassword' : 'parents.password') | translate }}
+                @if (!isEditMode()) { <span class="text-danger">*</span> }
+              </label>
+              <div class="input-group has-validation">
+                <input [type]="showPassword() ? 'text' : 'password'" id="password" class="form-control" dir="ltr"
+                       autocomplete="new-password" formControlName="password"
+                       [class.is-invalid]="hasError('password', 'required') || hasError('password', 'minlength')" />
+                <button type="button" class="btn btn-outline-secondary" (click)="togglePasswordVisibility()"
+                        [title]="(showPassword() ? 'parents.hidePassword' : 'parents.showPassword') | translate">
+                  <i [class]="showPassword() ? 'pe-7s-look' : 'pe-7s-less'"></i>
+                </button>
+                @if (hasError('password', 'required')) {
+                  <div class="invalid-feedback">{{ 'parents.passwordRequired' | translate }}</div>
+                }
+                @if (hasError('password', 'minlength')) {
+                  <div class="invalid-feedback">{{ 'parents.passwordMinLength' | translate: { min: passwordMinLength } }}</div>
+                }
+              </div>
+              @if (isEditMode()) {
+                <div class="form-text">{{ 'parents.keepPasswordHint' | translate }}</div>
+              }
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label for="confirmPassword" class="form-label">{{ 'parents.confirmPassword' | translate }}</label>
+              <input [type]="showPassword() ? 'text' : 'password'" id="confirmPassword" class="form-control" dir="ltr"
+                     autocomplete="new-password" formControlName="confirmPassword"
+                     [class.is-invalid]="passwordMismatch" />
+              @if (passwordMismatch) {
+                <div class="invalid-feedback">{{ 'parents.passwordMismatch' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ===== Students ===== -->
       <div class="card mb-4">
         <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">

@@ -47,7 +47,8 @@ namespace SchoolManager.Identity.Application
                 throw new DomainException(ErrorKeys.NationalIdExists);
 
             var data = EmployeeAccountData.From(command.FullNameEn, command.Email, command.PhoneNumber, command.Address, command.LoginName);
-            var user = await _accounts.UpdateOrCreateAsync(entity.UserId, data, command.Password, entity.IsActive);
+            var account = await _accounts.UpdateOrCreateAsync(entity.UserId, data, command.Password, entity.IsActive);
+            account.Profile.LinkEmployee(entity.Id);
 
             entity.Update(
                 new NameLocalized(command.FullNameAr.Trim(), command.FullNameEn.Trim()),
@@ -58,7 +59,7 @@ namespace SchoolManager.Identity.Application
                 command.JobTitle.Trim(),
                 command.HireDate,
                 command.EmployeeGroupId,
-                user.Id,
+                account.User.Id,
                 entity.AuditInfo.Updated(DateTime.Now, _currentUser.UserId));
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

@@ -19,6 +19,11 @@ namespace SchoolManager.Identity.Infrastructure
 
             builder.HasIndex(p => p.UserId).IsUnique();
 
+            // A person has at most one login: each linked id is unique when set
+            builder.HasIndex(p => p.EmployeeId).IsUnique().HasFilter("[EmployeeId] IS NOT NULL");
+            builder.HasIndex(p => p.TeacherId).IsUnique().HasFilter("[TeacherId] IS NOT NULL");
+            builder.HasIndex(p => p.ParentId).IsUnique().HasFilter("[ParentId] IS NOT NULL");
+
             builder.Property(p => p.FirstName).IsRequired().HasMaxLength(100);
             builder.Property(p => p.LastName).IsRequired().HasMaxLength(100);
             builder.Property(p => p.Email).IsRequired().HasMaxLength(256);

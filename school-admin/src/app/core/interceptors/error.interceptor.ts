@@ -133,8 +133,12 @@ export class ErrorInterceptor implements HttpInterceptor {
   }
 
   private isPublicAuthEndpoint(url: string | null): boolean {
-    return !!url && ['/api/user/login', '/api/user/register', '/api/user/forgot-password']
-      .some(endpoint => url.includes(endpoint));
+    if (!url) {
+      return false;
+    }
+    // Whole path only: "contains" also matched e.g. /api/user/login-name-available
+    const path = url.split(/[?#]/)[0].replace(/^https?:\/\/[^/]+/i, '').replace(/\/+$/, '').toLowerCase();
+    return ['/api/user/login', '/api/user/register', '/api/user/forgot-password'].includes(path);
   }
 
   /**

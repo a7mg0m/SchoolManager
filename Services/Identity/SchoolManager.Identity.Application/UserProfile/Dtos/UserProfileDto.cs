@@ -10,5 +10,10 @@ namespace SchoolManager.Identity.Application
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
         public byte[]? ProfileImage { get; set; }
+
+        /// <summary>Linked employee, teacher and parent (null when the user is not one).</summary>
+        public Guid? EmployeeId { get; set; }
+        public Guid? TeacherId { get; set; }
+        public Guid? ParentId { get; set; }
     }
 }

@@ -12,6 +12,13 @@ namespace SchoolManager.Management.Domain
         public string? Email { get; private set; }
         public string Address { get; private set; }
 
+        /// <summary>
+        /// Login name of the parent's account in the Identity service (synced through Kafka).
+        /// Null for parents saved before it existed; their login name is the phone number.
+        /// The password is never stored here.
+        /// </summary>
+        public string? LoginName { get; private set; }
+
         public AuditInfo AuditInfo { get; private set; }
 
         public List<Student> Students { get; private set; } = new();
@@ -45,6 +52,11 @@ namespace SchoolManager.Management.Domain
             Email = email;
             Address = address;
             AuditInfo = auditInfo;
+        }
+
+        public void SetLoginName(string? loginName)
+        {
+            LoginName = string.IsNullOrWhiteSpace(loginName) ? null : loginName.Trim();
         }
     }
 

@@ -1,17 +1,17 @@
-name: school_manager_parent_app
-description: "SchoolManager parent mobile app (Android & iOS)."
+name: smart_school_parent
+description: Smart School Parent Flutter starter template.
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.0
+  sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  flutter_localizations:
-    sdk: flutter
-  cupertino_icons: ^1.0.8
+  http: ^1.6.0
+  image_picker: ^1.2.4
+  shared_preferences: ^2.5.6
 
 dev_dependencies:
   flutter_test:
@@ -20,3 +20,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/

@@ -1,4 +1,4 @@
-package com.schoolmanager.school_manager_parent_app
+package com.schoolmanager.smart_school_parent
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -5,6 +5,7 @@ import {
   FormBuilder,
   FormGroup,
   ValidationErrors,
+  ValidatorFn,
   Validators
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -32,6 +33,23 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 type Gender = 'Male' | 'Female';
+
+/** confirmPassword must equal password (only checked when a password is typed) */
+const passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+  const password = group.get('password')?.value || '';
+  const confirm = group.get('confirmPassword')?.value || '';
+  return password && password !== confirm ? { passwordMismatch: true } : null;
+};
+
+/** Error keys returned by the API for the parent's login, with their translation */
+const ACCOUNT_ERROR_KEYS: Record<string, string> = {
+  LoginNameRequired: 'parents.loginNameRequired',
+  LoginNameTooShort: 'parents.loginNameMinLength',
+  LoginNameTooLong: 'parents.loginNameMaxLength',
+  LoginNameExists: 'parents.loginNameExists',
+  PasswordRequired: 'parents.passwordRequired',
+  PasswordTooShort: 'parents.passwordMinLength'
+};
 
 /**
  * FormArray validator: national IDs must be unique among the parent's students
@@ -72,6 +90,11 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
   isEditMode = signal(false);
   currentLanguage = signal<string>('en');
   parentId: string | null = null;
+  showPassword = signal(false);
+
+  readonly loginNameMinLength = 3;
+  readonly loginNameMaxLength = 100;
+  readonly passwordMinLength = 6;
 
   readonly genders: Gender[] = ['Male', 'Female'];
   /** Latest allowed date of birth (today), ISO yyyy-MM-dd */
@@ -148,9 +171,10 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.initializeForm();
+    // Edit mode first: the password is required only when adding a parent
     this.parentId = this.activatedRoute.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.parentId);
+    this.initializeForm();
 
     this.languageService.currentLanguage$
       .pipe(takeUntil(this.destroy$))
@@ -176,14 +200,27 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
    * Initialize the parent form (lengths mirror the backend EF configuration)
    */
   private initializeForm(): void {
+    // Password: required on create, optional on edit (empty = keep the current one)
+    const passwordValidators = this.isEditMode()
+      ? [Validators.minLength(this.passwordMinLength)]
+      : [Validators.required, Validators.minLength(this.passwordMinLength)];
+
     this.form = this.formBuilder.group({
       fullNameAr: ['', [Validators.required, Validators.maxLength(200)]],
       fullNameEn: ['', [Validators.required, Validators.maxLength(200)]],
       phoneNumber: ['', [Validators.required, Validators.maxLength(50)]],
       email: ['', [Validators.email, Validators.maxLength(256)]],
       address: ['', [Validators.required, Validators.maxLength(500)]],
+      // Login account of the parent (created / updated in the Identity service)
+      loginName: ['', [
+        Validators.required,
+        Validators.minLength(this.loginNameMinLength),
+        Validators.maxLength(this.loginNameMaxLength)
+      ]],
+      password: ['', passwordValidators],
+      confirmPassword: [''],
       students: this.formBuilder.array([], uniqueNationalIds)
-    });
+    }, { validators: passwordsMatch });
   }
 
   /**
@@ -310,7 +347,9 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
       fullNameEn: parent.fullNameEn ?? '',
       phoneNumber: parent.phoneNumber ?? '',
       email: parent.email ?? '',
-      address: parent.address ?? ''
+      address: parent.address ?? '',
+      // Parents saved before login names existed sign in with their phone number
+      loginName: parent.loginName || parent.phoneNumber || ''
     });
 
     this.studentsArray.clear();
@@ -394,22 +433,63 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
     this.errorMessage.set(null);
 
     const v = this.form.getRawValue();
+    const loginName = v.loginName.trim();
     const body = {
       fullNameAr: v.fullNameAr.trim(),
       fullNameEn: v.fullNameEn.trim(),
       phoneNumber: v.phoneNumber.trim(),
       email: this.normalizeEmail(v.email),
       address: v.address.trim(),
-      students: (this.studentsArray.controls as FormGroup[]).map(g => this.toStudentDto(g))
+      students: (this.studentsArray.controls as FormGroup[]).map(g => this.toStudentDto(g)),
+      loginName
     };
 
+    // The parent's login is created later (through Kafka), so check now that no employee,
+    // teacher or other parent already uses the login name
+    this.parentService.isLoginNameAvailable(loginName, this.parentId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.status === 200 && response.data === false) {
+            this.loginNameTaken();
+            return;
+          }
+          this.submit(body, v.password || null);
+        },
+        error: (error) => {
+          console.error('Error checking the login name:', error);
+          this.errorMessage.set(this.translate.instant('parents.loginNameCheckFailed'));
+          this.isSaving.set(false);
+        }
+      });
+  }
+
+  private submit(body: Omit<CreateParentRequest, 'id' | 'password'>, password: string | null): void {
     if (this.isEditMode()) {
-      const request: UpdateParentRequest = { id: this.parentId!, ...body };
+      const request: UpdateParentRequest = { id: this.parentId!, ...body, password };
       this.save(this.parentService.update(request), 'parents.updated', 'parents.updateFailed');
     } else {
-      const request: CreateParentRequest = { id: this.emptyGuid, ...body };
+      const request: CreateParentRequest = { id: this.emptyGuid, ...body, password: password ?? '' };
       this.save(this.parentService.create(request), 'parents.created', 'parents.createFailed');
     }
+  }
+
+  /** Show "login name already used" on the field and in the page message */
+  private loginNameTaken(): void {
+    const control = this.form.get('loginName')!;
+    control.setErrors({ ...(control.errors ?? {}), taken: true });
+    control.markAsTouched();
+    this.errorMessage.set(this.translate.instant('parents.loginNameExists'));
+    this.isSaving.set(false);
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword.update(v => !v);
+  }
+
+  get passwordMismatch(): boolean {
+    const confirm = this.form.get('confirmPassword');
+    return this.form.hasError('passwordMismatch') && !!confirm && (confirm.dirty || confirm.touched);
   }
 
   /**
@@ -457,6 +537,14 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
             if (response.message === 'NationalIdAlreadyExists') {
               const ids = Array.isArray(response.errors) ? response.errors.join(', ') : '';
               this.errorMessage.set(this.translate.instant('parents.nationalIdExists', { ids }));
+            } else if (response.message === 'LoginNameExists') {
+              this.loginNameTaken();
+              return;
+            } else if (response.message && ACCOUNT_ERROR_KEYS[response.message]) {
+              this.errorMessage.set(this.translate.instant(ACCOUNT_ERROR_KEYS[response.message], {
+                min: response.message.startsWith('Password') ? this.passwordMinLength : this.loginNameMinLength,
+                max: this.loginNameMaxLength
+              }));
             } else {
               this.errorMessage.set(response.message || this.translate.instant(failKey));
             }

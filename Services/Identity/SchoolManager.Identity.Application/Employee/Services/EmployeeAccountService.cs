@@ -3,6 +3,9 @@ using SchoolManager.Identity.Domain;
 
 namespace SchoolManager.Identity.Application
 {
+    /// <summary>An employee's login User and its UserProfile (staged, not saved yet).</summary>
+    public sealed record EmployeeAccount(User User, UserProfile Profile);
+
     /// <summary>
     /// Keeps the login User (role Admin) and UserProfile of an employee in sync with the employee.
     /// It only stages changes; the calling handler saves everything in one SaveChanges.
@@ -29,8 +32,8 @@ namespace SchoolManager.Identity.Application
             _currentUser = currentUser;
         }
 
-        /// <summary>Creates a User with role Admin and its UserProfile.</summary>
-        public async Task<User> CreateAsync(EmployeeAccountData data, string? password, bool isActive)
+        /// <summary>Creates a User with role Admin and its UserProfile (link the employee with Profile.LinkEmployee).</summary>
+        public async Task<EmployeeAccount> CreateAsync(EmployeeAccountData data, string? password, bool isActive)
         {
             if (string.IsNullOrWhiteSpace(password))
                 throw new DomainException(ErrorKeys.PasswordRequired);
@@ -61,14 +64,14 @@ namespace SchoolManager.Identity.Application
                 new AuditInfo(now, _currentUser.UserId));
             await _profileRepository.AddAsync(profile);
 
-            return user;
+            return new EmployeeAccount(user, profile);
         }
 
         /// <summary>
         /// Updates the employee's User and UserProfile. If the employee has no User yet
         /// (or it was deleted), a new one is created, which needs a password.
         /// </summary>
-        public async Task<User> UpdateOrCreateAsync(Guid? userId, EmployeeAccountData data, string? newPassword, bool isActive)
+        public async Task<EmployeeAccount> UpdateOrCreateAsync(Guid? userId, EmployeeAccountData data, string? newPassword, bool isActive)
         {
             var user = userId is Guid id ? await _userRepository.GetByIdAsync(id) : null;
             if (user is null)
@@ -86,7 +89,7 @@ namespace SchoolManager.Identity.Application
             var profile = (await _profileRepository.SearchAsync(p => p.UserId == user.Id)).FirstOrDefault();
             if (profile is null)
             {
-                await _profileRepository.AddAsync(new UserProfile(
+                profile = new UserProfile(
                     user.Id,
                     data.FirstName,
                     data.LastName,
@@ -94,7 +97,8 @@ namespace SchoolManager.Identity.Application
                     data.PhoneNumber,
                     data.Address,
                     Array.Empty<byte>(),
-                    new AuditInfo(now, _currentUser.UserId)));
+                    new AuditInfo(now, _currentUser.UserId));
+                await _profileRepository.AddAsync(profile);
             }
             else
             {
@@ -108,7 +112,7 @@ namespace SchoolManager.Identity.Application
                     profile.AuditInfo.Updated(now, _currentUser.UserId));
             }
 
-            return user;
+            return new EmployeeAccount(user, profile);
         }
 
         public async Task SetActiveAsync(Guid? userId, bool isActive)

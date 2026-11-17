@@ -63,7 +63,7 @@ namespace SchoolManager.Identity.Application
             var now = DateTime.Now;
             var email = evt.Email?.Trim() ?? string.Empty;
             var nationalId = evt.NationalId.Trim();
-            var (firstName, lastName) = SplitName(evt.FullNameEn, evt.FullNameAr);
+            var (firstName, lastName) = PersonNames.Split(evt.FullNameEn, evt.FullNameAr);
 
             if (await _roleRepository.GetByIdAsync(RoleIds.Teacher) is null)
                 throw new InvalidOperationException("The Teacher role is missing (seed data)"); // retried, then logged
@@ -128,12 +128,13 @@ namespace SchoolManager.Identity.Application
             var profile = (await _profileRepository.SearchAsync(p => p.UserId == user.Id)).FirstOrDefault();
             if (profile is null)
             {
-                await _profileRepository.AddAsync(new UserProfile(
+                profile = new UserProfile(
                     user.Id, firstName, lastName, email,
                     evt.PhoneNumber?.Trim() ?? string.Empty,
                     evt.Address?.Trim() ?? string.Empty,
                     Array.Empty<byte>(),
-                    new AuditInfo(now, evt.ChangedBy)));
+                    new AuditInfo(now, evt.ChangedBy));
+                await _profileRepository.AddAsync(profile);
             }
             else
             {
@@ -144,6 +145,9 @@ namespace SchoolManager.Identity.Application
                     profile.ProfileImage,
                     profile.AuditInfo.Updated(now, evt.ChangedBy));
             }
+
+            // UserProfile.TeacherId -> current teacher id in the token
+            profile.LinkTeacher(evt.TeacherId);
         }
 
         private async Task DeleteAsync(TeacherIntegrationEvent evt)
@@ -167,20 +171,5 @@ namespace SchoolManager.Identity.Application
 
         private async Task<bool> EmailUsedByOtherAsync(string email, Guid userId)
             => (await _userRepository.SearchAsync(u => u.Email == email)).Any(u => u.Id != userId);
-
-        /// <summary>"Ahmed Ali Hassan" -> ("Ahmed", "Ali Hassan"); falls back to the Arabic name.</summary>
-        private static (string First, string Last) SplitName(string fullNameEn, string fullNameAr)
-        {
-            var source = string.IsNullOrWhiteSpace(fullNameEn) ? fullNameAr : fullNameEn;
-            var parts = (source ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (parts.Length == 0)
-                return ("-", "-");
-
-            var first = parts[0];
-            var last = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : parts[0];
-            return (Truncate(first), Truncate(last));
-        }
-
-        private static string Truncate(string value) => value.Length <= 100 ? value : value[..100];
     }
 }

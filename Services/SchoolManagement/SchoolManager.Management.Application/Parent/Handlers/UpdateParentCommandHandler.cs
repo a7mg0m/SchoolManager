@@ -1,25 +1,33 @@
 ﻿using BuildingBlocks;
 using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging;
+using BuildingBlocks.Messaging.Events;
 using SchoolManager.Management.Domain;
 
 namespace SchoolManager.Management.Application
 {
+	/// <summary>
+	/// Updates the parent and its students and queues a ParentIntegrationEvent (Updated) in the same transaction;
+	/// the Identity service then updates (or creates) the parent's User and UserProfile.
+	/// </summary>
 	public class UpdateParentCommandHandler : ICommandHandler<UpdateParentCommand, bool>
 	{
 		private readonly IParentRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IGradeRepository _gradeRepository;
 		private readonly IStudentRepository _studentRepository;
+		private readonly IIntegrationEventOutbox _outbox;
 
 		private readonly ICurrentUserService _currentUser;
 
-		public UpdateParentCommandHandler(ICurrentUserService currentUser, IParentRepository repository, IStudentRepository studentRepository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
+		public UpdateParentCommandHandler(ICurrentUserService currentUser, IParentRepository repository, IStudentRepository studentRepository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork, IIntegrationEventOutbox outbox)
 		{
 			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
 			_studentRepository = studentRepository;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
+			_outbox = outbox;
 		}
 
 		public async Task<bool> Handle(UpdateParentCommand request, CancellationToken cancellationToken)
@@ -28,6 +36,11 @@ namespace SchoolManager.Management.Application
 
 			if (entity is null)
 				return false;
+
+			// Login account (kept in sync by the Identity service): an empty password keeps the current one
+			var loginName = await ParentAccount.ValidateLoginNameAsync(request.LoginName, entity.Id, _repository);
+			var passwordHash = ParentAccount.HashPassword(request.Password, required: false);
+			entity.SetLoginName(loginName);
 
 			entity.Update(
 				new NameLocalized(request.FullNameAr, request.FullNameEn),
@@ -88,6 +101,9 @@ namespace SchoolManager.Management.Application
                         NewAudit()));
                 }
             }
+
+			_outbox.Enqueue(Topics.ManagementParents, entity.Id.ToString(),
+				ParentEventFactory.From(entity, ParentChangeType.Updated, _currentUser.UserId, passwordHash));
 
 			await _unitOfWork.SaveChangesAsync();
 

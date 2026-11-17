@@ -51,6 +51,18 @@ namespace SchoolManager.Identity.API.Controllers
                 return BadRequest(new ApiResponse(400, ex.Message));
             }
         }
+        /// <summary>
+        /// Whether a login name is free (optionally ignoring the user it already belongs to).
+        /// Used by the admin parent page before saving, because parent logins are created asynchronously.
+        /// </summary>
+        [Authorize]
+        [HttpGet("login-name-available")]
+        public async Task<IActionResult> IsLoginNameAvailable([FromQuery] string loginName, [FromQuery] Guid? userId, CancellationToken cancellationToken)
+        {
+            var available = await _mediator.Send(new IsLoginNameAvailableQuery(loginName, userId), cancellationToken);
+            return Ok(new ApiResponse { data = available });
+        }
+
         [HttpGet("get-all")]
         public async Task<ActionResult<List<UserDto>>> GetAll(CancellationToken cancellationToken)
         {

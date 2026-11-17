@@ -31,6 +31,18 @@ namespace BuildingBlocks
 
         public bool IsAuthenticated => UserId != Guid.Empty;
 
+        public Guid? EmployeeId => FindGuidClaim(AppClaimTypes.EmployeeId);
+
+        public Guid? TeacherId => FindGuidClaim(AppClaimTypes.TeacherId);
+
+        public Guid? ParentId => FindGuidClaim(AppClaimTypes.ParentId);
+
+        /// <summary>Id from a custom claim, only for an authenticated user; null when missing or not a Guid.</summary>
+        private Guid? FindGuidClaim(string type) =>
+            IsAuthenticated && Guid.TryParse(FindClaim(type), out var id) && id != Guid.Empty
+                ? id
+                : null;
+
         /// <summary>
         /// The JWT handler may keep the short claim name ("sub") or map it to the long
         /// ClaimTypes URI, depending on MapInboundClaims, so both are checked.

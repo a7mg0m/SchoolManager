@@ -7,7 +7,18 @@ namespace SchoolManager.Notification.API.Controllers
     public abstract class ApiControllerBase : ControllerBase
     {
         /// <summary>The logged-in user (from the validated JWT), or Guid.Empty when anonymous.</summary>
-        protected Guid CurrentUserId =>
-            HttpContext.RequestServices.GetRequiredService<ICurrentUserService>().UserId;
+        protected Guid CurrentUserId => CurrentUser.UserId;
+
+        /// <summary>Employee id of the logged-in user, or null when the user is not an employee.</summary>
+        protected Guid? CurrentEmployeeId => CurrentUser.EmployeeId;
+
+        /// <summary>Teacher id of the logged-in user, or null when the user is not a teacher.</summary>
+        protected Guid? CurrentTeacherId => CurrentUser.TeacherId;
+
+        /// <summary>Parent id of the logged-in user, or null when the user is not a parent.</summary>
+        protected Guid? CurrentParentId => CurrentUser.ParentId;
+
+        private ICurrentUserService CurrentUser =>
+            HttpContext.RequestServices.GetRequiredService<ICurrentUserService>();
     }
 }

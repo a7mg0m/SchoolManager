@@ -11,6 +11,11 @@ namespace SchoolManager.Management.Domain
         /// Returns the subset of the given national IDs that already belong to a student.
         /// </summary>
         Task<List<string>> GetExistingNationalIdsAsync(IEnumerable<string> nationalIds, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Active students of a parent, with their Stage, Grade and Section loaded (read-only).
+        /// </summary>
+        Task<List<Student>> GetByParentWithAcademicInfoAsync(Guid parentId, CancellationToken cancellationToken = default);
     }
 
 }

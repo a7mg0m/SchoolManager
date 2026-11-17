@@ -16,6 +16,16 @@ namespace SchoolManager.Identity.Domain
         public AuditInfo AuditInfo { get; private set; }
         public Guid UserId { get; private set; }
         public User? User { get; private set; }
+
+        /// <summary>Employee (this service) the user belongs to, or null.</summary>
+        public Guid? EmployeeId { get; private set; }
+
+        /// <summary>Teacher (Management service) the user belongs to, or null. For teachers it equals the user id.</summary>
+        public Guid? TeacherId { get; private set; }
+
+        /// <summary>Parent (Management service) the user belongs to, or null.</summary>
+        public Guid? ParentId { get; private set; }
+
         private UserProfile()
         {
         }
@@ -40,5 +50,16 @@ namespace SchoolManager.Identity.Domain
             ProfileImage = profileImage;
             AuditInfo = auditInfo;
         }
+
+        /// <summary>Links (or with null unlinks) the employee this user belongs to.</summary>
+        public void LinkEmployee(Guid? employeeId) => EmployeeId = Normalize(employeeId);
+
+        /// <summary>Links (or with null unlinks) the teacher this user belongs to.</summary>
+        public void LinkTeacher(Guid? teacherId) => TeacherId = Normalize(teacherId);
+
+        /// <summary>Links (or with null unlinks) the parent this user belongs to.</summary>
+        public void LinkParent(Guid? parentId) => ParentId = Normalize(parentId);
+
+        private static Guid? Normalize(Guid? id) => id is Guid value && value != Guid.Empty ? value : null;
     }
 }

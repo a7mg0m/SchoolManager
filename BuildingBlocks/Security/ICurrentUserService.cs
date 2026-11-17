@@ -17,5 +17,14 @@ namespace BuildingBlocks
 
         /// <summary>True when the request carries a valid token with a user id.</summary>
         bool IsAuthenticated { get; }
+
+        /// <summary>Employee id of the logged-in user, or null when the user is not an employee.</summary>
+        Guid? EmployeeId { get; }
+
+        /// <summary>Teacher id of the logged-in user, or null when the user is not a teacher.</summary>
+        Guid? TeacherId { get; }
+
+        /// <summary>Parent id of the logged-in user, or null when the user is not a parent.</summary>
+        Guid? ParentId { get; }
     }
 }

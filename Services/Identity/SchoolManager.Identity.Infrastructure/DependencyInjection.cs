@@ -37,6 +37,10 @@ namespace SchoolManager.Identity.Infrastructure
             services.AddKafkaConsumer<TeacherIntegrationEvent, TeacherIntegrationEventHandler>(
                 configuration, Topics.ManagementTeachers);
 
+            // Kafka: parent created / updated / deleted in Management -> parent's User + UserProfile (ParentId)
+            services.AddKafkaConsumer<ParentIntegrationEvent, ParentIntegrationEventHandler>(
+                configuration, Topics.ManagementParents);
+
             return services;
         }
     }

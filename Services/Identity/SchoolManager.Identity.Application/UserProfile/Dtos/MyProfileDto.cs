@@ -13,6 +13,11 @@ namespace SchoolManager.Identity.Application
         /// <summary>True when the user belongs to an employee (email / phone / address are synced to it).</summary>
         public bool IsEmployee { get; set; }
 
+        /// <summary>Linked employee, teacher and parent (null when the user is not one).</summary>
+        public Guid? EmployeeId { get; set; }
+        public Guid? TeacherId { get; set; }
+        public Guid? ParentId { get; set; }
+
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;

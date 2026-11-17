@@ -25,5 +25,16 @@ namespace SchoolManager.Management.Infrastructure
 				.Select(s => s.NationalId)
 				.ToListAsync(cancellationToken);
 		}
+
+		public async Task<List<Student>> GetByParentWithAcademicInfoAsync(Guid parentId, CancellationToken cancellationToken = default)
+		{
+			return await _dbSet
+				.AsNoTracking()
+				.Include(s => s.Stage)
+				.Include(s => s.Grade)
+				.Include(s => s.Section)
+				.Where(s => s.ParentId == parentId && s.IsActive)
+				.ToListAsync(cancellationToken);
+		}
 	}
 }

@@ -31,6 +31,8 @@ export interface Parent {
   phoneNumber: string;
   email: string | null;
   address: string;
+  /** Login name of the parent's account (null for parents saved before it existed: they use the phone number) */
+  loginName: string | null;
   students: ParentStudent[];
 }
 
@@ -66,6 +68,10 @@ export interface CreateParentRequest {
   email: string | null;
   address: string;
   students: ParentStudentDto[];
+  /** Login name of the parent's account */
+  loginName: string;
+  /** First password of the account (required on create) */
+  password: string;
 }
 
 /**
@@ -80,6 +86,10 @@ export interface UpdateParentRequest {
   email: string | null;
   address: string;
   students: ParentStudentDto[];
+  /** Login name of the parent's account */
+  loginName: string;
+  /** New password, or null to keep the current one */
+  password: string | null;
 }
 
 /**

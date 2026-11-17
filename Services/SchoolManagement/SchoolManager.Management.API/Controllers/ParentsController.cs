@@ -49,6 +49,11 @@ namespace SchoolManager.Management.API.Controllers
 			{
 				return Ok(new ApiResponse(-1, DuplicateNationalIdException.ErrorKey) { errors = ex.NationalIds });
 			}
+			catch (ParentAccountException ex)
+			{
+				// Login name / password problem (e.g. LoginNameExists, PasswordTooShort)
+				return Ok(new ApiResponse(-1, ex.ErrorKey));
+			}
 			return CreatedAtAction(nameof(GetById), new { id }, new ApiResponse { InsertedId = id.ToString() });
 		}
 
@@ -65,6 +70,10 @@ namespace SchoolManager.Management.API.Controllers
 			{
 				return Ok(new ApiResponse(-1, DuplicateNationalIdException.ErrorKey) { errors = ex.NationalIds });
 			}
+			catch (ParentAccountException ex)
+			{
+				return Ok(new ApiResponse(-1, ex.ErrorKey));
+			}
 
 			if (!success)
 				return Ok(new ApiResponse { status = -1, message = "Update Failed" });
@@ -80,6 +89,17 @@ namespace SchoolManager.Management.API.Controllers
 				return NotFound();
 
 			return Ok(new ApiResponse { message = "Deleted Successfully" });
+		}
+
+		/// <summary>
+		/// Re-sends all parents to the Identity service, creating missing logins
+		/// (e.g. for parents added before the Kafka sync existed). Safe to call more than once.
+		/// </summary>
+		[HttpPost("sync-accounts")]
+		public async Task<IActionResult> SyncAccounts(CancellationToken cancellationToken)
+		{
+			var count = await _mediator.Send(new SyncParentAccountsCommand(), cancellationToken);
+			return Ok(new ApiResponse { message = "Sync Queued", data = count });
 		}
 	}
 }

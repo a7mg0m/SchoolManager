@@ -36,7 +36,23 @@ namespace SchoolManager.Identity.Application
         }
 
         /// <summary>
-        /// Copies the profile's email to the User and its name / contact details to the Employee.
+        /// Links the profile to the employee whose UserId is this user (when not linked yet).
+        /// Teacher links are set by the teacher sync (TeacherIntegrationEventHandler); the role alone
+        /// is not used, because a user's role does not prove which teacher / parent they are.
+        /// </summary>
+        /// <returns>The linked employee, or null when the user is not an employee.</returns>
+        public async Task<Employee?> LinkAsync(UserProfile profile)
+        {
+            var employee = (await _employeeRepository.SearchAsync(e => e.UserId == profile.UserId)).FirstOrDefault();
+            if (employee is not null && profile.EmployeeId is null)
+                profile.LinkEmployee(employee.Id);
+
+            return employee;
+        }
+
+        /// <summary>
+        /// Copies the profile's email to the User and its name / contact details to the Employee,
+        /// and links the employee when missing (<see cref="LinkAsync"/>).
         /// </summary>
         /// <returns>The linked employee, or null when the user is not an employee.</returns>
         public async Task<Employee?> SyncAsync(UserProfile profile, User? user = null)
@@ -48,8 +64,10 @@ namespace SchoolManager.Identity.Application
             if (user is not null && !string.Equals(user.Email, profile.Email, StringComparison.OrdinalIgnoreCase))
                 user.Update(user.LoginName, profile.Email, user.RoleId, user.AuditInfo.Updated(now, _currentUser.UserId));
 
+            // Employee id
+            var employee = await LinkAsync(profile);
+
             // Employee: English name, email, phone, address
-            var employee = (await _employeeRepository.SearchAsync(e => e.UserId == profile.UserId)).FirstOrDefault();
             if (employee is null)
                 return null;
 

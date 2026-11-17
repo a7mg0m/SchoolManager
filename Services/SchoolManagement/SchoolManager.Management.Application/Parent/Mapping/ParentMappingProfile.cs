@@ -14,7 +14,9 @@ namespace SchoolManager.Management.Application
                     src.PhoneNumber,
                     src.Email,
                     src.Address,
-                    src.Students));
+                    src.Students,
+                    src.LoginName,
+                    src.Password));
 
             CreateMap<UpdateParentDto, UpdateParentCommand>()
                 .ConstructUsing(src => new UpdateParentCommand(
@@ -24,7 +26,9 @@ namespace SchoolManager.Management.Application
                     src.PhoneNumber,
                     src.Email,
 					src.Address,
-					src.Students));
+					src.Students,
+					src.LoginName,
+					src.Password));
 
 			CreateMap<Parent, ParentDto>()
                 .ForMember(d => d.FullNameAr, o => o.MapFrom(s => s.FullName.Arabic))
