@@ -5,6 +5,12 @@ import 'schedule_service.dart';
 /// Arabic day names, 0 = Sunday … 6 = Saturday
 const arabicDays = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
+/// Arabic month names, index 0 = January … 11 = December
+const arabicMonths = [
+  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+];
+
 /// One colour per subject (picked from its name, so it is the same on every day)
 const _palette = [
   Color(0xFF1677E8), // blue

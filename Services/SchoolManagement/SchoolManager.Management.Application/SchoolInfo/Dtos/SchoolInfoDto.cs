@@ -9,5 +9,8 @@ namespace SchoolManager.Management.Application
         public string? Phone { get; set; }
         public string? Email { get; set; }
         public byte[]? Logo { get; set; }
+
+        /// <summary>School album, oldest first</summary>
+        public List<SchoolAlbumItemDto> Album { get; set; } = new();
     }
 }

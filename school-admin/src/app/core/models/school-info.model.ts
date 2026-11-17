@@ -10,6 +10,22 @@ export interface SchoolInfo {
   phone?: string;
   email?: string;
   logo?: string | null;
+  /** School album (returned by the API; managed with the album upload / delete endpoints) */
+  album?: SchoolAlbumItem[];
+}
+
+/**
+ * A file of the school album (backend SchoolAlbumItemDto).
+ * url is a path on the server, e.g. "/upload/school-album/3f2a….jpg" (served through the gateway).
+ */
+export interface SchoolAlbumItem {
+  id: string;
+  url: string;
+  fileName: string;
+  contentType: string;
+  /** Bytes */
+  size: number;
+  uploadedOn: string;
 }
 
 /**

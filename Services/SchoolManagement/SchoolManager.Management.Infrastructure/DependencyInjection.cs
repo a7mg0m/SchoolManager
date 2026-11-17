@@ -18,6 +18,7 @@ namespace SchoolManager.Management.Infrastructure
             services.AddScoped<IGradeRepository, GradeRepository>();
             services.AddScoped<IParentRepository, ParentRepository>();
             services.AddScoped<ISchoolInfoRepository, SchoolInfoRepository>();
+            services.AddScoped<ISchoolAlbumItemRepository, SchoolAlbumItemRepository>();
             services.AddScoped<ISectionRepository, SectionRepository>();
             services.AddScoped<ISemesterRepository, SemesterRepository>();
             services.AddScoped<IStageRepository, StageRepository>();

@@ -363,3 +363,8 @@ MigrationBackup/
 FodyWeavers.xsd
 # Local build scratch (logs, temp files, downloads)
 .build-tmp/
+
+# Files uploaded at runtime (school album, ...): keep the folders, not the files
+Services/**/wwwroot/upload/**
+!Services/**/wwwroot/upload/**/
+!Services/**/wwwroot/upload/**/.gitkeep

@@ -229,5 +229,12 @@
         </form>
       </div>
     </div>
+
+    <!-- School album (needs a saved school info) -->
+    <app-school-album
+      [enabled]="isEditMode() && !!existingSchoolInfo?.id"
+      [items]="existingSchoolInfo?.album"
+      (albumChange)="onAlbumChange($event)">
+    </app-school-album>
   }
 </div>

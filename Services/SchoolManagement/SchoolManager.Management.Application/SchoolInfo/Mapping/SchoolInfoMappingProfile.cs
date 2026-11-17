@@ -27,7 +27,11 @@ namespace SchoolManager.Management.Application
 
             CreateMap<Domain.SchoolInfo, SchoolInfoDto>()
                 .ForMember(d => d.NameAr, o => o.MapFrom(s => s.Name.Arabic))
-                .ForMember(d => d.NameEn, o => o.MapFrom(s => s.Name.English));
+                .ForMember(d => d.NameEn, o => o.MapFrom(s => s.Name.English))
+                .ForMember(d => d.Album, o => o.MapFrom(s => s.Album.OrderBy(a => a.AuditInfo.CreatedOn)));
+
+            CreateMap<Domain.SchoolAlbumItem, SchoolAlbumItemDto>()
+                .ForMember(d => d.UploadedOn, o => o.MapFrom(s => s.AuditInfo.CreatedOn));
         }
     }
 }

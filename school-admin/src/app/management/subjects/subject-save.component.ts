@@ -308,6 +308,8 @@ export class SubjectSaveComponent implements OnInit, OnDestroy {
     const body = {
       nameAr: v.nameAr.trim(),
       nameEn: v.nameEn.trim(),
+      // The backend saves the stage it receives (update), so send the stage selected on the page
+      stageId: v.stageId,
       gradeId: v.gradeId,
       teacherIds: [...this.selectedTeacherIds()]
     };

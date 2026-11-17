@@ -12,6 +12,9 @@ namespace SchoolManager.Management.Domain
 
         public AuditInfo AuditInfo { get; private set; }
 
+        /// <summary>School album: URLs of the uploaded files</summary>
+        public List<SchoolAlbumItem> Album { get; private set; } = new();
+
         private SchoolInfo() { }
 
         public SchoolInfo(NameLocalized name, string? address, string? phone, string? email, byte[]? logo, AuditInfo auditInfo)

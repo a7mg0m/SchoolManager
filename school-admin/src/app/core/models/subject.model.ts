@@ -20,6 +20,7 @@ export interface CreateSubjectRequest {
   id: string;
   nameAr: string;
   nameEn: string;
+  stageId: string;
   gradeId: string;
   teacherIds: string[];
 }
@@ -31,6 +32,7 @@ export interface UpdateSubjectRequest {
   id: string;
   nameAr: string;
   nameEn: string;
+  stageId: string;
   gradeId: string;
   teacherIds: string[];
 }

@@ -129,7 +129,12 @@
                 @for (exam of filteredExams(); track exam.id) {
                   <tr>
                     <td><strong>{{ subjectName(exam.subjectId) }}</strong></td>
-                    <td><span class="badge" [class]="examTypeBadge(exam.examType)">{{ examTypeKey(exam.examType) | translate }}</span></td>
+                    <td>
+                      <span class="badge" [class]="examTypeBadge(exam.examType)">{{ examTypeKey(exam.examType) | translate }}</span>
+                      @if (exam.month) {
+                        <div class="small text-muted mt-1">{{ ('exams.months.' + exam.month) | translate }}</div>
+                      }
+                    </td>
                     <td>{{ stageName(exam) }}</td>
                     <td>
                       {{ gradeName(exam.gradeId) }}

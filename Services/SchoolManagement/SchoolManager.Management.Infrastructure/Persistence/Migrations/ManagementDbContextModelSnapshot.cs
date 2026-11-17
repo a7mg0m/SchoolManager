@@ -185,6 +185,40 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.ToTable("Parents", (string)null);
                 });
 
+            modelBuilder.Entity("SchoolManager.Management.Domain.SchoolAlbumItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)");
+
+                    b.Property<Guid>("SchoolInfoId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("Size")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchoolInfoId");
+
+                    b.ToTable("SchoolAlbumItems", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Management.Domain.SchoolInfo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -906,6 +940,47 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("FullName")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.SchoolAlbumItem", b =>
+                {
+                    b.HasOne("SchoolManager.Management.Domain.SchoolInfo", null)
+                        .WithMany("Album")
+                        .HasForeignKey("SchoolInfoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("SchoolAlbumItemId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("SchoolAlbumItemId");
+
+                            b1.ToTable("SchoolAlbumItems");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SchoolAlbumItemId");
+                        });
+
+                    b.Navigation("AuditInfo")
                         .IsRequired();
                 });
 
@@ -1643,6 +1718,11 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SchoolManager.Management.Domain.Parent", b =>
                 {
                     b.Navigation("Students");
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.SchoolInfo", b =>
+                {
+                    b.Navigation("Album");
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.Section", b =>

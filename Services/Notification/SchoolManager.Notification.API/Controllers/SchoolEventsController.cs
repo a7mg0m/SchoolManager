@@ -1,5 +1,6 @@
 using BuildingBlocks;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManager.Notification.Application;
 
@@ -9,10 +10,35 @@ namespace SchoolManager.Notification.API.Controllers
     public class SchoolEventsController : ApiControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IManagementClient _management;
 
-        public SchoolEventsController(IMediator mediator)
+        public SchoolEventsController(IMediator mediator, IManagementClient management)
         {
             _mediator = mediator;
+            _management = management;
+        }
+
+        /// <summary>
+        /// Events that concern one of the logged-in parent's children (parent app): for everyone, its stage,
+        /// grade or section, or the child itself. The child must be the parent's (checked with Management); otherwise 404.
+        /// </summary>
+        [Authorize]
+        [HttpGet("my-child/{studentId}")]
+        public async Task<IActionResult> GetMyChildEvents(Guid studentId, CancellationToken cancellationToken)
+        {
+            if (CurrentParentId is null)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+            var children = await _management.GetMyChildrenAsync(Request.Headers.Authorization.ToString(), cancellationToken);
+            if (children is null)
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiResponse(503, "ManagementUnavailable"));
+
+            var child = children.FirstOrDefault(c => c.Id == studentId);
+            if (child is null)
+                return NotFound(new ApiResponse(404, "StudentNotFound"));
+
+            var events = await _mediator.Send(new GetChildEventsQuery(child), cancellationToken);
+            return Ok(new ApiResponse { data = events });
         }
 
         [HttpGet("get-all")]

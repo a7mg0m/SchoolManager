@@ -22,6 +22,9 @@ builder.Services.AddValidatorsFromAssembly(typeof(SchoolManager.Management.Appli
 // Validates the JWT and exposes the logged-in user (ICurrentUserService) for CreatedBy/UpdatedBy
 builder.Services.AddJwtCurrentUser(builder.Configuration);
 
+// Uploaded files (school album) are saved under wwwroot
+builder.Services.AddSingleton<SchoolManager.Management.Application.IFileStorage, SchoolManager.Management.API.Services.WebRootFileStorage>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -31,6 +34,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Serves wwwroot, e.g. /upload/school-album/{file} (reached through the gateway's /upload route)
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

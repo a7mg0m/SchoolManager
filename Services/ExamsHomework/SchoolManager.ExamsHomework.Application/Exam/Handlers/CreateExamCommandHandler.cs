@@ -28,6 +28,7 @@ namespace SchoolManager.ExamsHomework.Application
                 command.AcademicYearId,
                 command.SemesterId,
                 command.ExamType,
+                command.Month,
                 command.ExamDate,
                 command.StartTime,
                 command.EndTime,

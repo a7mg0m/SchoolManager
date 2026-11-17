@@ -9,7 +9,7 @@ import { AcademicYearService } from '../../core/services/academic-year.service';
 import { SectionService } from '../../core/services/section.service';
 import { SubjectService } from '../../core/services/subject.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
-import { Exam, EXAM_TYPES, CreateExamRequest } from '../../core/models/exam.model';
+import { Exam, EXAM_TYPES, EXAM_MONTHS, ExamType, CreateExamRequest } from '../../core/models/exam.model';
 import { Grade } from '../../core/models/grade.model';
 import { Stage } from '../../core/models/stage.model';
 import { AcademicYear, AcademicYearSemester } from '../../core/models/academic-year.model';
@@ -67,6 +67,7 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
   yearSemesters = signal<AcademicYearSemester[]>([]);
 
   readonly examTypes = EXAM_TYPES;
+  readonly months = EXAM_MONTHS;
 
   private destroy$ = new Subject<void>();
 
@@ -142,6 +143,8 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
         academicYearId: ['', Validators.required],
         semesterId: ['', Validators.required],
         examType: [null, Validators.required],
+        // Month of a Monthly exam (1..12); required only when the type is Monthly
+        month: [null as number | null, [Validators.min(1), Validators.max(12)]],
         examDate: ['', Validators.required],
         startTime: ['', Validators.required],
         endTime: ['', Validators.required],
@@ -152,6 +155,31 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
       },
       { validators: [endTimeAfterStartTime, successScoreWithinWeight] }
     );
+
+    // Monthly exams need a month: make it required and suggest the exam date's (or this) month
+    this.form.get('examType')!.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((type) => {
+        this.updateMonthValidators(type);
+        const month = this.form.get('month')!;
+        if (this.isMonthly(type) && !month.value) {
+          const date = this.form.get('examDate')!.value;
+          month.setValue(date ? Number(String(date).substring(5, 7)) : new Date().getMonth() + 1);
+        }
+      });
+  }
+
+  /** The selected type is Monthly (the select gives a string, the API a number) */
+  isMonthly(type: unknown = this.form?.get('examType')?.value): boolean {
+    return Number(type) === ExamType.Monthly;
+  }
+
+  private updateMonthValidators(type: unknown): void {
+    const month = this.form.get('month')!;
+    month.setValidators(this.isMonthly(type)
+      ? [Validators.required, Validators.min(1), Validators.max(12)]
+      : [Validators.min(1), Validators.max(12)]);
+    month.updateValueAndValidity({ emitEvent: false });
   }
 
   private clearIfNotIn(controlName: string, items: { id?: string }[]): void {
@@ -272,6 +300,10 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
       academicYearId: exam.academicYearId,
       semesterId: exam.semesterId,
       examType: exam.examType,
+      // A Monthly exam saved without a month: suggest the exam date's month
+      month: exam.month ?? (this.isMonthly(exam.examType) && exam.examDate
+        ? Number(exam.examDate.substring(5, 7))
+        : null),
       examDate: exam.examDate ? exam.examDate.substring(0, 10) : '',
       startTime: this.toInputTime(exam.startTime),
       endTime: this.toInputTime(exam.endTime),
@@ -280,6 +312,8 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
       successScore: exam.successScore,
       answerModelUrl: exam.answerModelUrl || ''
     }, { emitEvent: false });
+    // patchValue above does not emit: apply the Monthly rule for the loaded type
+    this.updateMonthValidators(exam.examType);
   }
 
   // ---------------------------------------------------------------------------
@@ -305,6 +339,8 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
       academicYearId: value.academicYearId,
       semesterId: value.semesterId,
       examType: Number(value.examType),
+      // Only Monthly exams have a month
+      month: this.isMonthly(value.examType) && value.month ? Number(value.month) : null,
       examDate: value.examDate,
       startTime: this.fromInputTime(value.startTime),
       endTime: this.fromInputTime(value.endTime),
@@ -373,6 +409,10 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
         return 'Full mark must be greater than 0.';
       case 'SuccessScoreInvalid':
         return 'Pass score must be between 0 and the full mark.';
+      case 'MonthRequired':
+        return 'Please choose the month of the monthly exam.';
+      case 'MonthInvalid':
+        return 'Month must be between 1 and 12.';
       default:
         return error?.error?.message || 'Failed to save exam. Please try again.';
     }

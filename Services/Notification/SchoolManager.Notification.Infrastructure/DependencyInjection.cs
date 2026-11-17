@@ -26,6 +26,13 @@ namespace SchoolManager.Notification.Infrastructure
             services.AddHttpClient<IUserProfileService, IdentityUserProfileService>(client =>
                 client.BaseAddress = new Uri(configuration["IdentityService:BaseUrl"] ?? "http://localhost:5000/"));
 
+            // Parent app: the parent's children (Management service, through the gateway)
+            services.AddHttpClient<IManagementClient, ManagementClient>(client =>
+            {
+                client.BaseAddress = new Uri(configuration["ManagementService:BaseUrl"] ?? "http://localhost:53607/");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
+
             return services;
         }
     }

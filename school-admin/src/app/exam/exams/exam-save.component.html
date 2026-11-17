@@ -180,6 +180,25 @@
                 <div class="invalid-feedback">{{ 'exams.examTypeRequired' | translate }}</div>
               }
             </div>
+
+            <!-- Month (Monthly exams only) -->
+            @if (isMonthly()) {
+              <div class="col-md-4 mb-3">
+                <label for="month" class="form-label">
+                  {{ 'exams.month' | translate }} <span class="text-danger">*</span>
+                </label>
+                <select id="month" class="form-select" formControlName="month"
+                        [class.is-invalid]="hasError('month', 'required')">
+                  <option [ngValue]="null" disabled>{{ 'common.chooseOne' | translate }}</option>
+                  @for (m of months; track m.value) {
+                    <option [ngValue]="m.value">{{ m.key | translate }}</option>
+                  }
+                </select>
+                @if (hasError('month', 'required')) {
+                  <div class="invalid-feedback">{{ 'exams.monthRequired' | translate }}</div>
+                }
+              </div>
+            }
           </div>
         </div>
       </div>

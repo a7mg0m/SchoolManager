@@ -18,6 +18,10 @@ export const EXAM_TYPES: { value: ExamType; key: string; badge: string }[] = [
   { value: ExamType.Final, key: 'exams.types.final', badge: 'bg-danger' }
 ];
 
+/** Months of a Monthly exam (1 = January … 12 = December) with their translation keys */
+export const EXAM_MONTHS: { value: number; key: string }[] =
+  Array.from({ length: 12 }, (_, i) => ({ value: i + 1, key: `exams.months.${i + 1}` }));
+
 /**
  * Exam Model (backend ExamDto)
  * examDate: "yyyy-MM-dd" (DateOnly)
@@ -35,6 +39,8 @@ export interface Exam {
   academicYearId: string;
   semesterId: string;
   examType: ExamType;
+  /** Month of a Monthly exam (1..12); null for the other types */
+  month: number | null;
   examDate: string;
   startTime: string;
   endTime: string;
@@ -58,6 +64,8 @@ export interface CreateExamRequest {
   academicYearId: string;
   semesterId: string;
   examType: ExamType;
+  /** Month of a Monthly exam (1..12); null for the other types */
+  month: number | null;
   examDate: string;
   startTime: string;
   endTime: string;

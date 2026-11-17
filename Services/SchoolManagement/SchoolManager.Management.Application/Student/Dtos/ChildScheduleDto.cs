@@ -21,26 +21,4 @@ namespace SchoolManager.Management.Application
         /// <summary>Lessons of the day, in time order. Empty when the section has no timetable.</summary>
         public List<ChildScheduleSlotDto> Slots { get; set; } = new();
     }
-
-    public class ChildScheduleSlotDto
-    {
-        public Guid Id { get; set; }
-        public string NameAr { get; set; } = string.Empty;
-        public string NameEn { get; set; } = string.Empty;
-        public TimeOnly StartTime { get; set; }
-        public TimeOnly EndTime { get; set; }
-        public string SubjectNameAr { get; set; } = string.Empty;
-        public string SubjectNameEn { get; set; } = string.Empty;
-        public string TeacherNameAr { get; set; } = string.Empty;
-        public string TeacherNameEn { get; set; } = string.Empty;
-        /// <summary>Finished, Current or Upcoming.</summary>
-        public string Status { get; set; } = SlotStatus.Upcoming;
-    }
-
-    public static class SlotStatus
-    {
-        public const string Finished = "Finished";
-        public const string Current = "Current";
-        public const string Upcoming = "Upcoming";
-    }
 }

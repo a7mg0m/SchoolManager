@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SchoolInfoService } from '../../core/services/school-info.service';
-import { SchoolInfo, CreateSchoolInfoRequest, UpdateSchoolInfoRequest } from '../../core/models/school-info.model';
+import { SchoolInfo, SchoolAlbumItem, CreateSchoolInfoRequest, UpdateSchoolInfoRequest } from '../../core/models/school-info.model';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -89,6 +89,13 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
   /**
    * Populate the form with existing school information
    */
+  /** The album section uploaded or deleted images: keep the saved school info in step */
+  onAlbumChange(album: SchoolAlbumItem[]): void {
+    if (this.existingSchoolInfo) {
+      this.existingSchoolInfo = { ...this.existingSchoolInfo, album };
+    }
+  }
+
   private populateForm(schoolInfo: SchoolInfo): void {
     this.form.patchValue({
       nameAr: schoolInfo.nameAr,
@@ -185,11 +192,13 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
             this.isSaving.set(false);
             if (response.status === 200) {
               this.successMessage.set(response.message || 'School information updated successfully');
+              // The form does not change the album: keep it (it is managed by the album section)
+              const album = this.existingSchoolInfo?.album;
               if (response.data) {
-                this.existingSchoolInfo = response.data;
+                this.existingSchoolInfo = { ...response.data, album: response.data.album ?? album };
                 this.populateForm(response.data);
               } else {
-                this.existingSchoolInfo = { ...formValue, id: this.existingSchoolInfo?.id };
+                this.existingSchoolInfo = { ...formValue, id: this.existingSchoolInfo?.id, album };
               }
               // Sidebar shows the school name
               this.schoolInfoService.setCurrent(this.existingSchoolInfo);

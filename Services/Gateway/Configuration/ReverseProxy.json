@@ -9,7 +9,12 @@
       "management-route": {
         "ClusterId": "management-cluster",
         "Match": { "Path": "/api/{resource:regex(^(semester|section|timetable-slot|school-info|timetable|parent|teacher|grade|academic-year|subject|stage|student)$)}/{**catch-all}" },
-        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:56298" } ]
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5298" } ]
+      },
+      "management-upload-route": {
+        "ClusterId": "management-cluster",
+        "Match": { "Path": "/upload/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5298" } ]
       },
       "examshomework-route": {
         "ClusterId": "examshomework-cluster",
@@ -35,7 +40,7 @@
       },
       "management-cluster": {
         "Destinations": {
-          "management-api": { "Address": "http://localhost:56298/" }
+          "management-api": { "Address": "http://localhost:5298/" }
         }
       },
       "examshomework-cluster": {

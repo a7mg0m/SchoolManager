@@ -50,6 +50,9 @@ namespace SchoolManager.ExamsHomework.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("GradeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("Month")
+                        .HasColumnType("int");
+
                     b.Property<Guid?>("SectionId")
                         .HasColumnType("uniqueidentifier");
 

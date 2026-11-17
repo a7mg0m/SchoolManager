@@ -2,6 +2,7 @@ using BuildingBlocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SchoolManager.Financial.Application;
 using SchoolManager.Financial.Domain;
 
 namespace SchoolManager.Financial.Infrastructure
@@ -22,6 +23,14 @@ namespace SchoolManager.Financial.Infrastructure
             services.AddScoped<IRevenueCategoryRepository, RevenueCategoryRepository>();
             services.AddScoped<IRevenueRepository, RevenueRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Parent app: which students belong to the logged-in parent (Management service, through the gateway)
+            services.AddHttpClient<IParentChildrenService, ManagementParentChildrenService>(client =>
+            {
+                client.BaseAddress = new Uri(configuration["ManagementService:BaseUrl"] ?? "http://localhost:53607/");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
+
             return services;
         }
     }

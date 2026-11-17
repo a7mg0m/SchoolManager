@@ -15,6 +15,8 @@ namespace SchoolManager.ExamsHomework.Domain
         public Guid SemesterId { get; private set; }
 
         public ExamType ExamType { get; private set; }
+        /// <summary>Month of a Monthly exam (1 = January … 12 = December); null for the other types.</summary>
+        public int? Month { get; private set; }
         public DateOnly ExamDate { get; private set; }
         public TimeOnly StartTime { get; private set; }
         public TimeOnly EndTime { get; private set; }
@@ -42,6 +44,7 @@ namespace SchoolManager.ExamsHomework.Domain
             Guid academicYearId,
             Guid semesterId,
             ExamType examType,
+            int? month,
             DateOnly examDate,
             TimeOnly startTime,
             TimeOnly endTime,
@@ -60,6 +63,7 @@ namespace SchoolManager.ExamsHomework.Domain
             AcademicYearId = academicYearId;
             SemesterId = semesterId;
             ExamType = examType;
+            Month = MonthFor(examType, month);
             ExamDate = examDate;
             StartTime = startTime;
             EndTime = endTime;
@@ -76,6 +80,7 @@ namespace SchoolManager.ExamsHomework.Domain
             Guid academicYearId,
             Guid semesterId,
             ExamType examType,
+            int? month,
             DateOnly examDate,
             TimeOnly startTime,
             TimeOnly endTime,
@@ -93,6 +98,7 @@ namespace SchoolManager.ExamsHomework.Domain
             AcademicYearId = academicYearId;
             SemesterId = semesterId;
             ExamType = examType;
+            Month = MonthFor(examType, month);
             ExamDate = examDate;
             StartTime = startTime;
             EndTime = endTime;
@@ -100,6 +106,9 @@ namespace SchoolManager.ExamsHomework.Domain
             AnswerModelUrl = answerModelUrl;
             AuditInfo = auditInfo;
         }
+
+        /// <summary>Only Monthly exams have a month</summary>
+        private static int? MonthFor(ExamType examType, int? month) => examType == ExamType.Monthly ? month : null;
 
         /// <summary>A score passes when it reaches the success score</summary>
         public bool IsPassed(double score) => score >= SuccessScore;

@@ -8,9 +8,18 @@ import '../profile/edit_profile_screen.dart';
 import '../profile/profile_service.dart';
 import '../schedule/schedule_service.dart';
 import '../schedule/timetable_screen.dart';
+import '../fees/fees_screen.dart';
+import '../fees/fees_service.dart';
+import '../exams/exams_screen.dart';
+import '../exams/exams_service.dart';
+import '../events/events_screen.dart';
+import '../events/events_service.dart';
+import '../school/school_info_screen.dart';
+import '../school/school_info_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, this.loadChildren, this.loadProfile, this.loadTimetable});
+  const HomeScreen(
+      {super.key, this.loadChildren, this.loadProfile, this.loadTimetable, this.loadFees, this.loadExams, this.loadEvents, this.loadSchoolInfo});
 
   /// Loads the parent's children; defaults to the API (tests pass their own)
   final Future<List<Child>> Function()? loadChildren;
@@ -20,6 +29,18 @@ class HomeScreen extends StatefulWidget {
 
   /// Loads a child's lessons for today / the next school day; defaults to the API
   final Future<ChildTimetable> Function(String studentId)? loadTimetable;
+
+  /// Loads a child's fees; defaults to the API
+  final Future<List<StudentFeeItem>> Function(String studentId)? loadFees;
+
+  /// Loads a child's exams with its results; defaults to the API
+  final Future<List<ChildExam>> Function(String studentId)? loadExams;
+
+  /// Loads the school events of a child; defaults to the API
+  final Future<List<ChildEvent>> Function(String studentId)? loadEvents;
+
+  /// Loads the school information (About the school page); defaults to the API
+  final Future<SchoolInfo?> Function()? loadSchoolInfo;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -32,7 +53,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String? childrenError;
   int selectedTab = 0;
   MyProfile? profile;
-
 
   @override
   void initState() {
@@ -97,13 +117,16 @@ class _HomeScreenState extends State<HomeScreen> {
       childrenError = null;
     });
     try {
-      final loader = widget.loadChildren ?? ChildrenService.instance.getMyChildren;
+      final loader =
+          widget.loadChildren ?? ChildrenService.instance.getMyChildren;
       final result = await loader();
       if (!mounted) return;
       setState(() {
         children = result;
         // Keep the selected child after a refresh when it is still there
-        selectedChild = result.where((c) => c.id == selectedChild?.id).firstOrNull ?? result.firstOrNull;
+        selectedChild =
+            result.where((c) => c.id == selectedChild?.id).firstOrNull ??
+                result.firstOrNull;
         isLoadingChildren = false;
       });
     } on ChildrenException catch (e) {
@@ -131,17 +154,17 @@ class _HomeScreenState extends State<HomeScreen> {
               child: RefreshIndicator(
                 onRefresh: _refresh,
                 child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-                // Home: the important announcement first, then the services of the selected child
-                children: [
-                  _buildAnnouncement(),
-                  const SizedBox(height: 22),
-                  _sectionTitle('الخدمات'),
-                  _buildServices(),
-                  const SizedBox(height: 20),
-                ],
-              ),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                  // Home: the important announcement first, then the services of the selected child
+                  children: [
+                    _buildAnnouncement(),
+                    const SizedBox(height: 22),
+                    _sectionTitle('الخدمات'),
+                    _buildServices(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ],
@@ -169,7 +192,8 @@ class _HomeScreenState extends State<HomeScreen> {
               const CircleAvatar(
                 radius: 25,
                 backgroundColor: Colors.white24,
-                child: Icon(Icons.school_rounded, color: Colors.white, size: 28),
+                child:
+                    Icon(Icons.school_rounded, color: Colors.white, size: 28),
               ),
               const Spacer(),
               Column(
@@ -177,14 +201,22 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     'مرحباً،',
-                    style: TextStyle(color: Colors.white.withValues(alpha: .8), fontSize: 14),
+                    style: TextStyle(
+                        color: Colors.white.withValues(alpha: .8),
+                        fontSize: 14),
                   ),
                   Text(
                     // Profile name, else the name saved at login (demo name only without a session, e.g. tests)
-                    profile?.displayName ?? AuthService.instance.session?.displayName ?? parentName,
-                    style: const TextStyle(color: Colors.white, fontSize: 21, fontWeight: FontWeight.bold),
+                    profile?.displayName ??
+                        AuthService.instance.session?.displayName ??
+                        parentName,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold),
                   ),
-                  const Text('ولي أمر الطالب', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  const Text('ولي أمر الطالب',
+                      style: TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
               const SizedBox(width: 12),
@@ -197,8 +229,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     left: -5,
                     child: Container(
                       padding: const EdgeInsets.all(5),
-                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                      child: const Text('2', style: TextStyle(color: Colors.white, fontSize: 10)),
+                      decoration: const BoxDecoration(
+                          color: Colors.red, shape: BoxShape.circle),
+                      child: const Text('2',
+                          style: TextStyle(color: Colors.white, fontSize: 10)),
                     ),
                   ),
                 ],
@@ -228,7 +262,8 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: _openEditProfile,
       child: Container(
         padding: const EdgeInsets.all(2),
-        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+        decoration:
+            const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
         child: CircleAvatar(
           radius: 24,
           backgroundColor: const Color(0xFFFFC044),
@@ -246,9 +281,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (isLoadingChildren) {
       return const Row(
         children: [
-          SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5)),
+          SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(strokeWidth: 2.5)),
           SizedBox(width: 12),
-          Expanded(child: Text('جاري تحميل بيانات الأبناء...', style: TextStyle(color: AppTheme.ink))),
+          Expanded(
+              child: Text('جاري تحميل بيانات الأبناء...',
+                  style: TextStyle(color: AppTheme.ink))),
         ],
       );
     }
@@ -258,8 +298,11 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           const Icon(Icons.error_outline_rounded, color: Color(0xFFD93025)),
           const SizedBox(width: 10),
-          Expanded(child: Text(childrenError!, style: const TextStyle(fontSize: 12, color: AppTheme.ink))),
-          TextButton(onPressed: _loadChildren, child: const Text('إعادة المحاولة')),
+          Expanded(
+              child: Text(childrenError!,
+                  style: const TextStyle(fontSize: 12, color: AppTheme.ink))),
+          TextButton(
+              onPressed: _loadChildren, child: const Text('إعادة المحاولة')),
         ],
       );
     }
@@ -267,10 +310,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (children.isEmpty) {
       return const Row(
         children: [
-          Icon(Icons.info_outline_rounded, color: Color.fromARGB(255, 224, 72, 163)),
+          Icon(Icons.info_outline_rounded,
+              color: Color.fromARGB(255, 224, 72, 163)),
           SizedBox(width: 10),
           Expanded(
-            child: Text('لا يوجد أبناء مرتبطون بحسابك حالياً.', style: TextStyle(color: AppTheme.ink)),
+            child: Text('لا يوجد أبناء مرتبطون بحسابك حالياً.',
+                style: TextStyle(color: AppTheme.ink)),
           ),
         ],
       );
@@ -291,10 +336,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     isExpanded: true,
                     // Two lines per child (name + grade): let rows grow instead of overflowing 48px
                     itemHeight: null,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.blue),
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded,
+                        color: AppTheme.blue),
                     borderRadius: BorderRadius.circular(16),
                     items: children
-                        .map((c) => DropdownMenuItem(value: c, child: _childLabel(c)))
+                        .map((c) =>
+                            DropdownMenuItem(value: c, child: _childLabel(c)))
                         .toList(),
                     onChanged: (c) {
                       if (c != null) setState(() => selectedChild = c);
@@ -313,9 +360,12 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(child.name, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.ink)),
+          Text(child.name,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: AppTheme.ink)),
           if (child.classInfo.isNotEmpty)
-            Text(child.classInfo, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+            Text(child.classInfo,
+                style: const TextStyle(fontSize: 11, color: Colors.black54)),
         ],
       ),
     );
@@ -324,13 +374,33 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Services of the selected child as icons; only the timetable is available so far
   Widget _buildServices() {
     final services = <(IconData, String, Color, VoidCallback?)>[
-      (Icons.calendar_view_week_rounded, 'الجدول الدراسي', const Color(0xFF1677E8), _openTimetable),
+      (
+        Icons.calendar_view_week_rounded,
+        'الجدول الدراسي',
+        const Color(0xFF1677E8),
+        _openTimetable
+      ),
       (Icons.menu_book_rounded, 'الواجبات', const Color(0xFF20A66A), null),
-      (Icons.fact_check_rounded, 'الاختبارات والدرجات', const Color(0xFF8957E5), null),
-      (Icons.how_to_reg_rounded, 'الحضور والغياب', const Color(0xFF0FA5A5), null),
-      (Icons.payments_rounded, 'الرسوم الدراسية', const Color(0xFFF08C00), null),
-      (Icons.celebration_rounded, 'الفعاليات', const Color(0xFFE0457B), null),
-      (Icons.notifications_rounded, 'الإشعارات', const Color(0xFF4C5FD5), null),
+      (
+        Icons.fact_check_rounded,
+        'الاختبارات والدرجات',
+        const Color(0xFF8957E5),
+        _openExams
+      ),
+      (
+        Icons.how_to_reg_rounded,
+        'الحضور والغياب',
+        const Color(0xFF0FA5A5),
+        null
+      ),
+      (
+        Icons.payments_rounded,
+        'الرسوم الدراسية',
+        const Color(0xFFF08C00),
+        _openFees
+      ),
+      (Icons.celebration_rounded, 'الفعاليات', const Color(0xFFE0457B), _openEvents),
+      (Icons.local_hospital_rounded, 'العيادة الصحية', const Color(0xFFD93025), null),
       (Icons.directions_bus_rounded, 'الباص', const Color(0xFFB7791F), null),
     ];
 
@@ -345,14 +415,16 @@ class _HomeScreenState extends State<HomeScreen> {
           runSpacing: gap,
           children: [
             for (final (icon, label, color, onTap) in services)
-              SizedBox(width: width, child: _serviceTile(icon, label, color, onTap)),
+              SizedBox(
+                  width: width, child: _serviceTile(icon, label, color, onTap)),
           ],
         );
       },
     );
   }
 
-  Widget _serviceTile(IconData icon, String label, Color color, VoidCallback? onTap) {
+  Widget _serviceTile(
+      IconData icon, String label, Color color, VoidCallback? onTap) {
     final available = onTap != null;
     return Material(
       color: Colors.white,
@@ -371,7 +443,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: color.withValues(alpha: available ? .13 : .07),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, size: 26, color: available ? color : color.withValues(alpha: .45)),
+                child: Icon(icon,
+                    size: 26,
+                    color: available ? color : color.withValues(alpha: .45)),
               ),
               const SizedBox(height: 7),
               Text(
@@ -393,19 +467,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// Timetable page of the selected child
-  void _openTimetable() {
-    final child = selectedChild;
-    if (child == null) {
-      _showMessage(isLoadingChildren ? 'جاري تحميل بيانات الأبناء...' : 'لا يوجد أبناء مرتبطون بحسابك.');
-      return;
-    }
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => TimetableScreen(
+  void _openTimetable() => _openForChild((child) => TimetableScreen(
         child: child,
         loadTimetable: widget.loadTimetable,
         onSessionExpired: _logout,
-      ),
-    ));
+      ));
+
+  /// Fees page of the selected child
+  /// Exams page of the selected child
+  /// Events page of the selected child
+  void _openEvents() => _openForChild((child) => EventsScreen(
+        child: child,
+        loadEvents: widget.loadEvents,
+        onSessionExpired: _logout,
+      ));
+
+  void _openExams() => _openForChild((child) => ExamsScreen(
+        child: child,
+        loadExams: widget.loadExams,
+        onSessionExpired: _logout,
+      ));
+
+  void _openFees() => _openForChild((child) => FeesScreen(
+        child: child,
+        loadFees: widget.loadFees,
+        onSessionExpired: _logout,
+      ));
+
+  /// Opens a page of the child selected in the header (message when there is none yet)
+  void _openForChild(Widget Function(Child child) page) {
+    final child = selectedChild;
+    if (child == null) {
+      _showMessage(isLoadingChildren
+          ? 'جاري تحميل بيانات الأبناء...'
+          : 'لا يوجد أبناء مرتبطون بحسابك.');
+      return;
+    }
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => page(child)));
   }
 
   Widget _buildAnnouncement() {
@@ -423,30 +521,44 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('إعلان هام', style: TextStyle(color: AppTheme.navy, fontWeight: FontWeight.bold, fontSize: 17)),
+                Text('إعلان هام',
+                    style: TextStyle(
+                        color: AppTheme.navy,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17)),
                 SizedBox(height: 5),
-                Text('موعد الرحلة المدرسية القادمة يوم الخميس القادم.', textAlign: TextAlign.right, style: TextStyle(color: AppTheme.ink, fontSize: 12)),
+                Text('موعد الرحلة المدرسية القادمة يوم الخميس القادم.',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(color: AppTheme.ink, fontSize: 12)),
               ],
             ),
           ),
-          Text('عرض الكل', style: TextStyle(color: AppTheme.blue, fontWeight: FontWeight.bold, fontSize: 11)),
+          Text('عرض الكل',
+              style: TextStyle(
+                  color: AppTheme.blue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11)),
         ],
       ),
     );
   }
 
   Widget _sectionTitle(String title) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: Align(
-      alignment: Alignment.centerRight,
-      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.ink)),
-    ),
-  );
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Text(title,
+              style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.ink)),
+        ),
+      );
 
   Widget _bottomNavigation() {
     const items = [
       (Icons.home_rounded, 'الرئيسية'),
-      (Icons.school_rounded, 'أكاديمي'),
+      (Icons.notifications_rounded, 'الإشعارات'),
       (Icons.chat_bubble_rounded, 'المحادثات'),
       (Icons.menu_rounded, 'المزيد'),
     ];
@@ -459,21 +571,30 @@ class _HomeScreenState extends State<HomeScreen> {
           return;
         }
         setState(() => selectedTab = index);
-        if (index != 0) _showMessage('صفحة ${items[index].$2} سيتم تنفيذها في المرحلة التالية.');
+        if (index != 0)
+          _showMessage(
+              'صفحة ${items[index].$2} سيتم تنفيذها في المرحلة التالية.');
       },
-      destinations: items.map((item) => NavigationDestination(
-        icon: Icon(item.$1),
-        label: item.$2,
-      )).toList(),
+      destinations: items
+          .map((item) => NavigationDestination(
+                icon: Icon(item.$1),
+                label: item.$2,
+              ))
+          .toList(),
     );
   }
 
   /// Email under the name in the menu; the login name when there is no real email (placeholder or empty)
   String _menuSubtitle(AuthSession session) {
     final p = profile;
-    if (p != null) return p.email.isNotEmpty && !p.hasPlaceholderEmail ? p.email : p.loginName;
+    if (p != null)
+      return p.email.isNotEmpty && !p.hasPlaceholderEmail
+          ? p.email
+          : p.loginName;
     final email = session.email ?? '';
-    return email.isNotEmpty && !email.toLowerCase().endsWith('@parents.local') ? email : session.loginName;
+    return email.isNotEmpty && !email.toLowerCase().endsWith('@parents.local')
+        ? email
+        : session.loginName;
   }
 
   /// "More" tab: account info and logout
@@ -488,14 +609,16 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             if (session != null)
               ListTile(
-                leading: const Icon(Icons.account_circle_rounded, color: AppTheme.blue),
+                leading: const Icon(Icons.account_circle_rounded,
+                    color: AppTheme.blue),
                 // Latest profile (refreshed after an edit), else what was saved at login
                 title: Text(profile?.displayName ?? session.displayName,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(_menuSubtitle(session)),
               ),
             ListTile(
-              leading: const Icon(Icons.manage_accounts_rounded, color: AppTheme.blue),
+              leading: const Icon(Icons.manage_accounts_rounded,
+                  color: AppTheme.blue),
               title: const Text('تعديل الملف الشخصي'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
@@ -503,8 +626,21 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.logout_rounded, color: Color(0xFFD93025)),
-              title: const Text('تسجيل الخروج', style: TextStyle(color: Color(0xFFD93025))),
+              leading: const Icon(Icons.school_rounded, color: AppTheme.blue),
+              title: const Text('عن المدرسة'),
+              subtitle: const Text('بيانات المدرسة وألبوم الصور'),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => SchoolInfoScreen(loadSchoolInfo: widget.loadSchoolInfo),
+                ));
+              },
+            ),
+            ListTile(
+              leading:
+                  const Icon(Icons.logout_rounded, color: Color(0xFFD93025)),
+              title: const Text('تسجيل الخروج',
+                  style: TextStyle(color: Color(0xFFD93025))),
               onTap: () async {
                 Navigator.of(sheetContext).pop();
                 await _logout();
@@ -520,10 +656,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _logout() async {
     await AuthService.instance.logout();
     if (!mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }

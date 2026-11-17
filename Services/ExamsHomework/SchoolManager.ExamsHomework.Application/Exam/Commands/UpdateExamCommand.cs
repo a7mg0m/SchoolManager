@@ -18,6 +18,8 @@ namespace SchoolManager.ExamsHomework.Application
         double Duration,
         double Weight,
         double SuccessScore,
-        string? AnswerModelUrl
+        string? AnswerModelUrl,
+        /// <summary>Month of a Monthly exam (1..12); ignored for the other types</summary>
+        int? Month = null
     ) : ICommand;
 }

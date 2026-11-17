@@ -1,10 +1,14 @@
 import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient, HttpEvent } from '@angular/common/http';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import {
   SchoolInfo,
   SchoolInfoResponse,
   SchoolInfoSingleResponse,
+  SchoolInfoApiResponse,
+  SchoolAlbumItem,
   CreateSchoolInfoRequest,
   UpdateSchoolInfoRequest
 } from '../models/school-info.model';
@@ -43,7 +47,35 @@ export class SchoolInfoService {
     return `data:${mime};base64,${logo}`;
   }
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService, private http: HttpClient) {}
+
+  /**
+   * Upload one image to the school album (multipart, field "files"). Emits HTTP events so the page can
+   * show the upload progress; the last event's body has the new album items.
+   */
+  uploadAlbumFile(file: File): Observable<HttpEvent<SchoolInfoApiResponse<SchoolAlbumItem[]>>> {
+    const form = new FormData();
+    form.append('files', file, file.name);
+    return this.http.post<SchoolInfoApiResponse<SchoolAlbumItem[]>>(
+      `${environment.gatewayUrl}${this.schoolInfoEndpoint}/album/upload`,
+      form,
+      { reportProgress: true, observe: 'events' }
+    );
+  }
+
+  /** Remove an image from the school album (the API also deletes the file) */
+  deleteAlbumItem(id: string): Observable<SchoolInfoApiResponse<null>> {
+    return this.apiService.delete<SchoolInfoApiResponse<null>>(`${this.schoolInfoEndpoint}/album/delete/${id}`);
+  }
+
+  /** Full address of an album file: "/upload/school-album/x.jpg" -> "http://gateway/upload/school-album/x.jpg" */
+  static albumFileUrl(url: string): string {
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+    const base = environment.gatewayUrl.replace(/\/+$/, '');
+    return `${base}/${url.replace(/^\/+/, '')}`;
+  }
 
   /** Load the school info for the layout once (call again with force after it may have changed) */
   loadCurrent(force = false): void {

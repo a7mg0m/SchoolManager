@@ -1,0 +1,151 @@
+<div class="card mt-4 school-album">
+  <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
+    <h5 class="mb-0">
+      <i class="pe-7s-photo-gallery me-1"></i>
+      {{ 'schoolInfo.album.title' | translate }}
+      <span class="badge bg-secondary ms-1">{{ album().length }}</span>
+    </h5>
+    @if (enabled) {
+      <label *appCan="'edit'" class="btn btn-sm btn-primary mb-0" [class.disabled]="isUploading()">
+        <i class="pe-7s-cloud-upload me-1"></i> {{ 'schoolInfo.album.upload' | translate }}
+        <input type="file" class="d-none" multiple [accept]="accept" (change)="onFilesSelected($event)" [disabled]="isUploading()" />
+      </label>
+    }
+  </div>
+
+  <div class="card-body">
+    @if (!enabled) {
+      <div class="alert alert-info mb-0">{{ 'schoolInfo.album.saveFirst' | translate }}</div>
+    } @else {
+      @if (errorMessage()) {
+        <div class="alert alert-danger alert-dismissible fade show">
+          {{ errorMessage() }}
+          <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+        </div>
+      }
+
+      <!-- Drop zone -->
+      <label *appCan="'edit'" class="drop-zone mb-3" [class.dragging]="isDragging()"
+             (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+        <input type="file" class="d-none" multiple [accept]="accept" (change)="onFilesSelected($event)" />
+        <i class="pe-7s-cloud-upload drop-icon"></i>
+        <div class="fw-semibold">{{ 'schoolInfo.album.dropHere' | translate }}</div>
+        <div class="small text-muted">{{ 'schoolInfo.album.rules' | translate }}</div>
+      </label>
+
+      <!-- Upload queue -->
+      @if (uploads().length) {
+        <ul class="list-group mb-3">
+          @for (u of uploads(); track u) {
+            <li class="list-group-item">
+              <div class="d-flex align-items-center gap-2">
+                @switch (u.status) {
+                  @case ('done') { <i class="pe-7s-check text-success fs-5"></i> }
+                  @case ('error') { <i class="pe-7s-attention text-danger fs-5"></i> }
+                  @default { <span class="spinner-border spinner-border-sm text-primary"></span> }
+                }
+                <span class="text-truncate flex-grow-1" dir="ltr">{{ u.name }}</span>
+                <small class="text-muted text-nowrap">{{ formatSize(u.size) }}</small>
+              </div>
+              @if (u.status === 'uploading' || u.status === 'waiting') {
+                <div class="progress mt-2" style="height: 6px;">
+                  <div class="progress-bar" [style.width.%]="u.progress"></div>
+                </div>
+              }
+              @if (u.error) {
+                <div class="small text-danger mt-1">{{ u.error }}</div>
+              }
+            </li>
+          }
+        </ul>
+        @if (!isUploading()) {
+          <button type="button" class="btn btn-link btn-sm px-0 mb-3" (click)="clearFinished()">
+            {{ 'schoolInfo.album.clearList' | translate }}
+          </button>
+        }
+      }
+
+      <!-- Album grid -->
+      @if (album().length === 0) {
+        <div class="text-center text-muted py-4">
+          <i class="pe-7s-photo empty-icon"></i>
+          <div>{{ 'schoolInfo.album.empty' | translate }}</div>
+        </div>
+      } @else {
+        <div class="row g-3">
+          @for (item of album(); track item.id; let i = $index) {
+            <div class="col-6 col-md-4 col-xl-3">
+              <div class="album-tile" [class.deleting]="deletingId() === item.id">
+                <button type="button" class="album-thumb" (click)="open(i, viewer)"
+                        [title]="item.fileName">
+                  <img [src]="src(item)" [alt]="item.fileName" loading="lazy" />
+                </button>
+                <div class="album-meta">
+                  <div class="text-truncate small fw-semibold" dir="ltr" [title]="item.fileName">{{ item.fileName }}</div>
+                  <div class="d-flex align-items-center justify-content-between">
+                    <small class="text-muted">{{ formatSize(item.size) }}</small>
+                    <button *appCan="'edit'" type="button" class="btn btn-sm btn-outline-danger"
+                            [disabled]="deletingId() === item.id"
+                            [title]="'common.delete' | translate"
+                            (click)="confirmDelete(item, deleteDialog)">
+                      @if (deletingId() === item.id) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                      } @else {
+                        <i class="pe-7s-trash"></i>
+                      }
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- Image viewer -->
+<ng-template #viewer let-modal>
+  @if (viewerItem(); as item) {
+    <div class="modal-header">
+      <h6 class="modal-title text-truncate" dir="ltr">{{ item.fileName }}</h6>
+      <span class="text-muted small ms-2">{{ viewerIndex() + 1 }} / {{ album().length }}</span>
+      <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+    </div>
+    <div class="modal-body text-center viewer-body">
+      <img [src]="src(item)" [alt]="item.fileName" class="viewer-image" />
+    </div>
+    <div class="modal-footer justify-content-between">
+      <div>
+        <button type="button" class="btn btn-outline-secondary me-2" (click)="step(-1)" [disabled]="album().length < 2">
+          {{ 'schoolInfo.album.previous' | translate }}
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="step(1)" [disabled]="album().length < 2">
+          {{ 'schoolInfo.album.next' | translate }}
+        </button>
+      </div>
+      <div>
+        <a class="btn btn-outline-primary me-2" [href]="src(item)" target="_blank" rel="noopener">
+          {{ 'schoolInfo.album.openOriginal' | translate }}
+        </a>
+        <button *appCan="'edit'" type="button" class="btn btn-danger" (click)="confirmDelete(item, deleteDialog, modal)">
+          <i class="pe-7s-trash"></i> {{ 'common.delete' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+</ng-template>
+
+<!-- Delete confirmation -->
+<ng-template #deleteDialog let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">{{ 'schoolInfo.album.deleteTitle' | translate }}</h5>
+    <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">{{ 'schoolInfo.album.deleteConfirm' | translate }}</div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.close(false)">{{ 'common.cancel' | translate }}</button>
+    <button type="button" class="btn btn-danger" (click)="modal.close(true)">{{ 'common.delete' | translate }}</button>
+  </div>
+</ng-template>

@@ -14,5 +14,17 @@ namespace SchoolManager.Notification.Infrastructure
 
         public override async Task<List<SchoolEvent>> GetAllAsync()
             => await _dbSet.Include(x => x.Targets).ToListAsync();
+
+        public async Task<List<SchoolEvent>> GetForStudentAsync(Guid academicYearId, Guid gradeId, Guid sectionId, Guid studentId, CancellationToken cancellationToken = default)
+            => await _dbSet.Include(x => x.Targets)
+                .Where(e => //e.AcademicYearId == academicYearId &&
+                     (e.EventFor == EventForEnum.All
+                        // Stage events are saved as one target per grade of the stage
+                        || ((e.EventFor == EventForEnum.Stage || e.EventFor == EventForEnum.Grade)
+                            && e.Targets.Any(t => t.GradeId == gradeId))
+                        // Section targets also carry their grade: match the section itself
+                        || (e.EventFor == EventForEnum.Section && e.Targets.Any(t => t.SectionId == sectionId))
+                        || (e.EventFor == EventForEnum.Student && e.Targets.Any(t => t.StudentId == studentId))))
+                .ToListAsync(cancellationToken);
     }
 }

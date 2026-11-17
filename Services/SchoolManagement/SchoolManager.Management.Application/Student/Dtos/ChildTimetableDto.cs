@@ -10,10 +10,4 @@ namespace SchoolManager.Management.Application
         /// <summary>Days with lessons, Saturday first; lessons in time order.</summary>
         public List<ChildTimetableDayDto> Days { get; set; } = new();
     }
-
-    public class ChildTimetableDayDto
-    {
-        public DayOfWeek DayOfWeek { get; set; }
-        public List<ChildScheduleSlotDto> Slots { get; set; } = new();
-    }
 }

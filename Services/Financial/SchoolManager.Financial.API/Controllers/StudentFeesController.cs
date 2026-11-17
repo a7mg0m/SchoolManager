@@ -1,5 +1,6 @@
 using BuildingBlocks;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManager.Financial.Application;
 using SchoolManager.Financial.Domain;
@@ -11,10 +12,35 @@ namespace SchoolManager.Financial.API.Controllers
     public class StudentFeesController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly ICurrentUserService _currentUser;
+        private readonly IParentChildrenService _parentChildren;
 
-        public StudentFeesController(IMediator mediator)
+        public StudentFeesController(IMediator mediator, ICurrentUserService currentUser, IParentChildrenService parentChildren)
         {
             _mediator = mediator;
+            _currentUser = currentUser;
+            _parentChildren = parentChildren;
+        }
+
+        /// <summary>
+        /// Fees of one of the logged-in parent's children (parent app). The child must be in the parent's
+        /// children (checked with the Management service); otherwise 404. Newest due date first.
+        /// </summary>
+        [Authorize]
+        [HttpGet("my-child/{studentId}")]
+        public async Task<IActionResult> GetMyChildFees(Guid studentId, CancellationToken cancellationToken)
+        {
+            if (_currentUser.ParentId is null)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+            var children = await _parentChildren.GetMyChildrenIdsAsync(Request.Headers.Authorization.ToString(), cancellationToken);
+            if (children is null)
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiResponse(503, "ManagementUnavailable"));
+            if (!children.Contains(studentId))
+                return NotFound(new ApiResponse(404, "StudentNotFound"));
+
+            var fees = await _mediator.Send(new GetStudentFeesByStudentQuery(studentId), cancellationToken);
+            return Ok(new ApiResponse { data = fees.OrderByDescending(f => f.DueDate).ToList() });
         }
 
         [HttpGet("get-all")]

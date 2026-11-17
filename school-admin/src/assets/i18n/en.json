@@ -429,6 +429,29 @@
     "overdueCount": "{{count}} overdue"
   },
   "schoolInfo": {
+    "album": {
+      "title": "School Album",
+      "upload": "Upload images",
+      "dropHere": "Drag images here, or click to choose",
+      "rules": "JPG, PNG, GIF or WEBP — up to 10 MB each",
+      "saveFirst": "Save the school information first, then you can add images to the album.",
+      "empty": "No images in the album yet.",
+      "clearList": "Clear the upload list",
+      "previous": "Previous",
+      "next": "Next",
+      "openOriginal": "Open original",
+      "deleteTitle": "Delete image",
+      "deleteConfirm": "Delete this image from the school album? The file will be removed from the server.",
+      "uploadFailed": "The image could not be uploaded.",
+      "deleteFailed": "The image could not be deleted.",
+      "errors": {
+        "SchoolInfoRequired": "Save the school information first.",
+        "NoFiles": "No file was received.",
+        "TooManyFiles": "Too many files in one upload.",
+        "FileTooLarge": "The image is larger than 10 MB.",
+        "FileTypeNotAllowed": "Only JPG, PNG, GIF or WEBP images are allowed."
+      }
+    },
     "title": "School Information",
     "createTitle": "Create School Information",
     "editTitle": "Edit School Information",
@@ -1199,6 +1222,22 @@
     "academicYearRequired": "Academic year is required",
     "semesterRequired": "Semester is required",
     "examTypeRequired": "Exam type is required",
+    "month": "Month",
+    "monthRequired": "Month is required for a monthly exam",
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
     "examDateRequired": "Exam date is required",
     "startTimeRequired": "Start time is required",
     "endTimeRequired": "End time is required",
