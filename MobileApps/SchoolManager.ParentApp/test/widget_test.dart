@@ -108,8 +108,15 @@ ChildTimetable _week({required int today, required int now}) => ChildTimetable(
       ],
     );
 
+/// Scrolls Home to a service tile (it may be under the floating bar or off screen), then taps it
+Future<void> _tapTile(WidgetTester tester, String label) async {
+  await tester.ensureVisible(find.text(label));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(label));
+}
+
 Future<void> _openTimetable(WidgetTester tester) async {
-  await tester.tap(find.text('الجدول الدراسي'));
+  await _tapTile(tester, 'الجدول الدراسي');
   await tester.pumpAndSettle();
 }
 
@@ -417,7 +424,7 @@ void main() {
     await tester.pumpWidget(_home(() async => [_sara], fees: fees));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('الرسوم الدراسية'));
+    await _tapTile(tester, 'الرسوم الدراسية');
     await tester.pumpAndSettle();
 
     // Left to pay: 1,500 + 2,000 = 3,500
@@ -444,7 +451,7 @@ void main() {
     _phoneSize(tester);
     await tester.pumpWidget(_home(() async => [_sara]));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('الرسوم الدراسية'));
+    await _tapTile(tester, 'الرسوم الدراسية');
     await tester.pumpAndSettle();
 
     expect(find.text('لا توجد رسوم دراسية مسجلة للطالب.'), findsOneWidget);
@@ -483,7 +490,7 @@ void main() {
     ]));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('الاختبارات والدرجات'));
+    await _tapTile(tester, 'الاختبارات والدرجات');
     await tester.pumpAndSettle();
 
     // Opens on the type of the next exam
@@ -538,7 +545,7 @@ void main() {
       monthly('2', 'علوم', 11, 5), // November exam
     ]));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('الاختبارات والدرجات'));
+    await _tapTile(tester, 'الاختبارات والدرجات');
     await tester.pumpAndSettle();
 
     // Opens on the Monthly tab (latest result); both months listed with their tags
@@ -581,7 +588,7 @@ void main() {
       event('3', 'حفل تكريم', -10, EventAudience.student), // past
     ]));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('الفعاليات'));
+    await _tapTile(tester, 'الفعاليات');
     await tester.pumpAndSettle();
 
     // Upcoming: next event highlighted, the other with its audience
@@ -609,7 +616,7 @@ void main() {
     _phoneSize(tester);
     await tester.pumpWidget(_home(() async => [_sara]));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('الفعاليات'));
+    await _tapTile(tester, 'الفعاليات');
     await tester.pumpAndSettle();
 
     expect(find.text('لا توجد فعاليات قادمة حالياً.'), findsOneWidget);
@@ -959,5 +966,75 @@ void main() {
     final header = find.byKey(const ValueKey('school-logo'));
     expect(find.descendant(of: header, matching: find.byIcon(Icons.school_rounded)), findsOneWidget);
     expect(find.descendant(of: header, matching: find.byType(Image)), findsNothing);
+  });
+
+  testWidgets('Home today card shows the lesson now and the tiles show live data',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    // Tuesday 10:00: science now (9:30 - 10:15), English next
+    await tester.pumpWidget(_home(
+      () async => [_sara],
+      timetable: _week(today: 2, now: 600),
+      fees: [
+        _fee('f1', total: 1500, paid: 250, status: FeeState.partiallyPaid,
+            due: DateTime.now().add(const Duration(days: 20))),
+      ],
+    ));
+    await tester.pumpAndSettle();
+
+    final today = find.byKey(const ValueKey('today-card'));
+    expect(today, findsOneWidget);
+    expect(find.descendant(of: today, matching: find.text('الآن')), findsOneWidget);
+    expect(find.descendant(of: today, matching: find.text('علوم')), findsOneWidget);
+    expect(find.descendant(of: today, matching: find.text('1/3')), findsOneWidget);
+    // Lessons today on the timetable tile, the balance on the fees tile
+    expect(find.text('3 حصص اليوم'), findsOneWidget);
+    expect(find.text('المتبقي 1,250 ج.م'), findsOneWidget);
+
+    // The today card opens the timetable
+    await tester.tap(today);
+    await tester.pumpAndSettle();
+    expect(find.text('اليوم - الثلاثاء'), findsOneWidget);
+  });
+
+  testWidgets('Home children are stories: tapping one selects it',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(_home(() async => [_sara, _omar]));
+    await tester.pumpAndSettle();
+
+    expect(find.text('الصف الأول - فصل أ'), findsOneWidget);
+    await tester.tap(find.text('عمر أحمد'));
+    await tester.pumpAndSettle();
+    expect(find.text('KG 2 - فصل ب'), findsOneWidget);
+    expect(find.text('الصف الأول - فصل أ'), findsNothing);
+  });
+
+  testWidgets('Bottom bar stays pinned on pages opened from Home',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(_home(() async => [_sara], fees: const []));
+    await tester.pumpAndSettle();
+
+    // Fees page: the bar is still there
+    await _tapTile(tester, 'الرسوم الدراسية');
+    await tester.pumpAndSettle();
+    expect(find.text('لا توجد رسوم دراسية مسجلة للطالب.'), findsOneWidget);
+    expect(find.text('المزيد'), findsOneWidget);
+    expect(find.text('الرئيسية'), findsOneWidget);
+
+    // A page opened from the More menu keeps it too
+    await tester.tap(find.text('المزيد'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('عن المدرسة'));
+    await tester.pumpAndSettle();
+    expect(find.text('لم تُضف بيانات المدرسة بعد.'), findsOneWidget);
+    expect(find.text('الرئيسية'), findsOneWidget);
+
+    // Home in the bar goes back to the home page
+    await tester.tap(find.text('الرئيسية'));
+    await tester.pumpAndSettle();
+    expect(find.text('الخدمات'), findsOneWidget);
+    expect(find.text('لم تُضف بيانات المدرسة بعد.'), findsNothing);
   });
 }
