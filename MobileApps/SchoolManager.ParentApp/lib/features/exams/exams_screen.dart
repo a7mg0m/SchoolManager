@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import '../schedule/schedule_format.dart';
 import 'exams_service.dart';
+import '../../core/i18n/app_language.dart';
 
 /// Exams of the child selected on home, one tab per exam type:
 /// a summary, the upcoming exams (with a countdown) and the results (score ring, pass / fail).
@@ -26,7 +27,7 @@ class ExamsScreen extends StatefulWidget {
 }
 
 class _ExamsScreenState extends State<ExamsScreen> {
-  static const _muted = Color(0xFF637394);
+  Color get _muted => context.palette.muted;
   static const _green = Color(0xFF13864B);
   static const _red = Color(0xFFD93025);
   static const _orange = Color(0xFFF08C00);
@@ -100,7 +101,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
     final title = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('الاختبارات والدرجات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(tr('الاختبارات والدرجات', 'Exams & Grades'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         Text(
           [widget.child.name, widget.child.classInfo].where((s) => s.isNotEmpty).join(' · '),
           style: const TextStyle(fontSize: 12, color: Colors.white70),
@@ -198,15 +199,15 @@ class _ExamsScreenState extends State<ExamsScreen> {
         if (exams.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 30),
-            child: _centerMessage(Icons.event_available_rounded, 'لا توجد ${kind.plural} حالياً.'),
+            child: _centerMessage(Icons.event_available_rounded, tr('لا توجد ${kind.plural} حالياً.', 'No ${kind.plural} right now.')),
           ),
         if (upcoming.isNotEmpty) ...[
-          _sectionTitle('الاختبارات القادمة', upcoming.length, Icons.upcoming_rounded, color),
+          _sectionTitle(tr('الاختبارات القادمة', 'Upcoming exams'), upcoming.length, Icons.upcoming_rounded, color),
           for (final exam in upcoming) _upcomingCard(exam, color, isNext: exam == upcoming.first),
           const SizedBox(height: 14),
         ],
         if (past.isNotEmpty) ...[
-          _sectionTitle('النتائج', past.length, Icons.grading_rounded, color),
+          _sectionTitle(tr('النتائج', 'Results'), past.length, Icons.grading_rounded, color),
           for (final exam in past) _resultCard(exam, color),
         ],
       ],
@@ -258,10 +259,10 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   spacing: 14,
                   runSpacing: 8,
                   children: [
-                    _stat('${exams.length}', 'الإجمالي'),
-                    _stat('$upcoming', 'قادمة'),
-                    _stat('$passed', 'ناجح'),
-                    if (failed > 0) _stat('$failed', 'راسب'),
+                    _stat('${exams.length}', tr('الإجمالي', 'Total')),
+                    _stat('$upcoming', tr('قادمة', 'Upcoming')),
+                    _stat('$passed', tr('ناجح', 'Passed')),
+                    if (failed > 0) _stat('$failed', tr('راسب', 'Failed')),
                   ],
                 ),
               ],
@@ -290,7 +291,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   children: [
                     Text(average == null ? '—' : '${average.round()}%',
                         style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                    const Text('المتوسط', style: TextStyle(color: Colors.white70, fontSize: 10.5)),
+                    Text(tr('المتوسط', 'Average'), style: TextStyle(color: Colors.white70, fontSize: 10.5)),
                   ],
                 ),
               ],
@@ -312,9 +313,9 @@ class _ExamsScreenState extends State<ExamsScreen> {
           selected: isSelected,
           showCheckmark: false,
           selectedColor: color,
-          backgroundColor: Colors.white,
-          side: BorderSide(color: isSelected ? color : const Color(0xFFE3E9F3)),
-          labelStyle: TextStyle(color: isSelected ? Colors.white : AppTheme.ink, fontWeight: FontWeight.bold),
+          backgroundColor: context.palette.card,
+          side: BorderSide(color: isSelected ? color : context.palette.chip),
+          labelStyle: TextStyle(color: isSelected ? Colors.white : context.palette.ink, fontWeight: FontWeight.bold),
           onSelected: (_) => setState(() => _monthFilter = value),
         ),
       );
@@ -324,8 +325,8 @@ class _ExamsScreenState extends State<ExamsScreen> {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          chip('الكل', null),
-          for (final m in months) chip(arabicMonths[m - 1], m),
+          chip(tr('الكل', 'All'), null),
+          for (final m in months) chip(monthNames[m - 1], m),
         ],
       ),
     );
@@ -341,7 +342,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
         children: [
           Icon(Icons.calendar_month_rounded, size: 13, color: color),
           const SizedBox(width: 3),
-          Text('شهر ${exam.monthName}', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+          Text(tr('شهر ${exam.monthName}', '${exam.monthName}'), style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );
@@ -364,12 +365,12 @@ class _ExamsScreenState extends State<ExamsScreen> {
         children: [
           Icon(icon, size: 20, color: color),
           const SizedBox(width: 6),
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.ink)),
+          Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.palette.ink)),
           const SizedBox(width: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-            decoration: BoxDecoration(color: const Color(0xFFE3E9F3), borderRadius: BorderRadius.circular(10)),
-            child: Text('$count', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _muted)),
+            decoration: BoxDecoration(color: context.palette.chip, borderRadius: BorderRadius.circular(10)),
+            child: Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _muted)),
           ),
         ],
       ),
@@ -382,9 +383,9 @@ class _ExamsScreenState extends State<ExamsScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isNext ? color.withValues(alpha: .07) : Colors.white,
+        color: isNext ? color.withValues(alpha: .07) : context.palette.card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: isNext ? color.withValues(alpha: .5) : const Color(0xFFE6ECF5), width: isNext ? 1.5 : 1),
+        border: Border.all(color: isNext ? color.withValues(alpha: .5) : context.palette.line, width: isNext ? 1.5 : 1),
       ),
       child: Row(
         children: [
@@ -394,7 +395,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(exam.subject, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.ink)),
+                Text(exam.subject, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.palette.ink)),
                 if (exam.monthName != null) ...[const SizedBox(height: 4), _monthTag(exam, color)],
                 const SizedBox(height: 4),
                 Wrap(
@@ -403,7 +404,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   children: [
                     _meta(Icons.schedule_rounded, '${formatTime(exam.start)} - ${formatTime(exam.end)}'),
                     if (exam.duration > 0) _meta(Icons.timer_outlined, formatDuration(exam.duration)),
-                    _meta(Icons.star_outline_rounded, 'الدرجة ${_mark(exam.fullMark)}'),
+                    _meta(Icons.star_outline_rounded, tr('الدرجة ${_mark(exam.fullMark)}', 'Mark ${_mark(exam.fullMark)}')),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -432,9 +433,9 @@ class _ExamsScreenState extends State<ExamsScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.palette.card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE6ECF5)),
+        border: Border.all(color: context.palette.line),
       ),
       child: Row(
         children: [
@@ -450,7 +451,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                   child: CircularProgressIndicator(
                     value: hasResult ? percentage : 0,
                     strokeWidth: 6,
-                    backgroundColor: const Color(0xFFE3E9F3),
+                    backgroundColor: context.palette.chip,
                     color: resultColor,
                   ),
                 ),
@@ -460,7 +461,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
                         children: [
                           Text(_mark(exam.score!),
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: resultColor)),
-                          Text('من ${_mark(exam.fullMark)}', style: const TextStyle(fontSize: 9.5, color: _muted)),
+                          Text(tr('من ${_mark(exam.fullMark)}', 'of ${_mark(exam.fullMark)}'), style: TextStyle(fontSize: 9.5, color: _muted)),
                         ],
                       )
                     : const Icon(Icons.hourglass_top_rounded, color: _orange, size: 22),
@@ -472,7 +473,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(exam.subject, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.ink)),
+                Text(exam.subject, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.palette.ink)),
                 if (exam.monthName != null) ...[const SizedBox(height: 4), _monthTag(exam, color)],
                 const SizedBox(height: 4),
                 _meta(Icons.event_rounded, _dateText(exam.date)),
@@ -486,14 +487,14 @@ class _ExamsScreenState extends State<ExamsScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                       decoration: BoxDecoration(color: resultColor.withValues(alpha: .12), borderRadius: BorderRadius.circular(20)),
                       child: Text(
-                        !hasResult ? 'بانتظار النتيجة' : (passed ? 'ناجح' : 'راسب'),
+                        !hasResult ? tr('بانتظار النتيجة', 'Awaiting result') : (passed ? tr('ناجح', 'Passed') : tr('راسب', 'Failed')),
                         style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: resultColor),
                       ),
                     ),
                     if (hasResult && exam.percentage != null)
                       Text('${exam.percentage!.round()}%',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: resultColor)),
-                    Text('النجاح من ${_mark(exam.passMark)}', style: const TextStyle(fontSize: 11.5, color: _muted)),
+                    Text(tr('النجاح من ${_mark(exam.passMark)}', 'Pass mark ${_mark(exam.passMark)}'), style: TextStyle(fontSize: 11.5, color: _muted)),
                   ],
                 ),
               ],
@@ -512,9 +513,9 @@ class _ExamsScreenState extends State<ExamsScreen> {
       decoration: BoxDecoration(color: color.withValues(alpha: .12), borderRadius: BorderRadius.circular(14)),
       child: Column(
         children: [
-          Text(arabicDays[date.weekday % 7], style: TextStyle(fontSize: 10.5, color: color, fontWeight: FontWeight.bold)),
+          Text(dayNames[date.weekday % 7], style: TextStyle(fontSize: 10.5, color: color, fontWeight: FontWeight.bold)),
           Text('${date.day}', style: TextStyle(fontSize: 22, height: 1.15, fontWeight: FontWeight.bold, color: color)),
-          Text(arabicMonths[date.month - 1], style: TextStyle(fontSize: 10.5, color: color)),
+          Text(monthNames[date.month - 1], style: TextStyle(fontSize: 10.5, color: color)),
         ],
       ),
     );
@@ -526,7 +527,7 @@ class _ExamsScreenState extends State<ExamsScreen> {
       children: [
         Icon(icon, size: 14, color: _muted),
         const SizedBox(width: 3),
-        Flexible(child: Text(text, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: _muted))),
+        Flexible(child: Text(text, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: _muted))),
       ],
     );
   }
@@ -538,16 +539,16 @@ class _ExamsScreenState extends State<ExamsScreen> {
     final days = exam.date.difference(today).inDays;
     if (days == 0) {
       final minutes = exam.start - (now.hour * 60 + now.minute);
-      return minutes > 0 ? 'اليوم - تبدأ ${formatIn(minutes)}' : 'اليوم - جارٍ الآن';
+      return minutes > 0 ? tr('اليوم - تبدأ ${formatIn(minutes)}', 'Today - starts ${formatIn(minutes)}') : tr('اليوم - جارٍ الآن', 'Today - in progress');
     }
-    if (days == 1) return 'غداً';
-    if (days == 2) return 'بعد يومين';
-    if (days <= 10) return 'بعد $days أيام';
-    return 'بعد $days يوماً';
+    if (days == 1) return tr('غداً', 'Tomorrow');
+    if (days == 2) return tr('بعد يومين', 'In 2 days');
+    if (days <= 10) return tr('بعد $days أيام', 'In $days days');
+    return tr('بعد $days يوماً', 'In $days days');
   }
 
   /// "الخميس 20 نوفمبر"
-  static String _dateText(DateTime d) => '${arabicDays[d.weekday % 7]} ${d.day} ${arabicMonths[d.month - 1]}';
+  static String _dateText(DateTime d) => '${dayNames[d.weekday % 7]} ${d.day} ${monthNames[d.month - 1]}';
 
   /// 18.0 -> "18", 17.5 -> "17.5"
   static String _mark(double value) =>
@@ -562,10 +563,10 @@ class _ExamsScreenState extends State<ExamsScreen> {
           children: [
             Icon(icon, size: 56, color: retry ? _red : AppTheme.blue.withValues(alpha: .6)),
             const SizedBox(height: 12),
-            Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.ink)),
+            Text(text, textAlign: TextAlign.center, style: TextStyle(color: context.palette.ink)),
             if (retry) ...[
               const SizedBox(height: 12),
-              FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+              FilledButton(onPressed: _load, child: Text(tr('إعادة المحاولة', 'Try again'))),
             ],
           ],
         ),

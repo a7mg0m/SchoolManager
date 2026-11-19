@@ -13,7 +13,9 @@ namespace SchoolManager.Management.Application
                     src.Address,
                     src.Phone,
                     src.Email,
-                    src.Logo));
+                    src.Logo,
+                    src.Latitude,
+                    src.Longitude));
 
             CreateMap<UpdateSchoolInfoDto, UpdateSchoolInfoCommand>()
                 .ConstructUsing(src => new UpdateSchoolInfoCommand(
@@ -23,7 +25,9 @@ namespace SchoolManager.Management.Application
                     src.Address,
                     src.Phone,
                     src.Email,
-                    src.Logo));
+                    src.Logo,
+                    src.Latitude,
+                    src.Longitude));
 
             CreateMap<Domain.SchoolInfo, SchoolInfoDto>()
                 .ForMember(d => d.NameAr, o => o.MapFrom(s => s.Name.Arabic))

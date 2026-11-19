@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
+import '../../core/i18n/app_language.dart';
 
 enum SlotStatus { finished, current, upcoming }
 
@@ -107,7 +108,7 @@ class ScheduleService {
   Future<ChildTimetable> getChildTimetable(String studentId) async {
     final session = AuthService.instance.session;
     if (session == null || session.isExpired) {
-      throw const ScheduleException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+      throw ScheduleException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
     }
 
     final http.Response response;
@@ -117,16 +118,16 @@ class ScheduleService {
         headers: {'Accept': 'application/json', 'Authorization': 'Bearer ${session.token}'},
       ).timeout(AppConfig.requestTimeout);
     } on TimeoutException {
-      throw const ScheduleException('انتهت مهلة الاتصال بالخادم.');
+      throw ScheduleException(tr('انتهت مهلة الاتصال بالخادم.', 'The server took too long to respond.'));
     } catch (_) {
-      throw const ScheduleException('تعذر الاتصال بالخادم.');
+      throw ScheduleException(tr('تعذر الاتصال بالخادم.', 'Could not reach the server.'));
     }
 
     if (response.statusCode == 401) {
-      throw const ScheduleException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+      throw ScheduleException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
     }
     if (response.statusCode != 200) {
-      throw const ScheduleException('تعذر تحميل الجدول الدراسي.');
+      throw ScheduleException(tr('تعذر تحميل الجدول الدراسي.', 'Could not load the timetable.'));
     }
 
     try {
@@ -135,14 +136,13 @@ class ScheduleService {
       if (data is! Map<String, dynamic>) throw const FormatException();
       return ChildTimetable.fromJson(data);
     } catch (_) {
-      throw const ScheduleException('استجابة غير متوقعة من الخادم.');
+      throw ScheduleException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
     }
   }
 }
 
 String _pick(Map<String, dynamic> json, String ar, String en) {
-  final arabic = (json[ar] as String?)?.trim() ?? '';
-  return arabic.isNotEmpty ? arabic : (json[en] as String?)?.trim() ?? '';
+  return pickLang(json[ar] as String?, json[en] as String?);
 }
 
 /// "08:30:00" -> 510

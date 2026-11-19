@@ -3,11 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import 'schedule_format.dart';
 import 'schedule_service.dart';
+import '../../core/i18n/app_language.dart';
 
-const _ink = AppTheme.ink;
-const _muted = Color(0xFF637394);
-const _faded = Color(0xFFA0AABF);
-const _rail = Color(0xFFE3E9F3);
 const _green = Color(0xFF13864B);
 const _orange = Color(0xFFF08C00);
 
@@ -36,6 +33,11 @@ class ScheduleTimeline extends StatefulWidget {
 }
 
 class _ScheduleTimelineState extends State<ScheduleTimeline> {
+  Color get _ink => context.palette.ink;
+  Color get _muted => context.palette.muted;
+  Color get _faded => context.palette.faint;
+  Color get _rail => context.palette.chip;
+
   bool _showFinished = false;
 
   int get _now => widget.now;
@@ -118,7 +120,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: color,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: context.palette.card, width: 2),
                     boxShadow: isNow ? [BoxShadow(color: color.withValues(alpha: .45), blurRadius: 8, spreadRadius: 2)] : null,
                   ),
                   child: isDone ? const Icon(Icons.check, size: 7, color: Colors.white) : null,
@@ -134,9 +136,9 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
               padding: const EdgeInsets.only(bottom: 10),
               child: Container(
                 decoration: BoxDecoration(
-                  color: isNow ? color.withValues(alpha: .08) : (isDone ? const Color(0xFFF7F9FC) : Colors.white),
+                  color: isNow ? color.withValues(alpha: .08) : (isDone ? context.palette.soft : context.palette.card),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: isNow ? color.withValues(alpha: .55) : const Color(0xFFE6ECF5), width: isNow ? 1.5 : 1),
+                  border: Border.all(color: isNow ? color.withValues(alpha: .55) : context.palette.line, width: isNow ? 1.5 : 1),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
@@ -157,10 +159,10 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
                                 spacing: 6,
                                 runSpacing: 6,
                                 children: [
-                                  _chip('الحصة $period', color.withValues(alpha: isDone ? .10 : .12), color),
-                                  if (isNow) _chip('الآن', _green, Colors.white, icon: Icons.play_arrow_rounded),
-                                  if (showNext) _chip('الحصة التالية', AppTheme.blue, Colors.white),
-                                  if (isDone) const Icon(Icons.check_circle_rounded, size: 18, color: _faded),
+                                  _chip(tr('الحصة $period', 'Period $period'), color.withValues(alpha: isDone ? .10 : .12), color),
+                                  if (isNow) _chip(tr('الآن', 'Now'), _green, Colors.white, icon: Icons.play_arrow_rounded),
+                                  if (showNext) _chip(tr('الحصة التالية', 'Next lesson'), AppTheme.blue, Colors.white),
+                                  if (isDone) Icon(Icons.check_circle_rounded, size: 18, color: _faded),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -185,7 +187,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
                               if (isNow) ...[const SizedBox(height: 10), _nowProgress(slot, color)],
                               if (showNext) ...[
                                 const SizedBox(height: 8),
-                                Text('تبدأ ${formatIn(slot.start - _now)}',
+                                Text(tr('تبدأ ${formatIn(slot.start - _now)}', 'Starts ${formatIn(slot.start - _now)}'),
                                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.blue)),
                               ],
                             ],
@@ -212,10 +214,10 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(value: done / length, minHeight: 6, backgroundColor: Colors.white, color: color),
+          child: LinearProgressIndicator(value: done / length, minHeight: 6, backgroundColor: context.palette.chip, color: color),
         ),
         const SizedBox(height: 5),
-        Text('تنتهي ${formatIn(slot.end - _now)}',
+        Text(tr('تنتهي ${formatIn(slot.end - _now)}', 'Ends ${formatIn(slot.end - _now)}'),
             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _green)),
       ],
     );
@@ -238,11 +240,11 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: isNow ? const Color(0xFFFFF4E5) : const Color(0xFFF7F9FC),
+                color: isNow ? context.palette.warnTint : context.palette.soft,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                isNow ? 'استراحة الآن · تنتهي ${formatIn(to - _now)}' : 'استراحة ${formatDuration(minutes)}',
+                isNow ? tr('استراحة الآن · تنتهي ${formatIn(to - _now)}', 'Break now · ends ${formatIn(to - _now)}') : tr('استراحة ${formatDuration(minutes)}', 'Break ${formatDuration(minutes)}'),
                 style: TextStyle(
                   fontSize: 12,
                   color: isNow ? const Color(0xFFB36200) : _muted,
@@ -262,7 +264,7 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
       child: TextButton.icon(
         onPressed: () => setState(() => _showFinished = !expanded),
         icon: Icon(expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: 18),
-        label: Text(expanded ? 'إخفاء الحصص المنتهية' : 'عرض الحصص المنتهية ($count)'),
+        label: Text(expanded ? tr('إخفاء الحصص المنتهية', 'Hide finished lessons') : tr('عرض الحصص المنتهية ($count)', 'Show finished lessons ($count)')),
       ),
     );
   }

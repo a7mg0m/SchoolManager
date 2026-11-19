@@ -7,6 +7,7 @@ import '../children/children_service.dart';
 import 'schedule_format.dart';
 import 'schedule_service.dart';
 import 'schedule_timeline.dart';
+import '../../core/i18n/app_language.dart';
 
 enum _ViewMode { day, week }
 
@@ -27,7 +28,7 @@ class TimetableScreen extends StatefulWidget {
 }
 
 class _TimetableScreenState extends State<TimetableScreen> {
-  static const _muted = Color(0xFF637394);
+  Color get _muted => context.palette.muted;
 
   ChildTimetable? _timetable;
   String? _error;
@@ -112,7 +113,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('الجدول الدراسي', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(tr('الجدول الدراسي', 'Timetable'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(
               [widget.child.name, widget.child.classInfo].where((s) => s.isNotEmpty).join(' · '),
               style: const TextStyle(fontSize: 12, color: Colors.white70),
@@ -132,7 +133,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
 
   Widget _content(ChildTimetable timetable) {
     if (timetable.days.isEmpty) {
-      return _centerMessage(Icons.event_busy_rounded, 'لا يوجد جدول دراسي لفصل الطالب حالياً.');
+      return _centerMessage(Icons.event_busy_rounded, tr('لا يوجد جدول دراسي لفصل الطالب حالياً.', 'There is no timetable for the student’s class yet.'));
     }
 
     return Column(
@@ -142,9 +143,9 @@ class _TimetableScreenState extends State<TimetableScreen> {
           child: SizedBox(
             width: double.infinity,
             child: SegmentedButton<_ViewMode>(
-              segments: const [
-                ButtonSegment(value: _ViewMode.day, icon: Icon(Icons.today_rounded), label: Text('اليوم')),
-                ButtonSegment(value: _ViewMode.week, icon: Icon(Icons.view_week_rounded), label: Text('كل الأيام')),
+              segments: [
+                ButtonSegment(value: _ViewMode.day, icon: Icon(Icons.today_rounded), label: Text(tr('اليوم', 'Today'))),
+                ButtonSegment(value: _ViewMode.week, icon: Icon(Icons.view_week_rounded), label: Text(tr('كل الأيام', 'All days'))),
               ],
               selected: {_mode},
               showSelectedIcon: false,
@@ -178,10 +179,10 @@ class _TimetableScreenState extends State<TimetableScreen> {
             padding: const EdgeInsets.only(bottom: 10),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded, size: 18, color: _muted),
+                Icon(Icons.info_outline_rounded, size: 18, color: _muted),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text('لا توجد حصص اليوم (${arabicDays[timetable.today]}).', style: const TextStyle(color: _muted)),
+                  child: Text(tr('لا توجد حصص اليوم (${dayNames[timetable.today]}).', 'No lessons today (${dayNames[timetable.today]}).'), style: TextStyle(color: _muted)),
                 ),
               ],
             ),
@@ -221,18 +222,18 @@ class _TimetableScreenState extends State<TimetableScreen> {
               width: 78,
               padding: const EdgeInsets.symmetric(vertical: 6),
               decoration: BoxDecoration(
-                color: isSelected ? AppTheme.blue : Colors.white,
+                color: isSelected ? AppTheme.blue : context.palette.card,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: isSelected ? AppTheme.blue : (isToday ? AppTheme.blue.withValues(alpha: .5) : const Color(0xFFE6ECF5))),
+                border: Border.all(color: isSelected ? AppTheme.blue : (isToday ? AppTheme.blue.withValues(alpha: .5) : context.palette.line)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(arabicDays[day.dayOfWeek],
-                      style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppTheme.ink)),
+                  Text(dayNames[day.dayOfWeek],
+                      style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : context.palette.ink)),
                   const SizedBox(height: 2),
                   Text(
-                    isToday ? 'اليوم' : lessonsCount(day.slots.length),
+                    isToday ? tr('اليوم', 'Today') : lessonsCount(day.slots.length),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: isToday ? FontWeight.bold : null,
@@ -254,7 +255,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
     final done = isToday ? day.slots.where((s) => s.end <= _now).length : 0;
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+      decoration: BoxDecoration(color: context.palette.card, borderRadius: BorderRadius.circular(18)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -270,11 +271,11 @@ class _TimetableScreenState extends State<TimetableScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(isToday ? 'اليوم - ${arabicDays[day.dayOfWeek]}' : arabicDays[day.dayOfWeek],
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.ink)),
+                    Text(isToday ? tr('اليوم - ${dayNames[day.dayOfWeek]}', 'Today - ${dayNames[day.dayOfWeek]}') : dayNames[day.dayOfWeek],
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: context.palette.ink)),
                     Text(
                       '${lessonsCount(total)} · ${formatTime(day.slots.first.start)} - ${formatTime(day.slots.last.end)}',
-                      style: const TextStyle(fontSize: 11.5, color: _muted),
+                      style: TextStyle(fontSize: 11.5, color: _muted),
                     ),
                   ],
                 ),
@@ -289,7 +290,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
               child: LinearProgressIndicator(
                 value: total == 0 ? 0 : done / total,
                 minHeight: 6,
-                backgroundColor: const Color(0xFFE3E9F3),
+                backgroundColor: context.palette.chip,
                 color: AppTheme.blue,
               ),
             ),
@@ -319,7 +320,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
     final isToday = _isToday(day.dayOfWeek);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.palette.card,
         borderRadius: BorderRadius.circular(18),
         border: isToday ? Border.all(color: AppTheme.blue.withValues(alpha: .5), width: 1.5) : null,
       ),
@@ -336,24 +337,24 @@ class _TimetableScreenState extends State<TimetableScreen> {
               padding: const EdgeInsets.fromLTRB(14, 12, 10, 8),
               child: Row(
                 children: [
-                  Text(arabicDays[day.dayOfWeek],
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.ink)),
+                  Text(dayNames[day.dayOfWeek],
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.palette.ink)),
                   if (isToday) ...[
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(color: AppTheme.blue, borderRadius: BorderRadius.circular(10)),
-                      child: const Text('اليوم', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                      child: Text(tr('اليوم', 'Today'), style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                     ),
                   ],
                   const Spacer(),
-                  Text(lessonsCount(day.slots.length), style: const TextStyle(fontSize: 12, color: _muted)),
-                  const Icon(Icons.chevron_left_rounded, color: _muted),
+                  Text(lessonsCount(day.slots.length), style: TextStyle(fontSize: 12, color: _muted)),
+                  Icon(Icons.chevron_left_rounded, color: _muted),
                 ],
               ),
             ),
           ),
-          const Divider(height: 1, color: Color(0xFFEDF1F7)),
+          Divider(height: 1, color: context.palette.divider),
           for (var i = 0; i < day.slots.length; i++) _weekLessonRow(day.slots[i], i + 1, isToday),
           const SizedBox(height: 6),
         ],
@@ -366,7 +367,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
     final isNow = status == SlotStatus.current;
     final isDone = status == SlotStatus.finished;
     final color = subjectColor(slot);
-    final textColor = isDone ? const Color(0xFFA0AABF) : AppTheme.ink;
+    final textColor = isDone ? context.palette.faint : context.palette.ink;
 
     return Container(
       color: isNow ? color.withValues(alpha: .07) : null,
@@ -422,10 +423,10 @@ class _TimetableScreenState extends State<TimetableScreen> {
           children: [
             Icon(icon, size: 56, color: retry ? const Color(0xFFD93025) : AppTheme.blue.withValues(alpha: .6)),
             const SizedBox(height: 12),
-            Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.ink)),
+            Text(text, textAlign: TextAlign.center, style: TextStyle(color: context.palette.ink)),
             if (retry) ...[
               const SizedBox(height: 12),
-              FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+              FilledButton(onPressed: _load, child: Text(tr('إعادة المحاولة', 'Try again'))),
             ],
           ],
         ),

@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import '../schedule/schedule_format.dart';
 import 'events_service.dart';
+import '../../core/i18n/app_language.dart';
 
 enum _Tab { upcoming, past }
 
@@ -28,7 +29,7 @@ class EventsScreen extends StatefulWidget {
 }
 
 class _EventsScreenState extends State<EventsScreen> {
-  static const _muted = Color(0xFF637394);
+  Color get _muted => context.palette.muted;
   static const _pink = Color(0xFFE0457B);
   static const _green = Color(0xFF13864B);
   static const _red = Color(0xFFD93025);
@@ -95,7 +96,7 @@ class _EventsScreenState extends State<EventsScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('الفعاليات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(tr('الفعاليات', 'Events'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(
               [widget.child.name, widget.child.classInfo].where((s) => s.isNotEmpty).join(' · '),
               style: const TextStyle(fontSize: 12, color: Colors.white70),
@@ -126,8 +127,8 @@ class _EventsScreenState extends State<EventsScreen> {
             width: double.infinity,
             child: SegmentedButton<_Tab>(
               segments: [
-                ButtonSegment(value: _Tab.upcoming, icon: const Icon(Icons.event_available_rounded), label: Text('القادمة (${upcoming.length})')),
-                ButtonSegment(value: _Tab.past, icon: const Icon(Icons.history_rounded), label: Text('السابقة (${past.length})')),
+                ButtonSegment(value: _Tab.upcoming, icon: const Icon(Icons.event_available_rounded), label: Text(tr('القادمة (${upcoming.length})', 'Upcoming (${upcoming.length})'))),
+                ButtonSegment(value: _Tab.past, icon: const Icon(Icons.history_rounded), label: Text(tr('السابقة (${past.length})', 'Past (${past.length})'))),
               ],
               selected: {_tab},
               showSelectedIcon: false,
@@ -147,7 +148,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     padding: const EdgeInsets.only(top: 60),
                     child: _centerMessage(
                       Icons.celebration_outlined,
-                      _tab == _Tab.upcoming ? 'لا توجد فعاليات قادمة حالياً.' : 'لا توجد فعاليات سابقة.',
+                      _tab == _Tab.upcoming ? tr('لا توجد فعاليات قادمة حالياً.', 'No upcoming events right now.') : tr('لا توجد فعاليات سابقة.', 'No past events.'),
                     ),
                   ),
                 // Next event in a big card, the rest grouped by month
@@ -169,16 +170,16 @@ class _EventsScreenState extends State<EventsScreen> {
     final widgets = <Widget>[];
     String? current;
     for (final event in events) {
-      final month = '${arabicMonths[event.date.month - 1]} ${event.date.year}';
+      final month = '${monthNames[event.date.month - 1]} ${event.date.year}';
       if (month != current) {
         current = month;
         widgets.add(Padding(
           padding: EdgeInsets.only(bottom: 10, top: widgets.isEmpty ? 0 : 8),
           child: Row(
             children: [
-              const Icon(Icons.calendar_month_rounded, size: 18, color: _muted),
+              Icon(Icons.calendar_month_rounded, size: 18, color: _muted),
               const SizedBox(width: 6),
-              Text(month, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.ink)),
+              Text(month, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: context.palette.ink)),
             ],
           ),
         ));
@@ -213,7 +214,7 @@ class _EventsScreenState extends State<EventsScreen> {
               runSpacing: 6,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                _whiteChip(isNow ? 'الآن' : 'الفعالية القادمة', isNow ? Icons.play_arrow_rounded : Icons.star_rounded),
+                _whiteChip(isNow ? tr('الآن', 'Now') : tr('الفعالية القادمة', 'Next event'), isNow ? Icons.play_arrow_rounded : Icons.star_rounded),
                 _whiteChip(event.audience.label, Icons.groups_rounded),
               ],
             ),
@@ -251,13 +252,13 @@ class _EventsScreenState extends State<EventsScreen> {
   /// One event: date block, title, time, audience
   Widget _eventCard(ChildEvent event) {
     final isPast = !event.isUpcoming(_now);
-    final color = isPast ? const Color(0xFFA0AABF) : audienceColor(event.audience);
+    final color = isPast ? context.palette.faint : audienceColor(event.audience);
     final isNow = event.isNow(_now);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Material(
-        color: Colors.white,
+        color: context.palette.card,
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
           borderRadius: BorderRadius.circular(18),
@@ -266,7 +267,7 @@ class _EventsScreenState extends State<EventsScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: isNow ? _green.withValues(alpha: .5) : const Color(0xFFE6ECF5)),
+              border: Border.all(color: isNow ? _green.withValues(alpha: .5) : context.palette.line),
             ),
             child: Row(
               children: [
@@ -282,7 +283,7 @@ class _EventsScreenState extends State<EventsScreen> {
                           style: TextStyle(
                             fontSize: 15.5,
                             fontWeight: FontWeight.bold,
-                            color: isPast ? _muted : AppTheme.ink,
+                            color: isPast ? _muted : context.palette.ink,
                           )),
                       const SizedBox(height: 4),
                       _meta(Icons.schedule_rounded, '${formatTime(event.start)} - ${formatTime(event.end)}'),
@@ -292,14 +293,14 @@ class _EventsScreenState extends State<EventsScreen> {
                         runSpacing: 4,
                         children: [
                           _chip(event.audience.label, color),
-                          if (isNow) _chip('الآن', _green),
+                          if (isNow) _chip(tr('الآن', 'Now'), _green),
                           if (!isPast && !isNow) _chip(_countdown(event), AppTheme.blue),
                         ],
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_left_rounded, color: _muted),
+                Icon(Icons.chevron_left_rounded, color: _muted),
               ],
             ),
           ),
@@ -337,14 +338,14 @@ class _EventsScreenState extends State<EventsScreen> {
                   ),
                 ),
               ),
-            Text(event.title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.ink)),
+            Text(event.title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: context.palette.ink)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: [
                 _chip(event.audience.label, audienceColor(event.audience)),
-                if (event.isNow(_now)) _chip('الآن', _green),
+                if (event.isNow(_now)) _chip(tr('الآن', 'Now'), _green),
               ],
             ),
             const SizedBox(height: 14),
@@ -353,7 +354,7 @@ class _EventsScreenState extends State<EventsScreen> {
             if (event.isUpcoming(_now) && !event.isNow(_now)) _detailRow(Icons.hourglass_top_rounded, _countdown(event)),
             if (event.description.isNotEmpty) ...[
               const Divider(height: 28),
-              Text(event.description, style: const TextStyle(fontSize: 14.5, height: 1.7, color: AppTheme.ink)),
+              Text(event.description, style: TextStyle(fontSize: 14.5, height: 1.7, color: context.palette.ink)),
             ],
           ],
         ),
@@ -368,7 +369,7 @@ class _EventsScreenState extends State<EventsScreen> {
         children: [
           Icon(icon, size: 18, color: AppTheme.blue),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 14, color: AppTheme.ink))),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 14, color: context.palette.ink))),
         ],
       ),
     );
@@ -381,9 +382,9 @@ class _EventsScreenState extends State<EventsScreen> {
       decoration: BoxDecoration(color: color.withValues(alpha: .12), borderRadius: BorderRadius.circular(14)),
       child: Column(
         children: [
-          Text(arabicDays[date.weekday % 7], style: TextStyle(fontSize: 10.5, color: color, fontWeight: FontWeight.bold)),
+          Text(dayNames[date.weekday % 7], style: TextStyle(fontSize: 10.5, color: color, fontWeight: FontWeight.bold)),
           Text('${date.day}', style: TextStyle(fontSize: 22, height: 1.15, fontWeight: FontWeight.bold, color: color)),
-          Text(arabicMonths[date.month - 1], style: TextStyle(fontSize: 10.5, color: color)),
+          Text(monthNames[date.month - 1], style: TextStyle(fontSize: 10.5, color: color)),
         ],
       ),
     );
@@ -429,7 +430,7 @@ class _EventsScreenState extends State<EventsScreen> {
       children: [
         Icon(icon, size: 14, color: _muted),
         const SizedBox(width: 3),
-        Flexible(child: Text(text, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: _muted))),
+        Flexible(child: Text(text, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: _muted))),
       ],
     );
   }
@@ -440,18 +441,18 @@ class _EventsScreenState extends State<EventsScreen> {
     final today = DateTime(now.year, now.month, now.day);
     final days = event.date.difference(today).inDays;
     if (days == 0) {
-      if (event.isNow(now)) return 'جارية الآن';
+      if (event.isNow(now)) return tr('جارية الآن', 'Happening now');
       final minutes = event.start - (now.hour * 60 + now.minute);
-      return minutes > 0 ? 'اليوم - تبدأ ${formatIn(minutes)}' : 'اليوم';
+      return minutes > 0 ? tr('اليوم - تبدأ ${formatIn(minutes)}', 'Today - starts ${formatIn(minutes)}') : tr('اليوم', 'Today');
     }
-    if (days == 1) return 'غداً';
-    if (days == 2) return 'بعد يومين';
-    if (days <= 10) return 'بعد $days أيام';
-    return 'بعد $days يوماً';
+    if (days == 1) return tr('غداً', 'Tomorrow');
+    if (days == 2) return tr('بعد يومين', 'In 2 days');
+    if (days <= 10) return tr('بعد $days أيام', 'In $days days');
+    return tr('بعد $days يوماً', 'In $days days');
   }
 
   /// "الخميس 20 نوفمبر 2026"
-  static String _dateText(DateTime d) => '${arabicDays[d.weekday % 7]} ${d.day} ${arabicMonths[d.month - 1]} ${d.year}';
+  static String _dateText(DateTime d) => '${dayNames[d.weekday % 7]} ${d.day} ${monthNames[d.month - 1]} ${d.year}';
 
   Widget _centerMessage(IconData icon, String text, {bool retry = false}) {
     return Center(
@@ -462,10 +463,10 @@ class _EventsScreenState extends State<EventsScreen> {
           children: [
             Icon(icon, size: 56, color: retry ? _red : AppTheme.blue.withValues(alpha: .6)),
             const SizedBox(height: 12),
-            Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.ink)),
+            Text(text, textAlign: TextAlign.center, style: TextStyle(color: context.palette.ink)),
             if (retry) ...[
               const SizedBox(height: 12),
-              FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+              FilledButton(onPressed: _load, child: Text(tr('إعادة المحاولة', 'Try again'))),
             ],
           ],
         ),

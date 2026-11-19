@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import 'fees_service.dart';
+import '../../core/i18n/app_language.dart';
 
 /// Fees of the child selected on home: what is due, paid and still to pay, then each fee.
 class FeesScreen extends StatefulWidget {
@@ -21,11 +22,11 @@ class FeesScreen extends StatefulWidget {
 }
 
 class _FeesScreenState extends State<FeesScreen> {
-  static const _muted = Color(0xFF637394);
+  Color get _muted => context.palette.muted;
   static const _green = Color(0xFF13864B);
   static const _red = Color(0xFFD93025);
   static const _orange = Color(0xFFF08C00);
-  static const _grey = Color(0xFF8A96B0);
+  Color get _grey => context.palette.faint;
 
   List<StudentFeeItem>? _fees;
   String? _error;
@@ -74,7 +75,7 @@ class _FeesScreenState extends State<FeesScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('الرسوم الدراسية', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(tr('الرسوم الدراسية', 'School Fees'), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(
               [widget.child.name, widget.child.classInfo].where((s) => s.isNotEmpty).join(' · '),
               style: const TextStyle(fontSize: 12, color: Colors.white70),
@@ -98,7 +99,7 @@ class _FeesScreenState extends State<FeesScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           const SizedBox(height: 80),
-          _centerMessage(Icons.receipt_long_rounded, 'لا توجد رسوم دراسية مسجلة للطالب.'),
+          _centerMessage(Icons.receipt_long_rounded, tr('لا توجد رسوم دراسية مسجلة للطالب.', 'No school fees recorded for this student.')),
         ],
       );
     }
@@ -113,12 +114,12 @@ class _FeesScreenState extends State<FeesScreen> {
         _summary(fees),
         const SizedBox(height: 20),
         if (outstanding.isNotEmpty) ...[
-          _sectionTitle('مستحقات قائمة', outstanding.length),
+          _sectionTitle(tr('مستحقات قائمة', 'Outstanding fees'), outstanding.length),
           for (final fee in outstanding) _feeCard(fee),
           const SizedBox(height: 12),
         ],
         if (settled.isNotEmpty) ...[
-          _sectionTitle('رسوم مسددة أو معفاة', settled.length),
+          _sectionTitle(tr('رسوم مسددة أو معفاة', 'Paid or waived fees'), settled.length),
           for (final fee in settled) _feeCard(fee),
         ],
       ],
@@ -148,7 +149,7 @@ class _FeesScreenState extends State<FeesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('المتبقي للسداد', style: TextStyle(color: Colors.white70, fontSize: 13)),
+          Text(tr('المتبقي للسداد', 'Left to pay'), style: TextStyle(color: Colors.white70, fontSize: 13)),
           const SizedBox(height: 4),
           Text(_money(balance, currency),
               style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold)),
@@ -163,17 +164,17 @@ class _FeesScreenState extends State<FeesScreen> {
             ),
           ),
           const SizedBox(height: 6),
-          Text('تم سداد ${(ratio * 100).round()}% من الرسوم',
+          Text(tr('تم سداد ${(ratio * 100).round()}% من الرسوم', '${(ratio * 100).round()}% of the fees paid'),
               style: const TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 14),
           Row(
             children: [
-              Expanded(child: _summaryItem('إجمالي الرسوم', _money(net, currency))),
+              Expanded(child: _summaryItem(tr('إجمالي الرسوم', 'Total fees'), _money(net, currency))),
               Container(width: 1, height: 34, color: Colors.white24),
-              Expanded(child: _summaryItem('المدفوع', _money(paid, currency))),
+              Expanded(child: _summaryItem(tr('المدفوع', 'Paid'), _money(paid, currency))),
               if (waived > 0) ...[
                 Container(width: 1, height: 34, color: Colors.white24),
-                Expanded(child: _summaryItem('المعفى', _money(waived, currency))),
+                Expanded(child: _summaryItem(tr('المعفى', 'Waived'), _money(waived, currency))),
               ],
             ],
           ),
@@ -188,7 +189,7 @@ class _FeesScreenState extends State<FeesScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      overdue == 1 ? 'يوجد رسم متأخر عن موعد السداد' : 'يوجد $overdue رسوم متأخرة عن موعد السداد',
+                      overdue == 1 ? tr('يوجد رسم متأخر عن موعد السداد', 'One fee is past its due date') : tr('يوجد $overdue رسوم متأخرة عن موعد السداد', '$overdue fees are past their due date'),
                       style: const TextStyle(color: _red, fontWeight: FontWeight.bold, fontSize: 12.5),
                     ),
                   ),
@@ -219,12 +220,12 @@ class _FeesScreenState extends State<FeesScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.ink)),
+          Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.palette.ink)),
           const SizedBox(width: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
-            decoration: BoxDecoration(color: const Color(0xFFE3E9F3), borderRadius: BorderRadius.circular(10)),
-            child: Text('$count', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _muted)),
+            decoration: BoxDecoration(color: context.palette.chip, borderRadius: BorderRadius.circular(10)),
+            child: Text('$count', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _muted)),
           ),
         ],
       ),
@@ -238,9 +239,9 @@ class _FeesScreenState extends State<FeesScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.palette.card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: fee.effectiveStatus == FeeState.overdue ? _red.withValues(alpha: .4) : const Color(0xFFE6ECF5)),
+        border: Border.all(color: fee.effectiveStatus == FeeState.overdue ? _red.withValues(alpha: .4) : context.palette.line),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
@@ -278,9 +279,9 @@ class _FeesScreenState extends State<FeesScreen> {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.event_rounded, size: 15, color: _muted),
+                            Icon(Icons.event_rounded, size: 15, color: _muted),
                             const SizedBox(width: 4),
-                            Text('الاستحقاق: ${_date(fee.dueDate)}', style: const TextStyle(fontSize: 12, color: _muted)),
+                            Text(tr('الاستحقاق: ${_date(fee.dueDate)}', 'Due: ${_date(fee.dueDate)}'), style: TextStyle(fontSize: 12, color: _muted)),
                           ],
                         ),
                       ],
@@ -288,11 +289,11 @@ class _FeesScreenState extends State<FeesScreen> {
                     const SizedBox(height: 12),
                     // Remaining (or settled) amount in large text
                     Text(
-                      fee.isOutstanding ? 'المتبقي ${_money(fee.balance, fee.currency)}' : _money(fee.net, fee.currency),
+                      fee.isOutstanding ? tr('المتبقي ${_money(fee.balance, fee.currency)}', 'Left ${_money(fee.balance, fee.currency)}') : _money(fee.net, fee.currency),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: fee.isOutstanding ? AppTheme.ink : _grey,
+                        color: fee.isOutstanding ? context.palette.ink : _grey,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -301,20 +302,20 @@ class _FeesScreenState extends State<FeesScreen> {
                       child: LinearProgressIndicator(
                         value: fee.settledRatio,
                         minHeight: 6,
-                        backgroundColor: const Color(0xFFE3E9F3),
+                        backgroundColor: context.palette.chip,
                         color: fee.isOutstanding ? AppTheme.blue : _green,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _amountRow('قيمة الرسوم', fee.total, fee.currency),
-                    if (fee.discount > 0) _amountRow('الخصم', -fee.discount, fee.currency, color: _green),
-                    _amountRow('المدفوع', fee.paid, fee.currency),
-                    if (fee.waived > 0) _amountRow('المعفى', fee.waived, fee.currency, color: _green),
-                    const Divider(height: 16, color: Color(0xFFEDF1F7)),
-                    _amountRow('المتبقي', fee.balance, fee.currency, bold: true, color: fee.balance > 0 ? AppTheme.ink : _green),
+                    _amountRow(tr('قيمة الرسوم', 'Fee amount'), fee.total, fee.currency),
+                    if (fee.discount > 0) _amountRow(tr('الخصم', 'Discount'), -fee.discount, fee.currency, color: _green),
+                    _amountRow(tr('المدفوع', 'Paid'), fee.paid, fee.currency),
+                    if (fee.waived > 0) _amountRow(tr('المعفى', 'Waived'), fee.waived, fee.currency, color: _green),
+                    Divider(height: 16, color: context.palette.divider),
+                    _amountRow(tr('المتبقي', 'Balance'), fee.balance, fee.currency, bold: true, color: fee.balance > 0 ? context.palette.ink : _green),
                     if (fee.waiveReason != null && fee.waiveReason!.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      Text('سبب الإعفاء: ${fee.waiveReason}', style: const TextStyle(fontSize: 12, color: _muted)),
+                      Text(tr('سبب الإعفاء: ${fee.waiveReason}', 'Waiver reason: ${fee.waiveReason}'), style: TextStyle(fontSize: 12, color: _muted)),
                     ],
                   ],
                 ),
@@ -331,7 +332,7 @@ class _FeesScreenState extends State<FeesScreen> {
     final style = TextStyle(
       fontSize: 13,
       fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-      color: color ?? (bold ? AppTheme.ink : _muted),
+      color: color ?? (bold ? context.palette.ink : _muted),
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
@@ -345,11 +346,11 @@ class _FeesScreenState extends State<FeesScreen> {
   }
 
   (String, Color, IconData) _statusLook(FeeState status) => switch (status) {
-        FeeState.pending => ('بانتظار السداد', AppTheme.blue, Icons.schedule_rounded),
-        FeeState.partiallyPaid => ('مدفوع جزئياً', _orange, Icons.timelapse_rounded),
-        FeeState.paid => ('مدفوع بالكامل', _green, Icons.check_circle_rounded),
-        FeeState.waived => ('معفى', _grey, Icons.volunteer_activism_rounded),
-        FeeState.overdue => ('متأخر', _red, Icons.warning_amber_rounded),
+        FeeState.pending => (tr('بانتظار السداد', 'Awaiting payment'), AppTheme.blue, Icons.schedule_rounded),
+        FeeState.partiallyPaid => (tr('مدفوع جزئياً', 'Partly paid'), _orange, Icons.timelapse_rounded),
+        FeeState.paid => (tr('مدفوع بالكامل', 'Fully paid'), _green, Icons.check_circle_rounded),
+        FeeState.waived => (tr('معفى', 'Waived'), _grey, Icons.volunteer_activism_rounded),
+        FeeState.overdue => (tr('متأخر', 'Overdue'), _red, Icons.warning_amber_rounded),
       };
 
   Widget _centerMessage(IconData icon, String text, {bool retry = false}) {
@@ -361,10 +362,10 @@ class _FeesScreenState extends State<FeesScreen> {
           children: [
             Icon(icon, size: 56, color: retry ? _red : AppTheme.blue.withValues(alpha: .6)),
             const SizedBox(height: 12),
-            Text(text, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.ink)),
+            Text(text, textAlign: TextAlign.center, style: TextStyle(color: context.palette.ink)),
             if (retry) ...[
               const SizedBox(height: 12),
-              FilledButton(onPressed: _load, child: const Text('إعادة المحاولة')),
+              FilledButton(onPressed: _load, child: Text(tr('إعادة المحاولة', 'Try again'))),
             ],
           ],
         ),
@@ -383,10 +384,10 @@ class _FeesScreenState extends State<FeesScreen> {
   }
 
   static String _currencyName(String code) => switch (code.toUpperCase()) {
-        'EGP' => 'ج.م',
-        'SAR' => 'ر.س',
-        'AED' => 'د.إ',
-        'KWD' => 'د.ك',
+        'EGP' => tr('ج.م', 'EGP'),
+        'SAR' => tr('ر.س', 'SAR'),
+        'AED' => tr('د.إ', 'AED'),
+        'KWD' => tr('د.ك', 'KWD'),
         'USD' => r'$',
         _ => code,
       };

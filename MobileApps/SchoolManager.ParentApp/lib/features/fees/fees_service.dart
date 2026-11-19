@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
+import '../../core/i18n/app_language.dart';
 
 /// Status of a student fee (Financial service FeeStatus)
 enum FeeState { pending, partiallyPaid, paid, waived, overdue }
@@ -88,7 +89,7 @@ class FeesService {
   Future<List<StudentFeeItem>> getChildFees(String studentId) async {
     final session = AuthService.instance.session;
     if (session == null || session.isExpired) {
-      throw const FeesException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+      throw FeesException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
     }
 
     final http.Response response;
@@ -98,20 +99,20 @@ class FeesService {
         headers: {'Accept': 'application/json', 'Authorization': 'Bearer ${session.token}'},
       ).timeout(AppConfig.requestTimeout);
     } on TimeoutException {
-      throw const FeesException('انتهت مهلة الاتصال بالخادم.');
+      throw FeesException(tr('انتهت مهلة الاتصال بالخادم.', 'The server took too long to respond.'));
     } catch (_) {
-      throw const FeesException('تعذر الاتصال بالخادم.');
+      throw FeesException(tr('تعذر الاتصال بالخادم.', 'Could not reach the server.'));
     }
 
     switch (response.statusCode) {
       case 200:
         break;
       case 401:
-        throw const FeesException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+        throw FeesException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
       case 503:
-        throw const FeesException('خدمة البيانات غير متاحة حالياً، حاول لاحقاً.');
+        throw FeesException(tr('خدمة البيانات غير متاحة حالياً، حاول لاحقاً.', 'The data service is not available right now. Please try later.'));
       default:
-        throw const FeesException('تعذر تحميل الرسوم الدراسية.');
+        throw FeesException(tr('تعذر تحميل الرسوم الدراسية.', 'Could not load the school fees.'));
     }
 
     try {
@@ -120,7 +121,7 @@ class FeesService {
       if (data is! List) throw const FormatException();
       return data.whereType<Map<String, dynamic>>().map(StudentFeeItem.fromJson).toList();
     } catch (_) {
-      throw const FeesException('استجابة غير متوقعة من الخادم.');
+      throw FeesException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
     }
   }
 }

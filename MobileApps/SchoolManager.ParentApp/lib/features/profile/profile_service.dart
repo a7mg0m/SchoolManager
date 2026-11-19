@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
+import '../../core/i18n/app_language.dart';
 
 /// Profile of the signed-in user (GET /api/user-profile/my-profile)
 class MyProfile {
@@ -120,7 +121,7 @@ class ProfileService {
       final data = _data(response);
       if (data is Map<String, dynamic>) return MyProfile.fromJson(data);
     }
-    throw ProfileException(_errorMessage(response, 'تعذر حفظ الملف الشخصي، حاول مرة أخرى.'));
+    throw ProfileException(_errorMessage(response, tr('تعذر حفظ الملف الشخصي، حاول مرة أخرى.', 'Could not save your profile. Please try again.')));
   }
 
   Future<void> changePassword(String currentPassword, String newPassword) async {
@@ -129,7 +130,7 @@ class ProfileService {
       'newPassword': newPassword,
     });
     if (response.statusCode != 200) {
-      throw ProfileException(_errorMessage(response, 'تعذر تغيير كلمة المرور، حاول مرة أخرى.'));
+      throw ProfileException(_errorMessage(response, tr('تعذر تغيير كلمة المرور، حاول مرة أخرى.', 'Could not change your password. Please try again.')));
     }
   }
 
@@ -140,9 +141,9 @@ class ProfileService {
     } on SessionExpiredException {
       rethrow;
     } on TimeoutException {
-      throw const ProfileException('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى.');
+      throw ProfileException(tr('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى.', 'The server took too long to respond. Please try again.'));
     } catch (_) {
-      throw const ProfileException('تعذر الاتصال بالخادم، تأكد من اتصالك بالإنترنت.');
+      throw ProfileException(tr('تعذر الاتصال بالخادم، تأكد من اتصالك بالإنترنت.', 'Could not reach the server. Check your internet connection.'));
     }
   }
 
@@ -184,18 +185,18 @@ class ProfileService {
     } catch (_) {}
 
     return switch (key) {
-      'FirstNameRequired' => 'من فضلك أدخل الاسم الأول.',
-      'LastNameRequired' => 'من فضلك أدخل اسم العائلة.',
-      'EmailRequired' => 'من فضلك أدخل البريد الإلكتروني.',
-      'EmailInvalid' => 'البريد الإلكتروني غير صحيح.',
-      'EmailExists' => 'البريد الإلكتروني مستخدم بالفعل لحساب آخر.',
-      'ProfileImageTooLarge' => 'الصورة كبيرة جداً، اختر صورة أصغر.',
-      'CurrentPasswordRequired' => 'من فضلك أدخل كلمة المرور الحالية.',
-      'CurrentPasswordInvalid' => 'كلمة المرور الحالية غير صحيحة.',
-      'NewPasswordSameAsCurrent' => 'كلمة المرور الجديدة يجب أن تختلف عن الحالية.',
-      'PasswordRequired' => 'من فضلك أدخل كلمة المرور الجديدة.',
-      'PasswordTooShort' => 'كلمة المرور يجب ألا تقل عن 6 أحرف.',
-      _ => response.statusCode >= 500 ? 'حدث خطأ في الخادم، حاول لاحقاً.' : fallback,
+      'FirstNameRequired' => tr('من فضلك أدخل الاسم الأول.', 'Please enter your first name.'),
+      'LastNameRequired' => tr('من فضلك أدخل اسم العائلة.', 'Please enter your last name.'),
+      'EmailRequired' => tr('من فضلك أدخل البريد الإلكتروني.', 'Please enter your email.'),
+      'EmailInvalid' => tr('البريد الإلكتروني غير صحيح.', 'Invalid email address.'),
+      'EmailExists' => tr('البريد الإلكتروني مستخدم بالفعل لحساب آخر.', 'This email is already used by another account.'),
+      'ProfileImageTooLarge' => tr('الصورة كبيرة جداً، اختر صورة أصغر.', 'The photo is too large. Choose a smaller one.'),
+      'CurrentPasswordRequired' => tr('من فضلك أدخل كلمة المرور الحالية.', 'Please enter your current password.'),
+      'CurrentPasswordInvalid' => tr('كلمة المرور الحالية غير صحيحة.', 'The current password is wrong.'),
+      'NewPasswordSameAsCurrent' => tr('كلمة المرور الجديدة يجب أن تختلف عن الحالية.', 'The new password must be different from the current one.'),
+      'PasswordRequired' => tr('من فضلك أدخل كلمة المرور الجديدة.', 'Please enter the new password.'),
+      'PasswordTooShort' => tr('كلمة المرور يجب ألا تقل عن 6 أحرف.', 'Password must be at least 6 characters.'),
+      _ => response.statusCode >= 500 ? tr('حدث خطأ في الخادم، حاول لاحقاً.', 'A server error occurred. Please try again later.') : fallback,
     };
   }
 }

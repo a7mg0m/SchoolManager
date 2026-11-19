@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/routes.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/theme_controller.dart';
+import '../../core/i18n/app_language.dart';
+import '../../core/i18n/language_switch.dart';
 import '../../data/demo_data.dart';
 import '../children/children_service.dart';
 import '../profile/edit_profile_screen.dart';
@@ -19,7 +22,14 @@ import '../school/school_info_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen(
-      {super.key, this.loadChildren, this.loadProfile, this.loadTimetable, this.loadFees, this.loadExams, this.loadEvents, this.loadSchoolInfo});
+      {super.key,
+      this.loadChildren,
+      this.loadProfile,
+      this.loadTimetable,
+      this.loadFees,
+      this.loadExams,
+      this.loadEvents,
+      this.loadSchoolInfo});
 
   /// Loads the parent's children; defaults to the API (tests pass their own)
   final Future<List<Child>> Function()? loadChildren;
@@ -54,11 +64,82 @@ class _HomeScreenState extends State<HomeScreen> {
   int selectedTab = 0;
   MyProfile? profile;
 
+  /// For the logo in the header
+  SchoolInfo? schoolInfo;
+
   @override
   void initState() {
     super.initState();
     _loadChildren();
     _loadProfile();
+    _loadSchoolInfo();
+    AppLanguage.instance.addListener(_onLanguageChanged);
+  }
+
+  @override
+  void dispose() {
+    AppLanguage.instance.removeListener(_onLanguageChanged);
+    super.dispose();
+  }
+
+  /// Grade / class names come from the API in the chosen language: load them again
+  void _onLanguageChanged() {
+    if (mounted) _loadChildren();
+  }
+
+  /// School logo for the header; on failure (or no logo) the header keeps the school icon
+  Future<void> _loadSchoolInfo() async {
+    try {
+      final loader =
+          widget.loadSchoolInfo ?? SchoolInfoService.instance.getSchoolInfo;
+      final result = await loader();
+      if (mounted) setState(() => schoolInfo = result);
+    } on SchoolInfoException {
+      // Keep the icon
+    }
+  }
+
+  void _openSchoolInfo() {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => SchoolInfoScreen(loadSchoolInfo: widget.loadSchoolInfo),
+    ));
+  }
+
+  /// Logo from the school info (white circle), else the school icon; tap: About the school
+  Widget _schoolLogo() {
+    final logo = schoolInfo?.logo;
+    final icon = const CircleAvatar(
+      radius: 25,
+      backgroundColor: Colors.white24,
+      child: Icon(Icons.school_rounded, color: Colors.white, size: 28),
+    );
+    return Tooltip(
+      message: schoolInfo?.name ?? tr('عن المدرسة', 'About the school'),
+      child: GestureDetector(
+        key: const ValueKey('school-logo'),
+        onTap: _openSchoolInfo,
+        child: logo == null
+            ? icon
+            : Container(
+                width: 50,
+                height: 50,
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [BoxShadow(color: Color(0x33000000), blurRadius: 8, offset: Offset(0, 3))],
+                ),
+                child: ClipOval(
+                  child: Image.memory(
+                    logo,
+                    fit: BoxFit.contain,
+                    gaplessPlayback: true,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.school_rounded, color: AppTheme.blue, size: 26),
+                  ),
+                ),
+              ),
+      ),
+    );
   }
 
   /// Name and picture from My Profile; on failure the header keeps the login name and the person icon
@@ -90,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (!mounted) return;
     if (current == null) {
-      _showMessage('تعذر تحميل الملف الشخصي، حاول مرة أخرى.');
+      _showMessage(tr('تعذر تحميل الملف الشخصي، حاول مرة أخرى.', 'Could not load your profile. Please try again.'));
       return;
     }
 
@@ -160,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     _buildAnnouncement(),
                     const SizedBox(height: 22),
-                    _sectionTitle('الخدمات'),
+                    _sectionTitle(tr('الخدمات', 'Services')),
                     _buildServices(),
                     const SizedBox(height: 20),
                   ],
@@ -189,18 +270,13 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Row(
             children: [
-              const CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.white24,
-                child:
-                    Icon(Icons.school_rounded, color: Colors.white, size: 28),
-              ),
+              _schoolLogo(),
               const Spacer(),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'مرحباً،',
+                    tr('مرحباً،', 'Welcome,'),
                     style: TextStyle(
                         color: Colors.white.withValues(alpha: .8),
                         fontSize: 14),
@@ -215,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontSize: 21,
                         fontWeight: FontWeight.bold),
                   ),
-                  const Text('ولي أمر الطالب',
+                  Text(tr('ولي أمر الطالب', 'Parent'),
                       style: TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
@@ -244,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
             constraints: const BoxConstraints(minHeight: 62),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.palette.card,
               borderRadius: BorderRadius.circular(22),
             ),
             child: _buildChildSelector(),
@@ -279,7 +355,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Children of the signed-in parent: loading / error / none / one / a dropdown for several
   Widget _buildChildSelector() {
     if (isLoadingChildren) {
-      return const Row(
+      return Row(
         children: [
           SizedBox(
               width: 22,
@@ -287,8 +363,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: CircularProgressIndicator(strokeWidth: 2.5)),
           SizedBox(width: 12),
           Expanded(
-              child: Text('جاري تحميل بيانات الأبناء...',
-                  style: TextStyle(color: AppTheme.ink))),
+              child: Text(tr('جاري تحميل بيانات الأبناء...', 'Loading your children...'),
+                  style: TextStyle(color: context.palette.ink))),
         ],
       );
     }
@@ -300,22 +376,22 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 10),
           Expanded(
               child: Text(childrenError!,
-                  style: const TextStyle(fontSize: 12, color: AppTheme.ink))),
+                  style: TextStyle(fontSize: 12, color: context.palette.ink))),
           TextButton(
-              onPressed: _loadChildren, child: const Text('إعادة المحاولة')),
+              onPressed: _loadChildren, child: Text(tr('إعادة المحاولة', 'Try again'))),
         ],
       );
     }
 
     if (children.isEmpty) {
-      return const Row(
+      return Row(
         children: [
           Icon(Icons.info_outline_rounded,
               color: Color.fromARGB(255, 224, 72, 163)),
           SizedBox(width: 10),
           Expanded(
-            child: Text('لا يوجد أبناء مرتبطون بحسابك حالياً.',
-                style: TextStyle(color: AppTheme.ink)),
+            child: Text(tr('لا يوجد أبناء مرتبطون بحسابك حالياً.', 'No children are linked to your account yet.'),
+                style: TextStyle(color: context.palette.ink)),
           ),
         ],
       );
@@ -355,14 +431,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _childLabel(Child child) {
     return Align(
-      alignment: Alignment.centerRight,
+      alignment: AlignmentDirectional.centerStart,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(child.name,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, color: AppTheme.ink)),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: context.palette.ink)),
           if (child.classInfo.isNotEmpty)
             Text(child.classInfo,
                 style: const TextStyle(fontSize: 11, color: Colors.black54)),
@@ -376,32 +452,42 @@ class _HomeScreenState extends State<HomeScreen> {
     final services = <(IconData, String, Color, VoidCallback?)>[
       (
         Icons.calendar_view_week_rounded,
-        'الجدول الدراسي',
+        tr('الجدول الدراسي', 'Timetable'),
         const Color(0xFF1677E8),
         _openTimetable
       ),
-      (Icons.menu_book_rounded, 'الواجبات', const Color(0xFF20A66A), null),
+      (Icons.menu_book_rounded, tr('الواجبات', 'Homework'), const Color(0xFF20A66A), null),
       (
         Icons.fact_check_rounded,
-        'الاختبارات والدرجات',
+        tr('الاختبارات والدرجات', 'Exams & Grades'),
         const Color(0xFF8957E5),
         _openExams
       ),
       (
         Icons.how_to_reg_rounded,
-        'الحضور والغياب',
+        tr('الحضور والغياب', 'Attendance'),
         const Color(0xFF0FA5A5),
         null
       ),
       (
         Icons.payments_rounded,
-        'الرسوم الدراسية',
+        tr('الرسوم الدراسية', 'School Fees'),
         const Color(0xFFF08C00),
         _openFees
       ),
-      (Icons.celebration_rounded, 'الفعاليات', const Color(0xFFE0457B), _openEvents),
-      (Icons.local_hospital_rounded, 'العيادة الصحية', const Color(0xFFD93025), null),
-      (Icons.directions_bus_rounded, 'الباص', const Color(0xFFB7791F), null),
+      (
+        Icons.celebration_rounded,
+        tr('الفعاليات', 'Events'),
+        const Color(0xFFE0457B),
+        _openEvents
+      ),
+      (
+        Icons.local_hospital_rounded,
+        tr('العيادة الصحية', 'School Clinic'),
+        const Color(0xFFD93025),
+        null
+      ),
+      (Icons.directions_bus_rounded, tr('الباص', 'School Bus'), const Color(0xFFB7791F), null),
     ];
 
     return LayoutBuilder(
@@ -427,11 +513,11 @@ class _HomeScreenState extends State<HomeScreen> {
       IconData icon, String label, Color color, VoidCallback? onTap) {
     final available = onTap != null;
     return Material(
-      color: Colors.white,
+      color: context.palette.card,
       borderRadius: BorderRadius.circular(18),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: onTap ?? () => _showMessage('خدمة "$label" ستتوفر قريباً.'),
+        onTap: onTap ?? () => _showMessage(tr('خدمة "$label" ستتوفر قريباً.', 'The "$label" service is coming soon.')),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           child: Column(
@@ -456,7 +542,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 11.5,
                   height: 1.25,
                   fontWeight: FontWeight.w600,
-                  color: available ? AppTheme.ink : const Color(0xFF8A96B0),
+                  color: available ? context.palette.ink : context.palette.faint,
                 ),
               ),
             ],
@@ -499,8 +585,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final child = selectedChild;
     if (child == null) {
       _showMessage(isLoadingChildren
-          ? 'جاري تحميل بيانات الأبناء...'
-          : 'لا يوجد أبناء مرتبطون بحسابك.');
+          ? tr('جاري تحميل بيانات الأبناء...', 'Loading your children...')
+          : tr('لا يوجد أبناء مرتبطون بحسابك.', 'No children are linked to your account.'));
       return;
     }
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => page(child)));
@@ -510,10 +596,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.all(17),
       decoration: BoxDecoration(
-        color: const Color(0xFFDCEAFF),
+        color: context.palette.infoTint,
         borderRadius: BorderRadius.circular(22),
       ),
-      child: const Row(
+      child: Row(
         children: [
           Icon(Icons.campaign_rounded, color: AppTheme.blue, size: 38),
           SizedBox(width: 12),
@@ -521,19 +607,19 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text('إعلان هام',
+                Text(tr('إعلان هام', 'Important notice'),
                     style: TextStyle(
                         color: AppTheme.navy,
                         fontWeight: FontWeight.bold,
                         fontSize: 17)),
                 SizedBox(height: 5),
-                Text('موعد الرحلة المدرسية القادمة يوم الخميس القادم.',
+                Text(tr('موعد الرحلة المدرسية القادمة يوم الخميس القادم.', 'The next school trip is next Thursday.'),
                     textAlign: TextAlign.right,
-                    style: TextStyle(color: AppTheme.ink, fontSize: 12)),
+                    style: TextStyle(color: context.palette.ink, fontSize: 12)),
               ],
             ),
           ),
-          Text('عرض الكل',
+          Text(tr('عرض الكل', 'View all'),
               style: TextStyle(
                   color: AppTheme.blue,
                   fontWeight: FontWeight.bold,
@@ -546,21 +632,21 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _sectionTitle(String title) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Align(
-          alignment: Alignment.centerRight,
+          alignment: AlignmentDirectional.centerStart,
           child: Text(title,
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.ink)),
+                  color: context.palette.ink)),
         ),
       );
 
   Widget _bottomNavigation() {
-    const items = [
-      (Icons.home_rounded, 'الرئيسية'),
-      (Icons.notifications_rounded, 'الإشعارات'),
-      (Icons.chat_bubble_rounded, 'المحادثات'),
-      (Icons.menu_rounded, 'المزيد'),
+    final items = [
+      (Icons.home_rounded, tr('الرئيسية', 'Home')),
+      (Icons.notifications_rounded, tr('الإشعارات', 'Notifications')),
+      (Icons.chat_bubble_rounded, tr('المحادثات', 'Chats')),
+      (Icons.menu_rounded, tr('المزيد', 'More')),
     ];
 
     return NavigationBar(
@@ -571,9 +657,10 @@ class _HomeScreenState extends State<HomeScreen> {
           return;
         }
         setState(() => selectedTab = index);
-        if (index != 0)
+        if (index != 0) {
           _showMessage(
-              'صفحة ${items[index].$2} سيتم تنفيذها في المرحلة التالية.');
+              tr('صفحة ${items[index].$2} سيتم تنفيذها في المرحلة التالية.', 'The ${items[index].$2} page is coming in the next phase.'));
+        }
       },
       destinations: items
           .map((item) => NavigationDestination(
@@ -587,10 +674,11 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Email under the name in the menu; the login name when there is no real email (placeholder or empty)
   String _menuSubtitle(AuthSession session) {
     final p = profile;
-    if (p != null)
+    if (p != null) {
       return p.email.isNotEmpty && !p.hasPlaceholderEmail
           ? p.email
           : p.loginName;
+    }
     final email = session.email ?? '';
     return email.isNotEmpty && !email.toLowerCase().endsWith('@parents.local')
         ? email
@@ -603,7 +691,9 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (sheetContext) => SafeArea(
+        child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -619,7 +709,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.manage_accounts_rounded,
                   color: AppTheme.blue),
-              title: const Text('تعديل الملف الشخصي'),
+              title: Text(tr('تعديل الملف الشخصي', 'Edit profile')),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _openEditProfile();
@@ -627,19 +717,58 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.school_rounded, color: AppTheme.blue),
-              title: const Text('عن المدرسة'),
-              subtitle: const Text('بيانات المدرسة وألبوم الصور'),
+              title: Text(tr('عن المدرسة', 'About the school')),
+              subtitle: Text(tr('بيانات المدرسة وألبوم الصور', 'School details and photo album')),
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => SchoolInfoScreen(loadSchoolInfo: widget.loadSchoolInfo),
+                  builder: (_) =>
+                      SchoolInfoScreen(loadSchoolInfo: widget.loadSchoolInfo),
                 ));
               },
+            ),
+            // Light / dark / auto (follows the phone); saved on the device
+            ValueListenableBuilder<ThemeMode>(
+              valueListenable: ThemeController.instance,
+              builder: (_, mode, __) => _settingRow(
+                Icons.palette_rounded,
+                tr('المظهر', 'Appearance'),
+                SegmentedButton<ThemeMode>(
+                  key: const ValueKey('theme-mode'),
+                  showSelectedIcon: false,
+                  segments: [
+                    ButtonSegment(
+                        value: ThemeMode.light,
+                        icon: const Icon(Icons.light_mode_rounded),
+                        label: Text(tr('فاتح', 'Light'))),
+                    ButtonSegment(
+                        value: ThemeMode.dark,
+                        icon: const Icon(Icons.dark_mode_rounded),
+                        label: Text(tr('داكن', 'Dark'))),
+                    ButtonSegment(
+                        value: ThemeMode.system,
+                        icon: const Icon(Icons.brightness_auto_rounded),
+                        label: Text(tr('تلقائي', 'Auto'))),
+                  ],
+                  selected: {mode},
+                  onSelectionChanged: (s) =>
+                      ThemeController.instance.setMode(s.first),
+                ),
+              ),
+            ),
+            // Arabic / English; saved on the device
+            ValueListenableBuilder<Locale>(
+              valueListenable: AppLanguage.instance,
+              builder: (_, locale, __) => _settingRow(
+                Icons.translate_rounded,
+                tr('اللغة', 'Language'),
+                const LanguageSwitch(key: ValueKey('app-language')),
+              ),
             ),
             ListTile(
               leading:
                   const Icon(Icons.logout_rounded, color: Color(0xFFD93025)),
-              title: const Text('تسجيل الخروج',
+              title: Text(tr('تسجيل الخروج', 'Sign out'),
                   style: TextStyle(color: Color(0xFFD93025))),
               onTap: () async {
                 Navigator.of(sheetContext).pop();
@@ -649,6 +778,28 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 8),
           ],
         ),
+      ),
+      ),
+    );
+  }
+
+  /// A menu setting: icon and title, the choice under them
+  Widget _settingRow(IconData icon, String title, Widget choice) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppTheme.blue),
+              const SizedBox(width: 16),
+              Text(title, style: const TextStyle(fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(width: double.infinity, child: choice),
+        ],
       ),
     );
   }

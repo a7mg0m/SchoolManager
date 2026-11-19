@@ -431,25 +431,25 @@
   "schoolInfo": {
     "album": {
       "title": "School Album",
-      "upload": "Upload images",
-      "dropHere": "Drag images here, or click to choose",
-      "rules": "JPG, PNG, GIF or WEBP — up to 10 MB each",
-      "saveFirst": "Save the school information first, then you can add images to the album.",
-      "empty": "No images in the album yet.",
+      "upload": "Upload images / videos",
+      "dropHere": "Drag images or videos here, or click to choose",
+      "rules": "Images: JPG, PNG, GIF or WEBP up to 10 MB — Videos: MP4, WEBM or MOV up to 100 MB",
+      "saveFirst": "Save the school information first, then you can add images and videos to the album.",
+      "empty": "No images or videos in the album yet.",
       "clearList": "Clear the upload list",
       "previous": "Previous",
       "next": "Next",
       "openOriginal": "Open original",
-      "deleteTitle": "Delete image",
-      "deleteConfirm": "Delete this image from the school album? The file will be removed from the server.",
-      "uploadFailed": "The image could not be uploaded.",
-      "deleteFailed": "The image could not be deleted.",
+      "deleteTitle": "Delete file",
+      "deleteConfirm": "Delete this file from the school album? The file will be removed from the server.",
+      "uploadFailed": "The file could not be uploaded.",
+      "deleteFailed": "The file could not be deleted.",
       "errors": {
         "SchoolInfoRequired": "Save the school information first.",
         "NoFiles": "No file was received.",
         "TooManyFiles": "Too many files in one upload.",
-        "FileTooLarge": "The image is larger than 10 MB.",
-        "FileTypeNotAllowed": "Only JPG, PNG, GIF or WEBP images are allowed."
+        "FileTooLarge": "The file is too large (images up to 10 MB, videos up to 100 MB).",
+        "FileTypeNotAllowed": "Only JPG, PNG, GIF, WEBP images or MP4, WEBM, MOV videos are allowed."
       }
     },
     "title": "School Information",
@@ -486,7 +486,22 @@
     "created": "School information created successfully",
     "updated": "School information updated successfully",
     "createFailed": "Failed to create school information",
-    "updateFailed": "Failed to update school information"
+    "updateFailed": "Failed to update school information",
+    "location": {
+      "title": "School Location",
+      "hint": "Click the map or drag the pin to set the school location, or type the coordinates. Parents see it on a map in the app.",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "latitudeInvalid": "Latitude must be between -90 and 90",
+      "longitudeInvalid": "Longitude must be between -180 and 180",
+      "incomplete": "Enter both latitude and longitude, or leave both empty.",
+      "useCurrent": "Use my current location",
+      "clear": "Clear location",
+      "notSet": "No location set yet.",
+      "openInMaps": "Open in Google Maps",
+      "notSupported": "This browser cannot detect the location.",
+      "denied": "Could not get your location. Allow location access in the browser, or pick it on the map."
+    }
   },
   "forms": {
     "validation": {

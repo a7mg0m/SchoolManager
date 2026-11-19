@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../core/routes.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/app_language.dart';
+import '../../core/i18n/language_switch.dart';
 
 /// One slide of the intro: what the app is and what the parent can do with it
 class _IntroSlide {
@@ -21,41 +23,42 @@ class _IntroSlide {
   final bool showLogo;
 }
 
-const _slides = <_IntroSlide>[
+/// A getter: the texts follow the app language
+List<_IntroSlide> get _slides => <_IntroSlide>[
   _IntroSlide(
     icon: Icons.school_rounded,
     color: AppTheme.blue,
     showLogo: true,
-    title: 'مرحباً بك في تطبيق ولي الأمر',
+    title: tr('مرحباً بك في تطبيق ولي الأمر', 'Welcome to the Parent App'),
     description:
-        'تطبيق المدرسة الذكية لأولياء الأمور، يربطك بمدرسة أبنائك ويتيح لك متابعة يومهم الدراسي لحظة بلحظة من مكان واحد.',
+        tr('تطبيق المدرسة الذكية لأولياء الأمور، يربطك بمدرسة أبنائك ويتيح لك متابعة يومهم الدراسي لحظة بلحظة من مكان واحد.', 'The smart school app for parents connects you with your children’s school and lets you follow their school day, moment by moment, in one place.'),
     points: [
-      'متابعة جميع أبنائك من حساب واحد',
-      'معلومات محدثة مباشرة من المدرسة',
+      tr('متابعة جميع أبنائك من حساب واحد', 'Follow all your children from one account'),
+      tr('معلومات محدثة مباشرة من المدرسة', 'Up-to-date information straight from the school'),
     ],
   ),
   _IntroSlide(
     icon: Icons.insights_rounded,
     color: Color(0xFF31B77A),
-    title: 'متابعة المستوى الدراسي',
-    description: 'اطّلع على كل ما يخص المستوى الأكاديمي لأبنائك بشكل واضح ومنظم.',
+    title: tr('متابعة المستوى الدراسي', 'Follow their progress'),
+    description: tr('اطّلع على كل ما يخص المستوى الأكاديمي لأبنائك بشكل واضح ومنظم.', 'See everything about your children’s academic progress, clearly organised.'),
     points: [
-      'نسبة الحضور والغياب',
-      'الواجبات المطلوبة ومواعيد تسليمها',
-      'مواعيد الاختبارات ونتائجها والدرجات',
-      'الجدول الدراسي الأسبوعي',
+      tr('نسبة الحضور والغياب', 'Attendance rate'),
+      tr('الواجبات المطلوبة ومواعيد تسليمها', 'Homework and due dates'),
+      tr('مواعيد الاختبارات ونتائجها والدرجات', 'Exam dates, results and grades'),
+      tr('الجدول الدراسي الأسبوعي', 'Weekly timetable'),
     ],
   ),
   _IntroSlide(
     icon: Icons.notifications_active_rounded,
     color: Color(0xFFFFB21A),
-    title: 'تواصل دائم مع المدرسة',
-    description: 'لن يفوتك أي جديد؛ تصلك تنبيهات المدرسة وإعلاناتها فور صدورها.',
+    title: tr('تواصل دائم مع المدرسة', 'Always in touch with the school'),
+    description: tr('لن يفوتك أي جديد؛ تصلك تنبيهات المدرسة وإعلاناتها فور صدورها.', 'Never miss anything: school alerts and announcements reach you as soon as they are published.'),
     points: [
-      'الإشعارات والإعلانات المهمة',
-      'الفعاليات والرحلات المدرسية',
-      'الرسوم الدراسية والمستحقات',
-      'متابعة حالة الباص المدرسي',
+      tr('الإشعارات والإعلانات المهمة', 'Notifications and important announcements'),
+      tr('الفعاليات والرحلات المدرسية', 'Events and school trips'),
+      tr('الرسوم الدراسية والمستحقات', 'School fees and payments due'),
+      tr('متابعة حالة الباص المدرسي', 'School bus tracking'),
     ],
   ),
 ];
@@ -93,23 +96,26 @@ class _IntroScreenState extends State<IntroScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.palette.card,
       body: SafeArea(
         child: Column(
           children: [
-            // Skip (hidden on the last slide)
+            // Language at the start, Skip at the end (Skip hidden on the last slide)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: AnimatedOpacity(
+              child: Row(
+                children: [
+                  const LanguageToggleButton(),
+                  const Spacer(),
+                  AnimatedOpacity(
                   opacity: _isLast ? 0 : 1,
                   duration: const Duration(milliseconds: 200),
                   child: TextButton(
                     onPressed: _isLast ? null : _goToLogin,
-                    child: const Text('تخطي', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(tr('تخطي', 'Skip'), style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
+                ],
               ),
             ),
             Expanded(
@@ -131,7 +137,7 @@ class _IntroScreenState extends State<IntroScreen> {
                   width: active ? 26 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: active ? AppTheme.blue : const Color(0xFFD3DDEE),
+                    color: active ? AppTheme.blue : context.palette.dot,
                     borderRadius: BorderRadius.circular(8),
                   ),
                 );
@@ -149,7 +155,7 @@ class _IntroScreenState extends State<IntroScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                   child: Text(
-                    _isLast ? 'ابدأ الآن' : 'التالي',
+                    _isLast ? tr('ابدأ الآن', 'Get started') : tr('التالي', 'Next'),
                     style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -193,13 +199,13 @@ class _SlideView extends StatelessWidget {
               Text(
                 slide.title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold, color: AppTheme.ink),
+                style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold, color: context.palette.ink),
               ),
               const SizedBox(height: 12),
               Text(
                 slide.description,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14.5, height: 1.7, color: Color(0xFF53668D)),
+                style: TextStyle(fontSize: 14.5, height: 1.7, color: context.palette.muted),
               ),
               const SizedBox(height: 22),
               ...slide.points.map(
@@ -210,7 +216,7 @@ class _SlideView extends StatelessWidget {
                       Icon(Icons.check_circle_rounded, color: slide.color, size: 21),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(point, style: const TextStyle(fontSize: 14, color: AppTheme.ink)),
+                        child: Text(point, style: TextStyle(fontSize: 14, color: context.palette.ink)),
                       ),
                     ],
                   ),

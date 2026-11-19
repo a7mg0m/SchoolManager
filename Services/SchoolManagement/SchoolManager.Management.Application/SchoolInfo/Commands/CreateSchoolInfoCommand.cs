@@ -8,6 +8,8 @@ namespace SchoolManager.Management.Application
         string? Address,
         string? Phone,
         string? Email,
-        byte[]? Logo
+        byte[]? Logo,
+        double? Latitude = null,
+        double? Longitude = null
     ) : ICommand<Guid>;
 }

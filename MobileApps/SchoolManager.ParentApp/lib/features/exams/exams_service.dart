@@ -6,22 +6,28 @@ import 'package:http/http.dart' as http;
 import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
 import '../schedule/schedule_format.dart';
+import '../../core/i18n/app_language.dart';
 
-export '../schedule/schedule_format.dart' show arabicMonths;
+export '../schedule/schedule_format.dart' show monthNames;
 
 /// Exam types (ExamsHomework ExamType)
 enum ExamKind {
-  quiz(1, 'اختبار قصير', 'اختبارات قصيرة'),
-  monthly(2, 'امتحان شهري', 'امتحانات شهرية'),
-  midTerm(3, 'منتصف الفصل', 'امتحانات منتصف الفصل'),
-  finalExam(4, 'نهائي', 'امتحانات نهائية');
+  quiz(1, 'اختبار قصير', 'اختبارات قصيرة', 'Quiz', 'Quizzes'),
+  monthly(2, 'امتحان شهري', 'امتحانات شهرية', 'Monthly exam', 'Monthly exams'),
+  midTerm(3, 'منتصف الفصل', 'امتحانات منتصف الفصل', 'Mid-term', 'Mid-term exams'),
+  finalExam(4, 'نهائي', 'امتحانات نهائية', 'Final', 'Final exams');
 
-  const ExamKind(this.value, this.label, this.plural);
+  const ExamKind(this.value, this._labelAr, this._pluralAr, this._labelEn, this._pluralEn);
 
   /// Value sent by the API (Quiz = 1 … Final = 4)
   final int value;
-  final String label;
-  final String plural;
+  final String _labelAr;
+  final String _pluralAr;
+  final String _labelEn;
+  final String _pluralEn;
+
+  String get label => tr(_labelAr, _labelEn);
+  String get plural => tr(_pluralAr, _pluralEn);
 
   static ExamKind from(Object? value) {
     if (value is num) {
@@ -61,7 +67,7 @@ class ChildExam {
   final int? month;
 
   /// "نوفمبر" (null without a month)
-  String? get monthName => month != null && month! >= 1 && month! <= 12 ? arabicMonths[month! - 1] : null;
+  String? get monthName => month != null && month! >= 1 && month! <= 12 ? monthNames[month! - 1] : null;
   final String subject;
 
   /// Day of the exam (no time)
@@ -97,7 +103,7 @@ class ChildExam {
       id: '${json['id'] ?? ''}',
       kind: ExamKind.from(json['examType']),
       month: (json['month'] as num?)?.toInt(),
-      subject: ar.isNotEmpty ? ar : (en.isNotEmpty ? en : 'مادة'),
+      subject: pickLang(ar, en).isNotEmpty ? pickLang(ar, en) : tr('مادة', 'Subject'),
       date: DateTime(date.year, date.month, date.day),
       start: _minutes(json['startTime']),
       end: _minutes(json['endTime']),
@@ -128,7 +134,7 @@ class ExamsService {
   Future<List<ChildExam>> getChildExams(String studentId) async {
     final session = AuthService.instance.session;
     if (session == null || session.isExpired) {
-      throw const ExamsException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+      throw ExamsException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
     }
 
     final http.Response response;
@@ -138,20 +144,20 @@ class ExamsService {
         headers: {'Accept': 'application/json', 'Authorization': 'Bearer ${session.token}'},
       ).timeout(AppConfig.requestTimeout);
     } on TimeoutException {
-      throw const ExamsException('انتهت مهلة الاتصال بالخادم.');
+      throw ExamsException(tr('انتهت مهلة الاتصال بالخادم.', 'The server took too long to respond.'));
     } catch (_) {
-      throw const ExamsException('تعذر الاتصال بالخادم.');
+      throw ExamsException(tr('تعذر الاتصال بالخادم.', 'Could not reach the server.'));
     }
 
     switch (response.statusCode) {
       case 200:
         break;
       case 401:
-        throw const ExamsException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+        throw ExamsException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
       case 503:
-        throw const ExamsException('خدمة البيانات غير متاحة حالياً، حاول لاحقاً.');
+        throw ExamsException(tr('خدمة البيانات غير متاحة حالياً، حاول لاحقاً.', 'The data service is not available right now. Please try later.'));
       default:
-        throw const ExamsException('تعذر تحميل الاختبارات.');
+        throw ExamsException(tr('تعذر تحميل الاختبارات.', 'Could not load the exams.'));
     }
 
     try {
@@ -160,7 +166,7 @@ class ExamsService {
       if (data is! List) throw const FormatException();
       return data.whereType<Map<String, dynamic>>().map(ChildExam.fromJson).toList();
     } catch (_) {
-      throw const ExamsException('استجابة غير متوقعة من الخادم.');
+      throw ExamsException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
     }
   }
 }

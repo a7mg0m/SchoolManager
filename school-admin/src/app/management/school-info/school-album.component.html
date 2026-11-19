@@ -78,7 +78,13 @@
               <div class="album-tile" [class.deleting]="deletingId() === item.id">
                 <button type="button" class="album-thumb" (click)="open(i, viewer)"
                         [title]="item.fileName">
-                  <img [src]="src(item)" [alt]="item.fileName" loading="lazy" />
+                  @if (isVideo(item)) {
+                    <!-- First frame as the thumbnail (metadata only, no download of the whole video) -->
+                    <video [src]="src(item) + '#t=0.1'" preload="metadata" muted playsinline></video>
+                    <span class="play-badge"><i class="pe-7s-play"></i></span>
+                  } @else {
+                    <img [src]="src(item)" [alt]="item.fileName" loading="lazy" />
+                  }
                 </button>
                 <div class="album-meta">
                   <div class="text-truncate small fw-semibold" dir="ltr" [title]="item.fileName">{{ item.fileName }}</div>
@@ -114,7 +120,14 @@
       <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
     </div>
     <div class="modal-body text-center viewer-body">
-      <img [src]="src(item)" [alt]="item.fileName" class="viewer-image" />
+      @if (isVideo(item)) {
+        <!-- track by id: switching item starts the new video -->
+        @for (v of [item]; track v.id) {
+          <video [src]="src(v)" class="viewer-image" controls autoplay playsinline></video>
+        }
+      } @else {
+        <img [src]="src(item)" [alt]="item.fileName" class="viewer-image" />
+      }
     </div>
     <div class="modal-footer justify-content-between">
       <div>

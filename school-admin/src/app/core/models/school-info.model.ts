@@ -10,6 +10,9 @@ export interface SchoolInfo {
   phone?: string;
   email?: string;
   logo?: string | null;
+  /** School location on the map (WGS84 degrees); both set or both null */
+  latitude?: number | null;
+  longitude?: number | null;
   /** School album (returned by the API; managed with the album upload / delete endpoints) */
   album?: SchoolAlbumItem[];
 }
@@ -23,6 +26,8 @@ export interface SchoolAlbumItem {
   url: string;
   fileName: string;
   contentType: string;
+  /** "image" or "video" */
+  mediaType?: 'image' | 'video';
   /** Bytes */
   size: number;
   uploadedOn: string;
@@ -38,6 +43,9 @@ export interface CreateSchoolInfoRequest {
   phone?: string;
   email?: string;
   logo?: string | null;
+  /** School location on the map (WGS84 degrees); both set or both null */
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 /**
@@ -51,6 +59,9 @@ export interface UpdateSchoolInfoRequest {
   phone?: string;
   email?: string;
   logo?: string | null;
+  /** School location on the map (WGS84 degrees); both set or both null */
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 /**

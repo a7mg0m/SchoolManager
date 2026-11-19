@@ -11,6 +11,13 @@
         "Match": { "Path": "/api/{resource:regex(^(semester|section|timetable-slot|school-info|timetable|parent|teacher|grade|academic-year|subject|stage|student)$)}/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5298" } ]
       },
+      "management-album-upload-route": {
+        "ClusterId": "management-cluster",
+        "Order": -1,
+        "MaxRequestBodySize": 115343360,
+        "Match": { "Path": "/api/school-info/album/upload", "Methods": [ "POST", "OPTIONS" ] },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5298" } ]
+      },
       "management-upload-route": {
         "ClusterId": "management-cluster",
         "Match": { "Path": "/upload/{**catch-all}" },

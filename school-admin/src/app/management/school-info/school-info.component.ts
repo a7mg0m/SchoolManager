@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { MapPoint } from './school-location-map.component';
 import { SchoolInfoService } from '../../core/services/school-info.service';
 import { SchoolInfo, SchoolAlbumItem, CreateSchoolInfoRequest, UpdateSchoolInfoRequest } from '../../core/models/school-info.model';
 import { Subject } from 'rxjs';
@@ -21,6 +22,13 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
   existingSchoolInfo: SchoolInfo | null = null;
   logoPreview = signal<string | null>(null);
   logoError = signal<string | null>(null);
+
+  /** Location shown on the map (follows the latitude / longitude fields) */
+  mapLatitude = signal<number | null>(null);
+  mapLongitude = signal<number | null>(null);
+  isLocating = signal(false);
+  /** Translation key */
+  locationError = signal<string | null>(null);
 
   private readonly maxLogoSizeBytes = 1024 * 1024; // 1 MB
 
@@ -52,8 +60,84 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
       email: ['', Validators.email],
       phone: ['', Validators.pattern(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/)],
       address: ['', Validators.maxLength(300)],
-      logo: [null]
+      logo: [null],
+      latitude: [null as number | null, [Validators.min(-90), Validators.max(90)]],
+      longitude: [null as number | null, [Validators.min(-180), Validators.max(180)]]
+    }, { validators: SchoolInfoComponent.locationComplete });
+
+    // The map follows what is typed in the coordinate fields
+    this.form.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(v => {
+      this.mapLatitude.set(SchoolInfoComponent.toNumber(v.latitude));
+      this.mapLongitude.set(SchoolInfoComponent.toNumber(v.longitude));
     });
+  }
+
+  // ----- Location -----
+
+  /** Both coordinates, or neither */
+  private static locationComplete(group: AbstractControl): ValidationErrors | null {
+    const lat = SchoolInfoComponent.toNumber(group.get('latitude')?.value);
+    const lng = SchoolInfoComponent.toNumber(group.get('longitude')?.value);
+    return (lat === null) === (lng === null) ? null : { locationIncomplete: true };
+  }
+
+  private static toNumber(value: unknown): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  get locationIncomplete(): boolean {
+    const touched = this.form.get('latitude')?.dirty || this.form.get('longitude')?.dirty;
+    return !!touched && this.form.hasError('locationIncomplete');
+  }
+
+  get hasLocation(): boolean {
+    return this.mapLatitude() !== null && this.mapLongitude() !== null;
+  }
+
+  /** Google Maps link to check the location */
+  get mapsLink(): string {
+    return `https://www.google.com/maps/search/?api=1&query=${this.mapLatitude()},${this.mapLongitude()}`;
+  }
+
+  /** Clicked on the map / dragged the pin */
+  onLocationPicked(point: MapPoint): void {
+    this.setLocation(point.latitude, point.longitude);
+  }
+
+  /** Location of this device (the admin is at the school) */
+  useCurrentLocation(): void {
+    this.locationError.set(null);
+    if (!navigator.geolocation) {
+      this.locationError.set('schoolInfo.location.notSupported');
+      return;
+    }
+    this.isLocating.set(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        this.isLocating.set(false);
+        const round = (v: number) => Math.round(v * 1e6) / 1e6;
+        this.setLocation(round(pos.coords.latitude), round(pos.coords.longitude));
+      },
+      () => {
+        this.isLocating.set(false);
+        this.locationError.set('schoolInfo.location.denied');
+      },
+      { enableHighAccuracy: true, timeout: 15000 }
+    );
+  }
+
+  clearLocation(): void {
+    this.setLocation(null, null);
+  }
+
+  private setLocation(latitude: number | null, longitude: number | null): void {
+    this.form.patchValue({ latitude, longitude });
+    this.form.get('latitude')?.markAsDirty();
+    this.form.get('longitude')?.markAsDirty();
   }
 
   /**
@@ -103,7 +187,9 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
       address: schoolInfo.address || '',
       phone: schoolInfo.phone || '',
       email: schoolInfo.email || '',
-      logo: schoolInfo.logo || null
+      logo: schoolInfo.logo || null,
+      latitude: schoolInfo.latitude ?? null,
+      longitude: schoolInfo.longitude ?? null
     });
     this.logoPreview.set(this.toImageSrc(schoolInfo.logo));
     this.logoError.set(null);
@@ -176,7 +262,12 @@ export class SchoolInfoComponent implements OnInit, OnDestroy {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
-    const formValue = { ...this.form.value, logo: this.form.value.logo || null };
+    const formValue = {
+      ...this.form.value,
+      logo: this.form.value.logo || null,
+      latitude: SchoolInfoComponent.toNumber(this.form.value.latitude),
+      longitude: SchoolInfoComponent.toNumber(this.form.value.longitude)
+    };
 
     if (this.isEditMode()) {
       // Update existing school info

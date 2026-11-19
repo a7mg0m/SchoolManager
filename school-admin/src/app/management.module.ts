@@ -8,6 +8,7 @@ import { AcademicYearListComponent } from './management/academic-years/academic-
 import { AcademicYearSaveComponent } from './management/academic-years/academic-year-save.component';
 import { SchoolInfoComponent } from './management/school-info/school-info.component';
 import { SchoolAlbumComponent } from './management/school-info/school-album.component';
+import { SchoolLocationMapComponent } from './management/school-info/school-location-map.component';
 import { SectionListComponent } from './management/sections/section-list.component';
 import { SectionSaveComponent } from './management/sections/section-save.component';
 import { TeacherListComponent } from './management/teachers/teacher-list.component';
@@ -29,6 +30,7 @@ import { StudentProfileComponent } from './management/students/student-profile.c
     AcademicYearSaveComponent,
     SchoolInfoComponent,
     SchoolAlbumComponent,
+    SchoolLocationMapComponent,
     SectionListComponent,
     SectionSaveComponent,
     TeacherListComponent,

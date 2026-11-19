@@ -10,6 +10,10 @@ namespace SchoolManager.Management.Domain
         public string? Email { get; private set; }
         public byte[]? Logo { get; private set; }
 
+        /// <summary>Location on the map (WGS84 degrees); both set or both null</summary>
+        public double? Latitude { get; private set; }
+        public double? Longitude { get; private set; }
+
         public AuditInfo AuditInfo { get; private set; }
 
         /// <summary>School album: URLs of the uploaded files</summary>
@@ -17,23 +21,27 @@ namespace SchoolManager.Management.Domain
 
         private SchoolInfo() { }
 
-        public SchoolInfo(NameLocalized name, string? address, string? phone, string? email, byte[]? logo, AuditInfo auditInfo)
+        public SchoolInfo(NameLocalized name, string? address, string? phone, string? email, byte[]? logo, double? latitude, double? longitude, AuditInfo auditInfo)
         {
             Name = name;
             Address = address;
             Phone = phone;
             Email = email;
             Logo = logo;
+            Latitude = latitude;
+            Longitude = longitude;
             AuditInfo = auditInfo;
         }
 
-        public void Update(NameLocalized name, string? address, string? phone, string? email, byte[]? logo, AuditInfo auditInfo)
+        public void Update(NameLocalized name, string? address, string? phone, string? email, byte[]? logo, double? latitude, double? longitude, AuditInfo auditInfo)
         {
             Name = name;
             Address = address;
             Phone = phone;
             Email = email;
             Logo = logo;
+            Latitude = latitude;
+            Longitude = longitude;
             AuditInfo = auditInfo;
         }
     }

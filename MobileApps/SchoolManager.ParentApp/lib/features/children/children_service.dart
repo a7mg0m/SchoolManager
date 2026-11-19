@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
+import '../../core/i18n/app_language.dart';
 
 /// A child of the signed-in parent (GET /api/student/my-children)
 class Child {
@@ -26,8 +27,8 @@ class Child {
   final String gradeName;
   final String sectionName;
 
-  /// Arabic name (the app is Arabic), English when there is none
-  String get name => fullNameAr.trim().isNotEmpty ? fullNameAr : fullNameEn;
+  /// Name in the app language (the other one when it is missing)
+  String get name => pickLang(fullNameAr, fullNameEn);
 
   bool get isFemale => gender.toLowerCase().startsWith('f');
 
@@ -37,8 +38,7 @@ class Child {
   String get classInfo => [gradeName, sectionName].where((s) => s.trim().isNotEmpty).join(' - ');
 
   static String _pick(Map<String, dynamic> json, String ar, String en) {
-    final arabic = (json[ar] as String?)?.trim() ?? '';
-    return arabic.isNotEmpty ? arabic : (json[en] as String?)?.trim() ?? '';
+    return pickLang(json[ar] as String?, json[en] as String?);
   }
 
   factory Child.fromJson(Map<String, dynamic> json) => Child(
@@ -72,7 +72,7 @@ class ChildrenService {
   Future<List<Child>> getMyChildren() async {
     final session = AuthService.instance.session;
     if (session == null || session.isExpired) {
-      throw const ChildrenException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+      throw ChildrenException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
     }
 
     final http.Response response;
@@ -85,19 +85,19 @@ class ChildrenService {
         },
       ).timeout(AppConfig.requestTimeout);
     } on TimeoutException {
-      throw const ChildrenException('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى.');
+      throw ChildrenException(tr('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى.', 'The server took too long to respond. Please try again.'));
     } catch (_) {
-      throw const ChildrenException('تعذر الاتصال بالخادم، تأكد من اتصالك بالإنترنت.');
+      throw ChildrenException(tr('تعذر الاتصال بالخادم، تأكد من اتصالك بالإنترنت.', 'Could not reach the server. Check your internet connection.'));
     }
 
     if (response.statusCode == 401) {
-      throw const ChildrenException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+      throw ChildrenException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
     }
     if (response.statusCode == 403) {
-      throw const ChildrenException('هذا الحساب غير مرتبط بولي أمر، تواصل مع إدارة المدرسة.');
+      throw ChildrenException(tr('هذا الحساب غير مرتبط بولي أمر، تواصل مع إدارة المدرسة.', 'This account is not linked to a parent. Please contact the school office.'));
     }
     if (response.statusCode != 200) {
-      throw const ChildrenException('تعذر تحميل بيانات الأبناء، حاول مرة أخرى.');
+      throw ChildrenException(tr('تعذر تحميل بيانات الأبناء، حاول مرة أخرى.', 'Could not load your children. Please try again.'));
     }
 
     try {
@@ -106,7 +106,7 @@ class ChildrenService {
       if (data is! List) throw const FormatException();
       return data.whereType<Map<String, dynamic>>().map(Child.fromJson).toList();
     } catch (_) {
-      throw const ChildrenException('استجابة غير متوقعة من الخادم.');
+      throw ChildrenException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
     }
   }
 }

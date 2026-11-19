@@ -25,7 +25,10 @@ namespace SchoolManager.Management.Application
                 command.Address,
                 command.Phone,
                 command.Email,
-                command.Logo,                new AuditInfo(DateTime.Now, _currentUser.UserId));
+                command.Logo,
+                command.Latitude,
+                command.Longitude,
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
             await _repository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();

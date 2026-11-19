@@ -16,6 +16,8 @@ namespace SchoolManager.Management.Infrastructure
             builder.Property(x => x.Phone).HasMaxLength(50);
             builder.Property(x => x.Email).HasMaxLength(200);
             builder.Property(x => x.Logo).HasColumnType("varbinary(max)");
+            builder.Property(x => x.Latitude);
+            builder.Property(x => x.Longitude);
             builder.ConfigureAudit(x => x.AuditInfo);
         }
     }

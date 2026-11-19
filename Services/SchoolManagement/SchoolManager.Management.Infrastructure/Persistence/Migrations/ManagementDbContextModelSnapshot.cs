@@ -233,8 +233,14 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
                     b.Property<byte[]>("Logo")
                         .HasColumnType("varbinary(max)");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(50)

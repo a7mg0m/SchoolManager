@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
+import '../../core/i18n/app_language.dart';
 
 /// Signed-in user, saved on the device so the next launch opens Home directly
 class AuthSession {
@@ -139,9 +140,9 @@ class AuthService {
           )
           .timeout(AppConfig.requestTimeout);
     } on TimeoutException {
-      throw const AuthException('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى.');
+      throw AuthException(tr('انتهت مهلة الاتصال بالخادم، حاول مرة أخرى.', 'The server took too long to respond. Please try again.'));
     } catch (_) {
-      throw const AuthException('تعذر الاتصال بالخادم، تأكد من اتصالك بالإنترنت.');
+      throw AuthException(tr('تعذر الاتصال بالخادم، تأكد من اتصالك بالإنترنت.', 'Could not reach the server. Check your internet connection.'));
     }
 
     Map<String, dynamic>? body;
@@ -159,7 +160,7 @@ class AuthService {
           return _session = session;
         }
       }
-      throw const AuthException('استجابة غير متوقعة من الخادم.');
+      throw AuthException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
     }
 
     throw AuthException(_errorMessage(response.statusCode, body));
@@ -209,12 +210,12 @@ class AuthService {
     final message = body?['message'];
     if (message is String) keys.add(message);
 
-    if (keys.contains('UserInactive')) return 'هذا الحساب غير مفعّل، تواصل مع إدارة المدرسة.';
-    if (keys.contains('InvalidCredentials')) return 'اسم المستخدم أو كلمة المرور غير صحيحة.';
-    if (keys.contains('LoginNameRequired')) return 'من فضلك أدخل اسم المستخدم.';
-    if (keys.contains('PasswordRequired')) return 'من فضلك أدخل كلمة المرور.';
-    if (statusCode == 401) return 'اسم المستخدم أو كلمة المرور غير صحيحة.';
-    if (statusCode >= 500) return 'حدث خطأ في الخادم، حاول لاحقاً.';
-    return 'تعذر تسجيل الدخول، حاول مرة أخرى.';
+    if (keys.contains('UserInactive')) return tr('هذا الحساب غير مفعّل، تواصل مع إدارة المدرسة.', 'This account is not active. Please contact the school office.');
+    if (keys.contains('InvalidCredentials')) return tr('اسم المستخدم أو كلمة المرور غير صحيحة.', 'Wrong username or password.');
+    if (keys.contains('LoginNameRequired')) return tr('من فضلك أدخل اسم المستخدم.', 'Please enter your username.');
+    if (keys.contains('PasswordRequired')) return tr('من فضلك أدخل كلمة المرور.', 'Please enter your password.');
+    if (statusCode == 401) return tr('اسم المستخدم أو كلمة المرور غير صحيحة.', 'Wrong username or password.');
+    if (statusCode >= 500) return tr('حدث خطأ في الخادم، حاول لاحقاً.', 'A server error occurred. Please try again later.');
+    return tr('تعذر تسجيل الدخول، حاول مرة أخرى.', 'Could not sign in. Please try again.');
   }
 }

@@ -9,5 +9,9 @@ namespace SchoolManager.Management.Application
         public string? Phone { get; set; }
         public string? Email { get; set; }
         public byte[]? Logo { get; set; }
+
+        /// <summary>School location on the map (WGS84 degrees); both or neither</summary>
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }

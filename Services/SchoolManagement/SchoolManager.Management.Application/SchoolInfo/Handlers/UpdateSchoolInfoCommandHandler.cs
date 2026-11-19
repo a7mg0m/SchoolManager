@@ -30,7 +30,10 @@ namespace SchoolManager.Management.Application
                 request.Address,
                 request.Phone,
                 request.Email,
-                request.Logo,                new AuditInfo(DateTime.Now, _currentUser.UserId));
+                request.Logo,
+                request.Latitude,
+                request.Longitude,
+                new AuditInfo(DateTime.Now, _currentUser.UserId));
 
             await _unitOfWork.SaveChangesAsync();
 

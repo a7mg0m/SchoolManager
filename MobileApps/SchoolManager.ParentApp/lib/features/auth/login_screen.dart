@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/routes.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/i18n/app_language.dart';
+import '../../core/i18n/language_switch.dart';
 
 /// Parent login against the Identity service (POST /api/user/login through the gateway).
 /// On success the session is saved, so the next launch opens Home directly.
@@ -72,6 +74,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 constraints: const BoxConstraints(maxWidth: 440),
                 child: Column(
                   children: [
+                    // Arabic / English before signing in
+                    const Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: LanguageToggleButton(color: Colors.white),
+                    ),
                     Container(
                       width: 120,
                       height: 120,
@@ -84,13 +91,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
                     ),
                     const SizedBox(height: 18),
-                    const Text(
-                      'تطبيق ولي الأمر',
+                    Text(
+                      tr('تطبيق ولي الأمر', 'Parent App'),
                       style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'سجّل دخولك لمتابعة أبنائك',
+                      tr('سجّل دخولك لمتابعة أبنائك', 'Sign in to follow your children'),
                       style: TextStyle(color: Colors.white.withValues(alpha: .85), fontSize: 14),
                     ),
                     const SizedBox(height: 26),
@@ -103,16 +110,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Text(
-                                'تسجيل الدخول',
-                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.ink),
+                              Text(
+                                tr('تسجيل الدخول', 'Sign in'),
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: context.palette.ink),
                               ),
                               const SizedBox(height: 20),
                               if (_error != null) ...[
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFFDECEC),
+                                    color: context.palette.errorTint,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Row(
@@ -134,8 +141,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 controller: _usernameController,
                                 keyboardType: TextInputType.text,
                                 textInputAction: TextInputAction.next,
-                                decoration: _inputDecoration('اسم المستخدم أو رقم الجوال', Icons.person_outline_rounded),
-                                validator: (v) => (v == null || v.trim().isEmpty) ? 'من فضلك أدخل اسم المستخدم' : null,
+                                decoration: _inputDecoration(tr('اسم المستخدم أو رقم الجوال', 'Username or mobile number'), Icons.person_outline_rounded),
+                                validator: (v) => (v == null || v.trim().isEmpty) ? tr('من فضلك أدخل اسم المستخدم', 'Please enter your username') : null,
                               ),
                               const SizedBox(height: 14),
                               TextFormField(
@@ -143,19 +150,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 obscureText: _hidePassword,
                                 textInputAction: TextInputAction.done,
                                 onFieldSubmitted: (_) => _submit(),
-                                decoration: _inputDecoration('كلمة المرور', Icons.lock_outline_rounded).copyWith(
+                                decoration: _inputDecoration(tr('كلمة المرور', 'Password'), Icons.lock_outline_rounded).copyWith(
                                   suffixIcon: IconButton(
                                     icon: Icon(_hidePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                                     onPressed: () => setState(() => _hidePassword = !_hidePassword),
                                   ),
                                 ),
-                                validator: (v) => (v == null || v.isEmpty) ? 'من فضلك أدخل كلمة المرور' : null,
+                                validator: (v) => (v == null || v.isEmpty) ? tr('من فضلك أدخل كلمة المرور', 'Please enter your password') : null,
                               ),
                               Align(
                                 alignment: AlignmentDirectional.centerEnd,
                                 child: TextButton(
-                                  onPressed: () => _showMessage('تواصل مع إدارة المدرسة لاستعادة كلمة المرور.'),
-                                  child: const Text('نسيت كلمة المرور؟'),
+                                  onPressed: () => _showMessage(tr('تواصل مع إدارة المدرسة لاستعادة كلمة المرور.', 'Contact the school office to reset your password.')),
+                                  child: Text(tr('نسيت كلمة المرور؟', 'Forgot password?')),
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -173,7 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           height: 22,
                                           child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
                                         )
-                                      : const Text('دخول', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                                      : Text(tr('دخول', 'Sign in'), style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
                                 ),
                               ),
                             ],
@@ -185,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextButton(
                       onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.intro),
                       style: TextButton.styleFrom(foregroundColor: Colors.white),
-                      child: const Text('تعرّف على التطبيق'),
+                      child: Text(tr('تعرّف على التطبيق', 'About the app')),
                     ),
                   ],
                 ),
@@ -202,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
       labelText: label,
       prefixIcon: Icon(icon),
       filled: true,
-      fillColor: const Color(0xFFF3F6FC),
+      fillColor: context.palette.field,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),

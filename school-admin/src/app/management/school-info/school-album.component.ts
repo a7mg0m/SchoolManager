@@ -28,10 +28,15 @@ interface UploadEntry {
   styleUrl: './school-album.component.scss'
 })
 export class SchoolAlbumComponent implements OnDestroy {
-  /** Same rules as the API (SchoolAlbumRules) */
-  static readonly maxFileBytes = 10 * 1024 * 1024;
-  static readonly allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  readonly accept = '.jpg,.jpeg,.png,.gif,.webp';
+  /** Same rules as the API (SchoolAlbumRules): images 10 MB, videos 100 MB */
+  static readonly maxImageBytes = 10 * 1024 * 1024;
+  static readonly maxVideoBytes = 100 * 1024 * 1024;
+  static readonly imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  static readonly videoTypes = ['video/mp4', 'video/webm', 'video/quicktime'];
+  /** Browsers do not always give a type (e.g. .mov on Windows): fall back to the extension */
+  static readonly videoExtensions = ['.mp4', '.webm', '.mov'];
+  static readonly imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+  readonly accept = '.jpg,.jpeg,.png,.gif,.webp,.mp4,.webm,.mov';
 
   /** Album items of the school info (from the API) */
   @Input() set items(value: SchoolAlbumItem[] | null | undefined) {
@@ -105,9 +110,11 @@ export class SchoolAlbumComponent implements OnDestroy {
     }
     this.errorMessage.set(null);
     const entries = files.map<UploadEntry>(file => {
-      const error = !SchoolAlbumComponent.allowedTypes.includes(file.type)
+      const kind = SchoolAlbumComponent.kindOf(file);
+      const maxBytes = kind === 'video' ? SchoolAlbumComponent.maxVideoBytes : SchoolAlbumComponent.maxImageBytes;
+      const error = !kind
         ? this.translate.instant('schoolInfo.album.errors.FileTypeNotAllowed')
-        : file.size > SchoolAlbumComponent.maxFileBytes
+        : file.size > maxBytes
           ? this.translate.instant('schoolInfo.album.errors.FileTooLarge')
           : undefined;
       return { file, name: file.name, size: file.size, progress: 0, status: error ? 'error' : 'waiting', error };
@@ -207,6 +214,23 @@ export class SchoolAlbumComponent implements OnDestroy {
   }
 
   // ----- Helpers -----
+
+  /** 'image', 'video', or null when the album does not accept the file */
+  static kindOf(file: File): 'image' | 'video' | null {
+    const name = file.name.toLowerCase();
+    const extension = name.includes('.') ? name.substring(name.lastIndexOf('.')) : '';
+    if (SchoolAlbumComponent.videoTypes.includes(file.type) || SchoolAlbumComponent.videoExtensions.includes(extension)) {
+      return SchoolAlbumComponent.videoExtensions.includes(extension) ? 'video' : null;
+    }
+    if (SchoolAlbumComponent.imageTypes.includes(file.type) && SchoolAlbumComponent.imageExtensions.includes(extension)) {
+      return 'image';
+    }
+    return null;
+  }
+
+  isVideo(item: SchoolAlbumItem): boolean {
+    return item.mediaType === 'video' || (item.contentType ?? '').startsWith('video/');
+  }
 
   src(item: SchoolAlbumItem): string {
     return SchoolInfoService.albumFileUrl(item.url);

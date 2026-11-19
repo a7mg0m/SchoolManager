@@ -156,6 +156,87 @@
             </div>
           </div>
 
+          <!-- Location Section -->
+          <div class="row mt-2">
+            <div class="col-12">
+              <div class="card border-light">
+                <div class="card-header bg-light d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                  <h5 class="mb-0"><i class="pe-7s-map-marker me-1"></i>{{ 'schoolInfo.location.title' | translate }}</h5>
+                  <div class="d-flex gap-2" *appCan="'edit'">
+                    <button type="button" class="btn btn-sm btn-outline-primary"
+                            (click)="useCurrentLocation()" [disabled]="isLocating() || isSaving()">
+                      @if (isLocating()) {
+                        <span class="spinner-border spinner-border-sm me-1"></span>
+                      } @else {
+                        <i class="pe-7s-target me-1"></i>
+                      }
+                      {{ 'schoolInfo.location.useCurrent' | translate }}
+                    </button>
+                    @if (hasLocation) {
+                      <button type="button" class="btn btn-sm btn-outline-danger"
+                              (click)="clearLocation()" [disabled]="isSaving()">
+                        <i class="pe-7s-close-circle me-1"></i>{{ 'schoolInfo.location.clear' | translate }}
+                      </button>
+                    }
+                  </div>
+                </div>
+                <div class="card-body">
+                  <p class="form-text mt-0">{{ 'schoolInfo.location.hint' | translate }}</p>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="latitude" class="form-label">{{ 'schoolInfo.location.latitude' | translate }}</label>
+                      <input type="number" step="any" class="form-control" id="latitude" dir="ltr"
+                             formControlName="latitude" placeholder="30.044400"
+                             [class.is-invalid]="hasError('latitude', 'min') || hasError('latitude', 'max') || locationIncomplete" />
+                      @if (hasError('latitude', 'min') || hasError('latitude', 'max')) {
+                        <div class="invalid-feedback">{{ 'schoolInfo.location.latitudeInvalid' | translate }}</div>
+                      }
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="longitude" class="form-label">{{ 'schoolInfo.location.longitude' | translate }}</label>
+                      <input type="number" step="any" class="form-control" id="longitude" dir="ltr"
+                             formControlName="longitude" placeholder="31.235700"
+                             [class.is-invalid]="hasError('longitude', 'min') || hasError('longitude', 'max') || locationIncomplete" />
+                      @if (hasError('longitude', 'min') || hasError('longitude', 'max')) {
+                        <div class="invalid-feedback">{{ 'schoolInfo.location.longitudeInvalid' | translate }}</div>
+                      }
+                    </div>
+                  </div>
+                  @if (locationIncomplete) {
+                    <div class="alert alert-warning py-2">{{ 'schoolInfo.location.incomplete' | translate }}</div>
+                  }
+                  @if (locationError()) {
+                    <div class="alert alert-danger py-2 alert-dismissible">
+                      {{ locationError()! | translate }}
+                      <button type="button" class="btn-close" (click)="locationError.set(null)"></button>
+                    </div>
+                  }
+
+                  <app-school-location-map
+                    [latitude]="mapLatitude()"
+                    [longitude]="mapLongitude()"
+                    (picked)="onLocationPicked($event)">
+                  </app-school-location-map>
+
+                  <div class="d-flex justify-content-between align-items-center mt-2 small">
+                    <span class="text-muted">
+                      @if (hasLocation) {
+                        <span dir="ltr">{{ mapLatitude() }}, {{ mapLongitude() }}</span>
+                      } @else {
+                        {{ 'schoolInfo.location.notSet' | translate }}
+                      }
+                    </span>
+                    @if (hasLocation) {
+                      <a [href]="mapsLink" target="_blank" rel="noopener">
+                        {{ 'schoolInfo.location.openInMaps' | translate }} <i class="pe-7s-exapnd2"></i>
+                      </a>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Logo Section -->
           <div class="row mt-4">
             <div class="col-12">
@@ -200,6 +281,13 @@
             </div>
           </div>
 
+          <!-- School album (needs a saved school info; uploads right away, not with Save) -->
+          <app-school-album
+            [enabled]="isEditMode() && !!existingSchoolInfo?.id"
+            [items]="existingSchoolInfo?.album"
+            (albumChange)="onAlbumChange($event)">
+          </app-school-album>
+
           <!-- Form Actions -->
           <div class="row mt-4">
             <div class="col">
@@ -229,12 +317,5 @@
         </form>
       </div>
     </div>
-
-    <!-- School album (needs a saved school info) -->
-    <app-school-album
-      [enabled]="isEditMode() && !!existingSchoolInfo?.id"
-      [items]="existingSchoolInfo?.album"
-      (albumChange)="onAlbumChange($event)">
-    </app-school-album>
   }
 </div>

@@ -79,19 +79,19 @@ namespace SchoolManager.Management.Application
             }
         }
 
-        /// <summary>Size, extension and real image content (the first bytes), then rewind for saving</summary>
+        /// <summary>Extension, size (images 10 MB, videos 100 MB) and real content (the first bytes), then rewind for saving</summary>
         private static async Task<(AlbumFileUpload, string, string)> CheckAsync(AlbumFileUpload file, CancellationToken cancellationToken)
         {
-            if (file.Length <= 0 || file.Length > SchoolAlbumRules.MaxFileBytes)
-                throw new SchoolAlbumException(SchoolAlbumRules.FileTooLarge, file.FileName);
-
             var extension = Path.GetExtension(file.FileName ?? string.Empty).ToLowerInvariant();
             if (!SchoolAlbumRules.AllowedTypes.TryGetValue(extension, out var contentType))
                 throw new SchoolAlbumException(SchoolAlbumRules.FileTypeNotAllowed, file.FileName);
 
+            if (file.Length <= 0 || file.Length > SchoolAlbumRules.MaxBytesFor(contentType))
+                throw new SchoolAlbumException(SchoolAlbumRules.FileTooLarge, file.FileName);
+
             var head = new byte[12];
             var read = await file.Content.ReadAtLeastAsync(head, head.Length, throwOnEndOfStream: false, cancellationToken);
-            if (!SchoolAlbumRules.HasImageSignature(head.AsSpan(0, read), extension))
+            if (!SchoolAlbumRules.HasValidSignature(head.AsSpan(0, read), extension))
                 throw new SchoolAlbumException(SchoolAlbumRules.FileTypeNotAllowed, file.FileName);
 
             if (file.Content.CanSeek)
@@ -107,7 +107,7 @@ namespace SchoolManager.Management.Application
         {
             var name = Path.GetFileName(fileName ?? string.Empty).Trim();
             if (name.Length == 0)
-                name = "image";
+                name = "file";
             return name.Length <= 260 ? name : name[^260..];
         }
     }

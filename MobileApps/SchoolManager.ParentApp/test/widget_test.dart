@@ -1,9 +1,18 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:smart_school_parent/core/i18n/app_language.dart';
+import 'package:smart_school_parent/features/schedule/schedule_format.dart';
+
+import 'package:smart_school_parent/core/theme/app_theme.dart';
+import 'package:smart_school_parent/core/theme/theme_controller.dart';
 
 import 'package:smart_school_parent/features/children/children_service.dart';
+import 'package:smart_school_parent/features/school/school_info_screen.dart';
 import 'package:smart_school_parent/features/school/school_info_service.dart';
 import 'package:smart_school_parent/features/events/events_service.dart';
 import 'package:smart_school_parent/features/exams/exams_service.dart';
@@ -29,9 +38,17 @@ Widget _home(
   List<ChildEvent>? events,
   SchoolInfo? schoolInfo,
 }) =>
-    MaterialApp(
-      builder: (context, child) =>
-          Directionality(textDirection: TextDirection.rtl, child: child!),
+    // Same language set-up as the app: Arabic (RTL) by default, English (LTR) when chosen
+    ListenableBuilder(
+      listenable: AppLanguage.instance,
+      builder: (context, _) => MaterialApp(
+      locale: AppLanguage.instance.value,
+      supportedLocales: AppLanguage.supported,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: HomeScreen(
         loadChildren: loader,
         loadProfile: () async => profile,
@@ -42,6 +59,7 @@ Widget _home(
         loadEvents: (_) async => events ?? const [],
         loadSchoolInfo: () async => schoolInfo,
       ),
+    ),
     );
 
 StudentFeeItem _fee(String id,
@@ -414,7 +432,8 @@ void main() {
       find.text('مدفوع بالكامل'),
       300,
       scrollable: find
-          .descendant(of: find.byType(ListView), matching: find.byType(Scrollable))
+          .descendant(
+              of: find.byType(ListView), matching: find.byType(Scrollable))
           .first,
     );
     expect(find.text('مدفوع بالكامل'), findsOneWidget);
@@ -431,11 +450,13 @@ void main() {
     expect(find.text('لا توجد رسوم دراسية مسجلة للطالب.'), findsOneWidget);
   });
 
-  testWidgets('Exams tile opens a tab per exam type with upcoming exams and results',
+  testWidgets(
+      'Exams tile opens a tab per exam type with upcoming exams and results',
       (WidgetTester tester) async {
     _phoneSize(tester);
     final today = DateTime.now();
-    DateTime day(int offset) => DateTime(today.year, today.month, today.day + offset);
+    DateTime day(int offset) =>
+        DateTime(today.year, today.month, today.day + offset);
     ChildExam exam(String id, ExamKind kind, String subject, DateTime date,
             {double? score, bool? passed, double? percentage}) =>
         ChildExam(
@@ -454,8 +475,10 @@ void main() {
         );
 
     await tester.pumpWidget(_home(() async => [_sara], exams: [
-      exam('1', ExamKind.monthly, 'رياضيات', day(5)), // next upcoming -> opens on "monthly"
-      exam('2', ExamKind.monthly, 'علوم', day(-7), score: 18, passed: true, percentage: 90),
+      exam('1', ExamKind.monthly, 'رياضيات',
+          day(5)), // next upcoming -> opens on "monthly"
+      exam('2', ExamKind.monthly, 'علوم', day(-7),
+          score: 18, passed: true, percentage: 90),
       exam('3', ExamKind.quiz, 'لغة عربية', day(-2)), // no result yet
     ]));
     await tester.pumpAndSettle();
@@ -469,7 +492,8 @@ void main() {
     expect(find.text('بعد 5 أيام'), findsOneWidget);
     expect(find.text('علوم'), findsOneWidget);
     expect(find.text('18'), findsOneWidget);
-    expect(find.text('ناجح'), findsNWidgets(2)); // summary "passed" count + the result badge
+    expect(find.text('ناجح'),
+        findsNWidgets(2)); // summary "passed" count + the result badge
     expect(find.text('90%'), findsWidgets); // result and average
 
     // Quiz tab (the tab bar scrolls; bring the tab into view first): exam without a result yet
@@ -492,7 +516,8 @@ void main() {
       (WidgetTester tester) async {
     _phoneSize(tester);
     final today = DateTime.now();
-    ChildExam monthly(String id, String subject, int month, int daysAgo) => ChildExam(
+    ChildExam monthly(String id, String subject, int month, int daysAgo) =>
+        ChildExam(
           id: id,
           kind: ExamKind.monthly,
           month: month,
@@ -533,11 +558,14 @@ void main() {
     expect(find.text('علوم'), findsOneWidget);
   });
 
-  testWidgets('Events tile shows the next event, upcoming and past events with their audience',
+  testWidgets(
+      'Events tile shows the next event, upcoming and past events with their audience',
       (WidgetTester tester) async {
     _phoneSize(tester);
     final today = DateTime.now();
-    ChildEvent event(String id, String title, int dayOffset, EventAudience audience) => ChildEvent(
+    ChildEvent event(
+            String id, String title, int dayOffset, EventAudience audience) =>
+        ChildEvent(
           id: id,
           title: title,
           description: 'وصف $title',
@@ -576,7 +604,8 @@ void main() {
     expect(find.text('وصف حفل تكريم'), findsOneWidget);
   });
 
-  testWidgets('Events screen without events shows a message', (WidgetTester tester) async {
+  testWidgets('Events screen without events shows a message',
+      (WidgetTester tester) async {
     _phoneSize(tester);
     await tester.pumpWidget(_home(() async => [_sara]));
     await tester.pumpAndSettle();
@@ -596,8 +625,14 @@ void main() {
       phone: '0223456789',
       email: 'info@alnoor.edu',
       album: [
-        AlbumImage(id: 'a1', url: 'http://localhost/upload/school-album/1.jpg', fileName: '1.jpg'),
-        AlbumImage(id: 'a2', url: 'http://localhost/upload/school-album/2.jpg', fileName: '2.jpg'),
+        AlbumImage(
+            id: 'a1',
+            url: 'http://localhost/upload/school-album/1.jpg',
+            fileName: '1.jpg'),
+        AlbumImage(
+            id: 'a2',
+            url: 'http://localhost/upload/school-album/2.jpg',
+            fileName: '2.jpg'),
       ],
     );
     await tester.pumpWidget(_home(() async => [_sara], schoolInfo: info));
@@ -619,7 +654,10 @@ void main() {
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('album-slide-0')),
       300,
-      scrollable: find.descendant(of: find.byType(ListView), matching: find.byType(Scrollable)).first,
+      scrollable: find
+          .descendant(
+              of: find.byType(ListView), matching: find.byType(Scrollable))
+          .first,
     );
     expect(find.text('1 من 2'), findsOneWidget);
 
@@ -634,7 +672,8 @@ void main() {
     expect(find.text('2 / 2'), findsOneWidget);
   });
 
-  testWidgets('About the school before the school info is set up', (WidgetTester tester) async {
+  testWidgets('About the school before the school info is set up',
+      (WidgetTester tester) async {
     _phoneSize(tester);
     await tester.pumpWidget(_home(() async => [_sara]));
     await tester.pumpAndSettle();
@@ -660,9 +699,10 @@ void main() {
     var calls = 0;
     await tester.pumpWidget(_home(() async {
       calls++;
-      if (calls == 1)
+      if (calls == 1) {
         throw const ChildrenException(
             'هذا الحساب غير مرتبط بولي أمر، تواصل مع إدارة المدرسة.');
+      }
       return [_sara];
     }));
     await tester.pumpAndSettle();
@@ -673,5 +713,251 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('سارة أحمد'), findsOneWidget);
+  });
+
+  test('Album items from the API know whether they are videos', () {
+    final video = AlbumImage.fromJson({
+      'id': 'v1',
+      'url': '/upload/school-album/v.mp4',
+      'fileName': 'party.mp4',
+      'contentType': 'video/mp4',
+      'mediaType': 'video',
+    });
+    final image = AlbumImage.fromJson({
+      'id': 'i1',
+      'url': '/upload/school-album/p.jpg',
+      'fileName': 'p.jpg',
+      'contentType': 'image/jpeg',
+    });
+    expect(video.isVideo, isTrue);
+    expect(image.isVideo, isFalse);
+  });
+
+  testWidgets('Album slider shows a video as a play tile and opens it on tap',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    int? opened;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: AlbumSlider(
+          images: const [
+            AlbumImage(
+                id: 'v1',
+                url: 'http://localhost/upload/school-album/v.mp4',
+                fileName: 'party.mp4',
+                contentType: 'video/mp4'),
+          ],
+          onOpen: (i) => opened = i,
+        ),
+      ),
+    ));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('album-video-play')), findsOneWidget);
+    expect(find.text('party.mp4'), findsOneWidget);
+    expect(find.byType(Image), findsNothing); // no image download for a video
+
+    await tester.tap(find.byKey(const ValueKey('album-slide-0')));
+    expect(opened, 0);
+  });
+
+  test('School info reads the location (and ignores invalid coordinates)', () {
+    final info = SchoolInfo.fromJson({
+      'nameAr': 'مدرسة النور',
+      'nameEn': 'Al Noor',
+      'latitude': 30.0444,
+      'longitude': 31.2357,
+    });
+    expect(info.hasLocation, isTrue);
+    expect(info.latitude, 30.0444);
+    expect(info.longitude, 31.2357);
+
+    final none = SchoolInfo.fromJson({'nameAr': 'x', 'nameEn': 'x', 'latitude': null, 'longitude': null});
+    expect(none.hasLocation, isFalse);
+
+    final invalid = SchoolInfo.fromJson({'nameAr': 'x', 'nameEn': 'x', 'latitude': 120, 'longitude': 31});
+    expect(invalid.hasLocation, isFalse);
+  });
+
+  testWidgets('About the school shows the location map and opens the full map',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(MaterialApp(
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: SchoolInfoScreen(
+          showMapTiles: false,
+          loadSchoolInfo: () async => const SchoolInfo(
+            nameAr: 'مدرسة النور',
+            nameEn: 'Al Noor School',
+            address: 'القاهرة - مدينة نصر',
+            latitude: 30.0444,
+            longitude: 31.2357,
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('موقع المدرسة'), findsOneWidget);
+    expect(find.byKey(const ValueKey('school-pin')), findsOneWidget);
+    expect(find.text('الاتجاهات'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('school-map-preview')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('الاتجاهات إلى المدرسة'), findsOneWidget);
+    expect(find.text('30.044400, 31.235700'), findsOneWidget);
+  });
+
+  testWidgets('About the school without a location has no map',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(MaterialApp(
+      home: SchoolInfoScreen(
+        showMapTiles: false,
+        loadSchoolInfo: () async => const SchoolInfo(nameAr: 'مدرسة النور', nameEn: 'Al Noor School'),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('موقع المدرسة'), findsNothing);
+    expect(find.byKey(const ValueKey('school-pin')), findsNothing);
+  });
+
+  testWidgets('More menu switches light / dark / auto and saves it',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    _phoneSize(tester);
+    await tester.pumpWidget(_home(() async => [_sara]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('المزيد'));
+    await tester.pumpAndSettle();
+    expect(find.text('المظهر'), findsOneWidget);
+
+    await tester.tap(find.text('داكن'));
+    await tester.pumpAndSettle();
+    expect(ThemeController.instance.value, ThemeMode.dark);
+    expect((await SharedPreferences.getInstance()).getString('theme_mode'), 'dark');
+
+    await tester.tap(find.text('فاتح'));
+    await tester.pumpAndSettle();
+    expect(ThemeController.instance.value, ThemeMode.light);
+
+    await tester.tap(find.text('تلقائي'));
+    await tester.pumpAndSettle();
+    expect(ThemeController.instance.value, ThemeMode.system);
+  });
+
+  testWidgets('Dark mode gives the screens the dark palette',
+      (WidgetTester tester) async {
+    late AppPalette palette;
+    await tester.pumpWidget(MaterialApp(
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.dark,
+      home: Builder(builder: (context) {
+        palette = context.palette;
+        return const SizedBox();
+      }),
+    ));
+    expect(palette.card, AppPalette.dark.card);
+    expect(palette.ink, AppPalette.dark.ink);
+  });
+
+  testWidgets('More menu switches the app to English (LTR) and back to Arabic',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    addTearDown(() => AppLanguage.instance.setLanguage(AppLanguage.arabic));
+    _phoneSize(tester);
+    await tester.pumpWidget(_home(() async => [_sara]));
+    await tester.pumpAndSettle();
+
+    // Arabic, right to left
+    expect(find.text('الخدمات'), findsOneWidget);
+    expect(Directionality.of(tester.element(find.text('الخدمات'))), TextDirection.rtl);
+
+    await tester.tap(find.text('المزيد'));
+    await tester.pumpAndSettle();
+    expect(find.text('اللغة'), findsOneWidget);
+    await tester.tap(find.text('English'));
+    await tester.pumpAndSettle();
+
+    expect(AppLanguage.instance.isEnglish, isTrue);
+    expect((await SharedPreferences.getInstance()).getString('app_language'), 'en');
+    // The open menu is in English now
+    expect(find.text('Language'), findsOneWidget);
+    expect(find.text('Sign out'), findsOneWidget);
+
+    // Close the menu: Home in English, left to right, the screen kept its state
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    expect(find.text('Services'), findsOneWidget);
+    expect(find.text('Timetable'), findsOneWidget);
+    expect(find.text('Home'), findsOneWidget);
+    expect(Directionality.of(tester.element(find.text('Services'))), TextDirection.ltr);
+
+    // Back to Arabic
+    await tester.tap(find.text('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('العربية'));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+    expect(find.text('الخدمات'), findsOneWidget);
+    expect(Directionality.of(tester.element(find.text('الخدمات'))), TextDirection.rtl);
+  });
+
+  test('Day / month names, durations and API names follow the language', () async {
+    SharedPreferences.setMockInitialValues({});
+    addTearDown(() => AppLanguage.instance.setLanguage(AppLanguage.arabic));
+    const child = Child(
+      id: '1', fullNameAr: 'سارة أحمد', fullNameEn: 'Sara Ahmed', gender: 'Female',
+      stageName: '', gradeName: '', sectionName: '');
+
+    expect(dayNames[0], 'الأحد');
+    expect(child.name, 'سارة أحمد');
+
+    await AppLanguage.instance.setLanguage(AppLanguage.english);
+    expect(dayNames[0], 'Sunday');
+    expect(monthNames[11], 'December');
+    expect(formatDuration(90), '1 hour 30 minutes');
+    expect(formatTime(510), '8:30 AM');
+    expect(lessonsCount(6), '6 lessons');
+    expect(child.name, 'Sara Ahmed');
+    expect(ExamKind.monthly.label, 'Monthly exam');
+    expect(pickLang('عربي', ''), 'عربي'); // English missing: Arabic
+  });
+
+  testWidgets('Home header shows the school logo from school info',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    // 1x1 PNG
+    final logo = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+    await tester.pumpWidget(_home(() async => [_sara],
+        schoolInfo: SchoolInfo(nameAr: 'مدرسة النور', nameEn: 'Al Noor', logo: logo)));
+    await tester.pumpAndSettle();
+
+    final header = find.byKey(const ValueKey('school-logo'));
+    expect(find.descendant(of: header, matching: find.byType(Image)), findsOneWidget);
+    expect(find.descendant(of: header, matching: find.byIcon(Icons.school_rounded)), findsNothing);
+
+    // Tap: About the school
+    await tester.tap(header);
+    await tester.pumpAndSettle();
+    expect(find.text('عن المدرسة'), findsOneWidget);
+  });
+
+  testWidgets('Home header keeps the school icon when there is no logo',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(_home(() async => [_sara]));
+    await tester.pumpAndSettle();
+
+    final header = find.byKey(const ValueKey('school-logo'));
+    expect(find.descendant(of: header, matching: find.byIcon(Icons.school_rounded)), findsOneWidget);
+    expect(find.descendant(of: header, matching: find.byType(Image)), findsNothing);
   });
 }

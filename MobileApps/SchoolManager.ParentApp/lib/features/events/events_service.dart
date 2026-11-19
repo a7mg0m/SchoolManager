@@ -5,20 +5,24 @@ import 'package:http/http.dart' as http;
 
 import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
+import '../../core/i18n/app_language.dart';
 
 /// Who an event is for (Notification EventForEnum)
 enum EventAudience {
-  all(1, 'لجميع الطلاب'),
-  stage(2, 'لمرحلة الطالب'),
-  grade(3, 'لصف الطالب'),
-  section(4, 'لفصل الطالب'),
-  teacher(5, 'للمعلمين'),
-  student(6, 'للطالب خاصة');
+  all(1, 'لجميع الطلاب', 'All students'),
+  stage(2, 'لمرحلة الطالب', "Student's stage"),
+  grade(3, 'لصف الطالب', "Student's grade"),
+  section(4, 'لفصل الطالب', "Student's class"),
+  teacher(5, 'للمعلمين', 'Teachers'),
+  student(6, 'للطالب خاصة', 'This student only');
 
-  const EventAudience(this.value, this.label);
+  const EventAudience(this.value, this._labelAr, this._labelEn);
 
   final int value;
-  final String label;
+  final String _labelAr;
+  final String _labelEn;
+
+  String get label => tr(_labelAr, _labelEn);
 
   static EventAudience from(Object? value) {
     final v = value is num ? value.toInt() : int.tryParse('$value');
@@ -100,7 +104,7 @@ class EventsService {
   Future<List<ChildEvent>> getChildEvents(String studentId) async {
     final session = AuthService.instance.session;
     if (session == null || session.isExpired) {
-      throw const EventsException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+      throw EventsException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
     }
 
     final http.Response response;
@@ -110,20 +114,20 @@ class EventsService {
         headers: {'Accept': 'application/json', 'Authorization': 'Bearer ${session.token}'},
       ).timeout(AppConfig.requestTimeout);
     } on TimeoutException {
-      throw const EventsException('انتهت مهلة الاتصال بالخادم.');
+      throw EventsException(tr('انتهت مهلة الاتصال بالخادم.', 'The server took too long to respond.'));
     } catch (_) {
-      throw const EventsException('تعذر الاتصال بالخادم.');
+      throw EventsException(tr('تعذر الاتصال بالخادم.', 'Could not reach the server.'));
     }
 
     switch (response.statusCode) {
       case 200:
         break;
       case 401:
-        throw const EventsException('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', sessionExpired: true);
+        throw EventsException(tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'), sessionExpired: true);
       case 503:
-        throw const EventsException('خدمة البيانات غير متاحة حالياً، حاول لاحقاً.');
+        throw EventsException(tr('خدمة البيانات غير متاحة حالياً، حاول لاحقاً.', 'The data service is not available right now. Please try later.'));
       default:
-        throw const EventsException('تعذر تحميل الفعاليات.');
+        throw EventsException(tr('تعذر تحميل الفعاليات.', 'Could not load the events.'));
     }
 
     try {
@@ -132,7 +136,7 @@ class EventsService {
       if (data is! List) throw const FormatException();
       return data.whereType<Map<String, dynamic>>().map(ChildEvent.fromJson).toList();
     } catch (_) {
-      throw const EventsException('استجابة غير متوقعة من الخادم.');
+      throw EventsException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
     }
   }
 }

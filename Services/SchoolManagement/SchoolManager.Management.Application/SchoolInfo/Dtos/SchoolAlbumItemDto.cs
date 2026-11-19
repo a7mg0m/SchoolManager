@@ -8,6 +8,8 @@ namespace SchoolManager.Management.Application
         public string Url { get; set; } = string.Empty;
         public string FileName { get; set; } = string.Empty;
         public string ContentType { get; set; } = string.Empty;
+        /// <summary>"image" or "video" (from the content type)</summary>
+        public string MediaType => ContentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase) ? "video" : "image";
         /// <summary>Size in bytes</summary>
         public long Size { get; set; }
         public DateTime UploadedOn { get; set; }

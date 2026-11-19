@@ -1,5 +1,6 @@
 using AutoMapper;
 using BuildingBlocks;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +14,25 @@ namespace SchoolManager.Management.API.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IMapper _mapper;
+        private readonly IValidator<CreateSchoolInfoCommand> _createValidator;
+        private readonly IValidator<UpdateSchoolInfoCommand> _updateValidator;
 
-        public SchoolInfosController(IMediator mediator, IMapper mapper)
+        public SchoolInfosController(
+            IMediator mediator,
+            IMapper mapper,
+            IValidator<CreateSchoolInfoCommand> createValidator,
+            IValidator<UpdateSchoolInfoCommand> updateValidator)
         {
             _mediator = mediator;
             _mapper = mapper;
+            _createValidator = createValidator;
+            _updateValidator = updateValidator;
+        }
+
+        private BadRequestObjectResult ValidationFailed(FluentValidation.Results.ValidationResult validation)
+        {
+            var errors = validation.Errors.Select(e => e.ErrorMessage).Distinct().ToList();
+            return BadRequest(new ApiResponse(400, errors.First()) { errors = errors });
         }
 
         [HttpGet("get-all")]
@@ -48,6 +63,11 @@ namespace SchoolManager.Management.API.Controllers
         public async Task<ActionResult<Guid>> Create([FromBody] CreateSchoolInfoDto dto, CancellationToken cancellationToken)
         {
             var command = _mapper.Map<CreateSchoolInfoCommand>(dto);
+
+            var validation = await _createValidator.ValidateAsync(command, cancellationToken);
+            if (!validation.IsValid)
+                return ValidationFailed(validation);
+
             var id = await _mediator.Send(command, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id }, new ApiResponse { InsertedId = id.ToString() });
         }
@@ -56,6 +76,11 @@ namespace SchoolManager.Management.API.Controllers
         public async Task<IActionResult> Update([FromBody] UpdateSchoolInfoDto dto, CancellationToken cancellationToken)
         {
             var command = _mapper.Map<UpdateSchoolInfoCommand>(dto);
+
+            var validation = await _updateValidator.ValidateAsync(command, cancellationToken);
+            if (!validation.IsValid)
+                return ValidationFailed(validation);
+
             var success = await _mediator.Send(command, cancellationToken);
 
             if (!success)
@@ -76,12 +101,15 @@ namespace SchoolManager.Management.API.Controllers
         }
 
         /// <summary>
-        /// Uploads images to the school album (multipart/form-data, field "files"): each file is saved in
-        /// wwwroot/upload/school-album and its URL added to the school info. Images only (jpg, png, gif, webp), 10 MB each.
+        /// Uploads images and videos to the school album (multipart/form-data, field "files"): each file is saved in
+        /// wwwroot/upload/school-album and its URL added to the school info.
+        /// Images: jpg, png, gif, webp (10 MB each). Videos: mp4, webm, mov (100 MB each).
         /// </summary>
         [Authorize]
         [HttpPost("album/upload")]
-        [RequestSizeLimit(30 * 1024 * 1024)]
+        // Videos are large: this endpoint accepts up to 110 MB (web.config lets IIS pass such requests)
+        [RequestSizeLimit(SchoolAlbumRules.MaxRequestBytes)]
+        [RequestFormLimits(MultipartBodyLengthLimit = SchoolAlbumRules.MaxRequestBytes)]
         public async Task<IActionResult> UploadAlbum([FromForm] List<IFormFile> files, CancellationToken cancellationToken)
         {
             var streams = new List<Stream>();
