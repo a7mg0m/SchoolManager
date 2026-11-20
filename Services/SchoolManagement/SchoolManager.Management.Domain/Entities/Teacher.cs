@@ -18,6 +18,9 @@ namespace SchoolManager.Management.Domain
 
         public bool IsActive { get; private set; }
 
+        /// <summary>Login name of the teacher's account (the Identity service keeps the login itself)</summary>
+        public string? LoginName { get; private set; }
+
         public AuditInfo AuditInfo { get; private set; }
 
         // Navigation
@@ -63,6 +66,11 @@ namespace SchoolManager.Management.Domain
             Address = address;
 
             AuditInfo = auditInfo;
+        }
+
+        public void SetLoginName(string? loginName)
+        {
+            LoginName = string.IsNullOrWhiteSpace(loginName) ? null : loginName.Trim();
         }
 
         public void Deactivate(AuditInfo auditInfo)        {

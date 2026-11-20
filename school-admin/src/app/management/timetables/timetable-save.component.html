@@ -43,7 +43,7 @@
         <div class="card-body">
           <div class="row">
             <!-- Stage -->
-            <div class="col-md-4 mb-3">
+            <div class="col-md-6 col-lg-3 mb-3">
               <label for="stageId" class="form-label">
                 {{ 'timetables.stage' | translate }} <span class="text-danger">*</span>
               </label>
@@ -64,7 +64,7 @@
             </div>
 
             <!-- Grade (filtered by stage) -->
-            <div class="col-md-4 mb-3">
+            <div class="col-md-6 col-lg-3 mb-3">
               <label for="gradeId" class="form-label">
                 {{ 'timetables.grade' | translate }} <span class="text-danger">*</span>
               </label>
@@ -90,7 +90,7 @@
             </div>
 
             <!-- Academic Year -->
-            <div class="col-md-4 mb-3">
+            <div class="col-md-6 col-lg-3 mb-3">
               <label for="academicYearId" class="form-label">
                 {{ 'timetables.academicYear' | translate }} <span class="text-danger">*</span>
               </label>
@@ -110,6 +110,36 @@
               @if (hasError('academicYearId', 'required')) {
                 <div class="invalid-feedback">{{ 'timetables.academicYearRequired' | translate }}</div>
               }
+            </div>
+
+            <!-- Semester (of the chosen academic year) -->
+            <div class="col-md-6 col-lg-3 mb-3">
+              <label for="semesterId" class="form-label">
+                {{ 'timetables.semester' | translate }} <span class="text-danger">*</span>
+              </label>
+              <select
+                id="semesterId"
+                class="form-select"
+                formControlName="semesterId"
+                [class.is-invalid]="hasError('semesterId', 'required')"
+              >
+                <option value="" disabled>
+                  {{ (form.get('academicYearId')?.value ? 'common.chooseOne' : 'timetables.selectYearFirst') | translate }}
+                </option>
+                @for (semester of yearSemesters; track semester.id) {
+                  <option [value]="semester.id">
+                    {{ semester.name }}@if (semester.id === currentSemesterId) { ({{ 'timetables.currentSemester' | translate }})}
+                  </option>
+                }
+              </select>
+              @if (hasError('semesterId', 'required')) {
+                <div class="invalid-feedback">{{ 'timetables.semesterRequired' | translate }}</div>
+              }
+              @if (form.get('academicYearId')?.value && yearSemesters.length === 0) {
+                <small class="text-muted">{{ 'timetables.noSemestersForYear' | translate }}</small>
+              }
+              <!-- Where the year / semester come from -->
+              <small class="text-muted d-block mt-1"><i class="pe-7s-info me-1"></i>{{ (isEditMode() ? 'common.keptFromRecord' : 'common.fromHeader') | translate }}</small>
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import '../schedule/schedule_format.dart';
@@ -28,7 +29,10 @@ class EventsScreen extends StatefulWidget {
   State<EventsScreen> createState() => _EventsScreenState();
 }
 
-class _EventsScreenState extends State<EventsScreen> {
+class _EventsScreenState extends State<EventsScreen> with ReloadOnAcademicYear {
+  @override
+  Future<void> reloadForAcademicYear() => _load();
+
   Color get _muted => context.palette.muted;
   static const _pink = Color(0xFFE0457B);
   static const _green = Color(0xFF13864B);

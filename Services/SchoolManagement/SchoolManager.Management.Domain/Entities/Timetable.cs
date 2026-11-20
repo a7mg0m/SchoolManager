@@ -11,21 +11,26 @@ namespace SchoolManager.Management.Domain
         public Guid GradeId { get; private set; }
         public Guid AcademicYearId { get; private set; }
 
+        /// <summary>Semester of the academic year; null for timetables saved before semesters (used in every semester)</summary>
+        public Guid? SemesterId { get; private set; }
+
         public AuditInfo AuditInfo { get; private set; }
 
         // Navigation
         public Stage? Stage { get; private set; }
         public Grade? Grade { get; private set; }
         public AcademicYear? AcademicYear { get; private set; }
+        public Semester? Semester { get; private set; }
         public List<TimetableSlot> Slots { get; private set; } = new();
 
         private Timetable() { }
 
-        public Timetable(Guid stageId, Guid gradeId, Guid academicYearId, AuditInfo auditInfo)
+        public Timetable(Guid stageId, Guid gradeId, Guid academicYearId, Guid? semesterId, AuditInfo auditInfo)
         {
             StageId = stageId;
             GradeId = gradeId;
             AcademicYearId = academicYearId;
+            SemesterId = semesterId;
 
             AuditInfo = auditInfo;
         }
@@ -40,11 +45,12 @@ namespace SchoolManager.Management.Domain
             Slots.Remove(slot);
         }
 
-        public void Update(Guid stageId, Guid gradeId, Guid academicYearId, AuditInfo auditInfo)
+        public void Update(Guid stageId, Guid gradeId, Guid academicYearId, Guid? semesterId, AuditInfo auditInfo)
         {
             StageId = stageId;
             GradeId = gradeId;
             AcademicYearId = academicYearId;
+            SemesterId = semesterId;
             AuditInfo = auditInfo;
         }
                

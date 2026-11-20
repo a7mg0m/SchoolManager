@@ -9,13 +9,15 @@ namespace SchoolManager.Management.Application
 		private readonly ITimetableRepository _repository;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IGradeRepository _gradeRepository;
+		private readonly ISemesterRepository _semesterRepository;
 
 		private readonly ICurrentUserService _currentUser;
 
-		public CreateTimetableCommandHandler(ICurrentUserService currentUser, ITimetableRepository repository, IGradeRepository gradeRepository, IUnitOfWork unitOfWork)
+		public CreateTimetableCommandHandler(ICurrentUserService currentUser, ITimetableRepository repository, IGradeRepository gradeRepository, ISemesterRepository semesterRepository, IUnitOfWork unitOfWork)
 		{
 			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
+			_semesterRepository = semesterRepository;
 			_repository = repository;
 			_unitOfWork = unitOfWork;
 		}
@@ -28,10 +30,16 @@ namespace SchoolManager.Management.Application
 			if (grade.StageId != command.StageId)
 				throw new InvalidOperationException("Grade does not belong to the selected stage.");
 
+			var semester = await _semesterRepository.GetByIdAsync(command.SemesterId)
+				?? throw new InvalidOperationException("Semester not found.");
+			if (semester.AcademicYearId != command.AcademicYearId)
+				throw new InvalidOperationException("Semester does not belong to the selected academic year.");
+
 			var entity = new Timetable(
 				command.StageId,
 				command.GradeId,
                 command.AcademicYearId,
+                command.SemesterId,
                 new AuditInfo(DateTime.Now, _currentUser.UserId));
 
 			foreach (var slot in command.Slots)

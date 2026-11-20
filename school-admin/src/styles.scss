@@ -477,3 +477,10 @@ body {
   }
 }
 
+
+// Header: academic year / semester selects
+.app-header .academic-context .form-select {
+  width: auto;
+  min-width: 120px;
+  max-width: 190px;
+}

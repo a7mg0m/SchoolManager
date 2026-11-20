@@ -17,7 +17,11 @@ namespace SchoolManager.Management.Application
 
 		public async Task<List<TimetableDto>> Handle(GetAllTimetablesQuery request, CancellationToken cancellationToken)
 		{
-			var entities = await _repository.GetAllAsync();
+			var entities = (await _repository.GetAllAsync())
+				.Where(t => request.AcademicYearId is not Guid year || t.AcademicYearId == year)
+				// Timetables saved before semesters (no semester) count for every semester
+				.Where(t => request.SemesterId is not Guid semester || t.SemesterId == semester || t.SemesterId == null)
+				.ToList();
 
 			return _mapper.Map<List<TimetableDto>>(entities);
 		}

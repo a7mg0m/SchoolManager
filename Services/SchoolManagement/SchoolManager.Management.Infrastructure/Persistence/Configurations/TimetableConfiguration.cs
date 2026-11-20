@@ -14,6 +14,7 @@ namespace SchoolManager.Management.Infrastructure
             builder.HasOne(x => x.Stage).WithMany().HasForeignKey(x => x.StageId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(x => x.Grade).WithMany().HasForeignKey(x => x.GradeId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(x => x.AcademicYear).WithMany().HasForeignKey(x => x.AcademicYearId).OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(x => x.Semester).WithMany().HasForeignKey(x => x.SemesterId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(x => x.Slots).WithOne().HasForeignKey("TimetableId").OnDelete(DeleteBehavior.Cascade);
             builder.ConfigureAudit(x => x.AuditInfo);
 		}

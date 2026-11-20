@@ -12,5 +12,8 @@
         public string? Email { get; set; }
         public string Address { get; set; } = string.Empty;
         public bool IsActive { get; set; }
+
+        /// <summary>Login name of the teacher's account (null for teachers saved before it existed)</summary>
+        public string? LoginName { get; set; }
     }
 }

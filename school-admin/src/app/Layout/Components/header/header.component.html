@@ -9,6 +9,33 @@
         </span>
       </button>
       <app-search-box></app-search-box>
+
+      <!-- Academic year / semester used by the pages (lists and new records) -->
+      @if (academic.years().length) {
+        <div class="academic-context d-flex align-items-center gap-2 ms-2">
+          <i class="pe-7s-date text-primary fs-4 d-none d-lg-inline"></i>
+          <select class="form-select form-select-sm" [title]="'header.academicYear' | translate"
+                  [attr.aria-label]="'header.academicYear' | translate"
+                  (change)="academic.setYear($any($event.target).value)">
+            @for (year of academic.years(); track year.id) {
+              <option [value]="year.id" [selected]="year.id === academic.yearId()">
+                {{ year.name }}@if (year.id === academic.currentYear()?.id) { ★}
+              </option>
+            }
+          </select>
+          <select class="form-select form-select-sm" [title]="'header.semester' | translate"
+                  [attr.aria-label]="'header.semester' | translate"
+                  [disabled]="!academic.semesters().length"
+                  (change)="academic.setSemester($any($event.target).value)">
+            @if (!academic.semesters().length) {
+              <option value="">{{ 'header.noSemesters' | translate }}</option>
+            }
+            @for (semester of academic.semesters(); track semester.id) {
+              <option [value]="semester.id" [selected]="semester.id === academic.semesterId()">{{ semester.name }}</option>
+            }
+          </select>
+        </div>
+      }
     </div>
     <div class="app-header-right">
       <app-notifications-box></app-notifications-box>

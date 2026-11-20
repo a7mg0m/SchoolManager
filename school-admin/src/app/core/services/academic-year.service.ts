@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import {
   AcademicYear,
   AcademicYearListResponse,
@@ -18,6 +19,9 @@ import {
 })
 export class AcademicYearService {
   private readonly academicYearEndpoint = '/api/academic-year';
+
+  /** An academic year was created, updated or deleted (the header reloads its lists) */
+  readonly changed$ = new Subject<void>();
 
   constructor(private apiService: ApiService) {}
 
@@ -51,7 +55,7 @@ export class AcademicYearService {
     return this.apiService.post<AcademicYearSingleResponse>(
       `${this.academicYearEndpoint}/create`,
       request
-    );
+    ).pipe(tap(() => this.changed$.next()));
   }
 
   /**
@@ -63,7 +67,7 @@ export class AcademicYearService {
     return this.apiService.put<AcademicYearSingleResponse>(
       `${this.academicYearEndpoint}/update`,
       request
-    );
+    ).pipe(tap(() => this.changed$.next()));
   }
 
   /**
@@ -74,6 +78,6 @@ export class AcademicYearService {
   delete(id: string): Observable<AcademicYearSingleResponse> {
     return this.apiService.delete<AcademicYearSingleResponse>(
       `${this.academicYearEndpoint}/delete/${id}`
-    );
+    ).pipe(tap(() => this.changed$.next()));
   }
 }

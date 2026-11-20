@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import 'schedule_format.dart';
@@ -27,7 +28,10 @@ class TimetableScreen extends StatefulWidget {
   State<TimetableScreen> createState() => _TimetableScreenState();
 }
 
-class _TimetableScreenState extends State<TimetableScreen> {
+class _TimetableScreenState extends State<TimetableScreen> with ReloadOnAcademicYear {
+  @override
+  Future<void> reloadForAcademicYear() => _load();
+
   Color get _muted => context.palette.muted;
 
   ChildTimetable? _timetable;

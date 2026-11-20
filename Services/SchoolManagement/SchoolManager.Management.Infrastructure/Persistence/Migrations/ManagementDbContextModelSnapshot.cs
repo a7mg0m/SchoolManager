@@ -475,6 +475,10 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<string>("LoginName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("NationalId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -486,6 +490,10 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LoginName")
+                        .IsUnique()
+                        .HasFilter("[LoginName] IS NOT NULL");
 
                     b.HasIndex("NationalId")
                         .IsUnique();
@@ -505,6 +513,9 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("GradeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("SemesterId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("StageId")
                         .HasColumnType("uniqueidentifier");
 
@@ -513,6 +524,8 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.HasIndex("AcademicYearId");
 
                     b.HasIndex("GradeId");
+
+                    b.HasIndex("SemesterId");
 
                     b.HasIndex("StageId");
 
@@ -1566,6 +1579,11 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SchoolManager.Management.Domain.Semester", "Semester")
+                        .WithMany()
+                        .HasForeignKey("SemesterId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("SchoolManager.Management.Domain.Stage", "Stage")
                         .WithMany()
                         .HasForeignKey("StageId")
@@ -1607,6 +1625,8 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Grade");
+
+                    b.Navigation("Semester");
 
                     b.Navigation("Stage");
                 });

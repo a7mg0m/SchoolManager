@@ -2,6 +2,7 @@
 using BuildingBlocks;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManager.Management.Application;
 
@@ -15,23 +16,56 @@ namespace SchoolManager.Management.API.Controllers
 		private readonly IMapper _mapper;
 		private readonly IValidator<CreateTeacherCommand> _createValidator;
 		private readonly IValidator<UpdateTeacherCommand> _updateValidator;
+		private readonly ICurrentUserService _currentUser;
 
 		public TeachersController(
 			IMediator mediator,
 			IMapper mapper,
 			IValidator<CreateTeacherCommand> createValidator,
-			IValidator<UpdateTeacherCommand> updateValidator)
+			IValidator<UpdateTeacherCommand> updateValidator,
+			ICurrentUserService currentUser)
 		{
 			_mediator = mediator;
 			_mapper = mapper;
 			_createValidator = createValidator;
 			_updateValidator = updateValidator;
+			_currentUser = currentUser;
 		}
 
 		[HttpGet("get-all")]
 		public async Task<ActionResult<List<TeacherDto>>> GetAll(CancellationToken cancellationToken)
 		{
 			var result = await _mediator.Send(new GetAllTeachersQuery(), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// What the logged-in teacher teaches: subjects with their grade and classes, and the current academic
+		/// year / semester (teacher app: homework). The teacher id comes from the login token.
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-classes")]
+		public async Task<ActionResult<TeacherClassesDto>> GetMyClasses([FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.TeacherId is not Guid teacherId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+			var result = await _mediator.Send(new GetMyClassesQuery(teacherId, academicYearId, semesterId), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// The logged-in teacher's lessons in all their classes for an academic year / semester
+		/// (null: the current year / the semester running today). Teacher app timetable.
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-timetable")]
+		public async Task<ActionResult<TeacherTimetableDto>> GetMyTimetable([FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.TeacherId is not Guid teacherId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+			var result = await _mediator.Send(new GetMyTimetableQuery(teacherId, DateTime.Now, academicYearId, semesterId), cancellationToken);
 			return Ok(new ApiResponse { data = result });
 		}
 
@@ -55,7 +89,16 @@ namespace SchoolManager.Management.API.Controllers
 			if (!validation.IsValid)
 				return ValidationFailed(validation);
 
-			var id = await _mediator.Send(command, cancellationToken);
+			Guid id;
+			try
+			{
+				id = await _mediator.Send(command, cancellationToken);
+			}
+			catch (TeacherAccountException ex)
+			{
+				// Login name / password problem (e.g. LoginNameExists, PasswordTooShort)
+				return Ok(new ApiResponse(-1, ex.ErrorKey));
+			}
 			return CreatedAtAction(nameof(GetById), new { id }, new ApiResponse { InsertedId = id.ToString() });
 		}
 
@@ -69,7 +112,15 @@ namespace SchoolManager.Management.API.Controllers
 			if (!validation.IsValid)
 				return ValidationFailed(validation);
 
-			var success = await _mediator.Send(command, cancellationToken);
+			bool success;
+			try
+			{
+				success = await _mediator.Send(command, cancellationToken);
+			}
+			catch (TeacherAccountException ex)
+			{
+				return Ok(new ApiResponse(-1, ex.ErrorKey));
+			}
 
 			if (!success)
 				return Ok(new ApiResponse { status = -1, message = "Update Failed" });

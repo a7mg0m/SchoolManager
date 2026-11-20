@@ -21,6 +21,8 @@ export interface Teacher {
   email: string | null;
   address: string;
   isActive: boolean;
+  /** Login name of the teacher's account (null for teachers saved before it existed) */
+  loginName?: string | null;
 }
 
 /**
@@ -37,6 +39,10 @@ export interface CreateTeacherRequest {
   email: string | null;
   address: string;
   isActive: boolean;
+  /** Login name of the teacher's account (required) */
+  loginName: string;
+  /** First password (required) */
+  password: string;
 }
 
 /**
@@ -51,6 +57,9 @@ export interface UpdateTeacherRequest {
   email: string | null;
   address: string;
   isActive: boolean;
+  loginName: string;
+  /** New password, or null to keep the current one */
+  password: string | null;
 }
 
 /**

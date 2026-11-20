@@ -9,6 +9,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 // Shared Components
 import { PageTitleComponent } from './Layout/Components/page-title/page-title.component';
 import { LanguageSwitcherComponent } from './Layout/Components/header/elements/language-switcher/language-switcher.component';
+import { AcademicContextNoteComponent } from './Layout/Components/academic-context-note/academic-context-note.component';
 
 // Permission directives (*appCan / [appCanDisable])
 import { CanDirective, CanDisableDirective } from './core/directives/can.directive';
@@ -17,6 +18,7 @@ import { CanDirective, CanDisableDirective } from './core/directives/can.directi
   declarations: [
     PageTitleComponent,
     LanguageSwitcherComponent,
+    AcademicContextNoteComponent,
     CanDirective,
     CanDisableDirective
   ],
@@ -32,6 +34,7 @@ import { CanDirective, CanDisableDirective } from './core/directives/can.directi
   exports: [
     PageTitleComponent,
     LanguageSwitcherComponent,
+    AcademicContextNoteComponent,
     CanDirective,
     CanDisableDirective,
     // Re-export commonly used modules for convenience

@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import {
   AbstractControl,
   FormArray,
@@ -148,8 +149,9 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
     return map;
   });
 
-  /** Default academic year for new students: the first active one */
-  private defaultAcademicYearId = computed(() => this.academicYears().find(a => a.isActive)?.id ?? '');
+  /** Academic year for new students: the one chosen in the header (else the first active one) */
+  private defaultAcademicYearId = computed(() =>
+    this.academic.yearId() || this.academicYears().find(a => a.isActive)?.id || '');
 
   private readonly emptyGuid = '00000000-0000-0000-0000-000000000000';
 
@@ -167,8 +169,19 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
     private translate: TranslateService,
     private modalService: NgbModal,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+    // Students not saved yet follow the header's academic year
+    effect(() => {
+      const yearId = this.defaultAcademicYearId();
+      if (!this.form) return;
+      for (const group of this.studentsArray.controls) {
+        if (!group.get('id')?.value) group.get('academicYearId')?.setValue(yearId, { emitEvent: false });
+      }
+    });
+  }
 
   ngOnInit(): void {
     // Edit mode first: the password is required only when adding a parent
@@ -241,7 +254,8 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
       phoneNumber: [student?.phoneNumber ?? '', [Validators.required, Validators.maxLength(50)]],
       email: [student?.email ?? '', [Validators.email, Validators.maxLength(256)]],
       address: [student?.address ?? '', [Validators.required, Validators.maxLength(500)]],
-      academicYearId: [student?.academicYearId ?? '', Validators.required],
+      // New students: the header's academic year; saved students keep theirs (not edited here)
+      academicYearId: [{ value: student?.academicYearId ?? '', disabled: true }, Validators.required],
       stageId: [stageId, Validators.required],
       gradeId: [{ value: gradeId, disabled: !stageId }, Validators.required],
       sectionId: [{ value: student?.sectionId ?? '', disabled: !gradeId }, Validators.required]

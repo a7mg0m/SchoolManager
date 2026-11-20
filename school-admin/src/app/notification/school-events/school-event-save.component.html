@@ -138,6 +138,8 @@
                   @if (academicYearId() && semesters().length === 0) {
                     <small class="text-warning">{{ 'schoolEvents.noSemesters' | translate }}</small>
                   }
+                  <!-- Where the year / semester come from -->
+                  <small class="text-muted d-block mt-1"><i class="pe-7s-info me-1"></i>{{ (eventId() ? 'common.keptFromRecord' : 'common.fromHeader') | translate }}</small>
                 </div>
               </div>
 

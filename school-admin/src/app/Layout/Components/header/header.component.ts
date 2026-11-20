@@ -4,6 +4,7 @@ import { ConfigService } from '../../../ThemeOptions/store/config.service';
 import { ConfigState } from '../../../ThemeOptions/store/config.state';
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import {ThemeOptions} from '../../../theme-options';
+import { AcademicContextService } from '../../../core/services/academic-context.service';
 
 @Component({
   selector: 'app-header',
@@ -18,9 +19,12 @@ export class HeaderComponent {
 
   constructor(
     public globals: ThemeOptions,
-    private configService: ConfigService
+    private configService: ConfigService,
+    public academic: AcademicContextService
   ) {
     this.config$ = this.configService.config$;
+    // Academic year / semester selects
+    this.academic.load();
   }
 
   @HostBinding('class.isActive')

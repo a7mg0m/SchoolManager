@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin, timer } from 'rxjs';
@@ -80,13 +81,18 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
     private subjectService: SubjectService,
     private languageService: LanguageService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.followHeader();
+  }
 
   ngOnInit(): void {
     this.initializeForm();
     this.examId = this.activatedRoute.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.examId);
+    this.lockAcademicFields();
+    this.academic.load();
 
     this.languageService.currentLanguage$
       .pipe(takeUntil(this.destroy$))
@@ -203,6 +209,32 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
     this.yearSemesters.set((year?.semesters || []).filter(s => !!s.id));
   }
 
+// ---------------------------------------------------------------------------
+  // Academic year / semester from the header
+  // ---------------------------------------------------------------------------
+
+  /** New record: the header's year and semester (kept in step when the header changes) */
+  private followHeader(): void {
+    effect(() => {
+      const academicYearId = this.academic.yearId();
+      const semesterId = this.academic.semesterId();
+      if (this.form && !this.isEditMode()) {
+        this.form.patchValue({ academicYearId, semesterId });
+      }
+    });
+  }
+
+  /** Year / semester are not edited here: new records take the header's, saved ones keep theirs */
+  private lockAcademicFields(): void {
+    this.form.get('academicYearId')!.disable({ emitEvent: false });
+    this.form.get('semesterId')!.disable({ emitEvent: false });
+  }
+
+  /** The header has no year / semester to save with */
+  private missingAcademicContext(value: { academicYearId?: string; semesterId?: string }): boolean {
+    return !value.academicYearId || !value.semesterId;
+  }
+
   /** Duration (minutes) = end - start, when both are set and valid */
   private updateDuration(): void {
     const start = this.toMinutes(this.form.get('startTime')!.value);
@@ -245,10 +277,8 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
           if (this.examId) {
             this.loadExam(this.examId);
           } else {
-            const activeYear = this.academicYears().find(y => y.isActive);
-            if (activeYear) {
-              this.form.patchValue({ academicYearId: activeYear.id });
-            }
+            // The header's academic year / semester
+            this.form.patchValue({ academicYearId: this.academic.yearId(), semesterId: this.academic.semesterId() });
             this.isLoading.set(false);
           }
         },
@@ -324,6 +354,11 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
     if (!this.form.valid) {
       this.form.markAllAsTouched();
       this.errorMessage.set('Please fix form errors before submitting');
+      return;
+    }
+
+    if (this.missingAcademicContext(this.form.getRawValue())) {
+      this.errorMessage.set('Choose the academic year and semester in the header first.');
       return;
     }
 

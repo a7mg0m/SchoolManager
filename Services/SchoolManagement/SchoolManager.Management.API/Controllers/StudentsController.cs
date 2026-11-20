@@ -50,12 +50,12 @@ namespace SchoolManager.Management.API.Controllers
 		/// </summary>
 		[Authorize]
 		[HttpGet("my-children/{studentId}/schedule")]
-		public async Task<ActionResult<ChildScheduleDto>> GetMyChildSchedule(Guid studentId, CancellationToken cancellationToken)
+		public async Task<ActionResult<ChildScheduleDto>> GetMyChildSchedule(Guid studentId, [FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
 		{
 			if (_currentUser.ParentId is not Guid parentId)
 				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
 
-			var result = await _mediator.Send(new GetChildScheduleQuery(studentId, parentId, DateTime.Now), cancellationToken);
+			var result = await _mediator.Send(new GetChildScheduleQuery(studentId, parentId, DateTime.Now, academicYearId, semesterId), cancellationToken);
 			if (result is null)
 				return NotFound(new ApiResponse(404, "StudentNotFound"));
 
@@ -68,12 +68,12 @@ namespace SchoolManager.Management.API.Controllers
 		/// </summary>
 		[Authorize]
 		[HttpGet("my-children/{studentId}/timetable")]
-		public async Task<ActionResult<ChildTimetableDto>> GetMyChildTimetable(Guid studentId, CancellationToken cancellationToken)
+		public async Task<ActionResult<ChildTimetableDto>> GetMyChildTimetable(Guid studentId, [FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
 		{
 			if (_currentUser.ParentId is not Guid parentId)
 				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
 
-			var result = await _mediator.Send(new GetChildTimetableQuery(studentId, parentId, DateTime.Now), cancellationToken);
+			var result = await _mediator.Send(new GetChildTimetableQuery(studentId, parentId, DateTime.Now, academicYearId, semesterId), cancellationToken);
 			if (result is null)
 				return NotFound(new ApiResponse(404, "StudentNotFound"));
 

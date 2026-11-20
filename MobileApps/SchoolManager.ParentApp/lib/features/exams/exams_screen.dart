@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../core/academic_year/academic_year_controller.dart';
+import '../../core/academic_year/academic_year_picker.dart';
+import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import '../schedule/schedule_format.dart';
@@ -26,7 +29,10 @@ class ExamsScreen extends StatefulWidget {
   State<ExamsScreen> createState() => _ExamsScreenState();
 }
 
-class _ExamsScreenState extends State<ExamsScreen> {
+class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear {
+  @override
+  Future<void> reloadForAcademicYear() => _load();
+
   Color get _muted => context.palette.muted;
   static const _green = Color(0xFF13864B);
   static const _red = Color(0xFFD93025);
@@ -96,6 +102,13 @@ class _ExamsScreenState extends State<ExamsScreen> {
     return d != 0 ? d : a.start.compareTo(b.start);
   }
 
+  /// "2026-2027 · التيرم الاول" (empty while the years are not loaded)
+  String get _periodText {
+    final year = AcademicYearController.instance.value;
+    final semester = AcademicYearController.instance.semester;
+    return [year?.name, semester?.name].whereType<String>().where((s) => s.isNotEmpty).join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = Column(
@@ -106,12 +119,26 @@ class _ExamsScreenState extends State<ExamsScreen> {
           [widget.child.name, widget.child.classInfo].where((s) => s.isNotEmpty).join(' · '),
           style: const TextStyle(fontSize: 12, color: Colors.white70),
         ),
+        // The academic year / semester the exams are shown for
+        if (_periodText.isNotEmpty)
+          Text(_periodText,
+              key: const ValueKey('exams-period'),
+              style: const TextStyle(fontSize: 11.5, color: Colors.white70, fontWeight: FontWeight.w600)),
       ],
     );
+    // Change the academic year / semester (the page reloads)
+    final actions = [
+      IconButton(
+        key: const ValueKey('exams-change-period'),
+        tooltip: tr('السنة والفصل الدراسي', 'Academic year and semester'),
+        icon: const Icon(Icons.date_range_rounded),
+        onPressed: () => showAcademicYearSheet(context),
+      ),
+    ];
 
     if (_loading || _error != null) {
       return Scaffold(
-        appBar: AppBar(title: title),
+        appBar: AppBar(title: title, actions: actions),
         body: SafeArea(
           child: _loading
               ? const Center(child: CircularProgressIndicator())
@@ -127,6 +154,8 @@ class _ExamsScreenState extends State<ExamsScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: title,
+          actions: actions,
+          toolbarHeight: _periodText.isNotEmpty ? 70 : null,
           bottom: TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,

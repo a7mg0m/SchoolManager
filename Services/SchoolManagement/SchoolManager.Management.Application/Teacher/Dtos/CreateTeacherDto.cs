@@ -12,5 +12,11 @@
         public string Address { get; set; } = string.Empty;
         public bool IsActive { get; set; }
 
+        /// <summary>Login name of the teacher's account (required).</summary>
+        public string? LoginName { get; set; }
+
+        /// <summary>Password of the account: required on create; on update empty keeps the current one.</summary>
+        public string? Password { get; set; }
+
     }
 }

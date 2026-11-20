@@ -6,7 +6,8 @@ namespace SchoolManager.Management.Application
     /// <summary>Builds the Kafka event sent to the Identity service when a teacher changes.</summary>
     public static class TeacherEventFactory
     {
-        public static TeacherIntegrationEvent From(Teacher teacher, TeacherChangeType changeType, Guid changedBy)
+        /// <param name="passwordHash">BCrypt hash of a new password, or null to keep the current one.</param>
+        public static TeacherIntegrationEvent From(Teacher teacher, TeacherChangeType changeType, Guid changedBy, string? passwordHash = null)
             => new()
             {
                 ChangeType = changeType,
@@ -14,6 +15,8 @@ namespace SchoolManager.Management.Application
                 FullNameAr = teacher.FullName.Arabic,
                 FullNameEn = teacher.FullName.English,
                 NationalId = teacher.NationalId,
+                LoginName = teacher.LoginName,
+                PasswordHash = passwordHash,
                 PhoneNumber = teacher.PhoneNumber,
                 Email = teacher.Email,
                 Address = teacher.Address,

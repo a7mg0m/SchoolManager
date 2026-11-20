@@ -12,6 +12,8 @@ namespace SchoolManager.ExamsHomework.Application
                 child.AcademicYearId, child.GradeId, child.SectionId, child.Id, cancellationToken);
 
             return exams
+                // Only the semester chosen in the app (all semesters when none is chosen)
+                .Where(e => query.SemesterId is not Guid semester || e.SemesterId == semester)
                 .OrderBy(e => e.ExamDate).ThenBy(e => e.StartTime)
                 .Select(e =>
                 {

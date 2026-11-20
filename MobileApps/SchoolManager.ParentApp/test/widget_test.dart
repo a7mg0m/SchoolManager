@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:smart_school_parent/core/academic_year/academic_year_controller.dart';
 import 'package:smart_school_parent/core/i18n/app_language.dart';
 import 'package:smart_school_parent/features/schedule/schedule_format.dart';
 
@@ -15,9 +16,11 @@ import 'package:smart_school_parent/features/children/children_service.dart';
 import 'package:smart_school_parent/features/school/school_info_screen.dart';
 import 'package:smart_school_parent/features/school/school_info_service.dart';
 import 'package:smart_school_parent/features/events/events_service.dart';
+import 'package:smart_school_parent/features/exams/exams_screen.dart';
 import 'package:smart_school_parent/features/exams/exams_service.dart';
 import 'package:smart_school_parent/features/fees/fees_service.dart';
 import 'package:smart_school_parent/features/home/home_screen.dart';
+import 'package:smart_school_parent/features/homework/homework_service.dart';
 import 'package:smart_school_parent/features/profile/edit_profile_screen.dart';
 import 'package:smart_school_parent/features/profile/profile_service.dart';
 import 'package:smart_school_parent/features/schedule/schedule_service.dart';
@@ -37,6 +40,7 @@ Widget _home(
   List<ChildExam>? exams,
   List<ChildEvent>? events,
   SchoolInfo? schoolInfo,
+  List<ChildHomework>? homeworks,
 }) =>
     // Same language set-up as the app: Arabic (RTL) by default, English (LTR) when chosen
     ListenableBuilder(
@@ -58,6 +62,8 @@ Widget _home(
         loadExams: (_) async => exams ?? const [],
         loadEvents: (_) async => events ?? const [],
         loadSchoolInfo: () async => schoolInfo,
+        loadHomeworks: (_) async => homeworks ?? const [],
+        loadAcademicYears: () async => _years,
       ),
     ),
     );
@@ -144,7 +150,35 @@ const _omar = Child(
   sectionName: 'فصل ب',
 );
 
+/// Two academic years: 2026-2027 is the current one
+final _years = [
+  AcademicYear(
+    id: 'y-2026',
+    name: '2026-2027',
+    startDate: DateTime(DateTime.now().year - 1, 1, 1),
+    endDate: DateTime(DateTime.now().year + 1, 12, 31),
+    semesters: [
+      // Running today
+      AcademicSemester(id: 's-1', name: 'الفصل الأول', startDate: DateTime(DateTime.now().year - 1, 1, 1), endDate: DateTime(DateTime.now().year, 12, 31)),
+      AcademicSemester(id: 's-2', name: 'الفصل الثاني', startDate: DateTime(DateTime.now().year + 1, 1, 1), endDate: DateTime(DateTime.now().year + 1, 12, 31)),
+    ],
+  ),
+  AcademicYear(
+    id: 'y-2025',
+    name: '2025-2026',
+    startDate: DateTime(2000, 9, 1),
+    endDate: DateTime(2001, 6, 30),
+    isActive: false,
+    semesters: [AcademicSemester(id: 's-old', name: 'فصل قديم', startDate: DateTime(2000, 9, 1), endDate: DateTime(2001, 6, 30))],
+  ),
+];
+
 void main() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await AcademicYearController.instance.reset();
+  });
+
   testWidgets('New user: intro -> login, empty form is validated',
       (WidgetTester tester) async {
     _phoneSize(tester);
@@ -1036,5 +1070,158 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('الخدمات'), findsOneWidget);
     expect(find.text('لم تُضف بيانات المدرسة بعد.'), findsNothing);
+  });
+
+  testWidgets('Homework tile shows how many are due and opens the child homework',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    final today = DateTime.now();
+    ChildHomework hw(String id, String title, int dueInDays) => ChildHomework(
+          id: id,
+          subjectNameAr: 'رياضيات',
+          subjectNameEn: 'Math',
+          title: title,
+          description: 'وصف $title',
+          dueDate: DateTime(today.year, today.month, today.day).add(Duration(days: dueInDays)),
+          publishedOn: today,
+          questions: const [HomeworkQuestion(header: 'احسب', items: ['2 + 3'])],
+        );
+    await tester.pumpWidget(_home(() async => [_sara], homeworks: [
+      hw('1', 'واجب الجمع', 1),
+      hw('2', 'واجب الطرح', 0),
+      hw('3', 'واجب قديم', -5),
+    ]));
+    await tester.pumpAndSettle();
+
+    // Two still to hand in
+    expect(find.text('2 مطلوبة'), findsOneWidget);
+    await _tapTile(tester, 'الواجبات');
+    await tester.pumpAndSettle();
+
+    expect(find.text('واجب الطرح'), findsOneWidget);
+    expect(find.text('التسليم اليوم'), findsOneWidget);
+    expect(find.text('واجب الجمع'), findsOneWidget);
+    expect(find.text('التسليم غداً'), findsOneWidget);
+    expect(find.text('واجب قديم'), findsNothing);
+
+    // Past tab
+    await tester.tap(find.text('السابقة (1)'));
+    await tester.pumpAndSettle();
+    expect(find.text('واجب قديم'), findsOneWidget);
+
+    // Details with the questions
+    await tester.tap(find.text('واجب قديم'));
+    await tester.pumpAndSettle();
+    expect(find.text('1. احسب'), findsOneWidget);
+    expect(find.text('• 2 + 3'), findsOneWidget);
+  });
+
+  testWidgets('Academic year and semester: current ones by default, others reload the child data with their ids',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    var homeworkLoads = 0;
+    final sent = <Map<String, String>>[];
+    await tester.pumpWidget(ListenableBuilder(
+      listenable: AppLanguage.instance,
+      builder: (context, _) => MaterialApp(
+        locale: AppLanguage.instance.value,
+        supportedLocales: AppLanguage.supported,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        home: HomeScreen(
+          loadChildren: () async => [_sara],
+          loadProfile: () async => null,
+          loadTimetable: (_) async => const ChildTimetable(today: 2, now: 600, days: []),
+          loadFees: (_) async => const [],
+          loadExams: (_) async => const [],
+          loadEvents: (_) async => const [],
+          loadSchoolInfo: () async => null,
+          loadHomeworks: (_) async {
+            homeworkLoads++;
+            sent.add(AcademicYearController.instance.withYear(Uri.parse('/x')).queryParameters);
+            return const [];
+          },
+          loadAcademicYears: () async => _years,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    // Current year and semester chosen and shown in the header
+    expect(AcademicYearController.instance.selectedId, 'y-2026');
+    expect(AcademicYearController.instance.selectedSemesterId, 's-1');
+    expect(find.text('2026-2027 · الفصل الأول'), findsOneWidget);
+    expect(sent.last, {'academicYearId': 'y-2026', 'semesterId': 's-1'});
+    var before = homeworkLoads;
+
+    // Another semester from the header chip
+    await tester.tap(find.byKey(const ValueKey('academic-year-chip')));
+    await tester.pumpAndSettle();
+    expect(find.text('الفصل الحالي'), findsOneWidget);
+    await tester.tap(find.text('الفصل الثاني'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2026-2027 · الفصل الثاني'), findsOneWidget);
+    expect(homeworkLoads, greaterThan(before));
+    expect(sent.last, {'academicYearId': 'y-2026', 'semesterId': 's-2'});
+    before = homeworkLoads;
+
+    // Another year: its own semester comes with it
+    await tester.tap(find.byKey(const ValueKey('academic-year-chip')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2025-2026'));
+    await tester.pumpAndSettle();
+    expect(find.text('فصل قديم'), findsOneWidget);
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2025-2026 · فصل قديم'), findsOneWidget);
+    expect(homeworkLoads, greaterThan(before));
+    expect(sent.last, {'academicYearId': 'y-2025', 'semesterId': 's-old'});
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('academic_year_id'), 'y-2025');
+    expect(prefs.getString('semester_id'), 's-old');
+
+    // The More menu has the pickers too
+    await tester.tap(find.text('المزيد'));
+    await tester.pumpAndSettle();
+    expect(find.text('السنة الدراسية'), findsOneWidget);
+    expect(find.text('الفصل الدراسي'), findsOneWidget);
+  });
+
+  testWidgets('Exams screen shows and changes the academic year / semester it is for',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    await AcademicYearController.instance.ensureLoaded(fetch: () async => _years);
+    var loads = 0;
+    final sent = <Map<String, String>>[];
+    await tester.pumpWidget(MaterialApp(
+      home: ExamsScreen(
+        child: _sara,
+        loadExams: (_) async {
+          loads++;
+          sent.add(AcademicYearController.instance.withYear(Uri.parse('/x')).queryParameters);
+          return const [];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2026-2027 · الفصل الأول'), findsOneWidget);
+    expect(sent.last, {'academicYearId': 'y-2026', 'semesterId': 's-1'});
+    final before = loads;
+
+    // Another semester from the exams page itself
+    await tester.tap(find.byKey(const ValueKey('exams-change-period')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('الفصل الثاني'));
+    await tester.pumpAndSettle();
+
+    expect(loads, greaterThan(before));
+    expect(sent.last, {'academicYearId': 'y-2026', 'semesterId': 's-2'});
+    expect(find.text('2026-2027 · الفصل الثاني'), findsOneWidget);
   });
 }

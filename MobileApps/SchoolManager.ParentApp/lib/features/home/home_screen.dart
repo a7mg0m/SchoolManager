@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/academic_year/academic_year_controller.dart';
+import '../../core/academic_year/academic_year_picker.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/routes.dart';
 import '../../core/theme/app_theme.dart';
@@ -18,6 +20,8 @@ import '../exams/exams_screen.dart';
 import '../exams/exams_service.dart';
 import '../events/events_screen.dart';
 import '../events/events_service.dart';
+import '../homework/homework_screen.dart';
+import '../homework/homework_service.dart';
 import '../school/school_info_screen.dart';
 import '../school/school_info_service.dart';
 
@@ -30,6 +34,8 @@ class HomeScreen extends StatefulWidget {
       this.loadFees,
       this.loadExams,
       this.loadEvents,
+      this.loadHomeworks,
+      this.loadAcademicYears,
       this.loadSchoolInfo});
 
   /// Loads the parent's children; defaults to the API (tests pass their own)
@@ -49,6 +55,12 @@ class HomeScreen extends StatefulWidget {
 
   /// Loads the school events of a child; defaults to the API
   final Future<List<ChildEvent>> Function(String studentId)? loadEvents;
+
+  /// Loads the homework published to a child's class; defaults to the API
+  final Future<List<ChildHomework>> Function(String studentId)? loadHomeworks;
+
+  /// Loads the academic years (year picker); defaults to the API
+  final Future<List<AcademicYear>> Function()? loadAcademicYears;
 
   /// Loads the school information (About the school page); defaults to the API
   final Future<SchoolInfo?> Function()? loadSchoolInfo;
@@ -75,15 +87,24 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadProfile();
     _loadSchoolInfo();
     AppLanguage.instance.addListener(_onLanguageChanged);
+    // Academic years for the picker; another year reloads the live tiles
+    AcademicYearController.instance.ensureLoaded(fetch: widget.loadAcademicYears);
+    AcademicYearController.instance.addListener(_onAcademicYearChanged);
   }
 
   @override
   void dispose() {
     AppLanguage.instance.removeListener(_onLanguageChanged);
+    AcademicYearController.instance.removeListener(_onAcademicYearChanged);
     super.dispose();
   }
 
   /// Grade / class names come from the API in the chosen language: load them again
+  /// Today card / exams / homework / events of the newly chosen academic year
+  void _onAcademicYearChanged() {
+    if (mounted && selectedChild != null) _loadLive(selectedChild!);
+  }
+
   void _onLanguageChanged() {
     if (mounted) _loadChildren();
   }
@@ -232,6 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ChildExam>? _exams;
   List<StudentFeeItem>? _fees;
   List<ChildEvent>? _events;
+  List<ChildHomework>? _homeworks;
 
   /// Child the live data belongs to (a quick switch ignores late answers)
   String? _liveFor;
@@ -244,6 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _exams = null;
       _fees = null;
       _events = null;
+      _homeworks = null;
     });
 
     Future<void> load<T>(Future<T> Function(String studentId) loader, void Function(T value) apply) async {
@@ -260,6 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
       load<List<ChildExam>>(widget.loadExams ?? ExamsService.instance.getChildExams, (r) => _exams = r),
       load<List<StudentFeeItem>>(widget.loadFees ?? FeesService.instance.getChildFees, (r) => _fees = r),
       load<List<ChildEvent>>(widget.loadEvents ?? EventsService.instance.getChildEvents, (r) => _events = r),
+      load<List<ChildHomework>>(widget.loadHomeworks ?? HomeworkService.instance.getChildHomeworks, (r) => _homeworks = r),
     ]);
   }
 
@@ -473,24 +497,32 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context, i) => _childStory(children[i], children[i].id == selected.id),
           ),
         ),
-        if (selected.classInfo.isNotEmpty)
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .14),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withValues(alpha: .18)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.school_outlined, color: Colors.white, size: 15),
-                const SizedBox(width: 6),
-                Text(selected.classInfo, style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
-              ],
-            ),
-          ),
+        const SizedBox(height: 4),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (selected.classInfo.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withValues(alpha: .18)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.school_outlined, color: Colors.white, size: 15),
+                    const SizedBox(width: 6),
+                    Text(selected.classInfo, style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            // Academic year the data is shown for (tap to change)
+            const AcademicYearChip(),
+          ],
+        ),
       ],
     );
   }
@@ -820,7 +852,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               for (var i = 0; i < soon.length; i++) ...[
                 if (i > 0) const SizedBox(width: 10),
-                Expanded(child: _soonTile(soon[i].$1, soon[i].$2, soon[i].$3)),
+                Expanded(
+                  child: i == 0
+                      // Homework: open, with how many are still to do
+                      ? _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openHomework, detail: _homeworkCount())
+                      : _soonTile(soon[i].$1, soon[i].$2, soon[i].$3),
+                ),
               ],
             ],
           ),
@@ -830,9 +867,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// A service that is not ready yet: small card with a "soon" label
-  Widget _soonTile(IconData icon, String label, Color color) {
+  /// "3 مطلوبة" / "3 to do" (null while loading)
+  String? _homeworkCount() {
+    final list = _homeworks;
+    if (list == null) return null;
+    final open = list.where((h) => h.isOpen(DateTime.now())).length;
+    return open == 0 ? tr('لا مطلوب', 'None due') : tr('$open مطلوبة', '$open to do');
+  }
+
+  /// A small service card; [onTap] null = not ready yet ("soon"), [detail] = live line instead of "soon"
+  Widget _soonTile(IconData icon, String label, Color color, {VoidCallback? onTap, String? detail}) {
     return _Pressable(
-      onTap: () => _showMessage(tr('خدمة "$label" ستتوفر قريباً.', 'The "$label" service is coming soon.')),
+      onTap: onTap ?? () => _showMessage(tr('خدمة "$label" ستتوفر قريباً.', 'The "$label" service is coming soon.')),
       child: Container(
         height: 104,
         padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
@@ -856,8 +902,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 10.5, height: 1.2, fontWeight: FontWeight.w600, color: context.palette.ink)),
             ),
-            Text(tr('قريباً', 'Soon'),
-                style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: context.palette.faint)),
+            Text(onTap == null ? tr('قريباً', 'Soon') : (detail ?? tr('افتح', 'Open')),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    color: onTap == null ? context.palette.faint : color)),
           ],
         ),
       ),
@@ -897,6 +948,13 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Fees page of the selected child
   /// Exams page of the selected child
   /// Events page of the selected child
+  /// Homework page of the selected child
+  void _openHomework() => _openForChild((child) => HomeworkScreen(
+        child: child,
+        loadHomeworks: widget.loadHomeworks,
+        onSessionExpired: _logout,
+      ));
+
   void _openEvents() => _openForChild((child) => EventsScreen(
         child: child,
         loadEvents: widget.loadEvents,
@@ -1162,6 +1220,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+            // Academic year the data is shown for (default: the current one); saved on the device
+            _settingRow(
+              Icons.date_range_rounded,
+              tr('السنة الدراسية', 'Academic year'),
+              const AcademicYearPicker(),
+            ),
             // Arabic / English; saved on the device
             ValueListenableBuilder<Locale>(
               valueListenable: AppLanguage.instance,
@@ -1212,6 +1276,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _logout() async {
     await AuthService.instance.logout();
+    await AcademicYearController.instance.reset();
     if (!mounted) return;
     Navigator.of(context)
         .pushNamedAndRemoveUntil(AppRoutes.login, (_) => false);

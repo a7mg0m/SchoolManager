@@ -20,9 +20,9 @@ namespace SchoolManager.Management.API.Controllers
 		}
 
 		[HttpGet("get-all")]
-		public async Task<ActionResult<List<TimetableDto>>> GetAll(CancellationToken cancellationToken)
+		public async Task<ActionResult<List<TimetableDto>>> GetAll([FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
 		{
-			var result = await _mediator.Send(new GetAllTimetablesQuery(), cancellationToken);
+			var result = await _mediator.Send(new GetAllTimetablesQuery(academicYearId, semesterId), cancellationToken);
 			return Ok(new ApiResponse { data = result });
 		}
 

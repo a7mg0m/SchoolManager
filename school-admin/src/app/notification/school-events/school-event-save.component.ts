@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
@@ -86,8 +87,11 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private translate: TranslateService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.followHeader();
+  }
 
   ngOnInit(): void {
     this.buildForm();
@@ -97,6 +101,8 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
       .subscribe(language => this.currentLanguage.set(language));
 
     this.eventId.set(this.activatedRoute.snapshot.paramMap.get('id'));
+    this.lockAcademicFields();
+    this.academic.load();
     this.loadData();
   }
 
@@ -177,7 +183,8 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
               this.errorMessage.set(event?.message || this.translate.instant('schoolEvents.loadEventFailed'));
             }
           } else {
-            this.setDefaultAcademicYear(lookups.academicYears);
+            // The header's academic year / semester
+            this.form.patchValue({ academicYearId: this.academic.yearId(), semesterId: this.academic.semesterId() });
           }
           this.isLoading.set(false);
         },
@@ -198,6 +205,32 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
       years.find(y => y.isActive) ??
       years[0];
     if (year) this.form.patchValue({ academicYearId: year.id });
+  }
+
+// ---------------------------------------------------------------------------
+  // Academic year / semester from the header
+  // ---------------------------------------------------------------------------
+
+  /** New record: the header's year and semester (kept in step when the header changes) */
+  private followHeader(): void {
+    effect(() => {
+      const academicYearId = this.academic.yearId();
+      const semesterId = this.academic.semesterId();
+      if (this.form && !this.eventId()) {
+        this.form.patchValue({ academicYearId, semesterId });
+      }
+    });
+  }
+
+  /** Year / semester are not edited here: new records take the header's, saved ones keep theirs */
+  private lockAcademicFields(): void {
+    this.form.get('academicYearId')!.disable({ emitEvent: false });
+    this.form.get('semesterId')!.disable({ emitEvent: false });
+  }
+
+  /** The header has no year / semester to save with */
+  private missingAcademicContext(value: { academicYearId?: string; semesterId?: string }): boolean {
+    return !value.academicYearId || !value.semesterId;
   }
 
   /** Pick the semester containing the event date when none is chosen yet */
@@ -248,7 +281,12 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const v = this.form.value;
+    if (this.missingAcademicContext(this.form.getRawValue())) {
+      this.errorMessage.set(this.translate.instant('common.chooseYearInHeader'));
+      return;
+    }
+
+    const v = this.form.getRawValue();
     const request: CreateSchoolEventRequest = {
       title: String(v.title).trim(),
       description: String(v.description).trim(),

@@ -7,6 +7,7 @@ import {
   CreateTeacherRequest,
   UpdateTeacherRequest
 } from '../models/teacher.model';
+import { ApiResponse } from '../models/stage.model';
 
 /**
  * Teacher Service
@@ -63,6 +64,18 @@ export class TeacherService {
       `${this.teacherEndpoint}/update`,
       request
     );
+  }
+
+  /**
+   * Is the login name free? (Identity service: no employee, teacher or parent uses it)
+   * @param teacherId - The teacher being edited (its own login name is allowed)
+   */
+  isLoginNameAvailable(loginName: string, teacherId?: string | null): Observable<ApiResponse<boolean>> {
+    const params = new URLSearchParams({ loginName });
+    if (teacherId) {
+      params.set('userId', teacherId);
+    }
+    return this.apiService.get<ApiResponse<boolean>>(`/api/user/login-name-available?${params.toString()}`);
   }
 
   /**

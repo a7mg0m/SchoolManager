@@ -9,6 +9,7 @@ namespace SchoolManager.ExamsHomework.Application
     /// </summary>
     public record GetChildExamsQuery(
         ParentChild Child,
-        IReadOnlyDictionary<Guid, (string Ar, string En)> SubjectNames
+        IReadOnlyDictionary<Guid, (string Ar, string En)> SubjectNames,
+        Guid? SemesterId = null
     ) : IQuery<List<ChildExamDto>>;
 }

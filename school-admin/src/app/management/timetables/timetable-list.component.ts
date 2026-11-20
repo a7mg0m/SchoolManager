@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Subject, timer, forkJoin } from 'rxjs';
@@ -13,7 +13,8 @@ import { LanguageService } from '../../ThemeOptions/store/language.service';
 import { Timetable, TimetableSlot } from '../../core/models/timetable.model';
 import { Stage } from '../../core/models/stage.model';
 import { Grade } from '../../core/models/grade.model';
-import { AcademicYear } from '../../core/models/academic-year.model';
+import { AcademicYear, AcademicYearSemester } from '../../core/models/academic-year.model';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { Section } from '../../core/models/section.model';
 import { Subject as SchoolSubject } from '../../core/models/subject.model';
 import { Teacher } from '../../core/models/teacher.model';
@@ -33,6 +34,15 @@ export class TimetableListComponent implements OnInit, OnDestroy {
   successMessage = signal<string | null>(null);
   currentLanguage = signal<string>('en');
   expandedId = signal<string | null>(null);
+
+  /** Timetables of the header's academic year / semester (those without a semester count for every semester) */
+  filteredTimetables = computed(() => {
+    const yearId = this.academic.yearId();
+    const semesterId = this.academic.semesterId();
+    return this.timetables().filter(t =>
+      (!yearId || t.academicYearId === yearId) &&
+      (!semesterId || !t.semesterId || t.semesterId === semesterId));
+  });
 
   // Lookup maps for display
   private stages = new Map<string, Stage>();
@@ -57,7 +67,8 @@ export class TimetableListComponent implements OnInit, OnDestroy {
     private teacherService: TeacherService,
     private languageService: LanguageService,
     private router: Router,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    public academic: AcademicContextService
   ) {}
 
   ngOnInit(): void {
@@ -197,6 +208,15 @@ export class TimetableListComponent implements OnInit, OnDestroy {
   subjectName(id: string): string { return this.localized(this.subjects.get(id)); }
   slotName(slot: TimetableSlot): string { return this.localized(slot); }
   academicYearName(id: string): string { return this.academicYears.get(id)?.name ?? '—'; }
+
+  /** Semester name, or null for a timetable saved without one (all semesters) */
+  semesterName(timetable: Timetable): string | null {
+    if (!timetable.semesterId) return null;
+    const semester = this.academicYears.get(timetable.academicYearId)?.semesters
+      ?.find((s: AcademicYearSemester) => s.id === timetable.semesterId);
+    return semester?.name ?? '—';
+  }
+
 
   teacherName(id: string): string {
     const t = this.teachers.get(id);

@@ -24,7 +24,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         /// </summary>
         [Authorize]
         [HttpGet("my-child/{studentId}")]
-        public async Task<IActionResult> GetMyChildExams(Guid studentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetMyChildExams(Guid studentId, [FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
         {
             if (CurrentParentId is null)
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
@@ -38,8 +38,12 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             if (child is null)
                 return NotFound(new ApiResponse(404, "StudentNotFound"));
 
+            // The academic year chosen in the app, else the child's own
+            if (academicYearId is Guid year)
+                child = child with { AcademicYearId = year };
+
             var subjectNames = await _management.GetSubjectNamesAsync(authorization, cancellationToken);
-            var exams = await _mediator.Send(new GetChildExamsQuery(child, subjectNames), cancellationToken);
+            var exams = await _mediator.Send(new GetChildExamsQuery(child, subjectNames, semesterId), cancellationToken);
             return Ok(new ApiResponse { data = exams });
         }
 

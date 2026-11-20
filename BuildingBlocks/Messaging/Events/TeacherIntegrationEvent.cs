@@ -18,6 +18,15 @@ namespace BuildingBlocks.Messaging.Events
         public string? Email { get; init; }
         public string? Address { get; init; }
         public bool IsActive { get; init; }
+
+        /// <summary>Login name of the teacher's account; when empty the National ID is used.</summary>
+        public string? LoginName { get; init; }
+
+        /// <summary>
+        /// BCrypt hash of a new password entered in Management, or null to keep the current password
+        /// (a new account without one gets the National ID as first password). Never the plain password.
+        /// </summary>
+        public string? PasswordHash { get; init; }
         /// <summary>User who made the change in Management (for the audit columns).</summary>
         public Guid ChangedBy { get; init; }
     }

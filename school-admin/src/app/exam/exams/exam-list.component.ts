@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Subject, timer, forkJoin } from 'rxjs';
@@ -36,7 +37,6 @@ export class ExamListComponent implements OnInit, OnDestroy {
   filterStageId = signal<string>('');
   filterGradeId = signal<string>('');
   filterExamType = signal<string>('');
-  filterAcademicYearId = signal<string>('');
 
   // Lookups
   stages = signal<Stage[]>([]);
@@ -62,12 +62,15 @@ export class ExamListComponent implements OnInit, OnDestroy {
     const stageId = this.filterStageId();
     const gradeId = this.filterGradeId();
     const examType = this.filterExamType();
-    const yearId = this.filterAcademicYearId();
+    // The header's academic year / semester
+    const yearId = this.academic.yearId();
+    const semesterId = this.academic.semesterId();
     return this.exams()
       .filter(e => !stageId || this.examStageId(e) === stageId)
       .filter(e => !gradeId || e.gradeId === gradeId)
       .filter(e => !examType || e.examType === Number(examType))
       .filter(e => !yearId || e.academicYearId === yearId)
+      .filter(e => !semesterId || e.semesterId === semesterId)
       .sort((a, b) =>
         (b.examDate || '').localeCompare(a.examDate || '') ||
         (a.startTime || '').localeCompare(b.startTime || ''));
@@ -85,8 +88,11 @@ export class ExamListComponent implements OnInit, OnDestroy {
     private subjectService: SubjectService,
     private languageService: LanguageService,
     private router: Router,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.languageService.currentLanguage$
@@ -162,7 +168,6 @@ export class ExamListComponent implements OnInit, OnDestroy {
     this.filterStageId.set('');
     this.filterGradeId.set('');
     this.filterExamType.set('');
-    this.filterAcademicYearId.set('');
   }
 
   // ---------------------------------------------------------------------------

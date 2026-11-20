@@ -18,6 +18,8 @@ namespace SchoolManager.Management.Infrastructure
             builder.Property(x => x.Address).IsRequired().HasMaxLength(500);
             builder.Property(x => x.Email).HasMaxLength(256);
             builder.HasIndex(x => x.NationalId).IsUnique();
+            builder.Property(x => x.LoginName).HasMaxLength(100);
+            builder.HasIndex(x => x.LoginName).IsUnique().HasFilter("[LoginName] IS NOT NULL");
             builder.ConfigureAudit(x => x.AuditInfo);
 		}
 	}

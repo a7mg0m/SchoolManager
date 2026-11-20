@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { TeacherService } from '../../core/services/teacher.service';
@@ -11,6 +11,23 @@ import {
 } from '../../core/models/teacher.model';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+
+/** confirmPassword must equal password (only checked when a password is typed) */
+const passwordsMatch: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+  const password = group.get('password')?.value || '';
+  const confirm = group.get('confirmPassword')?.value || '';
+  return password && password !== confirm ? { passwordMismatch: true } : null;
+};
+
+/** Error keys returned by the API for the teacher's login, with their translation */
+const ACCOUNT_ERROR_KEYS: Record<string, string> = {
+  LoginNameRequired: 'teachers.loginNameRequired',
+  LoginNameTooShort: 'teachers.loginNameMinLength',
+  LoginNameTooLong: 'teachers.loginNameMaxLength',
+  LoginNameExists: 'teachers.loginNameExists',
+  PasswordRequired: 'teachers.passwordRequired',
+  PasswordTooShort: 'teachers.passwordMinLength'
+};
 
 @Component({
   selector: 'app-teacher-save',
@@ -31,6 +48,12 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
   /** Latest allowed date of birth (today), ISO yyyy-MM-dd */
   readonly maxDateOfBirth = new Date().toISOString().substring(0, 10);
 
+  /** Login account (same rules as the API: TeacherAccount) */
+  showPassword = signal(false);
+  readonly loginNameMinLength = 3;
+  readonly loginNameMaxLength = 100;
+  readonly passwordMinLength = 6;
+
   /** Fields the backend does not allow changing after creation */
   private readonly createOnlyFields = ['dateOfBirth', 'nationalId', 'gender'];
 
@@ -46,9 +69,10 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.initializeForm();
+    // Edit mode first: the password is required only when adding a teacher
     this.teacherId = this.activatedRoute.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.teacherId);
+    this.initializeForm();
 
     if (this.teacherId) {
       this.createOnlyFields.forEach(f => this.form.get(f)!.disable());
@@ -75,8 +99,19 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       // Required: the teacher's login account (Identity service) needs an email
       email: ['', [Validators.required, Validators.email, Validators.maxLength(256)]],
       address: ['', [Validators.required, Validators.maxLength(500)]],
-      isActive: [true]
-    });
+      isActive: [true],
+      // Login account of the teacher (created / updated in the Identity service)
+      loginName: ['', [
+        Validators.required,
+        Validators.minLength(this.loginNameMinLength),
+        Validators.maxLength(this.loginNameMaxLength)
+      ]],
+      // Required on create, optional on edit (empty = keep the current one)
+      password: ['', this.isEditMode()
+        ? [Validators.minLength(this.passwordMinLength)]
+        : [Validators.required, Validators.minLength(this.passwordMinLength)]],
+      confirmPassword: ['']
+    }, { validators: passwordsMatch });
   }
 
   /**
@@ -123,7 +158,9 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       phoneNumber: teacher.phoneNumber ?? '',
       email: teacher.email ?? '',
       address: teacher.address ?? '',
-      isActive: teacher.isActive ?? true
+      isActive: teacher.isActive ?? true,
+      // Teachers saved before login names existed sign in with their national ID
+      loginName: teacher.loginName || teacher.nationalId || ''
     });
   }
 
@@ -144,11 +181,47 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
     this.isSaving.set(true);
     this.errorMessage.set(null);
 
-    if (this.isEditMode()) {
-      this.updateTeacher();
-    } else {
-      this.createTeacher();
-    }
+    // The teacher's login is created later (through Kafka), so check now that no employee,
+    // parent or other teacher already uses the login name
+    const loginName = this.form.get('loginName')!.value.trim();
+    this.teacherService.isLoginNameAvailable(loginName, this.teacherId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          if (response.status === 200 && response.data === false) {
+            this.loginNameTaken();
+            return;
+          }
+          if (this.isEditMode()) {
+            this.updateTeacher();
+          } else {
+            this.createTeacher();
+          }
+        },
+        error: (error) => {
+          console.error('Error checking the login name:', error);
+          this.errorMessage.set(this.translate.instant('teachers.loginNameCheckFailed'));
+          this.isSaving.set(false);
+        }
+      });
+  }
+
+  /** Show "login name already used" on the field and in the page message */
+  private loginNameTaken(): void {
+    const control = this.form.get('loginName')!;
+    control.setErrors({ ...(control.errors ?? {}), taken: true });
+    control.markAsTouched();
+    this.errorMessage.set(this.translate.instant('teachers.loginNameExists'));
+    this.isSaving.set(false);
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword.update(v => !v);
+  }
+
+  get passwordMismatch(): boolean {
+    const confirm = this.form.get('confirmPassword');
+    return this.form.hasError('passwordMismatch') && !!confirm && (confirm.dirty || confirm.touched);
   }
 
   /**
@@ -173,7 +246,9 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       phoneNumber: v.phoneNumber.trim(),
       email: this.normalizeEmail(v.email),
       address: v.address.trim(),
-      isActive: !!v.isActive
+      isActive: !!v.isActive,
+      loginName: v.loginName.trim(),
+      password: v.password
     };
 
     this.teacherService
@@ -201,7 +276,10 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       phoneNumber: v.phoneNumber.trim(),
       email: this.normalizeEmail(v.email),
       address: v.address.trim(),
-      isActive: !!v.isActive
+      isActive: !!v.isActive,
+      loginName: v.loginName.trim(),
+      // Empty: keep the current password
+      password: v.password || null
     };
 
     this.teacherService
@@ -225,6 +303,14 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       this.successMessage.set(this.translate.instant(successKey));
       // Navigate back after 1 second (keep isSaving to block duplicate submits)
       setTimeout(() => this.router.navigate(['/management/teachers']), 1000);
+    } else if (message === 'LoginNameExists') {
+      this.loginNameTaken();
+    } else if (message && ACCOUNT_ERROR_KEYS[message]) {
+      this.errorMessage.set(this.translate.instant(ACCOUNT_ERROR_KEYS[message], {
+        min: message.startsWith('Password') ? this.passwordMinLength : this.loginNameMinLength,
+        max: this.loginNameMaxLength
+      }));
+      this.isSaving.set(false);
     } else {
       this.errorMessage.set(message || this.translate.instant(failKey));
       this.isSaving.set(false);

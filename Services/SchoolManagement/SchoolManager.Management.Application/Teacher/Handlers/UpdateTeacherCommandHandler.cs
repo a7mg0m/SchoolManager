@@ -13,6 +13,7 @@ namespace SchoolManager.Management.Application
 	public class UpdateTeacherCommandHandler : ICommandHandler<UpdateTeacherCommand, bool>
 	{
 		private readonly ITeacherRepository _repository;
+		private readonly IParentRepository _parents;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IIntegrationEventOutbox _outbox;
 
@@ -21,11 +22,13 @@ namespace SchoolManager.Management.Application
 		public UpdateTeacherCommandHandler(
 			ICurrentUserService currentUser,
 			ITeacherRepository repository,
+			IParentRepository parents,
 			IUnitOfWork unitOfWork,
 			IIntegrationEventOutbox outbox)
 		{
 			_currentUser = currentUser;
 			_repository = repository;
+			_parents = parents;
 			_unitOfWork = unitOfWork;
 			_outbox = outbox;
 		}
@@ -37,6 +40,11 @@ namespace SchoolManager.Management.Application
 			if (entity is null)
 				return false;
 
+			// Login account (kept in sync by the Identity service): an empty password keeps the current one
+			var loginName = await TeacherAccount.ValidateLoginNameAsync(request.LoginName, entity.Id, _repository, _parents);
+			var passwordHash = TeacherAccount.HashPassword(request.Password, required: false);
+			entity.SetLoginName(loginName);
+
 			entity.Update(
 				new NameLocalized(request.FullNameAr.Trim(), request.FullNameEn.Trim()),
                 request.PhoneNumber.Trim(),
@@ -47,7 +55,7 @@ namespace SchoolManager.Management.Application
                 entity.AuditInfo.Updated(DateTime.Now, _currentUser.UserId));
 
 			_outbox.Enqueue(Topics.ManagementTeachers, entity.Id.ToString(),
-				TeacherEventFactory.From(entity, TeacherChangeType.Updated, _currentUser.UserId));
+				TeacherEventFactory.From(entity, TeacherChangeType.Updated, _currentUser.UserId, passwordHash));
 
 			await _unitOfWork.SaveChangesAsync();
 

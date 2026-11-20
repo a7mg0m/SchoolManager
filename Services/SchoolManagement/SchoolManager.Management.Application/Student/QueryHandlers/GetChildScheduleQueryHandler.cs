@@ -21,7 +21,7 @@ namespace SchoolManager.Management.Application
                 return null;
 
             var slots = await _timetableRepository.GetSectionSlotsAsync(
-                student.AcademicYearId, student.GradeId, student.SectionId, cancellationToken);
+                request.AcademicYearId ?? student.AcademicYearId, request.SemesterId, student.GradeId, student.SectionId, cancellationToken);
 
             var today = DateOnly.FromDateTime(request.Now);
             var now = TimeOnly.FromDateTime(request.Now);

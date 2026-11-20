@@ -13,6 +13,7 @@ namespace SchoolManager.Management.Application
 	public class CreateTeacherCommandHandler : ICommandHandler<CreateTeacherCommand, Guid>
 	{
 		private readonly ITeacherRepository _repository;
+		private readonly IParentRepository _parents;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IIntegrationEventOutbox _outbox;
 
@@ -21,11 +22,13 @@ namespace SchoolManager.Management.Application
 		public CreateTeacherCommandHandler(
 			ICurrentUserService currentUser,
 			ITeacherRepository repository,
+			IParentRepository parents,
 			IUnitOfWork unitOfWork,
 			IIntegrationEventOutbox outbox)
 		{
 			_currentUser = currentUser;
 			_repository = repository;
+			_parents = parents;
 			_unitOfWork = unitOfWork;
 			_outbox = outbox;
 		}
@@ -43,10 +46,14 @@ namespace SchoolManager.Management.Application
                 command.IsActive,
                 new AuditInfo(DateTime.Now, _currentUser.UserId));
 
+			// Login account (created by the Identity service): login name kept here, password only as a hash
+			entity.SetLoginName(await TeacherAccount.ValidateLoginNameAsync(command.LoginName, entity.Id, _repository, _parents));
+			var passwordHash = TeacherAccount.HashPassword(command.Password, required: true);
+
 			await _repository.AddAsync(entity);
 
 			_outbox.Enqueue(Topics.ManagementTeachers, entity.Id.ToString(),
-				TeacherEventFactory.From(entity, TeacherChangeType.Created, _currentUser.UserId));
+				TeacherEventFactory.From(entity, TeacherChangeType.Created, _currentUser.UserId, passwordHash));
 
 			await _unitOfWork.SaveChangesAsync();
 

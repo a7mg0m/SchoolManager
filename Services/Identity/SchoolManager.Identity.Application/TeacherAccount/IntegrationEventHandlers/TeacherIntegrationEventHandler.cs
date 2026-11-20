@@ -11,7 +11,8 @@ namespace SchoolManager.Identity.Application
     /// the Management service, from Kafka events on the "management.teachers" topic.
     ///
     /// - Created / Updated: create the User + UserProfile if missing, otherwise update them.
-    ///   A new login uses the National ID as login name and first password (the teacher changes it in My Profile).
+    ///   The login name and password come from the teacher page in Management (the password only as a hash);
+    ///   teachers saved before that use the National ID as login name and first password.
     /// - Deleted: delete the User and its UserProfile.
     ///
     /// Messages may arrive more than once, so everything is idempotent. Problems that a retry cannot fix
@@ -19,6 +20,9 @@ namespace SchoolManager.Identity.Application
     /// </summary>
     public class TeacherIntegrationEventHandler : IIntegrationEventHandler<TeacherIntegrationEvent>
     {
+        /// <summary>Email for teachers without one (the user table needs an email)</summary>
+        private const string PlaceholderEmailDomain = "teachers.local";
+
         private readonly IUserRepository _userRepository;
         private readonly IUserProfileRepository _profileRepository;
         private readonly IRoleRepository _roleRepository;
@@ -61,39 +65,38 @@ namespace SchoolManager.Identity.Application
         private async Task UpsertAsync(TeacherIntegrationEvent evt)
         {
             var now = DateTime.Now;
-            var email = evt.Email?.Trim() ?? string.Empty;
             var nationalId = evt.NationalId.Trim();
             var (firstName, lastName) = PersonNames.Split(evt.FullNameEn, evt.FullNameAr);
+
+            // Login name entered in Management; teachers saved before it existed use the National ID
+            var wantedLoginName = string.IsNullOrWhiteSpace(evt.LoginName) ? nationalId : evt.LoginName.Trim();
+            var newPasswordHash = string.IsNullOrWhiteSpace(evt.PasswordHash) ? null : evt.PasswordHash;
 
             if (await _roleRepository.GetByIdAsync(RoleIds.Teacher) is null)
                 throw new InvalidOperationException("The Teacher role is missing (seed data)"); // retried, then logged
 
             var user = await _userRepository.GetByIdAsync(evt.TeacherId);
+            var email = await ChooseEmailAsync(evt, user);
 
             if (user is null)
             {
-                // New login: login name and first password = National ID
-                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(nationalId))
+                if (string.IsNullOrEmpty(wantedLoginName))
                 {
-                    _logger.LogError("Teacher {TeacherId}: no login created, email and national id are required", evt.TeacherId);
+                    _logger.LogError("Teacher {TeacherId}: no login created, a login name or national id is required", evt.TeacherId);
                     return;
                 }
-                if (await _userRepository.GetByLoginNameAsync(nationalId) is not null)
+                if (await LoginNameUsedByOtherAsync(wantedLoginName, evt.TeacherId))
                 {
-                    _logger.LogError("Teacher {TeacherId}: no login created, login name {LoginName} is already used", evt.TeacherId, nationalId);
-                    return;
-                }
-                if (await EmailUsedByOtherAsync(email, evt.TeacherId))
-                {
-                    _logger.LogError("Teacher {TeacherId}: no login created, email {Email} is already used", evt.TeacherId, email);
+                    _logger.LogError("Teacher {TeacherId}: no login created, login name {LoginName} is already used", evt.TeacherId, wantedLoginName);
                     return;
                 }
 
+                // First password: the one entered in Management (already hashed), else the National ID
                 user = new User(
                     evt.TeacherId,
-                    nationalId,
+                    wantedLoginName,
                     email,
-                    _passwordHasher.Hash(nationalId),
+                    newPasswordHash ?? _passwordHasher.Hash(nationalId),
                     evt.IsActive,
                     false,
                     null,
@@ -101,22 +104,27 @@ namespace SchoolManager.Identity.Application
                     new AuditInfo(now, evt.ChangedBy));
                 await _userRepository.AddAsync(user);
 
-                _logger.LogInformation("Teacher {TeacherId}: login {LoginName} created", evt.TeacherId, nationalId);
+                _logger.LogInformation("Teacher {TeacherId}: login {LoginName} created", evt.TeacherId, wantedLoginName);
             }
             else
             {
-                // Keep the current email when the new one is empty or used by another user
-                if (!string.IsNullOrEmpty(email) && await EmailUsedByOtherAsync(email, user.Id))
+                // Login name follows Management, unless another user already has it
+                var loginName = user.LoginName;
+                if (!string.IsNullOrEmpty(wantedLoginName) && wantedLoginName != user.LoginName)
                 {
-                    _logger.LogWarning("Teacher {TeacherId}: email {Email} is used by another user, keeping {CurrentEmail}",
-                        evt.TeacherId, email, user.Email);
-                    email = user.Email;
+                    if (await LoginNameUsedByOtherAsync(wantedLoginName, user.Id))
+                        _logger.LogWarning("Teacher {TeacherId}: login name {LoginName} is used by another user, keeping {CurrentLoginName}",
+                            evt.TeacherId, wantedLoginName, user.LoginName);
+                    else
+                        loginName = wantedLoginName;
                 }
-                if (string.IsNullOrEmpty(email))
-                    email = user.Email;
 
                 var audit = user.AuditInfo.Updated(now, evt.ChangedBy);
-                user.Update(user.LoginName, email, RoleIds.Teacher, audit);
+                user.Update(loginName, email, RoleIds.Teacher, audit);
+
+                // A new password entered in Management (no hash = keep the current password)
+                if (newPasswordHash is not null)
+                    user.ChangePassword(newPasswordHash, audit);
 
                 if (evt.IsActive && !user.IsActive)
                     user.Activate(audit);
@@ -168,6 +176,30 @@ namespace SchoolManager.Identity.Application
             _userRepository.Remove(user);
             _logger.LogInformation("Teacher {TeacherId}: login {LoginName} deleted", evt.TeacherId, user.LoginName);
         }
+
+        /// <summary>
+        /// The teacher's email; a placeholder when it is empty (teachers may have none), or the current one
+        /// when another user already has it.
+        /// </summary>
+        private async Task<string> ChooseEmailAsync(TeacherIntegrationEvent evt, User? user)
+        {
+            var email = evt.Email?.Trim() ?? string.Empty;
+            if (string.IsNullOrEmpty(email))
+                return user is not null && !string.IsNullOrEmpty(user.Email) ? user.Email : PlaceholderEmail(evt.TeacherId);
+
+            if (!await EmailUsedByOtherAsync(email, evt.TeacherId))
+                return email;
+
+            _logger.LogWarning("Teacher {TeacherId}: email {Email} is used by another user", evt.TeacherId, email);
+            return user is not null && !string.IsNullOrEmpty(user.Email)
+                ? user.Email
+                : PlaceholderEmail(evt.TeacherId);
+        }
+
+        private static string PlaceholderEmail(Guid teacherId) => $"teacher-{teacherId:N}@{PlaceholderEmailDomain}";
+
+        private async Task<bool> LoginNameUsedByOtherAsync(string loginName, Guid userId)
+            => (await _userRepository.SearchAsync(u => u.LoginName == loginName)).Any(u => u.Id != userId);
 
         private async Task<bool> EmailUsedByOtherAsync(string email, Guid userId)
             => (await _userRepository.SearchAsync(u => u.Email == email)).Any(u => u.Id != userId);

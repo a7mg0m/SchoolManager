@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import '../../core/auth/auth_service.dart';
+import '../../core/academic_year/academic_year_controller.dart';
 import '../../core/config.dart';
 import '../schedule/schedule_format.dart';
 import '../../core/i18n/app_language.dart';
@@ -140,7 +141,8 @@ class ExamsService {
     final http.Response response;
     try {
       response = await http.get(
-        Uri.parse('${AppConfig.apiBaseUrl}/api/exam/my-child/${Uri.encodeComponent(studentId)}'),
+        AcademicYearController.instance.withYear(
+            Uri.parse('${AppConfig.apiBaseUrl}/api/exam/my-child/${Uri.encodeComponent(studentId)}')),
         headers: {'Accept': 'application/json', 'Authorization': 'Bearer ${session.token}'},
       ).timeout(AppConfig.requestTimeout);
     } on TimeoutException {

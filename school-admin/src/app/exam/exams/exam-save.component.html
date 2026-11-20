@@ -162,6 +162,8 @@
               @if (form.get('academicYearId')?.value && yearSemesters().length === 0) {
                 <small class="text-muted">{{ 'exams.noSemestersForYear' | translate }}</small>
               }
+              <!-- Where the year / semester come from -->
+              <small class="text-muted d-block mt-1"><i class="pe-7s-info me-1"></i>{{ (isEditMode() ? 'common.keptFromRecord' : 'common.fromHeader') | translate }}</small>
             </div>
 
             <!-- Exam Type -->

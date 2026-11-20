@@ -10,6 +10,7 @@ namespace SchoolManager.Management.Application
 		private readonly ITimetableSlotRepository _slotRepository;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IGradeRepository _gradeRepository;
+		private readonly ISemesterRepository _semesterRepository;
 
 		private readonly ICurrentUserService _currentUser;
 
@@ -17,10 +18,12 @@ namespace SchoolManager.Management.Application
 			ITimetableRepository repository,
 			ITimetableSlotRepository slotRepository,
 			IGradeRepository gradeRepository,
+			ISemesterRepository semesterRepository,
 			IUnitOfWork unitOfWork)
 		{
 			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
+			_semesterRepository = semesterRepository;
 			_repository = repository;
 			_slotRepository = slotRepository;
 			_unitOfWork = unitOfWork;
@@ -39,6 +42,11 @@ namespace SchoolManager.Management.Application
 			if (grade.StageId != request.StageId)
 				throw new InvalidOperationException("Grade does not belong to the selected stage.");
 
+			var semester = await _semesterRepository.GetByIdAsync(request.SemesterId)
+				?? throw new InvalidOperationException("Semester not found.");
+			if (semester.AcademicYearId != request.AcademicYearId)
+				throw new InvalidOperationException("Semester does not belong to the selected academic year.");
+
 			// AuditInfo is an EF owned type: every entity needs its OWN instance.
 			// Sharing one instance across entities leaves the others' audit columns NULL.
 			var now = DateTime.Now;
@@ -50,6 +58,7 @@ namespace SchoolManager.Management.Application
 				request.StageId,
 				request.GradeId,
 				request.AcademicYearId,
+				request.SemesterId,
 				Updated(entity.AuditInfo));
 
 			var incoming = request.Slots ?? new();

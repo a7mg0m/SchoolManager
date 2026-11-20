@@ -24,7 +24,7 @@ namespace SchoolManager.Notification.API.Controllers
         /// </summary>
         [Authorize]
         [HttpGet("my-child/{studentId}")]
-        public async Task<IActionResult> GetMyChildEvents(Guid studentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetMyChildEvents(Guid studentId, [FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
         {
             if (CurrentParentId is null)
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
@@ -37,7 +37,11 @@ namespace SchoolManager.Notification.API.Controllers
             if (child is null)
                 return NotFound(new ApiResponse(404, "StudentNotFound"));
 
-            var events = await _mediator.Send(new GetChildEventsQuery(child), cancellationToken);
+            // The academic year chosen in the app, else the child's own
+            if (academicYearId is Guid year)
+                child = child with { AcademicYearId = year };
+
+            var events = await _mediator.Send(new GetChildEventsQuery(child, academicYearId, semesterId), cancellationToken);
             return Ok(new ApiResponse { data = events });
         }
 

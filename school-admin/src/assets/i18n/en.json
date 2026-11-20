@@ -33,7 +33,10 @@
     "nameRequired": "Name is required",
     "nameMinLength": "Name must be at least 2 characters",
     "nameMaxLength": "Name must not exceed 100 characters",
-    "search": "Search"
+    "search": "Search",
+    "fromHeader": "From the academic year / semester in the header — change it there.",
+    "keptFromRecord": "Saved with this record.",
+    "chooseYearInHeader": "Choose the academic year and semester in the header first."
   },
   "header": {
     "dashboard": "Dashboard",
@@ -43,7 +46,10 @@
     "settings": "Settings",
     "language": "Language",
     "search": "Search",
-    "logout": "Logout"
+    "logout": "Logout",
+    "academicYear": "Academic year",
+    "semester": "Semester",
+    "noSemesters": "No semesters"
   },
   "pageTitle": {
     "appName": "School Manager",
@@ -247,7 +253,23 @@
     "deleted": "Teacher deleted successfully",
     "createFailed": "Failed to create teacher. Please try again.",
     "updateFailed": "Failed to update teacher. Please try again.",
-    "deleteFailed": "Failed to delete teacher. Please try again."
+    "deleteFailed": "Failed to delete teacher. Please try again.",
+    "loginAccount": "Login Account",
+    "loginName": "Login Name",
+    "loginNameRequired": "Login name is required",
+    "loginNameMinLength": "Login name must be at least {{min}} characters",
+    "loginNameMaxLength": "Login name must be at most {{max}} characters",
+    "loginNameExists": "This login name is already used by another user",
+    "loginNameCheckFailed": "Could not check the login name. Please try again.",
+    "password": "Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least {{min}} characters",
+    "passwordMismatch": "Passwords do not match",
+    "keepPasswordHint": "Leave empty to keep the current password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "subjects": {
     "title": "Subject Management",
@@ -599,7 +621,15 @@
     },
     "stageRequired": "Stage is required",
     "selectStageFirst": "Select a stage first",
-    "noGradesForStage": "No active grades for this stage"
+    "noGradesForStage": "No active grades for this stage",
+    "semester": "Semester",
+    "semesterRequired": "Semester is required",
+    "selectYearFirst": "Select an academic year first",
+    "noSemestersForYear": "This academic year has no semesters. Add them on the academic years page.",
+    "currentSemester": "current",
+    "allYears": "All years",
+    "allSemesters": "All semesters",
+    "noTimetablesForFilter": "No timetables for this academic year / semester."
   },
   "expenseCategories": {
     "title": "Expense Categories",

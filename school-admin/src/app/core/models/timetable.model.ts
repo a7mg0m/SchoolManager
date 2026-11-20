@@ -26,6 +26,8 @@ export interface Timetable {
   stageId: string;
   gradeId: string;
   academicYearId: string;
+  /** null: saved before semesters (used in every semester of its year) */
+  semesterId?: string | null;
   slots: TimetableSlot[];
 }
 
@@ -36,6 +38,7 @@ export interface CreateTimetableRequest {
   stageId: string;
   gradeId: string;
   academicYearId: string;
+  semesterId: string;
   slots: TimetableSlot[];
 }
 
@@ -48,6 +51,7 @@ export interface UpdateTimetableRequest {
   stageId: string;
   gradeId: string;
   academicYearId: string;
+  semesterId: string;
   slots: TimetableSlot[];
 }
 

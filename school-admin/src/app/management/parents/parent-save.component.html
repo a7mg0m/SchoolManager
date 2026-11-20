@@ -359,6 +359,8 @@
                       @if (academicYears().length === 0) {
                         <div class="form-text">{{ 'parents.noAcademicYears' | translate }}</div>
                       }
+                      <!-- Where the academic year comes from -->
+                      <small class="text-muted d-block mt-1"><i class="pe-7s-info me-1"></i>{{ (studentsArray.at(i).get('id')?.value ? 'common.keptFromRecord' : 'common.fromHeader') | translate }}</small>
                     </div>
 
                     <div class="col-md-6 col-xl-3 mb-3">

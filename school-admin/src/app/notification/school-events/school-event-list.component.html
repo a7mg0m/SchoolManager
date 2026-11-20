@@ -50,6 +50,8 @@
     <!-- Tabs + filters -->
     <div class="card mb-3">
       <div class="card-body">
+        <!-- Events of the academic year / semester chosen in the header -->
+        <app-academic-context-note></app-academic-context-note>
         <ul class="nav nav-pills mb-3">
           <li class="nav-item">
             <button type="button" class="nav-link" [class.active]="tab() === 'upcoming'" (click)="tab.set('upcoming')">
@@ -87,15 +89,6 @@
               <option value="">{{ 'schoolEvents.allAudiences' | translate }}</option>
               @for (o of eventForOptions; track o.value) {
                 <option [value]="o.value" [selected]="'' + o.value === eventForFilter()">{{ o.key | translate }}</option>
-              }
-            </select>
-          </div>
-          <div class="col-lg-3 col-md-5 col-6">
-            <label class="form-label small mb-1" for="yearFilter">{{ 'parents.academicYear' | translate }}</label>
-            <select id="yearFilter" class="form-select" [value]="academicYearFilter()" (change)="setFilter('academicYear', $event)">
-              <option value="">{{ 'students.all' | translate }}</option>
-              @for (y of academicYears(); track y.id) {
-                <option [value]="y.id" [selected]="y.id === academicYearFilter()">{{ y.name }}</option>
               }
             </select>
           </div>

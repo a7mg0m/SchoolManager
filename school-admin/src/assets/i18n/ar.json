@@ -33,7 +33,10 @@
     "nameRequired": "الاسم مطلوب",
     "nameMinLength": "يجب أن يكون الاسم بطول 2 أحرف على الأقل",
     "nameMaxLength": "لا يجب أن يتجاوز الاسم 100 حرف",
-    "search": "بحث"
+    "search": "بحث",
+    "fromHeader": "من السنة / الفصل الدراسي في أعلى الصفحة — غيّرها من هناك.",
+    "keptFromRecord": "محفوظة مع هذا السجل.",
+    "chooseYearInHeader": "اختر السنة والفصل الدراسي من أعلى الصفحة أولاً."
   },
   "header": {
     "dashboard": "لوحة التحكم",
@@ -43,7 +46,10 @@
     "settings": "الإعدادات",
     "language": "اللغة",
     "search": "بحث",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "academicYear": "السنة الدراسية",
+    "semester": "الفصل الدراسي",
+    "noSemesters": "لا توجد فصول"
   },
   "pageTitle": {
     "appName": "إدارة المدرسة",
@@ -247,7 +253,23 @@
     "deleted": "تم حذف المعلم بنجاح",
     "createFailed": "تعذر إنشاء المعلم. يرجى المحاولة مرة أخرى.",
     "updateFailed": "تعذر تحديث المعلم. يرجى المحاولة مرة أخرى.",
-    "deleteFailed": "تعذر حذف المعلم. يرجى المحاولة مرة أخرى."
+    "deleteFailed": "تعذر حذف المعلم. يرجى المحاولة مرة أخرى.",
+    "loginAccount": "حساب الدخول",
+    "loginName": "اسم المستخدم",
+    "loginNameRequired": "اسم المستخدم مطلوب",
+    "loginNameMinLength": "يجب ألا يقل اسم المستخدم عن {{min}} أحرف",
+    "loginNameMaxLength": "يجب ألا يزيد اسم المستخدم عن {{max}} حرفاً",
+    "loginNameExists": "اسم المستخدم مستخدم بالفعل لمستخدم آخر",
+    "loginNameCheckFailed": "تعذر التحقق من اسم المستخدم، حاول مرة أخرى.",
+    "password": "كلمة المرور",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "passwordRequired": "كلمة المرور مطلوبة",
+    "passwordMinLength": "يجب ألا تقل كلمة المرور عن {{min}} أحرف",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين",
+    "keepPasswordHint": "اتركها فارغة للإبقاء على كلمة المرور الحالية",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور"
   },
   "subjects": {
     "title": "إدارة المواد الدراسية",
@@ -599,7 +621,15 @@
     },
     "stageRequired": "المرحلة مطلوبة",
     "selectStageFirst": "اختر المرحلة أولاً",
-    "noGradesForStage": "لا توجد سنوات دراسية نشطة لهذه المرحلة"
+    "noGradesForStage": "لا توجد سنوات دراسية نشطة لهذه المرحلة",
+    "semester": "الفصل الدراسي",
+    "semesterRequired": "الفصل الدراسي مطلوب",
+    "selectYearFirst": "اختر السنة الدراسية أولاً",
+    "noSemestersForYear": "لا توجد فصول دراسية لهذه السنة، أضفها من صفحة السنوات الدراسية.",
+    "currentSemester": "الحالي",
+    "allYears": "كل السنوات",
+    "allSemesters": "كل الفصول",
+    "noTimetablesForFilter": "لا توجد جداول لهذه السنة / الفصل الدراسي."
   },
   "expenseCategories": {
     "title": "فئات المصروفات",

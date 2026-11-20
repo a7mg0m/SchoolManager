@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
@@ -48,7 +49,6 @@ export class SchoolEventListComponent implements OnInit, OnDestroy {
   tab = signal<EventTab>('upcoming');
   searchTerm = signal('');
   eventForFilter = signal<string>('');
-  academicYearFilter = signal<string>('');
 
   readonly eventForOptions = EVENT_FOR_OPTIONS;
   readonly EventFor = EventFor;
@@ -59,11 +59,14 @@ export class SchoolEventListComponent implements OnInit, OnDestroy {
   private matchingEvents = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const eventFor = this.eventForFilter();
-    const yearId = this.academicYearFilter();
+    // The header's academic year / semester
+    const yearId = this.academic.yearId();
+    const semesterId = this.academic.semesterId();
 
     return this.events().filter(e => {
       if (eventFor && e.eventFor !== Number(eventFor)) return false;
       if (yearId && e.academicYearId !== yearId) return false;
+      if (semesterId && e.semesterId !== semesterId) return false;
       if (term && !`${e.title} ${e.description}`.toLowerCase().includes(term)) return false;
       return true;
     });
@@ -90,7 +93,7 @@ export class SchoolEventListComponent implements OnInit, OnDestroy {
     return this.events().filter(e => e.eventDate === today).length;
   });
 
-  hasActiveFilters = computed(() => !!(this.searchTerm() || this.eventForFilter() || this.academicYearFilter()));
+  hasActiveFilters = computed(() => !!(this.searchTerm() || this.eventForFilter()));
 
   private destroy$ = new Subject<void>();
   private modalRef: NgbModalRef | null = null;
@@ -106,8 +109,11 @@ export class SchoolEventListComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private translate: TranslateService,
     private router: Router,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.languageService.currentLanguage$
@@ -161,17 +167,15 @@ export class SchoolEventListComponent implements OnInit, OnDestroy {
   // Filters & navigation
   // ---------------------------------------------------------------------------
 
-  setFilter(filter: 'search' | 'eventFor' | 'academicYear', event: Event): void {
+  setFilter(filter: 'search' | 'eventFor', event: Event): void {
     const value = (event.target as HTMLInputElement | HTMLSelectElement).value;
     if (filter === 'search') this.searchTerm.set(value);
     if (filter === 'eventFor') this.eventForFilter.set(value);
-    if (filter === 'academicYear') this.academicYearFilter.set(value);
   }
 
   clearFilters(): void {
     this.searchTerm.set('');
     this.eventForFilter.set('');
-    this.academicYearFilter.set('');
   }
 
   navigateToCreate(): void {

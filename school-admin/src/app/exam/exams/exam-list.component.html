@@ -52,17 +52,9 @@
     <!-- Filters -->
     <div class="card mb-3">
       <div class="card-body">
+        <!-- Exams of the academic year / semester chosen in the header -->
+        <app-academic-context-note></app-academic-context-note>
         <div class="row g-2 align-items-end">
-          <div class="col-md-3">
-            <label for="filterAcademicYear" class="form-label small mb-1">{{ 'exams.academicYear' | translate }}</label>
-            <select id="filterAcademicYear" class="form-select form-select-sm"
-                    [value]="filterAcademicYearId()" (change)="filterAcademicYearId.set($any($event.target).value)">
-              <option value="">{{ 'exams.all' | translate }}</option>
-              @for (year of academicYears(); track year.id) {
-                <option [value]="year.id">{{ year.name }}</option>
-              }
-            </select>
-          </div>
           <div class="col-md-2">
             <label for="filterStage" class="form-label small mb-1">{{ 'exams.stage' | translate }}</label>
             <select id="filterStage" class="form-select form-select-sm"

@@ -9,6 +9,8 @@ namespace SchoolManager.Management.Application
         string PhoneNumber,
         string? Email,
         string Address,
-        bool IsActive
+        bool IsActive,
+        string? LoginName = null,
+        string? Password = null
     ) : ICommand<bool>;
 }

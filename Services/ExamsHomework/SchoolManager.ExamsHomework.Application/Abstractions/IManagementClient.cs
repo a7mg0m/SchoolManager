@@ -11,5 +11,8 @@ namespace SchoolManager.ExamsHomework.Application
 
         /// <summary>Subject names by id (Arabic, English); empty when they could not be loaded.</summary>
         Task<IReadOnlyDictionary<Guid, (string Ar, string En)>> GetSubjectNamesAsync(string authorization, CancellationToken cancellationToken = default);
+
+        /// <summary>Subjects / classes of the logged-in teacher (for the chosen academic year, else the current one); null when the Management service could not answer.</summary>
+        Task<TeacherClasses?> GetMyClassesAsync(string authorization, Guid? academicYearId = null, Guid? semesterId = null, CancellationToken cancellationToken = default);
     }
 }

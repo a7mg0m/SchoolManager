@@ -12,6 +12,10 @@ namespace SchoolManager.ExamsHomework.Infrastructure
     {
         private sealed record ChildItem(Guid Id, Guid GradeId, Guid SectionId, Guid AcademicYearId);
         private sealed record SubjectItem(Guid Id, string? NameAr, string? NameEn);
+        private sealed record SectionItem(Guid SectionId, string? NameAr, string? NameEn);
+        private sealed record TeacherSubjectItem(Guid SubjectId, string? SubjectNameAr, string? SubjectNameEn, Guid GradeId,
+            string? GradeNameAr, string? GradeNameEn, List<SectionItem>? Sections);
+        private sealed record ClassesItem(Guid? AcademicYearId, Guid? SemesterId, List<TeacherSubjectItem>? Subjects);
         private sealed record ApiResponse<T>(T? Data);
 
         public async Task<IReadOnlyList<ParentChild>?> GetMyChildrenAsync(string authorization, CancellationToken cancellationToken = default)
@@ -51,6 +55,47 @@ namespace SchoolManager.ExamsHomework.Infrastructure
             {
                 return new Dictionary<Guid, (string, string)>(); // names are optional: the exams still show
             }
+        }
+
+        public async Task<TeacherClasses?> GetMyClassesAsync(string authorization, Guid? academicYearId = null, Guid? semesterId = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var response = await SendAsync(
+                    MyClassesPath(academicYearId, semesterId),
+                    authorization, cancellationToken);
+                if (response is null || (int)response.StatusCode is 401 or 403)
+                    return new TeacherClasses(null, null, Array.Empty<TeacherSubject>()); // not a teacher: teaches nothing
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var body = await response.Content.ReadFromJsonAsync<ApiResponse<ClassesItem>>(cancellationToken);
+                var data = body?.Data;
+                return new TeacherClasses(
+                    data?.AcademicYearId,
+                    data?.SemesterId,
+                    (data?.Subjects ?? new List<TeacherSubjectItem>())
+                        .Select(s => new TeacherSubject(
+                            s.SubjectId, s.SubjectNameAr ?? string.Empty, s.SubjectNameEn ?? string.Empty,
+                            s.GradeId, s.GradeNameAr ?? string.Empty, s.GradeNameEn ?? string.Empty,
+                            (s.Sections ?? new List<SectionItem>())
+                                .Select(x => new TeacherSection(x.SectionId, x.NameAr ?? string.Empty, x.NameEn ?? string.Empty))
+                                .ToList()))
+                        .ToList());
+            }
+            catch (Exception ex) when (IsCommunicationError(ex))
+            {
+                return null;
+            }
+        }
+
+        /// <summary>api/teacher/my-classes with the chosen academic year / semester</summary>
+        private static string MyClassesPath(Guid? academicYearId, Guid? semesterId)
+        {
+            var query = new List<string>();
+            if (academicYearId is Guid year) query.Add($"academicYearId={year}");
+            if (semesterId is Guid semester) query.Add($"semesterId={semester}");
+            return query.Count == 0 ? "api/teacher/my-classes" : "api/teacher/my-classes?" + string.Join("&", query);
         }
 
         private async Task<HttpResponseMessage?> SendAsync(string path, string authorization, CancellationToken cancellationToken)

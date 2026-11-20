@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin } from 'rxjs';
@@ -13,7 +14,7 @@ import { LanguageService } from '../../ThemeOptions/store/language.service';
 import { Timetable, TimetableSlot, CreateTimetableRequest, UpdateTimetableRequest } from '../../core/models/timetable.model';
 import { Stage } from '../../core/models/stage.model';
 import { Grade } from '../../core/models/grade.model';
-import { AcademicYear } from '../../core/models/academic-year.model';
+import { AcademicYear, AcademicYearSemester, AcademicYearSemesters } from '../../core/models/academic-year.model';
 import { Section } from '../../core/models/section.model';
 import { Subject as SchoolSubject } from '../../core/models/subject.model';
 import { Teacher } from '../../core/models/teacher.model';
@@ -101,13 +102,18 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
     private teacherService: TeacherService,
     private languageService: LanguageService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.followHeader();
+  }
 
   ngOnInit(): void {
     this.initializeForm();
     this.timetableId = this.activatedRoute.snapshot.paramMap.get('id');
     this.isEditMode.set(!!this.timetableId);
+    this.lockAcademicFields();
+    this.academic.load();
 
     this.languageService.currentLanguage$
       .pipe(takeUntil(this.destroy$))
@@ -127,6 +133,16 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(gradeId => this.onGradeChanged(gradeId));
 
+    // Another academic year: keep the semester only when it belongs to it, else its current semester
+    this.form.get('academicYearId')!.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        const semesterId = this.form.get('semesterId')!.value;
+        if (!semesterId || !this.yearSemesters.some(s => s.id === semesterId)) {
+          this.form.get('semesterId')!.setValue(this.currentSemesterId ?? '');
+        }
+      });
+
     this.loadLookups();
   }
 
@@ -144,6 +160,7 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
       stageId: ['', Validators.required],
       gradeId: ['', Validators.required],
       academicYearId: ['', Validators.required],
+      semesterId: ['', Validators.required],
       slots: this.formBuilder.array([], { validators: noOverlappingSlots })
     });
   }
@@ -245,10 +262,8 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
           if (this.timetableId) {
             this.loadTimetable(this.timetableId);
           } else {
-            const activeYear = this.academicYears().find(y => y.isActive);
-            if (activeYear) {
-              this.form.patchValue({ academicYearId: activeYear.id });
-            }
+            // The header's academic year / semester
+            this.form.patchValue({ academicYearId: this.academic.yearId(), semesterId: this.academic.semesterId() });
             this.isLoading.set(false);
           }
         },
@@ -288,7 +303,11 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
     this.form.patchValue({
       stageId,
       gradeId: timetable.gradeId,
-      academicYearId: timetable.academicYearId
+      academicYearId: timetable.academicYearId,
+      // Timetables saved before semesters have none: suggest the year's current semester
+      semesterId: timetable.semesterId
+        || AcademicYearSemesters.current(this.academicYears().find(y => y.id === timetable.academicYearId))?.id
+        || ''
     }, { emitEvent: false });
     this.applyGradeFilter(timetable.gradeId);
 
@@ -328,6 +347,45 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
     return this.teachers().filter(t => subject.teacherIds.includes(t.id));
   }
 
+// ---------------------------------------------------------------------------
+  // Academic year / semester from the header
+  // ---------------------------------------------------------------------------
+
+  /** New record: the header's year and semester (kept in step when the header changes) */
+  private followHeader(): void {
+    effect(() => {
+      const academicYearId = this.academic.yearId();
+      const semesterId = this.academic.semesterId();
+      if (this.form && !this.isEditMode()) {
+        this.form.patchValue({ academicYearId, semesterId });
+      }
+    });
+  }
+
+  /** Year / semester are not edited here: new records take the header's, saved ones keep theirs */
+  private lockAcademicFields(): void {
+    this.form.get('academicYearId')!.disable({ emitEvent: false });
+    this.form.get('semesterId')!.disable({ emitEvent: false });
+  }
+
+  /** The header has no year / semester to save with */
+  private missingAcademicContext(value: { academicYearId?: string; semesterId?: string }): boolean {
+    return !value.academicYearId || !value.semesterId;
+  }
+
+  /** Semesters of the selected academic year (in date order) */
+  get yearSemesters(): AcademicYearSemester[] {
+    const yearId = this.form?.get('academicYearId')?.value;
+    const year = this.academicYears().find(y => y.id === yearId);
+    return AcademicYearSemesters.ordered(year);
+  }
+
+  /** The selected year's current semester (today inside it, else an active one, else the first) */
+  get currentSemesterId(): string | undefined {
+    const yearId = this.form?.get('academicYearId')?.value;
+    return AcademicYearSemesters.current(this.academicYears().find(y => y.id === yearId))?.id;
+  }
+
   /** Grades of the selected stage for the grade <select> */
   get stageGrades(): Grade[] {
     const stageId = this.form?.get('stageId')?.value;
@@ -342,6 +400,11 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
     if (!this.form.valid) {
       this.form.markAllAsTouched();
       this.errorMessage.set('Please fix form errors before submitting');
+      return;
+    }
+
+    if (this.missingAcademicContext(this.form.getRawValue())) {
+      this.errorMessage.set('Choose the academic year and semester in the header first.');
       return;
     }
 
@@ -368,12 +431,14 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
           stageId: value.stageId,
           gradeId: value.gradeId,
           academicYearId: value.academicYearId,
+          semesterId: value.semesterId,
           slots
         } as UpdateTimetableRequest)
       : this.timetableService.create({
           stageId: value.stageId,
           gradeId: value.gradeId,
           academicYearId: value.academicYearId,
+          semesterId: value.semesterId,
           slots: slots.map(({ id, ...rest }) => rest)
         } as CreateTimetableRequest);
 
