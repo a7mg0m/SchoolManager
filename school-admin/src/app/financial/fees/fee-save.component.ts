@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
@@ -51,8 +52,11 @@ export class FeeSaveComponent implements OnInit, OnDestroy {
     private gradeService: GradeService,
     private languageService: LanguageService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
@@ -165,12 +169,19 @@ export class FeeSaveComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.isEditMode() && !this.academic.yearId()) {
+      this.errorMessage.set('Choose the academic year in the header first.');
+      return;
+    }
+
     this.isSaving.set(true);
     this.errorMessage.set(null);
 
     const v = this.form.getRawValue();
     const currency = (v.currency || '').trim().toUpperCase();
+    // The header's academic year: new fees get it; a fee saved without a year gets it on edit
     const body: UpdateFeeRequest = {
+      academicYearId: this.academic.yearId() || null,
       name: (v.name || '').trim(),
       type: Number(v.type),
       amount: Number(v.amount),
@@ -180,7 +191,7 @@ export class FeeSaveComponent implements OnInit, OnDestroy {
 
     const request$ = this.isEditMode()
       ? this.feeService.update(this.feeId!, body)
-      : this.feeService.create({ ...body, gradeId: v.gradeId } as CreateFeeRequest);
+      : this.feeService.create({ ...body, gradeId: v.gradeId, academicYearId: this.academic.yearId() } as CreateFeeRequest);
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (response) => {

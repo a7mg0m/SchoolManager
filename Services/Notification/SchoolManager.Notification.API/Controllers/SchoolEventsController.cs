@@ -45,6 +45,21 @@ namespace SchoolManager.Notification.API.Controllers
             return Ok(new ApiResponse { data = events });
         }
 
+        /// <summary>
+        /// Events for the logged-in teacher (teacher app): for everyone, or for teachers when they are one of the
+        /// chosen teachers (an event for teachers without targets is for all teachers).
+        /// </summary>
+        [Authorize]
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyEvents([FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
+        {
+            if (CurrentTeacherId is not Guid teacherId)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+            var events = await _mediator.Send(new GetTeacherEventsQuery(teacherId, academicYearId, semesterId), cancellationToken);
+            return Ok(new ApiResponse { data = events });
+        }
+
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {

@@ -6,6 +6,9 @@ namespace SchoolManager.Financial.Application
     {
         public Guid Id { get; set; }
         public Guid StudentId { get; set; }
+
+        /// <summary>null: assigned before years (shown in every year)</summary>
+        public Guid? AcademicYearId { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal PaidAmount { get; set; }

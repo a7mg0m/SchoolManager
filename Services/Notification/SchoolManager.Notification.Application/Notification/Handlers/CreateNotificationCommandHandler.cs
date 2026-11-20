@@ -26,7 +26,8 @@ namespace SchoolManager.Notification.Application
                 command.SentOn,
                 command.NotificationType,
                 command.ImageUrl,
-                new AuditInfo(DateTime.Now, _currentUser.UserId));
+                new AuditInfo(DateTime.Now, _currentUser.UserId),
+                command.AcademicYearId);
 
             foreach (var target in command.Targets ?? [])
             {

@@ -8,5 +8,6 @@ namespace SchoolManager.ExamsHomework.Application
         Guid GradeId,
         string GradeNameAr,
         string GradeNameEn,
-        IReadOnlyList<TeacherSection> Sections);
+        IReadOnlyList<TeacherSection> Sections,
+        Guid StageId = default);
 }

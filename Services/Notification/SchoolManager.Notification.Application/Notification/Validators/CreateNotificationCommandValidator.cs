@@ -9,6 +9,7 @@ namespace SchoolManager.Notification.Application
             RuleFor(x => x.Title).NotEmpty().WithMessage("TitleRequired");
             RuleFor(x => x.Description).NotEmpty().WithMessage("DescriptionRequired");
             RuleFor(x => x.NotificationType).IsInEnum().WithMessage("NotificationTypeInvalid");
+            RuleFor(x => x.AcademicYearId).NotEmpty().WithMessage("AcademicYearRequired");
             RuleForEach(x => x.Targets).Must(HaveAnyTarget).WithMessage("TargetRequired");
         }
 

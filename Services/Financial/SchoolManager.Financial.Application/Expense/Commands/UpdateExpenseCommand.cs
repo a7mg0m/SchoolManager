@@ -13,6 +13,8 @@ namespace SchoolManager.Financial.Application
         decimal Amount,
         string Currency,
         DateTime ExpenseDate,
-        string? Reference
+        string? Reference,
+        /// <summary>Only used when the expense has no year yet</summary>
+        Guid? AcademicYearId = null
     ) : ICommand<bool>;
 }

@@ -9,11 +9,11 @@ namespace SchoolManager.Notification.Application
     {
         public async Task<Guid> Handle(CreatePrivateChatCommand command, CancellationToken cancellationToken)
         {
-            var existing = await rooms.GetPrivateRoomAsync(command.CurrentUserId, command.OtherUserId, cancellationToken);
+            var existing = await rooms.GetPrivateRoomAsync(command.CurrentUserId, command.OtherUserId, command.AcademicYearId, cancellationToken);
             if (existing is not null) return existing.Id;
 
             var audit = new AuditInfo(DateTime.UtcNow, command.CurrentUserId);
-            var room = ChatRoom.CreatePrivate(command.CurrentUserId, command.OtherUserId, audit);
+            var room = ChatRoom.CreatePrivate(command.CurrentUserId, command.OtherUserId, audit, command.AcademicYearId);
 
             await rooms.AddAsync(room);
             await unitOfWork.SaveChangesAsync(cancellationToken);

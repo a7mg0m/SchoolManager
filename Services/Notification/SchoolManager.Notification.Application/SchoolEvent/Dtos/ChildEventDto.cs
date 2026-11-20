@@ -2,7 +2,7 @@ using SchoolManager.Notification.Domain;
 
 namespace SchoolManager.Notification.Application
 {
-    /// <summary>A school event that concerns a parent's child (parent app). Targets are not exposed.</summary>
+    /// <summary>A school event that concerns a parent's child (parent app) or a teacher (teacher app). Targets are not exposed.</summary>
     public class ChildEventDto
     {
         public Guid Id { get; set; }
@@ -12,7 +12,7 @@ namespace SchoolManager.Notification.Application
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
         public string? ImageUrl { get; set; }
-        /// <summary>Who the event is for: All = 1, Stage = 2, Grade = 3, Section = 4, Student = 6</summary>
+        /// <summary>Who the event is for: All = 1, Stage = 2, Grade = 3, Section = 4, Teacher = 5, Student = 6</summary>
         public EventForEnum EventFor { get; set; }
     }
 }

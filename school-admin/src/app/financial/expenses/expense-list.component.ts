@@ -4,6 +4,7 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Subject, timer, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ExpenseService } from '../../core/services/expense.service';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { ExpenseCategoryService } from '../../core/services/expense-category.service';
 import { Expense, ExpenseType, EXPENSE_TYPES } from '../../core/models/expense.model';
 import { ExpenseCategory } from '../../core/models/expense-category.model';
@@ -15,7 +16,14 @@ import { ExpenseCategory } from '../../core/models/expense-category.model';
   templateUrl: './expense-list.component.html',
 })
 export class ExpenseListComponent implements OnInit, OnDestroy {
-  expenses = signal<Expense[]>([]);
+  /** Everything loaded; the page shows only the header's academic year */
+  private allExpenses = signal<Expense[]>([]);
+
+  /** Expenses of the academic year chosen in the header */
+  expenses = computed(() => {
+    const yearId = this.academic.yearId();
+    return this.allExpenses().filter(e => !!yearId && e.academicYearId === yearId);
+  });
   categories = signal<ExpenseCategory[]>([]);
   isLoading = signal(false);
   isDeleting = signal(false);
@@ -76,8 +84,10 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
     private expenseService: ExpenseService,
     private expenseCategoryService: ExpenseCategoryService,
     private router: Router,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();}
 
   ngOnInit(): void {
     this.loadData();
@@ -101,7 +111,7 @@ export class ExpenseListComponent implements OnInit, OnDestroy {
         next: ({ expenses, categories }) => {
           this.categories.set(categories.data || []);
           if (expenses.status === 200) {
-            this.expenses.set(expenses.data || []);
+            this.allExpenses.set(expenses.data || []);
           } else {
             this.errorMessage.set(expenses.message || 'Failed to load expenses');
           }

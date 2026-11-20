@@ -1,12 +1,28 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:smart_school_teacher/features/chat/chat_screens.dart';
+import 'package:smart_school_teacher/features/notifications/notifications_screen.dart';
+import 'package:smart_school_teacher/features/notifications/notifications_service.dart';
+import 'package:smart_school_teacher/features/chat/chat_service.dart';
 import 'package:smart_school_teacher/core/academic_year/academic_year_controller.dart';
+import 'package:smart_school_teacher/core/academic_year/academic_year_picker.dart';
 import 'package:smart_school_teacher/core/auth/auth_service.dart';
 import 'package:smart_school_teacher/core/i18n/app_language.dart';
+import 'package:smart_school_teacher/features/classes/classes_screens.dart';
+import 'package:smart_school_teacher/features/classes/classes_service.dart';
+import 'package:smart_school_teacher/features/events/events_screen.dart';
+import 'package:smart_school_teacher/features/parents/parents_screen.dart';
+import 'package:smart_school_teacher/features/parents/parents_service.dart';
+import 'package:smart_school_teacher/features/events/events_service.dart';
+import 'package:smart_school_teacher/features/exams/exam_screens.dart';
+import 'package:smart_school_teacher/features/exams/exam_service.dart';
 import 'package:smart_school_teacher/features/home/home_screen.dart';
+import 'package:smart_school_teacher/features/homework/homework_details_screen.dart';
 import 'package:smart_school_teacher/features/homework/homework_screens.dart';
 import 'package:smart_school_teacher/features/homework/homework_service.dart';
 import 'package:smart_school_teacher/features/timetable/teacher_timetable_screen.dart';
@@ -117,16 +133,53 @@ void main() {
     expect(find.text('منى علي'), findsOneWidget);
     expect(find.text('معلم'), findsOneWidget);
     expect(find.text('مدرسة النور'), findsOneWidget);
-    expect(find.text('إعلان هام'), findsOneWidget);
+    // No upcoming event: no important notice
+    expect(find.text('إعلان هام'), findsNothing);
     expect(find.text('الخدمات'), findsOneWidget);
     expect(find.text('جدول حصصي'), findsOneWidget);
     expect(find.text('الحضور والغياب'), findsOneWidget);
-    expect(find.text('رصد الدرجات'), findsOneWidget);
+    expect(find.text('الاختبارات والدرجات'), findsOneWidget);
 
     // Services that are not ready yet say so
-    await tester.tap(find.text('رصد الدرجات'));
+    await tester.tap(find.text('الحضور والغياب'));
     await tester.pump();
-    expect(find.text('خدمة "رصد الدرجات" ستتوفر قريباً.'), findsOneWidget);
+    expect(find.text('خدمة "الحضور والغياب" ستتوفر قريباً.'), findsOneWidget);
+  });
+
+  testWidgets('Important notice shows the next upcoming event; tapping it opens the events',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    final today = DateTime.now();
+    final day = DateTime(today.year, today.month, today.day);
+    SchoolEvent event(String id, String title, int inDays, EventAudience audience) => SchoolEvent(
+          id: id,
+          title: title,
+          description: '',
+          date: day.add(Duration(days: inDays)),
+          start: 13 * 60 + 30,
+          end: 15 * 60,
+          audience: audience,
+        );
+    await tester.pumpWidget(MaterialApp(
+      home: HomeScreen(
+        loadProfile: () async => null,
+        loadSchoolInfo: () async => null,
+        loadEvents: () async => [
+          event('e1', 'اجتماع المعلمين', 3, EventAudience.teacher),
+          event('e2', 'حفل التكريم', 10, EventAudience.all),
+          event('e3', 'ورشة سابقة', -1, EventAudience.teacher),
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.text('إعلان هام'), findsOneWidget);
+    expect(find.text('اجتماع المعلمين'), findsOneWidget);
+    expect(find.textContaining('بعد 3 أيام · 1:30'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('announcement')));
+    await tester.pumpAndSettle();
+    expect(find.byType(EventsScreen), findsOneWidget);
   });
 
   testWidgets('Bottom bar stays pinned on pages opened from the menu',
@@ -279,8 +332,19 @@ void main() {
       await tester.enterText(find.byKey(const ValueKey('homework-title')), 'واجب الطرح');
       await tester.tap(find.byKey(const ValueKey('add-question')));
       await tester.pump();
-      await tester.enterText(find.widgetWithText(TextFormField, 'نص السؤال'), 'أوجد الناتج');
-      await tester.enterText(find.widgetWithText(TextFormField, 'النقاط أو الخيارات (كل سطر نقطة) - اختياري'), '5 - 2\n9 - 4');
+      // A header with several sub-questions under it (a new question starts with one sub-question field)
+      await tester.enterText(find.byKey(const ValueKey('question-0-header')), 'أوجد الناتج');
+      await tester.enterText(find.byKey(const ValueKey('question-0-item-0')), '5 - 2');
+      await tester.ensureVisible(find.byKey(const ValueKey('question-0-add-item')));
+      await tester.tap(find.byKey(const ValueKey('question-0-add-item')));
+      await tester.pump();
+      await tester.enterText(find.byKey(const ValueKey('question-0-item-1')), '9 - 4');
+      await tester.ensureVisible(find.byKey(const ValueKey('question-0-add-item')));
+      await tester.tap(find.byKey(const ValueKey('question-0-add-item')));
+      await tester.pump();
+      await tester.enterText(find.byKey(const ValueKey('question-0-item-2')), '7 - 1');
+      expect(find.text('أ)'), findsOneWidget);
+      expect(find.text('ج)'), findsOneWidget);
       await tester.ensureVisible(find.text('فصل ب'));
       await tester.tap(find.text('فصل ب'));
       await tester.pump();
@@ -294,8 +358,84 @@ void main() {
       expect(created?['grade'], 'g1');
       expect(created?['title'], 'واجب الطرح');
       expect(created?['questions'], 1);
-      expect(created?['items'], ['5 - 2', '9 - 4']);
+      expect(created?['items'], ['5 - 2', '9 - 4', '7 - 1']);
       expect(publishedTo, ['new-id', 's-b']);
+    });
+
+    testWidgets('Edit homework: fields are filled, sub-questions can be added and removed, then saved',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      Map<String, Object?>? updated;
+      final api = HomeworkApi(
+        update: (id, {required title, required description, required dueDate, questions = const []}) async {
+          updated = {'id': id, 'title': title, 'questions': questions.map((q) => '${q.header}: ${q.items.join(' | ')}').toList()};
+        },
+      );
+
+      await tester.pumpWidget(MaterialApp(
+        home: HomeworkFormScreen(api: api, classes: classes, homework: homework('h1', 'واجب الجمع')),
+      ));
+      await tester.pumpAndSettle();
+
+      // Filled from the saved homework; the subject cannot change
+      expect(find.text('تعديل الواجب'), findsOneWidget);
+      expect(find.text('واجب الجمع'), findsOneWidget);
+      expect(find.byKey(const ValueKey('homework-subject')), findsNothing);
+      expect(find.text('رياضيات - الصف الأول'), findsOneWidget);
+      // Saved question "احسب" with sub-questions 2 + 3 / 4 + 5; no publish chips when editing
+      expect(find.text('احسب'), findsOneWidget);
+      expect(find.text('4 + 5'), findsOneWidget);
+      expect(find.text('النشر الآن لفصول (اختياري)'), findsNothing);
+
+      // Remove the first sub-question, add another one
+      await tester.tap(find.byTooltip('حذف السؤال الفرعي').first);
+      await tester.pump();
+      await tester.ensureVisible(find.byKey(const ValueKey('question-0-add-item')));
+      await tester.tap(find.byKey(const ValueKey('question-0-add-item')));
+      await tester.pump();
+      await tester.enterText(find.byKey(const ValueKey('question-0-item-1')), '6 + 1');
+
+      await tester.ensureVisible(find.byKey(const ValueKey('save-homework')));
+      await tester.tap(find.byKey(const ValueKey('save-homework')));
+      await tester.pumpAndSettle();
+
+      expect(updated?['id'], 'h1');
+      expect(updated?['title'], 'واجب الجمع');
+      expect(updated?['questions'], ['احسب: 4 + 5 | 6 + 1']);
+    });
+
+    testWidgets('Tapping a homework opens its details page; edit from there opens the form',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      final api = HomeworkApi(
+        loadClasses: () async => classes,
+        loadHomeworks: () async => [
+          homework('h1', 'واجب الجمع',
+              published: [PublishedSection(sectionId: 's-a', nameAr: 'فصل أ', nameEn: 'Class A', publishedOn: DateTime.now())])
+        ],
+      );
+      await tester.pumpWidget(MaterialApp(
+        home: HomeScreen(loadProfile: () async => null, loadSchoolInfo: () async => null, homeworkApi: api),
+      ));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('الواجبات'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('الواجبات'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('واجب الجمع'));
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeworkDetailsScreen), findsOneWidget);
+      expect(find.text('حل التمارين صفحة 20'), findsOneWidget);
+      expect(find.text('احسب'), findsOneWidget);
+      expect(find.text('2 + 3'), findsOneWidget);
+      expect(find.text('4 + 5'), findsOneWidget);
+      expect(find.text('منشور في'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('details-edit')));
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeworkDetailsScreen), findsNothing);
+      expect(find.text('تعديل الواجب'), findsOneWidget);
     });
 
     testWidgets('New homework needs a title', (WidgetTester tester) async {
@@ -335,6 +475,563 @@ void main() {
     await tester.tap(find.text('2025-2026').last);
     await tester.pumpAndSettle();
     expect(AcademicYearController.instance.selectedId, 'y-2025');
+  });
+
+  group('Exams', () {
+    const math = TeacherSubject(
+      subjectId: 'sub-math',
+      subjectNameAr: 'رياضيات',
+      subjectNameEn: 'Math',
+      gradeId: 'g1',
+      gradeNameAr: 'الصف الأول',
+      gradeNameEn: 'Grade 1',
+      sections: [
+        TeacherSection(id: 's-a', nameAr: 'فصل أ', nameEn: 'Class A'),
+        TeacherSection(id: 's-b', nameAr: 'فصل ب', nameEn: 'Class B'),
+      ],
+    );
+    const classes = TeacherClasses(subjects: [math]);
+    final today = DateTime.now();
+
+    TeacherExam exam(String id, TeacherExamType type, {int? month, int results = 0}) => TeacherExam(
+          id: id,
+          subjectId: 'sub-math',
+          subjectNameAr: 'رياضيات',
+          subjectNameEn: 'Math',
+          gradeId: 'g1',
+          gradeNameAr: 'الصف الأول',
+          gradeNameEn: 'Grade 1',
+          sectionId: 's-a',
+          sectionNameAr: 'فصل أ',
+          sectionNameEn: 'Class A',
+          type: type,
+          month: month,
+          date: DateTime(today.year, today.month, today.day),
+          startMinutes: 9 * 60,
+          endMinutes: 9 * 60 + 45,
+          weight: 20,
+          successScore: 10,
+          resultCount: results,
+        );
+
+    const scores = ExamScores(weight: 20, successScore: 10, students: [
+      ExamStudentScore(studentId: 'st-1', nameAr: 'سارة أحمد', nameEn: 'Sara Ahmed', score: 18),
+      ExamStudentScore(studentId: 'st-2', nameAr: 'عمر خالد', nameEn: 'Omar Khaled'),
+    ]);
+
+    testWidgets('Home tile opens the exams; filter by type; scores are entered and only the changes saved',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      Map<String, double?>? saved;
+      final api = ExamApi(
+        loadClasses: () async => classes,
+        loadExams: () async => [exam('e1', TeacherExamType.quiz, results: 1), exam('e2', TeacherExamType.monthly, month: 11)],
+        loadScores: (id) async => scores,
+        saveScores: (id, s) async => saved = s,
+      );
+      await tester.pumpWidget(MaterialApp(
+        home: HomeScreen(loadProfile: () async => null, loadSchoolInfo: () async => null, examApi: api),
+      ));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('الاختبارات والدرجات'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('الاختبارات والدرجات'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('اختبار قصير'), findsOneWidget);
+      expect(find.text('امتحان شهر نوفمبر'), findsOneWidget);
+      expect(find.text('رُصدت 1 درجة'), findsOneWidget);
+      // The bottom bar stays on the exams page
+      expect(find.text('الرئيسية'), findsOneWidget);
+
+      await tester.tap(find.text('شهرية (1)'));
+      await tester.pumpAndSettle();
+      expect(find.text('اختبار قصير'), findsNothing);
+      expect(find.text('امتحان شهر نوفمبر'), findsOneWidget);
+      await tester.tap(find.text('الكل (2)'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('scores-e1')));
+      await tester.pumpAndSettle();
+      expect(find.text('سارة أحمد'), findsOneWidget);
+      expect(find.text('ناجح'), findsWidgets); // Sara 18/20
+      expect(find.text('لم تُرصد'), findsOneWidget); // Omar
+      expect(find.text('1/2'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const ValueKey('score-st-2')), '7');
+      await tester.pump();
+      expect(find.text('راسب'), findsOneWidget);
+      expect(find.text('2/2'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('save-scores')));
+      await tester.pumpAndSettle();
+      expect(saved, {'st-2': 7.0});
+      expect(find.byType(ExamScoresScreen), findsNothing);
+    });
+
+    testWidgets('A score above the full mark is not saved', (WidgetTester tester) async {
+      _phoneSize(tester);
+      var called = false;
+      final api = ExamApi(loadScores: (id) async => scores, saveScores: (id, s) async => called = true);
+      await tester.pumpWidget(MaterialApp(home: ExamScoresScreen(api: api, exam: exam('e1', TeacherExamType.quiz))));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byKey(const ValueKey('score-st-2')), '25');
+      await tester.pump();
+      expect(find.text('من 0 إلى 20'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('save-scores')));
+      await tester.pumpAndSettle();
+      expect(called, isFalse);
+      expect(find.text('صحّح الدرجات المظللة بالأحمر (من 0 إلى 20).'), findsOneWidget);
+    });
+
+    testWidgets('New monthly exam: month, class and marks are sent', (WidgetTester tester) async {
+      _phoneSize(tester);
+      ExamInput? created;
+      final api = ExamApi(create: (input) async {
+        created = input;
+        return 'new-exam';
+      });
+      await tester.pumpWidget(MaterialApp(home: ExamFormScreen(api: api, classes: classes, now: DateTime(2026, 11, 20))));
+      await tester.pumpAndSettle();
+
+      // Only the two types a teacher may add
+      expect(find.text('اختبار قصير'), findsOneWidget);
+      expect(find.text('امتحان شهري'), findsOneWidget);
+      expect(find.byKey(const ValueKey('exam-month')), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('exam-type-monthly')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('exam-month')), findsOneWidget);
+      expect(find.text('نوفمبر'), findsOneWidget); // month of the exam date
+
+      // The class must be chosen
+      await tester.ensureVisible(find.byKey(const ValueKey('save-exam')));
+      await tester.tap(find.byKey(const ValueKey('save-exam')));
+      await tester.pumpAndSettle();
+      expect(find.text('اختر الفصل'), findsOneWidget);
+      expect(created, isNull);
+
+      await tester.ensureVisible(find.text('فصل ب'));
+      await tester.tap(find.text('فصل ب'));
+      await tester.pump();
+      await tester.enterText(find.byKey(const ValueKey('exam-weight')), '30');
+      await tester.enterText(find.byKey(const ValueKey('exam-pass')), '15');
+      await tester.ensureVisible(find.byKey(const ValueKey('save-exam')));
+      await tester.tap(find.byKey(const ValueKey('save-exam')));
+      await tester.pumpAndSettle();
+
+      expect(created?.type, TeacherExamType.monthly);
+      expect(created?.month, 11);
+      expect(created?.sectionId, 's-b');
+      expect(created?.subjectId, 'sub-math');
+      expect(created?.weight, 30);
+      expect(created?.successScore, 15);
+      expect(created?.toJson()['examType'], 2);
+      expect(created?.toJson()['examDate'], '2026-11-20');
+    });
+
+    testWidgets('Pass mark above the full mark is refused', (WidgetTester tester) async {
+      _phoneSize(tester);
+      var called = false;
+      final api = ExamApi(create: (input) async {
+        called = true;
+        return 'x';
+      });
+      await tester.pumpWidget(MaterialApp(home: ExamFormScreen(api: api, classes: classes)));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('فصل أ'));
+      await tester.tap(find.text('فصل أ'));
+      await tester.enterText(find.byKey(const ValueKey('exam-weight')), '10');
+      await tester.enterText(find.byKey(const ValueKey('exam-pass')), '12');
+      await tester.ensureVisible(find.byKey(const ValueKey('save-exam')));
+      await tester.tap(find.byKey(const ValueKey('save-exam')));
+      await tester.pumpAndSettle();
+      expect(find.text('أكبر من الدرجة الكاملة'), findsOneWidget);
+      expect(called, isFalse);
+    });
+
+    testWidgets('Edit exam: filled from the saved exam and updated', (WidgetTester tester) async {
+      _phoneSize(tester);
+      String? updatedId;
+      ExamInput? updated;
+      final api = ExamApi(update: (id, input) async {
+        updatedId = id;
+        updated = input;
+      });
+      await tester.pumpWidget(MaterialApp(
+        home: ExamFormScreen(api: api, classes: classes, exam: exam('e2', TeacherExamType.monthly, month: 10)),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('تعديل الاختبار'), findsOneWidget);
+      expect(find.text('رياضيات - الصف الأول'), findsOneWidget);
+      expect(find.text('أكتوبر'), findsOneWidget);
+      await tester.enterText(find.byKey(const ValueKey('exam-weight')), '25');
+      await tester.ensureVisible(find.byKey(const ValueKey('save-exam')));
+      await tester.tap(find.byKey(const ValueKey('save-exam')));
+      await tester.pumpAndSettle();
+
+      expect(updatedId, 'e2');
+      expect(updated?.month, 10);
+      expect(updated?.sectionId, 's-a');
+      expect(updated?.weight, 25);
+    });
+
+    test('Exam JSON: type, month, times and marks', () {
+      final e = TeacherExam.fromJson({
+        'id': 'x',
+        'examType': 2,
+        'month': 3,
+        'examDate': '2027-03-14',
+        'startTime': '09:30:00',
+        'endTime': '10:15:00',
+        'weight': 20,
+        'successScore': 12.5,
+        'resultCount': 4,
+        'averageScore': 15.25,
+      });
+      expect(e.type, TeacherExamType.monthly);
+      expect(e.month, 3);
+      expect(e.date, DateTime(2027, 3, 14));
+      expect(e.startMinutes, 570);
+      expect(e.endMinutes, 615);
+      expect(examMark(e.successScore), '12.5');
+      expect(examMark(e.weight), '20');
+      expect(e.resultCount, 4);
+    });
+  });
+
+  group('Events', () {
+    final now = DateTime(2026, 11, 20, 10, 0);
+    final today = DateTime.now();
+    SchoolEvent event(String id, String title, int inDays, EventAudience audience) => SchoolEvent(
+          id: id,
+          title: title,
+          description: 'وصف $title',
+          date: DateTime(today.year, today.month, today.day).add(Duration(days: inDays)),
+          start: 9 * 60,
+          end: 12 * 60,
+          audience: audience,
+        );
+
+    testWidgets('Home tile opens the events for everyone / for teachers: upcoming, past and details',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      var loads = 0;
+      final events = [
+        event('1', 'اجتماع المعلمين', 3, EventAudience.teacher),
+        event('2', 'اليوم الرياضي', 1, EventAudience.all),
+        event('3', 'حفل الافتتاح', -10, EventAudience.all),
+      ];
+      await tester.pumpWidget(MaterialApp(
+        home: HomeScreen(
+          loadProfile: () async => null,
+          loadSchoolInfo: () async => null,
+          loadEvents: () async {
+            loads++;
+            return events;
+          },
+        ),
+      ));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('الفعاليات'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('الفعاليات'));
+      await tester.pumpAndSettle();
+      expect(loads, 2); // home (important notice) + the events page
+
+      // Upcoming: tomorrow's sports day first (big card), then the teachers' meeting
+      expect(find.text('القادمة (2)'), findsOneWidget);
+      expect(find.text('اليوم الرياضي'), findsOneWidget);
+      expect(find.text('اجتماع المعلمين'), findsOneWidget);
+      expect(find.text('للمعلمين'), findsOneWidget);
+      expect(find.text('للجميع'), findsOneWidget);
+      expect(find.text('حفل الافتتاح'), findsNothing);
+      // The bottom bar stays on the events page
+      expect(find.text('الرئيسية'), findsOneWidget);
+
+      await tester.tap(find.text('السابقة (1)'));
+      await tester.pumpAndSettle();
+      expect(find.text('حفل الافتتاح'), findsOneWidget);
+
+      await tester.tap(find.text('حفل الافتتاح'));
+      await tester.pumpAndSettle();
+      expect(find.text('وصف حفل الافتتاح'), findsOneWidget);
+    });
+
+    testWidgets('No events shows a message', (WidgetTester tester) async {
+      _phoneSize(tester);
+      await tester.pumpWidget(MaterialApp(home: EventsScreen(loadEvents: () async => const [], now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('لا توجد فعاليات قادمة حالياً.'), findsOneWidget);
+    });
+
+    test('Event JSON: date, times and audience', () {
+      final e = SchoolEvent.fromJson({
+        'id': 'e',
+        'title': ' اجتماع ',
+        'eventDate': '2026-12-01',
+        'startTime': '08:30:00',
+        'endTime': '10:00:00',
+        'eventFor': 5,
+        'imageUrl': '',
+      });
+      expect(e.title, 'اجتماع');
+      expect(e.date, DateTime(2026, 12, 1));
+      expect(e.start, 510);
+      expect(e.end, 600);
+      expect(e.audience, EventAudience.teacher);
+      expect(e.imageUrl, isNull);
+    });
+  });
+
+  group('My classes', () {
+    const math = TeacherSubject(
+      subjectId: 'sub-math',
+      subjectNameAr: 'رياضيات',
+      subjectNameEn: 'Math',
+      gradeId: 'g1',
+      gradeNameAr: 'الصف الأول',
+      gradeNameEn: 'Grade 1',
+      sections: [
+        TeacherSection(id: 's-a', nameAr: 'فصل أ', nameEn: 'Class A'),
+        TeacherSection(id: 's-b', nameAr: 'فصل ب', nameEn: 'Class B'),
+      ],
+    );
+    const science = TeacherSubject(
+      subjectId: 'sub-sci',
+      subjectNameAr: 'علوم',
+      subjectNameEn: 'Science',
+      gradeId: 'g1',
+      gradeNameAr: 'الصف الأول',
+      gradeNameEn: 'Grade 1',
+      sections: [TeacherSection(id: 's-a', nameAr: 'فصل أ', nameEn: 'Class A')],
+    );
+    const physics = TeacherSubject(
+      subjectId: 'sub-phy',
+      subjectNameAr: 'فيزياء',
+      subjectNameEn: 'Physics',
+      gradeId: 'g2',
+      gradeNameAr: 'الصف الثاني',
+      gradeNameEn: 'Grade 2',
+      sections: [TeacherSection(id: 's-c', nameAr: 'فصل ج', nameEn: 'Class C')],
+    );
+
+    test('One class per section with every subject taught in it', () {
+      final classes = myClassesFrom(const TeacherClasses(subjects: [math, science, physics]));
+      expect(classes.map((c) => c.section.id), ['s-a', 's-b', 's-c']);
+      expect(classes.first.subjects.map((s) => s.subjectId), ['sub-math', 'sub-sci']);
+      expect(classes[1].subjects.map((s) => s.subjectId), ['sub-math']);
+      expect(classes.last.label, 'الصف الثاني - فصل ج');
+    });
+
+    testWidgets('Home tile opens my classes by grade; a class shows its students, search and details',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      String? asked;
+      await tester.pumpWidget(MaterialApp(
+        home: HomeScreen(
+          loadProfile: () async => null,
+          loadSchoolInfo: () async => null,
+          loadMyClasses: () async => myClassesFrom(const TeacherClasses(subjects: [math, science, physics])),
+          loadClassStudents: (sectionId) async {
+            asked = sectionId;
+            return [
+              ClassStudent(id: 'st-1', nameAr: 'سارة أحمد', nameEn: 'Sara Ahmed', gender: 'Female', dateOfBirth: DateTime(2018, 1, 5)),
+              const ClassStudent(id: 'st-2', nameAr: 'عمر خالد', nameEn: 'Omar Khaled', gender: 'Male'),
+              const ClassStudent(id: 'st-3', nameAr: 'يوسف علي', nameEn: 'Youssef Ali', gender: 'Male'),
+            ];
+          },
+        ),
+      ));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('فصولي'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('فصولي'));
+      await tester.pumpAndSettle();
+
+      // 3 classes in 2 grades, 3 subjects
+      expect(find.text('الصف الأول'), findsOneWidget);
+      expect(find.text('الصف الثاني'), findsOneWidget);
+      expect(find.text('فصل أ'), findsOneWidget);
+      expect(find.text('فصل ج'), findsOneWidget);
+      expect(find.text('علوم'), findsOneWidget);
+      expect(find.text('الرئيسية'), findsOneWidget); // bottom bar stays
+
+      await tester.tap(find.byKey(const ValueKey('class-s-a')));
+      await tester.pumpAndSettle();
+      expect(asked, 's-a');
+      expect(find.text('الصف الأول - فصل أ'), findsOneWidget);
+      expect(find.text('سارة أحمد'), findsOneWidget);
+      expect(find.text('عمر خالد'), findsOneWidget);
+      expect(find.text('بنين'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const ValueKey('students-search')), 'عمر');
+      await tester.pump();
+      expect(find.text('عمر خالد'), findsOneWidget);
+      expect(find.text('سارة أحمد'), findsNothing);
+      await tester.enterText(find.byKey(const ValueKey('students-search')), 'sara');
+      await tester.pump();
+      expect(find.text('سارة أحمد'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('student-st-1')));
+      await tester.pumpAndSettle();
+      expect(find.text('Sara Ahmed'), findsOneWidget);
+      expect(find.text('أنثى'), findsOneWidget);
+    });
+
+    testWidgets('No classes shows a message', (WidgetTester tester) async {
+      _phoneSize(tester);
+      await tester.pumpWidget(MaterialApp(home: MyClassesScreen(loadClasses: () async => const [])));
+      await tester.pumpAndSettle();
+      expect(find.text('لا توجد فصول مسندة إليك في هذا العام / الفصل الدراسي.'), findsOneWidget);
+    });
+
+    test('Student JSON: gender, birth date and age', () {
+      final s = ClassStudent.fromJson({'id': 'x', 'nameAr': 'سارة', 'nameEn': 'Sara', 'gender': 'Female', 'dateOfBirth': '2018-03-10'});
+      expect(s.isFemale, isTrue);
+      expect(s.dateOfBirth, DateTime(2018, 3, 10));
+      expect(s.ageOn(DateTime(2026, 3, 9)), 7);
+      expect(s.ageOn(DateTime(2026, 3, 10)), 8);
+      expect(ClassStudent.fromJson({'id': 'y', 'dateOfBirth': '0001-01-01'}).dateOfBirth, isNull);
+    });
+  });
+
+  group('Parents', () {
+    const parents = [
+      TeacherParent(
+        id: 'p1',
+        nameAr: 'أحمد محمود',
+        nameEn: 'Ahmed Mahmoud',
+        phoneNumber: '0501234567',
+        email: 'ahmed@test.local',
+        children: [
+          ParentChildInfo(studentId: 'st-1', nameAr: 'سارة', nameEn: 'Sara', sectionId: 's-a', sectionNameAr: 'فصل أ', gradeNameAr: 'الصف الأول'),
+          ParentChildInfo(studentId: 'st-2', nameAr: 'ليلى', nameEn: 'Laila', sectionId: 's-c', sectionNameAr: 'فصل ج', gradeNameAr: 'الصف الثاني'),
+        ],
+      ),
+      TeacherParent(
+        id: 'p2',
+        nameAr: 'منى حسن',
+        nameEn: 'Mona Hassan',
+        phoneNumber: '0559876543',
+        children: [
+          ParentChildInfo(studentId: 'st-3', nameAr: 'عمر', nameEn: 'Omar', sectionId: 's-a', sectionNameAr: 'فصل أ', gradeNameAr: 'الصف الأول'),
+        ],
+      ),
+    ];
+
+    testWidgets('Home tile opens the parents of my students: class filter, search and call',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      Uri? opened;
+      await tester.pumpWidget(MaterialApp(
+        home: HomeScreen(loadProfile: () async => null, loadSchoolInfo: () async => null, loadParents: () async => parents),
+      ));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('أولياء الأمور'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('أولياء الأمور'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('أحمد محمود'), findsOneWidget);
+      expect(find.text('منى حسن'), findsOneWidget);
+      expect(find.text('سارة'), findsOneWidget);
+      expect(find.text(' · الصف الثاني - فصل ج'), findsOneWidget);
+      expect(find.text('الرئيسية'), findsOneWidget); // bottom bar stays
+
+      // Only the parents with a child in class ج
+      await tester.ensureVisible(find.byKey(const ValueKey('parents-class-s-c')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('parents-class-s-c')));
+      await tester.pumpAndSettle();
+      expect(find.text('أحمد محمود'), findsOneWidget);
+      expect(find.text('منى حسن'), findsNothing);
+      await tester.ensureVisible(find.byKey(const ValueKey('parents-class-all')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('parents-class-all')));
+      await tester.pumpAndSettle();
+
+      // Search by a child's name
+      await tester.enterText(find.byKey(const ValueKey('parents-search')), 'عمر');
+      await tester.pump();
+      expect(find.text('منى حسن'), findsOneWidget);
+      expect(find.text('أحمد محمود'), findsNothing);
+      await tester.enterText(find.byKey(const ValueKey('parents-search')), '');
+      await tester.pump();
+
+      // The call button opens the dialer (tested on the screen itself)
+      await tester.pumpWidget(MaterialApp(
+        home: ParentsScreen(loadParents: () async => parents, openUri: (uri) async {
+          opened = uri;
+          return true;
+        }),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('call-p2')));
+      await tester.pump();
+      expect(opened, Uri(scheme: 'tel', path: '0559876543'));
+      expect(find.byKey(const ValueKey('email-p2')), findsNothing); // chat instead of email
+    });
+
+    testWidgets('The chat button opens the chat with that parent', (WidgetTester tester) async {
+      _phoneSize(tester);
+      String? startedWith;
+      String? openedRoom;
+      await tester.pumpWidget(MaterialApp(
+        home: ParentsScreen(
+          loadParents: () async => parents,
+          chatRefreshEvery: null,
+          chatApi: ChatApi(
+            userId: 'teacher-1',
+            start: (otherUserId) async {
+              startedWith = otherUserId;
+              return 'room-p1';
+            },
+            loadMessages: (roomId) async {
+              openedRoom = roomId;
+              return const [];
+            },
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('chat-p1')));
+      await tester.pumpAndSettle();
+      expect(startedWith, 'p1');
+      expect(openedRoom, 'room-p1');
+      expect(find.byType(ChatScreen), findsOneWidget);
+      expect(find.text('أحمد محمود'), findsOneWidget);
+      expect(find.text('ولي أمر سارة، ليلى'), findsOneWidget);
+    });
+
+    testWidgets('No parents shows a message', (WidgetTester tester) async {
+      _phoneSize(tester);
+      await tester.pumpWidget(MaterialApp(home: ParentsScreen(loadParents: () async => const [])));
+      await tester.pumpAndSettle();
+      expect(find.text('لا يوجد أولياء أمور لطلاب فصولك.'), findsOneWidget);
+    });
+
+    test('Parent JSON: phone, email and children in my classes', () {
+      final p = TeacherParent.fromJson({
+        'id': 'p',
+        'nameAr': 'أحمد',
+        'nameEn': 'Ahmed',
+        'phoneNumber': ' 0501 ',
+        'email': '',
+        'children': [
+          {'studentId': 's', 'nameAr': 'سارة', 'nameEn': 'Sara', 'sectionId': 'x', 'sectionNameAr': 'فصل أ', 'gradeNameAr': 'الصف الأول'},
+        ],
+      });
+      expect(p.phoneNumber, '0501');
+      expect(p.email, isNull);
+      expect(p.children.single.classLabel, 'الصف الأول - فصل أ');
+      expect(p.matches('sara'), isTrue);
+      expect(p.matches('0501'), isTrue);
+      expect(p.matches('xyz'), isFalse);
+    });
   });
 
   group('Timetable', () {
@@ -432,6 +1129,300 @@ void main() {
       expect(t.now, 605);
       expect(t.dayOf(2)!.lessons.single.start, 570);
       expect(t.dayOf(2)!.lessons.single.subject, 'علوم');
+    });
+  });
+
+  group('Notifications', () {
+    final now = DateTime(2026, 11, 20, 10);
+    final notices = [
+      AppNotice(id: 'n1', title: 'اجتماع أولياء الأمور', description: 'يوم الخميس الساعة 10 صباحاً في قاعة المدرسة', sentOn: DateTime(2026, 11, 20), type: NoticeType.event, forEveryone: true),
+      AppNotice(id: 'n2', title: 'واجب الرياضيات', description: 'حل تمارين صفحة 20', sentOn: DateTime(2026, 11, 19), type: NoticeType.homework),
+      AppNotice(id: 'n3', title: 'نتائج الامتحان الشهري', description: 'ظهرت النتائج', sentOn: DateTime(2026, 11, 10), type: NoticeType.examResult, imageUrl: 'http://localhost/x.png'),
+    ];
+
+    testWidgets('List grouped by day with types; filter by type; details page', (WidgetTester tester) async {
+      _phoneSize(tester);
+      var loads = 0;
+      await tester.pumpWidget(MaterialApp(
+        home: NotificationsScreen(
+          loadNotices: () async {
+            loads++;
+            return notices;
+          },
+          subtitle: 'سارة',
+          targetedLabel: 'خاص',
+          now: now,
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(loads, 1);
+      expect(find.text('1 إشعار جديد اليوم'), findsOneWidget);
+      expect(find.text('اليوم'), findsOneWidget);
+      expect(find.text('أمس'), findsOneWidget);
+      expect(find.text('اجتماع أولياء الأمور'), findsOneWidget);
+      expect(find.text('جديد'), findsOneWidget);
+      expect(find.text('للجميع'), findsOneWidget);
+      expect(find.text('خاص'), findsNWidgets(2));
+
+      // Only homework
+      await tester.tap(find.byKey(const ValueKey('notice-type-homework')));
+      await tester.pumpAndSettle();
+      expect(find.text('واجب الرياضيات'), findsOneWidget);
+      expect(find.text('اجتماع أولياء الأمور'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('notice-type-all')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('notice-n1')));
+      await tester.pumpAndSettle();
+      expect(find.byType(NotificationDetailsScreen), findsOneWidget);
+      expect(find.text('يوم الخميس الساعة 10 صباحاً في قاعة المدرسة'), findsOneWidget);
+      expect(find.text('الجميع'), findsOneWidget);
+      expect(find.text('الجمعة 20 نوفمبر 2026'), findsOneWidget);
+    });
+
+    testWidgets('No notifications shows a message', (WidgetTester tester) async {
+      _phoneSize(tester);
+      await tester.pumpWidget(MaterialApp(home: NotificationsScreen(loadNotices: () async => const [], now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('لا توجد إشعارات في هذا العام الدراسي.'), findsOneWidget);
+    });
+
+    testWidgets('The bottom bar opens my notifications and keeps the bar', (WidgetTester tester) async {
+      _phoneSize(tester);
+      await tester.pumpWidget(MaterialApp(
+        home: HomeScreen(
+          loadProfile: () async => null,
+          loadSchoolInfo: () async => null,
+          loadNotifications: () async => notices,
+        ),
+      ));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('الإشعارات'));
+      await tester.pumpAndSettle();
+      expect(find.byType(NotificationsScreen), findsOneWidget);
+      expect(find.text('واجب الرياضيات'), findsOneWidget);
+      expect(find.text('لك'), findsNWidgets(2));
+      expect(find.text('الرئيسية'), findsOneWidget);
+
+      await tester.tap(find.text('الرئيسية'));
+      await tester.pumpAndSettle();
+      expect(find.byType(NotificationsScreen), findsNothing);
+    });
+
+    test('Notification JSON: type, date, image and audience', () {
+      final n = AppNotice.fromJson({
+        'id': 'x',
+        'title': ' تنبيه ',
+        'description': 'نص',
+        'sentOn': '2026-11-18',
+        'notificationType': 2,
+        'imageUrl': '',
+        'forEveryone': true,
+      });
+      expect(n.title, 'تنبيه');
+      expect(n.type, NoticeType.exam);
+      expect(n.sentOn, DateTime(2026, 11, 18));
+      expect(n.imageUrl, isNull);
+      expect(n.forEveryone, isTrue);
+      expect(NoticeType.from(99), NoticeType.message);
+    });
+  });
+
+  group('Chat', () {
+    const me = 'me-1';
+    final now = DateTime(2026, 11, 20, 12, 0);
+
+    ChatMessage msg(String id, String sender, String text, int minutesAgo, {ChatStatus status = ChatStatus.sent}) =>
+        ChatMessage(id: id, senderId: sender, content: text, sentOn: now.subtract(Duration(minutes: minutesAgo)), status: status);
+
+    testWidgets('Chats list: unread badge, my last message; a chat shows the messages, marks them seen and sends',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      List<String>? seenIds;
+      final sent = <String>[];
+      final api = ChatApi(
+        userId: me,
+        loadChats: () async => [
+          ChatSummary(roomId: 'r1', otherUserId: 'u-1', nameAr: 'منى حسن', nameEn: 'Mona Hassan', detailAr: 'ولي أمر عمر',
+              lastMessage: 'شكراً لك', lastMessageSenderId: 'u-1', lastMessageOn: now.subtract(const Duration(minutes: 5)), unreadCount: 2),
+          ChatSummary(roomId: 'r2', otherUserId: 'u-2', nameAr: 'أحمد محمود', nameEn: 'Ahmed Mahmoud',
+              lastMessage: 'سأرسل الواجب', lastMessageSenderId: me, lastMessageOn: now.subtract(const Duration(days: 1))),
+        ],
+        // Newest first, as the API returns them
+        loadMessages: (roomId) async => [
+          msg('m3', 'u-1', 'شكراً لك', 5),
+          msg('m2', me, 'عمر متميز هذا الأسبوع', 10, status: ChatStatus.seen),
+          msg('m1', 'u-1', 'كيف مستوى عمر؟', 20),
+        ],
+        seen: (roomId, ids) async => seenIds = ids,
+        send: (roomId, content) async {
+          sent.add(content);
+          return ChatMessage(id: 'm4', senderId: me, content: content, sentOn: now);
+        },
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('منى حسن'), findsOneWidget);
+      expect(find.byKey(const ValueKey('unread-r1')), findsOneWidget);
+      expect(find.text('2 رسالة غير مقروءة'), findsOneWidget);
+      expect(find.text('أنت:'), findsOneWidget); // my last message to Ahmed
+      expect(find.text('أمس'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('chat-r1')));
+      await tester.pumpAndSettle();
+      expect(find.text('ولي أمر عمر'), findsOneWidget);
+      expect(find.text('كيف مستوى عمر؟'), findsOneWidget);
+      expect(find.text('عمر متميز هذا الأسبوع'), findsOneWidget);
+      expect(find.byKey(const ValueKey('seen-tick')), findsOneWidget);
+      expect(find.text('اليوم'), findsOneWidget);
+      // Their two messages are marked seen
+      expect(seenIds, ['m3', 'm1']);
+
+      await tester.enterText(find.byKey(const ValueKey('chat-input')), '  أهلاً، سأتابع معه  ');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('chat-send')));
+      await tester.pumpAndSettle();
+      expect(sent, ['أهلاً، سأتابع معه']);
+      expect(find.text('أهلاً، سأتابع معه'), findsOneWidget);
+    });
+
+    testWidgets('Profile pictures show in the chats list, the chat header and next to their messages',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      ChatAvatar.clearCache();
+      // 1x1 PNG
+      final png = base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
+      final asked = <String>[];
+      final api = ChatApi(
+        userId: me,
+        loadPhoto: (userId) async {
+          asked.add(userId);
+          return userId == 'u-1' ? png : null;
+        },
+        loadChats: () async => [
+          ChatSummary(roomId: 'r1', otherUserId: 'u-1', nameAr: 'منى حسن', nameEn: 'Mona', lastMessage: 'مرحباً', lastMessageOn: now),
+          ChatSummary(roomId: 'r2', otherUserId: 'u-2', nameAr: 'أحمد محمود', nameEn: 'Ahmed', lastMessage: 'شكراً', lastMessageOn: now),
+        ],
+        loadMessages: (roomId) async => [msg('b', 'u-1', 'كيف الحال؟', 1), msg('a', 'u-1', 'مرحباً', 2)],
+        seen: (roomId, ids) async {},
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+
+      // Mona has a picture, Ahmed shows his initial
+      expect(find.byKey(const ValueKey('photo-u-1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('photo-u-2')), findsNothing);
+      expect(find.text('أ'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('chat-r1')));
+      await tester.pumpAndSettle();
+      // Header + one picture for her two messages in a row
+      expect(find.byKey(const ValueKey('photo-u-1')), findsNWidgets(2));
+      // Loaded once per person (kept in memory)
+      expect(asked.where((id) => id == 'u-1').length, 1);
+    });
+
+    testWidgets('Chats belong to the academic year: another year reloads its own chats', (WidgetTester tester) async {
+      _phoneSize(tester);
+      var loads = 0;
+      final api = ChatApi(
+        userId: me,
+        loadChats: () async {
+          loads++;
+          return loads == 1
+              ? [ChatSummary(roomId: 'r1', otherUserId: 'u-1', nameAr: 'منى حسن', nameEn: 'Mona', lastMessage: 'مرحباً', lastMessageOn: now)]
+              : const <ChatSummary>[];
+        },
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('منى حسن'), findsOneWidget);
+
+      await AcademicYearController.instance.select(
+          AcademicYear(id: 'y-old', name: '2025-2026', startDate: DateTime(2025, 9, 1), endDate: DateTime(2026, 6, 30)));
+      await tester.pumpAndSettle();
+      expect(loads, 2);
+      expect(find.text('منى حسن'), findsNothing);
+      // The year chosen on home is shown, not changed here
+      expect(find.text('العام الدراسي 2025-2026'), findsOneWidget);
+      expect(find.byType(AcademicYearChip), findsNothing);
+      expect(find.text('لا توجد محادثات في هذا العام الدراسي. اضغط "محادثة جديدة" للبدء.'), findsOneWidget);
+    });
+
+    testWidgets('A message that fails can be sent again', (WidgetTester tester) async {
+      _phoneSize(tester);
+      var fail = true;
+      final api = ChatApi(
+        userId: me,
+        loadMessages: (roomId) async => const [],
+        send: (roomId, content) async {
+          if (fail) throw const ChatException('x');
+          return ChatMessage(id: 'ok', senderId: me, content: content, sentOn: now);
+        },
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatScreen(api: api, roomId: 'r', title: 'منى', refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('لا توجد رسائل بعد. اكتب أول رسالة.'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const ValueKey('chat-input')), 'مرحباً');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('chat-send')));
+      await tester.pumpAndSettle();
+      expect(find.text('لم تُرسل، اضغط لإعادة المحاولة'), findsOneWidget);
+
+      fail = false;
+      await tester.tap(find.text('مرحباً'));
+      await tester.pumpAndSettle();
+      expect(find.text('لم تُرسل، اضغط لإعادة المحاولة'), findsNothing);
+      expect(find.text('مرحباً'), findsOneWidget);
+    });
+
+    testWidgets('New chat: pick a contact, the chat with them opens', (WidgetTester tester) async {
+      _phoneSize(tester);
+      String? startedWith;
+      final api = ChatApi(
+        userId: me,
+        loadChats: () async => const [],
+        loadContacts: () async => const [
+          ChatContact(userId: 'u-7', nameAr: 'سعاد علي', nameEn: 'Suad Ali', detailAr: 'رياضيات، علوم'),
+          ChatContact(userId: 'u-8', nameAr: 'خالد سمير', nameEn: 'Khaled Samir', detailAr: 'لغة عربية'),
+        ],
+        start: (otherUserId) async {
+          startedWith = otherUserId;
+          return 'room-new';
+        },
+        loadMessages: (roomId) async => const [],
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('لا توجد محادثات في هذا العام الدراسي. اضغط "محادثة جديدة" للبدء.'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('new-chat')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('contacts-search')), 'علوم');
+      await tester.pump();
+      expect(find.text('خالد سمير'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('contact-u-7')));
+      await tester.pumpAndSettle();
+
+      expect(startedWith, 'u-7');
+      expect(find.byType(ChatScreen), findsOneWidget);
+      expect(find.text('سعاد علي'), findsOneWidget);
+      expect(find.text('رياضيات، علوم'), findsOneWidget);
+    });
+
+    test('Chat JSON: times without a zone are UTC, statuses', () {
+      final m = ChatMessage.fromJson({'id': 'a', 'senderId': 's', 'content': 'hi', 'sentOn': '2026-11-20T08:00:00', 'status': 3});
+      expect(m.sentOn, DateTime.utc(2026, 11, 20, 8).toLocal());
+      expect(m.status, ChatStatus.seen);
+      final sent = ChatMessage.fromJson({'messageId': 'b', 'senderId': 's', 'content': 'x', 'sentOn': '2026-11-20T08:00:00Z', 'status': 1});
+      expect(sent.id, 'b');
+      expect(sent.status, ChatStatus.sent);
+      final c = ChatSummary.fromJson({'roomId': 'r', 'otherUserId': 'u', 'nameAr': 'منى', 'nameEn': 'Mona', 'unreadCount': 3});
+      expect(c.unreadCount, 3);
+      expect(c.lastMessageOn, isNull);
     });
   });
 }

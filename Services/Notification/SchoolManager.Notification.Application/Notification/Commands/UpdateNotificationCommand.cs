@@ -10,6 +10,8 @@ namespace SchoolManager.Notification.Application
         DateOnly SentOn,
         NotificationTypeEnum NotificationType,
         string? ImageUrl,
-        List<TargetInputDto>? Targets
+        List<TargetInputDto>? Targets,
+        /// <summary>Academic year (the admin header's for new ones; kept as saved on edit)</summary>
+        Guid AcademicYearId = default
     ) : ICommand;
 }

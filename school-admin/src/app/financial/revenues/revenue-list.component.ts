@@ -4,6 +4,7 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Subject, timer, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { RevenueService } from '../../core/services/revenue.service';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { RevenueCategoryService } from '../../core/services/revenue-category.service';
 import { Revenue, RevenueType, REVENUE_TYPES } from '../../core/models/revenue.model';
 import { RevenueCategory } from '../../core/models/revenue-category.model';
@@ -15,7 +16,14 @@ import { RevenueCategory } from '../../core/models/revenue-category.model';
   templateUrl: './revenue-list.component.html',
 })
 export class RevenueListComponent implements OnInit, OnDestroy {
-  revenues = signal<Revenue[]>([]);
+  /** Everything loaded; the page shows only the header's academic year */
+  private allRevenues = signal<Revenue[]>([]);
+
+  /** Revenues of the academic year chosen in the header */
+  revenues = computed(() => {
+    const yearId = this.academic.yearId();
+    return this.allRevenues().filter(r => !!yearId && r.academicYearId === yearId);
+  });
   categories = signal<RevenueCategory[]>([]);
   isLoading = signal(false);
   isDeleting = signal(false);
@@ -76,8 +84,11 @@ export class RevenueListComponent implements OnInit, OnDestroy {
     private revenueService: RevenueService,
     private revenueCategoryService: RevenueCategoryService,
     private router: Router,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.loadData();
@@ -101,7 +112,7 @@ export class RevenueListComponent implements OnInit, OnDestroy {
         next: ({ revenues, categories }) => {
           this.categories.set(categories.data || []);
           if (revenues.status === 200) {
-            this.revenues.set(revenues.data || []);
+            this.allRevenues.set(revenues.data || []);
           } else {
             this.errorMessage.set(revenues.message || 'Failed to load revenues');
           }

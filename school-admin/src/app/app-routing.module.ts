@@ -62,7 +62,17 @@ import {
   EmployeeListComponent,
   EmployeeSaveComponent,
   MyProfileComponent,
-  GroupPermissionsComponent
+  GroupPermissionsComponent,
+
+  // Clinic components
+  VaccineListComponent,
+  VaccineSaveComponent,
+  VaccinationCampaignListComponent,
+  VaccinationCampaignSaveComponent,
+  ClinicVisitListComponent,
+  ClinicVisitSaveComponent,
+  StudentClinicListComponent,
+  StudentClinicComponent
 } from './components.barrel';
 
 // Import user pages
@@ -166,6 +176,19 @@ const routes: Routes = [
       {path: 'users/employees/save/:id', component: EmployeeSaveComponent, data: {extraParameter: 'usersMenu', permission: 'edit'}},
       {path: 'users/group-permissions', component: GroupPermissionsComponent, data: {extraParameter: 'usersMenu'}},
       {path: 'users/group-permissions/:groupId', component: GroupPermissionsComponent, data: {extraParameter: 'usersMenu'}},
+
+      // Clinic
+      {path: 'clinic/students', component: StudentClinicListComponent, data: {extraParameter: 'clinicMenu'}},
+      {path: 'clinic/students/:id', component: StudentClinicComponent, data: {extraParameter: 'clinicMenu'}},
+      {path: 'clinic/visits', component: ClinicVisitListComponent, data: {extraParameter: 'clinicMenu'}},
+      {path: 'clinic/visits/save', component: ClinicVisitSaveComponent, data: {extraParameter: 'clinicMenu', permission: 'add'}},
+      {path: 'clinic/visits/save/:id', component: ClinicVisitSaveComponent, data: {extraParameter: 'clinicMenu', permission: 'edit'}},
+      {path: 'clinic/vaccines', component: VaccineListComponent, data: {extraParameter: 'clinicMenu'}},
+      {path: 'clinic/vaccines/save', component: VaccineSaveComponent, data: {extraParameter: 'clinicMenu', permission: 'add'}},
+      {path: 'clinic/vaccines/save/:id', component: VaccineSaveComponent, data: {extraParameter: 'clinicMenu', permission: 'edit'}},
+      {path: 'clinic/vaccination-campaigns', component: VaccinationCampaignListComponent, data: {extraParameter: 'clinicMenu'}},
+      {path: 'clinic/vaccination-campaigns/save', component: VaccinationCampaignSaveComponent, data: {extraParameter: 'clinicMenu', permission: 'add'}},
+      {path: 'clinic/vaccination-campaigns/save/:id', component: VaccinationCampaignSaveComponent, data: {extraParameter: 'clinicMenu', permission: 'edit'}},
 
       // My profile (opened from the header user box)
       {path: 'my-profile', component: MyProfileComponent, data: {permission: false, title: 'myProfile.title'}},

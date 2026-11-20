@@ -29,7 +29,8 @@ namespace SchoolManager.Financial.Application
                 command.Type,
                 new Money(command.Amount, command.Currency),
                 command.IsMandatory,
-                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, _currentUser.UserId));
+                new AuditInfo(audit.CreatedOn, audit.CreatedBy, DateTime.Now, _currentUser.UserId),
+                command.AcademicYearId);
 
             await _repository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

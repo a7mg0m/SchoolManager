@@ -71,6 +71,9 @@ namespace SchoolManager.ExamsHomework.Infrastructure.Persistence.Migrations
                     b.Property<double>("SuccessScore")
                         .HasColumnType("float");
 
+                    b.Property<Guid?>("TeacherId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<double>("Weight")
                         .HasColumnType("float");
 

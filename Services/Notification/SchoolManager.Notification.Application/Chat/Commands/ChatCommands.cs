@@ -3,7 +3,8 @@ using SchoolManager.Notification.Domain;
 
 namespace SchoolManager.Notification.Application
 {
-    public record CreatePrivateChatCommand(Guid CurrentUserId, Guid OtherUserId) : ICommand<Guid>;
+    /// <param name="AcademicYearId">Year of the chat (teacher / parent apps); null = a chat without a year</param>
+    public record CreatePrivateChatCommand(Guid CurrentUserId, Guid OtherUserId, Guid? AcademicYearId = null) : ICommand<Guid>;
 
     public record CreateGroupChatCommand(Guid TeacherId, Guid SectionId, string Name, IReadOnlyCollection<Guid> ParentIds) : ICommand<Guid>;
 

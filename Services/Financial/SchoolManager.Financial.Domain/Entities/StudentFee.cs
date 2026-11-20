@@ -5,6 +5,9 @@ namespace SchoolManager.Financial.Domain;
 public sealed class StudentFee : BaseEntity
 {
     public Guid StudentId { get; private set; }
+
+    /// <summary>Academic year of the assigned fees; null for fees assigned before years (every year)</summary>
+    public Guid? AcademicYearId { get; private set; }
     public Money TotalAmount { get; private set; } = default!;
     public Money DiscountAmount { get; private set; } = default!;
     public Money PaidAmount { get; private set; } = default!;
@@ -25,7 +28,7 @@ public sealed class StudentFee : BaseEntity
     /// <summary>
     /// Assigns fees to a student. <paramref name="total"/> is the sum of the assigned fees.
     /// </summary>
-    public static StudentFee Assign(Guid studentId, Money total, decimal discount, DateTime dueDate)
+    public static StudentFee Assign(Guid studentId, Money total, decimal discount, DateTime dueDate, Guid? academicYearId = null)
     {
         if (studentId == Guid.Empty)
             throw new DomainException("Student is required.");
@@ -39,6 +42,7 @@ public sealed class StudentFee : BaseEntity
         var fee = new StudentFee
         {
             StudentId = studentId,
+            AcademicYearId = academicYearId,
             // Copy: EF Core owned types are tracked by reference, so a Money instance
             // shared between several StudentFee rows would be saved as NULL on all but one.
             TotalAmount = new Money(total.Amount, total.Currency),

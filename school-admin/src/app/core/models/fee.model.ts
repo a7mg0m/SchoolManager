@@ -31,6 +31,8 @@ export const FEE_TYPES: { value: FeeType; key: string }[] = [
 export interface Fee {
   id: string;
   gradeId: string;
+  /** null: saved before academic years (shown in every year) */
+  academicYearId?: string | null;
   name: string;
   type: FeeType;
   amount: number;
@@ -41,6 +43,7 @@ export interface Fee {
 /** Body for POST /api/fee/create */
 export interface CreateFeeRequest {
   gradeId: string;
+  academicYearId: string;
   name: string;
   type: FeeType;
   amount: number;
@@ -53,6 +56,8 @@ export interface CreateFeeRequest {
  * Note: the grade of an existing fee cannot be changed by the API.
  */
 export interface UpdateFeeRequest {
+  /** Gives a fee saved before academic years its year (ignored when it has one) */
+  academicYearId?: string | null;
   name: string;
   type: FeeType;
   amount: number;

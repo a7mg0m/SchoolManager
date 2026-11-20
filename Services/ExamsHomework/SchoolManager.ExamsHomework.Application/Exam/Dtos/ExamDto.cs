@@ -11,6 +11,8 @@ namespace SchoolManager.ExamsHomework.Application
         public Guid? SectionId { get; set; }
         public Guid AcademicYearId { get; set; }
         public Guid SemesterId { get; set; }
+        /// <summary>Teacher who added it from the teacher app; null for the school's exams</summary>
+        public Guid? TeacherId { get; set; }
         public ExamType ExamType { get; set; }
         /// <summary>Month of a Monthly exam (1 = January … 12 = December); null for the other types</summary>
         public int? Month { get; set; }

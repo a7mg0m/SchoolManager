@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ExpenseService } from '../../core/services/expense.service';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { ExpenseCategoryService } from '../../core/services/expense-category.service';
 import { Expense, ExpenseType, EXPENSE_TYPES, EMPTY_GUID, SaveExpenseRequest } from '../../core/models/expense.model';
 import { ExpenseCategory } from '../../core/models/expense-category.model';
@@ -34,6 +35,9 @@ export class ExpenseSaveComponent implements OnInit, OnDestroy {
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
   isEditMode = signal(false);
+
+  /** Year of the expense being edited (null: new, or saved before expenses had a year) */
+  savedYearId = signal<string | null>(null);
   expenseId: string | null = null;
 
   /** Kept as-is on update: the API has no endpoint to list school events yet */
@@ -53,8 +57,10 @@ export class ExpenseSaveComponent implements OnInit, OnDestroy {
     private expenseService: ExpenseService,
     private expenseCategoryService: ExpenseCategoryService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();}
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
@@ -113,6 +119,7 @@ export class ExpenseSaveComponent implements OnInit, OnDestroy {
 
   private populateForm(expense: Expense): void {
     this.eventId = expense.eventId || EMPTY_GUID;
+    this.savedYearId.set(expense.academicYearId || null);
     this.form.patchValue({
       title: expense.title,
       categoryId: expense.categoryId,
@@ -132,6 +139,13 @@ export class ExpenseSaveComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // A saved expense keeps its year; a new one (or one saved without a year) takes the header's
+    const academicYearId = this.savedYearId() || this.academic.yearId() || null;
+    if (!academicYearId) {
+      this.errorMessage.set('Choose the academic year in the header first.');
+      return;
+    }
+
     this.isSaving.set(true);
     this.errorMessage.set(null);
 
@@ -147,7 +161,8 @@ export class ExpenseSaveComponent implements OnInit, OnDestroy {
       currency,
       // Date-only value sent as local midnight (no timezone shift)
       expenseDate: `${v.expenseDate}T00:00:00`,
-      reference: (v.reference || '').trim() || null
+      reference: (v.reference || '').trim() || null,
+      academicYearId
     };
 
     const request$ = this.isEditMode()

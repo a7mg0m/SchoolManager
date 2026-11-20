@@ -20,9 +20,9 @@ namespace SchoolManager.Financial.API.Controllers
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll([FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetAllFeesQuery(), cancellationToken);
+            var result = await _mediator.Send(new GetAllFeesQuery(academicYearId), cancellationToken);
             return Ok(new ApiResponse { data = result });
         }
 
@@ -47,7 +47,7 @@ namespace SchoolManager.Financial.API.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateFeeDto dto, CancellationToken cancellationToken)
         {
-            var command = new UpdateFeeCommand(id, dto.Name, dto.Type, dto.Amount, dto.Currency, dto.IsMandatory);
+            var command = new UpdateFeeCommand(id, dto.Name, dto.Type, dto.Amount, dto.Currency, dto.IsMandatory, dto.AcademicYearId);
             var success = await _mediator.Send(command, cancellationToken);
 
             if (!success)

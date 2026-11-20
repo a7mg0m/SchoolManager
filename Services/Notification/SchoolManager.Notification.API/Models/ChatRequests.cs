@@ -6,6 +6,8 @@ namespace SchoolManager.Notification.API
 
     public record CreatePrivateChatRequest(Guid OtherUserId);
 
+    public record StartMyChatRequest(Guid OtherUserId, Guid? AcademicYearId);
+
     public record CreateGroupChatRequest(Guid SectionId, string Name, List<Guid> ParentIds);
 
     public record UpdateMessageStatusRequest(List<Guid> MessageIds, SchoolManager.Notification.Domain.MessageDeliveryStatus Status);

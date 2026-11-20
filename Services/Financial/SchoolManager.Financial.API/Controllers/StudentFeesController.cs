@@ -28,7 +28,7 @@ namespace SchoolManager.Financial.API.Controllers
         /// </summary>
         [Authorize]
         [HttpGet("my-child/{studentId}")]
-        public async Task<IActionResult> GetMyChildFees(Guid studentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetMyChildFees(Guid studentId, [FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
         {
             if (_currentUser.ParentId is null)
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
@@ -39,14 +39,15 @@ namespace SchoolManager.Financial.API.Controllers
             if (!children.Contains(studentId))
                 return NotFound(new ApiResponse(404, "StudentNotFound"));
 
-            var fees = await _mediator.Send(new GetStudentFeesByStudentQuery(studentId), cancellationToken);
+            // The academic year chosen in the parent app (null = every year)
+            var fees = await _mediator.Send(new GetStudentFeesByStudentQuery(studentId, academicYearId), cancellationToken);
             return Ok(new ApiResponse { data = fees.OrderByDescending(f => f.DueDate).ToList() });
         }
 
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll([FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetAllStudentFeesQuery(), cancellationToken);
+            var result = await _mediator.Send(new GetAllStudentFeesQuery(academicYearId), cancellationToken);
             return Ok(new ApiResponse { data = result });
         }
 
@@ -61,9 +62,9 @@ namespace SchoolManager.Financial.API.Controllers
         }
 
         [HttpGet("get-by-student/{studentId}")]
-        public async Task<IActionResult> GetByStudent(Guid studentId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetByStudent(Guid studentId, [FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetStudentFeesByStudentQuery(studentId), cancellationToken);
+            var result = await _mediator.Send(new GetStudentFeesByStudentQuery(studentId, academicYearId), cancellationToken);
             return Ok(new ApiResponse { data = result });
         }
 
@@ -76,7 +77,7 @@ namespace SchoolManager.Financial.API.Controllers
             try
             {
                 var ids = await _mediator.Send(
-                    new AssignStudentFeesCommand(dto.StudentIds, dto.FeeIds, dto.DiscountAmount, dto.DueDate),
+                    new AssignStudentFeesCommand(dto.StudentIds, dto.FeeIds, dto.DiscountAmount, dto.DueDate, dto.AcademicYearId),
                     cancellationToken);
 
                 return Ok(new ApiResponse

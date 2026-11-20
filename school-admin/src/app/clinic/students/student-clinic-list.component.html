@@ -1,0 +1,95 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>{{ 'clinic.studentFiles' | translate }}</h2>
+      <small class="text-muted">{{ 'clinic.studentFilesHint' | translate }}</small>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <div class="card">
+      <div class="card-body">
+        <div class="row g-2 mb-3">
+          <div class="col-md-8">
+            <input type="search" class="form-control" [placeholder]="'clinic.searchStudents' | translate" (input)="setSearch($event)" />
+          </div>
+          <div class="col-md-4">
+            <select class="form-select" (change)="setGrade($event)">
+              <option value="">{{ 'clinic.allGrades' | translate }}</option>
+              @for (grade of grades(); track grade.id) {
+                <option [value]="grade.id">{{ currentLanguage() === 'ar' ? grade.nameAr : grade.nameEn }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'clinic.student' | translate }}</th>
+                <th>{{ 'clinic.nationalId' | translate }}</th>
+                <th>{{ 'clinic.grade' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (student of paged(); track student.id) {
+                <tr>
+                  <td><strong>{{ name(student) }}</strong></td>
+                  <td>{{ student.nationalId }}</td>
+                  <td>{{ gradeName(student.gradeId) }}</td>
+                  <td>
+                    <span [ngClass]="{ 'badge bg-success': student.isActive, 'badge bg-secondary': !student.isActive }">
+                      {{ student.isActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
+                    </span>
+                  </td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" (click)="openStudent(student.id)">
+                      <i class="pe-7s-id"></i> {{ 'clinic.openFile' | translate }}
+                    </button>
+                  </td>
+                </tr>
+              }
+              @if (filtered().length === 0) {
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">{{ 'common.noDataFound' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (filtered().length > pageSize) {
+          <ngb-pagination
+            class="d-flex justify-content-center"
+            [collectionSize]="filtered().length"
+            [pageSize]="pageSize"
+            [page]="page()"
+            (pageChange)="page.set($event)"
+            [maxSize]="5"
+            [rotate]="true"
+          ></ngb-pagination>
+        }
+      </div>
+    </div>
+  }
+</div>

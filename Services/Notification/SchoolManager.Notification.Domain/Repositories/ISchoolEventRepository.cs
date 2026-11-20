@@ -15,6 +15,12 @@ namespace SchoolManager.Notification.Domain
         /// Events that concern a student; only those of <paramref name="academicYearId"/> / <paramref name="semesterId"/>
         /// when given (chosen in the parent app), else of every year / semester.
         /// </summary>
+        /// <summary>
+        /// Events for a teacher: for everyone, or for teachers when the teacher is one of the targets (no targets = all
+        /// teachers); only those of <paramref name="academicYearId"/> / <paramref name="semesterId"/> when given. Read-only.
+        /// </summary>
+        Task<List<SchoolEvent>> GetForTeacherAsync(Guid? academicYearId, Guid? semesterId, Guid teacherId, CancellationToken cancellationToken = default);
+
         Task<List<SchoolEvent>> GetForStudentAsync(Guid? academicYearId, Guid? semesterId, Guid gradeId, Guid sectionId, Guid studentId, CancellationToken cancellationToken = default);
     }
 

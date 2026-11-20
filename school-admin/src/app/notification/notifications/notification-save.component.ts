@@ -5,6 +5,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from '../../core/services/notification.service';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { extractApiErrors } from '../../core/services/school-event.service';
 import { AcademicYearService } from '../../core/services/academic-year.service';
 import { StageService } from '../../core/services/stage.service';
@@ -54,6 +55,9 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
 
   lookups = signal<AudienceLookups>(EMPTY_LOOKUPS);
 
+  /** Year of the notification being edited (null: new, or saved before notifications had a year) */
+  savedYearId = signal<string | null>(null);
+
   // Audience (bound two-way to <app-audience-picker>); notifications store targets only
   audience = signal<EventFor>(EventFor.All);
   selectedIds = signal<Set<string>>(new Set());
@@ -85,8 +89,11 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private translate: TranslateService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.buildForm();
@@ -167,6 +174,7 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
   }
 
   private patchForm(n: AppNotification): void {
+    this.savedYearId.set(n.academicYearId || null);
     this.form.patchValue({
       title: n.title,
       description: n.description,
@@ -199,6 +207,13 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // A saved notification keeps its year; a new one (or one saved without a year) takes the header's
+    const academicYearId = this.savedYearId() || this.academic.yearId() || null;
+    if (!academicYearId) {
+      this.errorMessage.set(this.translate.instant('common.chooseYearOnlyInHeader'));
+      return;
+    }
+
     const v = this.form.value;
     const request: CreateNotificationRequest = {
       title: String(v.title).trim(),
@@ -206,6 +221,7 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
       sentOn: v.sentOn,
       notificationType: Number(v.notificationType),
       imageUrl: (v.imageUrl || '').trim() || null,
+      academicYearId,
       targets: buildTargets(this.audience(), this.selectedIds(), this.lookups())
     };
 

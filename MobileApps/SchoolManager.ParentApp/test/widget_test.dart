@@ -5,7 +5,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:smart_school_parent/features/chat/chat_screens.dart';
+import 'package:smart_school_parent/features/notifications/notifications_screen.dart';
+import 'package:smart_school_parent/features/notifications/notifications_service.dart';
+import 'package:smart_school_parent/features/chat/chat_service.dart';
 import 'package:smart_school_parent/core/academic_year/academic_year_controller.dart';
+import 'package:smart_school_parent/core/academic_year/academic_year_picker.dart';
 import 'package:smart_school_parent/core/i18n/app_language.dart';
 import 'package:smart_school_parent/features/schedule/schedule_format.dart';
 
@@ -15,11 +20,14 @@ import 'package:smart_school_parent/core/theme/theme_controller.dart';
 import 'package:smart_school_parent/features/children/children_service.dart';
 import 'package:smart_school_parent/features/school/school_info_screen.dart';
 import 'package:smart_school_parent/features/school/school_info_service.dart';
+import 'package:smart_school_parent/features/events/events_screen.dart';
 import 'package:smart_school_parent/features/events/events_service.dart';
 import 'package:smart_school_parent/features/exams/exams_screen.dart';
 import 'package:smart_school_parent/features/exams/exams_service.dart';
+import 'package:smart_school_parent/features/fees/fees_screen.dart';
 import 'package:smart_school_parent/features/fees/fees_service.dart';
 import 'package:smart_school_parent/features/home/home_screen.dart';
+import 'package:smart_school_parent/features/homework/homework_details_screen.dart';
 import 'package:smart_school_parent/features/homework/homework_service.dart';
 import 'package:smart_school_parent/features/profile/edit_profile_screen.dart';
 import 'package:smart_school_parent/features/profile/profile_service.dart';
@@ -343,6 +351,49 @@ void main() {
     expect(find.text('تم تغيير كلمة المرور.'), findsOneWidget);
   });
 
+  testWidgets('Important notice shows the next upcoming event; View all opens the events',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    final today = DateTime.now();
+    final day = DateTime(today.year, today.month, today.day);
+    ChildEvent event(String id, String title, int inDays) => ChildEvent(
+          id: id,
+          title: title,
+          description: 'وصف $title',
+          date: day.add(Duration(days: inDays)),
+          start: 9 * 60,
+          end: 11 * 60,
+          audience: EventAudience.all,
+        );
+    await tester.pumpWidget(_home(() async => [_sara], events: [
+      event('e1', 'حفل نهاية العام', 9),
+      event('e2', 'رحلة المتحف', 1),
+      event('e3', 'يوم رياضي سابق', -3),
+    ]));
+    await tester.pumpAndSettle();
+
+    // The nearest one that is not over (tomorrow's trip), before the services
+    expect(find.text('إعلان هام'), findsOneWidget);
+    expect(find.text('رحلة المتحف'), findsWidgets);
+    expect(find.textContaining('غداً · 9:00'), findsOneWidget);
+    expect(tester.getTopLeft(find.text('إعلان هام')).dy,
+        lessThan(tester.getTopLeft(find.text('الخدمات')).dy));
+
+    await tester.tap(find.byKey(const ValueKey('announcement-view-all')));
+    await tester.pumpAndSettle();
+    expect(find.byType(EventsScreen), findsOneWidget);
+    expect(find.text('الرئيسية'), findsOneWidget); // bottom bar stays
+  });
+
+  testWidgets('Only past events: no important notice', (WidgetTester tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(_home(() async => [_sara], events: [
+      ChildEvent(id: 'old', title: 'حفل سابق', description: '', date: DateTime(2000, 1, 1), start: 540, end: 600, audience: EventAudience.all),
+    ]));
+    await tester.pumpAndSettle();
+    expect(find.text('إعلان هام'), findsNothing);
+  });
+
   testWidgets(
       'Home shows service icons; timetable opens on today with the lesson now',
       (WidgetTester tester) async {
@@ -354,10 +405,8 @@ void main() {
 
     expect(find.text('الخدمات'), findsOneWidget);
     expect(find.text('الواجبات'), findsOneWidget);
-    expect(find.text('إعلان هام'), findsOneWidget);
-    // The announcement comes before the services
-    expect(tester.getTopLeft(find.text('إعلان هام')).dy,
-        lessThan(tester.getTopLeft(find.text('الخدمات')).dy));
+    // No upcoming event: no important notice
+    expect(find.text('إعلان هام'), findsNothing);
     // Only services and the announcement are on home
     for (final removed in [
       'نسبة الحضور',
@@ -1109,11 +1158,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('واجب قديم'), findsOneWidget);
 
-    // Details with the questions
+    // Details open on their own page with the questions
     await tester.tap(find.text('واجب قديم'));
     await tester.pumpAndSettle();
-    expect(find.text('1. احسب'), findsOneWidget);
-    expect(find.text('• 2 + 3'), findsOneWidget);
+    expect(find.byType(HomeworkDetailsScreen), findsOneWidget);
+    expect(find.text('انتهى موعد التسليم'), findsOneWidget);
+    expect(find.text('تعليمات المعلم'), findsOneWidget);
+    expect(find.text('وصف واجب قديم'), findsOneWidget);
+    expect(find.text('احسب'), findsOneWidget);
+    expect(find.text('أ'), findsOneWidget);
+    expect(find.text('2 + 3'), findsOneWidget);
+
+    // Back to the list
+    await tester.tap(find.byType(BackButton).last);
+    await tester.pumpAndSettle();
+    expect(find.byType(HomeworkDetailsScreen), findsNothing);
+    expect(find.text('واجب قديم'), findsOneWidget);
   });
 
   testWidgets('Academic year and semester: current ones by default, others reload the child data with their ids',
@@ -1223,5 +1283,307 @@ void main() {
     expect(loads, greaterThan(before));
     expect(sent.last, {'academicYearId': 'y-2026', 'semesterId': 's-2'});
     expect(find.text('2026-2027 · الفصل الثاني'), findsOneWidget);
+  });
+
+  testWidgets('Fees screen shows the academic year and reloads for another one', (WidgetTester tester) async {
+    _phoneSize(tester);
+    await AcademicYearController.instance.ensureLoaded(fetch: () async => _years);
+    var loads = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: FeesScreen(
+        child: _sara,
+        loadFees: (_) async {
+          loads++;
+          return const [];
+        },
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('fees-year')), findsOneWidget);
+    expect(find.text('2026-2027'), findsOneWidget);
+    final before = loads;
+
+    await tester.tap(find.byKey(const ValueKey('fees-change-year')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('2025-2026'));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(20, 20));
+    await tester.pumpAndSettle();
+
+    expect(loads, greaterThan(before));
+    expect(find.text('2025-2026'), findsOneWidget);
+  });
+
+  group('Notifications', () {
+    final now = DateTime(2026, 11, 20, 10);
+    final notices = [
+      AppNotice(id: 'n1', title: 'اجتماع أولياء الأمور', description: 'يوم الخميس الساعة 10 صباحاً في قاعة المدرسة', sentOn: DateTime(2026, 11, 20), type: NoticeType.event, forEveryone: true),
+      AppNotice(id: 'n2', title: 'واجب الرياضيات', description: 'حل تمارين صفحة 20', sentOn: DateTime(2026, 11, 19), type: NoticeType.homework),
+      AppNotice(id: 'n3', title: 'نتائج الامتحان الشهري', description: 'ظهرت النتائج', sentOn: DateTime(2026, 11, 10), type: NoticeType.examResult, imageUrl: 'http://localhost/x.png'),
+    ];
+
+    testWidgets('List grouped by day with types; filter by type; details page', (WidgetTester tester) async {
+      _phoneSize(tester);
+      var loads = 0;
+      await tester.pumpWidget(MaterialApp(
+        home: NotificationsScreen(
+          loadNotices: () async {
+            loads++;
+            return notices;
+          },
+          subtitle: 'سارة',
+          targetedLabel: 'خاص',
+          now: now,
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(loads, 1);
+      expect(find.text('1 إشعار جديد اليوم'), findsOneWidget);
+      expect(find.text('اليوم'), findsOneWidget);
+      expect(find.text('أمس'), findsOneWidget);
+      expect(find.text('اجتماع أولياء الأمور'), findsOneWidget);
+      expect(find.text('جديد'), findsOneWidget);
+      expect(find.text('للجميع'), findsOneWidget);
+      expect(find.text('خاص'), findsNWidgets(2));
+
+      // Only homework
+      await tester.tap(find.byKey(const ValueKey('notice-type-homework')));
+      await tester.pumpAndSettle();
+      expect(find.text('واجب الرياضيات'), findsOneWidget);
+      expect(find.text('اجتماع أولياء الأمور'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('notice-type-all')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('notice-n1')));
+      await tester.pumpAndSettle();
+      expect(find.byType(NotificationDetailsScreen), findsOneWidget);
+      expect(find.text('يوم الخميس الساعة 10 صباحاً في قاعة المدرسة'), findsOneWidget);
+      expect(find.text('الجميع'), findsOneWidget);
+      expect(find.text('الجمعة 20 نوفمبر 2026'), findsOneWidget);
+    });
+
+    testWidgets('No notifications shows a message', (WidgetTester tester) async {
+      _phoneSize(tester);
+      await tester.pumpWidget(MaterialApp(home: NotificationsScreen(loadNotices: () async => const [], now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('لا توجد إشعارات في هذا العام الدراسي.'), findsOneWidget);
+    });
+
+    test('Notification JSON: type, date, image and audience', () {
+      final n = AppNotice.fromJson({
+        'id': 'x',
+        'title': ' تنبيه ',
+        'description': 'نص',
+        'sentOn': '2026-11-18',
+        'notificationType': 2,
+        'imageUrl': '',
+        'forEveryone': true,
+      });
+      expect(n.title, 'تنبيه');
+      expect(n.type, NoticeType.exam);
+      expect(n.sentOn, DateTime(2026, 11, 18));
+      expect(n.imageUrl, isNull);
+      expect(n.forEveryone, isTrue);
+      expect(NoticeType.from(99), NoticeType.message);
+    });
+  });
+
+  group('Chat', () {
+    const me = 'me-1';
+    final now = DateTime(2026, 11, 20, 12, 0);
+
+    ChatMessage msg(String id, String sender, String text, int minutesAgo, {ChatStatus status = ChatStatus.sent}) =>
+        ChatMessage(id: id, senderId: sender, content: text, sentOn: now.subtract(Duration(minutes: minutesAgo)), status: status);
+
+    testWidgets('Chats list: unread badge, my last message; a chat shows the messages, marks them seen and sends',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      List<String>? seenIds;
+      final sent = <String>[];
+      final api = ChatApi(
+        userId: me,
+        loadChats: () async => [
+          ChatSummary(roomId: 'r1', otherUserId: 'u-1', nameAr: 'منى حسن', nameEn: 'Mona Hassan', detailAr: 'ولي أمر عمر',
+              lastMessage: 'شكراً لك', lastMessageSenderId: 'u-1', lastMessageOn: now.subtract(const Duration(minutes: 5)), unreadCount: 2),
+          ChatSummary(roomId: 'r2', otherUserId: 'u-2', nameAr: 'أحمد محمود', nameEn: 'Ahmed Mahmoud',
+              lastMessage: 'سأرسل الواجب', lastMessageSenderId: me, lastMessageOn: now.subtract(const Duration(days: 1))),
+        ],
+        // Newest first, as the API returns them
+        loadMessages: (roomId) async => [
+          msg('m3', 'u-1', 'شكراً لك', 5),
+          msg('m2', me, 'عمر متميز هذا الأسبوع', 10, status: ChatStatus.seen),
+          msg('m1', 'u-1', 'كيف مستوى عمر؟', 20),
+        ],
+        seen: (roomId, ids) async => seenIds = ids,
+        send: (roomId, content) async {
+          sent.add(content);
+          return ChatMessage(id: 'm4', senderId: me, content: content, sentOn: now);
+        },
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+
+      expect(find.text('منى حسن'), findsOneWidget);
+      expect(find.byKey(const ValueKey('unread-r1')), findsOneWidget);
+      expect(find.text('2 رسالة غير مقروءة'), findsOneWidget);
+      expect(find.text('أنت:'), findsOneWidget); // my last message to Ahmed
+      expect(find.text('أمس'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('chat-r1')));
+      await tester.pumpAndSettle();
+      expect(find.text('ولي أمر عمر'), findsOneWidget);
+      expect(find.text('كيف مستوى عمر؟'), findsOneWidget);
+      expect(find.text('عمر متميز هذا الأسبوع'), findsOneWidget);
+      expect(find.byKey(const ValueKey('seen-tick')), findsOneWidget);
+      expect(find.text('اليوم'), findsOneWidget);
+      // Their two messages are marked seen
+      expect(seenIds, ['m3', 'm1']);
+
+      await tester.enterText(find.byKey(const ValueKey('chat-input')), '  أهلاً، سأتابع معه  ');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('chat-send')));
+      await tester.pumpAndSettle();
+      expect(sent, ['أهلاً، سأتابع معه']);
+      expect(find.text('أهلاً، سأتابع معه'), findsOneWidget);
+    });
+
+    testWidgets('Profile pictures show in the chats list, the chat header and next to their messages',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      ChatAvatar.clearCache();
+      // 1x1 PNG
+      final png = base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=');
+      final asked = <String>[];
+      final api = ChatApi(
+        userId: me,
+        loadPhoto: (userId) async {
+          asked.add(userId);
+          return userId == 'u-1' ? png : null;
+        },
+        loadChats: () async => [
+          ChatSummary(roomId: 'r1', otherUserId: 'u-1', nameAr: 'منى حسن', nameEn: 'Mona', lastMessage: 'مرحباً', lastMessageOn: now),
+          ChatSummary(roomId: 'r2', otherUserId: 'u-2', nameAr: 'أحمد محمود', nameEn: 'Ahmed', lastMessage: 'شكراً', lastMessageOn: now),
+        ],
+        loadMessages: (roomId) async => [msg('b', 'u-1', 'كيف الحال؟', 1), msg('a', 'u-1', 'مرحباً', 2)],
+        seen: (roomId, ids) async {},
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+
+      // Mona has a picture, Ahmed shows his initial
+      expect(find.byKey(const ValueKey('photo-u-1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('photo-u-2')), findsNothing);
+      expect(find.text('أ'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('chat-r1')));
+      await tester.pumpAndSettle();
+      // Header + one picture for her two messages in a row
+      expect(find.byKey(const ValueKey('photo-u-1')), findsNWidgets(2));
+      // Loaded once per person (kept in memory)
+      expect(asked.where((id) => id == 'u-1').length, 1);
+    });
+
+    testWidgets('Chats belong to the academic year: another year reloads its own chats', (WidgetTester tester) async {
+      _phoneSize(tester);
+      var loads = 0;
+      final api = ChatApi(
+        userId: me,
+        loadChats: () async {
+          loads++;
+          return loads == 1
+              ? [ChatSummary(roomId: 'r1', otherUserId: 'u-1', nameAr: 'منى حسن', nameEn: 'Mona', lastMessage: 'مرحباً', lastMessageOn: now)]
+              : const <ChatSummary>[];
+        },
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('منى حسن'), findsOneWidget);
+
+      await AcademicYearController.instance.select(
+          AcademicYear(id: 'y-old', name: '2025-2026', startDate: DateTime(2025, 9, 1), endDate: DateTime(2026, 6, 30)));
+      await tester.pumpAndSettle();
+      expect(loads, 2);
+      expect(find.text('منى حسن'), findsNothing);
+      // The year chosen on home is shown, not changed here
+      expect(find.text('العام الدراسي 2025-2026'), findsOneWidget);
+      expect(find.byType(AcademicYearChip), findsNothing);
+      expect(find.text('لا توجد محادثات في هذا العام الدراسي. اضغط "محادثة جديدة" للبدء.'), findsOneWidget);
+    });
+
+    testWidgets('A message that fails can be sent again', (WidgetTester tester) async {
+      _phoneSize(tester);
+      var fail = true;
+      final api = ChatApi(
+        userId: me,
+        loadMessages: (roomId) async => const [],
+        send: (roomId, content) async {
+          if (fail) throw const ChatException('x');
+          return ChatMessage(id: 'ok', senderId: me, content: content, sentOn: now);
+        },
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatScreen(api: api, roomId: 'r', title: 'منى', refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('لا توجد رسائل بعد. اكتب أول رسالة.'), findsOneWidget);
+
+      await tester.enterText(find.byKey(const ValueKey('chat-input')), 'مرحباً');
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('chat-send')));
+      await tester.pumpAndSettle();
+      expect(find.text('لم تُرسل، اضغط لإعادة المحاولة'), findsOneWidget);
+
+      fail = false;
+      await tester.tap(find.text('مرحباً'));
+      await tester.pumpAndSettle();
+      expect(find.text('لم تُرسل، اضغط لإعادة المحاولة'), findsNothing);
+      expect(find.text('مرحباً'), findsOneWidget);
+    });
+
+    testWidgets('New chat: pick a contact, the chat with them opens', (WidgetTester tester) async {
+      _phoneSize(tester);
+      String? startedWith;
+      final api = ChatApi(
+        userId: me,
+        loadChats: () async => const [],
+        loadContacts: () async => const [
+          ChatContact(userId: 'u-7', nameAr: 'سعاد علي', nameEn: 'Suad Ali', detailAr: 'رياضيات، علوم'),
+          ChatContact(userId: 'u-8', nameAr: 'خالد سمير', nameEn: 'Khaled Samir', detailAr: 'لغة عربية'),
+        ],
+        start: (otherUserId) async {
+          startedWith = otherUserId;
+          return 'room-new';
+        },
+        loadMessages: (roomId) async => const [],
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+      expect(find.text('لا توجد محادثات في هذا العام الدراسي. اضغط "محادثة جديدة" للبدء.'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('new-chat')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byKey(const ValueKey('contacts-search')), 'علوم');
+      await tester.pump();
+      expect(find.text('خالد سمير'), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('contact-u-7')));
+      await tester.pumpAndSettle();
+
+      expect(startedWith, 'u-7');
+      expect(find.byType(ChatScreen), findsOneWidget);
+      expect(find.text('سعاد علي'), findsOneWidget);
+      expect(find.text('رياضيات، علوم'), findsOneWidget);
+    });
+
+    test('Chat JSON: times without a zone are UTC, statuses', () {
+      final m = ChatMessage.fromJson({'id': 'a', 'senderId': 's', 'content': 'hi', 'sentOn': '2026-11-20T08:00:00', 'status': 3});
+      expect(m.sentOn, DateTime.utc(2026, 11, 20, 8).toLocal());
+      expect(m.status, ChatStatus.seen);
+      final sent = ChatMessage.fromJson({'messageId': 'b', 'senderId': 's', 'content': 'x', 'sentOn': '2026-11-20T08:00:00Z', 'status': 1});
+      expect(sent.id, 'b');
+      expect(sent.status, ChatStatus.sent);
+      final c = ChatSummary.fromJson({'roomId': 'r', 'otherUserId': 'u', 'nameAr': 'منى', 'nameEn': 'Mona', 'unreadCount': 3});
+      expect(c.unreadCount, 3);
+      expect(c.lastMessageOn, isNull);
+    });
   });
 }

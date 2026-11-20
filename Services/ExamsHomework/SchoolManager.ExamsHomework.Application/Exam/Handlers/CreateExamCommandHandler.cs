@@ -38,6 +38,9 @@ namespace SchoolManager.ExamsHomework.Application
                 command.AnswerModelUrl,
                 new AuditInfo(DateTime.Now, _currentUser.UserId));
 
+            if (command.TeacherId is Guid teacherId)
+                entity.AssignTeacher(teacherId);
+
             await _repository.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 

@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject, forkJoin, timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from '../../core/services/notification.service';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { AcademicYearService } from '../../core/services/academic-year.service';
 import { StageService } from '../../core/services/stage.service';
 import { GradeService } from '../../core/services/grade.service';
@@ -33,7 +34,14 @@ type StatusFilter = '' | 'scheduled' | 'sent';
   templateUrl: './notification-list.component.html',
 })
 export class NotificationListComponent implements OnInit, OnDestroy {
-  notifications = signal<AppNotification[]>([]);
+  /** Everything loaded; the page shows only the header's academic year */
+  private allNotifications = signal<AppNotification[]>([]);
+
+  /** Notifications of the academic year chosen in the header */
+  notifications = computed(() => {
+    const yearId = this.academic.yearId();
+    return this.allNotifications().filter(n => !!yearId && n.academicYearId === yearId);
+  });
   private lookups = signal<AudienceLookups>(EMPTY_LOOKUPS);
   currentLanguage = signal<string>('en');
 
@@ -103,8 +111,16 @@ export class NotificationListComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private translate: TranslateService,
     private router: Router,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+    // Another year in the header: back to its first page
+    effect(() => {
+      this.academic.yearId();
+      this.page.set(1);
+    });
+  }
 
   ngOnInit(): void {
     this.languageService.currentLanguage$
@@ -140,7 +156,7 @@ export class NotificationListComponent implements OnInit, OnDestroy {
         next: ({ notifications, lookups }) => {
           this.lookups.set(lookups);
           if (notifications.status === 200) {
-            this.notifications.set(notifications.data || []);
+            this.allNotifications.set(notifications.data || []);
             this.clampPage();
           } else {
             this.errorMessage.set(notifications.message || this.translate.instant('notifications.loadFailed'));
@@ -226,7 +242,7 @@ export class NotificationListComponent implements OnInit, OnDestroy {
           if (response.status === 200) {
             this.modalRef?.close();
             this.toDelete.set(null);
-            this.notifications.update(list => list.filter(x => x.id !== n.id));
+            this.allNotifications.update(list => list.filter(x => x.id !== n.id));
             this.clampPage();
             this.showSuccess(this.translate.instant('notifications.deleted'));
           } else {

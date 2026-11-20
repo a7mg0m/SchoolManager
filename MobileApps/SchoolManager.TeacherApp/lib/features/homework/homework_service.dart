@@ -229,6 +229,24 @@ class HomeworkService {
     return '${(body as Map<String, dynamic>?)?['insertedId'] ?? ''}';
   }
 
+  /// Saves the edited title, description, due date and questions (the questions replace the saved ones)
+  Future<void> updateHomework(
+    String homeworkId, {
+    required String title,
+    required String description,
+    required DateTime dueDate,
+    List<HomeworkQuestion> questions = const [],
+  }) async {
+    await _send('PUT', '/api/homework/my/${Uri.encodeComponent(homeworkId)}',
+        body: {
+          'title': title,
+          'description': description,
+          'dueDate': _date(dueDate),
+          'questions': questions.map((q) => q.toJson()).toList(),
+        },
+        fallback: tr('تعذر حفظ التعديلات.', 'Could not save the changes.'));
+  }
+
   /// Returns how many classes it was newly published to
   Future<int> publish(String homeworkId, List<String> sectionIds) async {
     final data = await _send('POST', '/api/homework/my/${Uri.encodeComponent(homeworkId)}/publish',
@@ -269,6 +287,7 @@ class HomeworkService {
     try {
       final request = switch (method) {
         'POST' => http.post(uri, headers: headers, body: jsonEncode(body ?? const {})),
+        'PUT' => http.put(uri, headers: headers, body: jsonEncode(body ?? const {})),
         'DELETE' => http.delete(uri, headers: headers),
         _ => http.get(uri, headers: headers),
       };
@@ -305,6 +324,7 @@ class HomeworkService {
         'DescriptionTooLong' => tr('الوصف طويل جداً.', 'The description is too long.'),
         'DueDateInPast' => tr('موعد التسليم لا يمكن أن يكون في الماضي.', 'The due date cannot be in the past.'),
         'TooManyQuestions' => tr('عدد الأسئلة كبير جداً.', 'Too many questions.'),
+        'TooManySubQuestions' => tr('عدد الأسئلة الفرعية كبير جداً.', 'Too many sub-questions.'),
         'QuestionTooLong' => tr('أحد الأسئلة طويل جداً.', 'One of the questions is too long.'),
         'SubjectNotTaught' => tr('هذه المادة ليست من موادك.', 'You do not teach this subject.'),
         'NoActiveSemester' => tr('لا يوجد فصل دراسي حالي، تواصل مع الإدارة.', 'There is no current semester. Please contact the school office.'),

@@ -10,7 +10,10 @@ namespace SchoolManager.Notification.Domain
         public string? Name { get; private set; }
         public Guid? SectionId { get; private set; }
 
-        /// <summary>Deterministic key (sorted user ids) that guarantees one private room per user pair.</summary>
+        /// <summary>Academic year of a private chat (teacher / parent apps): one chat per pair of users per year</summary>
+        public Guid? AcademicYearId { get; private set; }
+
+        /// <summary>Deterministic key (sorted user ids, and the academic year) that guarantees one private room per user pair (per year).</summary>
         public string? PrivateKey { get; private set; }
 
         public DateTime? LastMessageOn { get; private set; }
@@ -20,13 +23,14 @@ namespace SchoolManager.Notification.Domain
 
         private ChatRoom() { }
 
-        public static string BuildPrivateKey(Guid userA, Guid userB)
+        public static string BuildPrivateKey(Guid userA, Guid userB, Guid? academicYearId = null)
         {
             var ordered = userA.CompareTo(userB) <= 0 ? (userA, userB) : (userB, userA);
-            return $"{ordered.Item1:N}_{ordered.Item2:N}";
+            var key = $"{ordered.Item1:N}_{ordered.Item2:N}";
+            return academicYearId is Guid year ? $"{key}_{year:N}" : key;
         }
 
-        public static ChatRoom CreatePrivate(Guid userA, Guid userB, AuditInfo auditInfo)
+        public static ChatRoom CreatePrivate(Guid userA, Guid userB, AuditInfo auditInfo, Guid? academicYearId = null)
         {
             if (userA == Guid.Empty || userB == Guid.Empty) throw new ChatDomainException("Both users are required.");
             if (userA == userB) throw new ChatDomainException("Cannot create a private chat with yourself.");
@@ -34,7 +38,8 @@ namespace SchoolManager.Notification.Domain
             var room = new ChatRoom
             {
                 Type = ChatRoomType.Private,
-                PrivateKey = BuildPrivateKey(userA, userB),
+                PrivateKey = BuildPrivateKey(userA, userB, academicYearId),
+                AcademicYearId = academicYearId,
                 AuditInfo = auditInfo
             };
             room.AddParticipant(userA, auditInfo);

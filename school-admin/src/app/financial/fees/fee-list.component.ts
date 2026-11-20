@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Subject, timer, forkJoin } from 'rxjs';
@@ -64,7 +65,11 @@ export class FeeListComponent implements OnInit, OnDestroy {
     const mandatory = this.mandatoryFilter();
     const gradeById = new Map(this.grades().map(g => [g.id, g]));
 
+    const yearId = this.academic.yearId();
+
     return this.fees().filter(f => {
+      // The header's academic year (fees saved without a year show in every year)
+      if (yearId && f.academicYearId && f.academicYearId !== yearId) return false;
       if (gradeId && f.gradeId !== gradeId) return false;
       if (stageId && gradeById.get(f.gradeId)?.stageId !== stageId) return false;
       if (type !== '' && f.type !== Number(type)) return false;
@@ -115,8 +120,11 @@ export class FeeListComponent implements OnInit, OnDestroy {
     private gradeService: GradeService,
     private languageService: LanguageService,
     private router: Router,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.languageService.currentLanguage$

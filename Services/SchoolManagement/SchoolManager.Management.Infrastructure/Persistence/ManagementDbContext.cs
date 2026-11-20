@@ -22,6 +22,12 @@ namespace SchoolManager.Management.Infrastructure
         public DbSet<Teacher> Teachers => Set<Teacher>();
         public DbSet<Timetable> Timetables => Set<Timetable>();
         public DbSet<TimetableSlot> TimetableSlots => Set<TimetableSlot>();
+        public DbSet<StudentMedicalProfile> StudentMedicalProfiles => Set<StudentMedicalProfile>();
+        public DbSet<Vaccine> Vaccines => Set<Vaccine>();
+        public DbSet<VaccinationCampaign> VaccinationCampaigns => Set<VaccinationCampaign>();
+        public DbSet<StudentVaccination> StudentVaccinations => Set<StudentVaccination>();
+        public DbSet<ClinicVisit> ClinicVisits => Set<ClinicVisit>();
+        public DbSet<VisitMedication> VisitMedications => Set<VisitMedication>();
 
         /// <summary>Integration events waiting to be published to Kafka (transactional outbox).</summary>
         public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();

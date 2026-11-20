@@ -12,9 +12,9 @@ namespace SchoolManager.Notification.Infrastructure
         public Task<ChatRoom?> GetByIdWithParticipantsAsync(Guid roomId, CancellationToken cancellationToken = default) =>
             _dbSet.Include(r => r.Participants).FirstOrDefaultAsync(r => r.Id == roomId, cancellationToken);
 
-        public Task<ChatRoom?> GetPrivateRoomAsync(Guid userA, Guid userB, CancellationToken cancellationToken = default)
+        public Task<ChatRoom?> GetPrivateRoomAsync(Guid userA, Guid userB, Guid? academicYearId = null, CancellationToken cancellationToken = default)
         {
-            var key = ChatRoom.BuildPrivateKey(userA, userB);
+            var key = ChatRoom.BuildPrivateKey(userA, userB, academicYearId);
             return _dbSet.Include(r => r.Participants).FirstOrDefaultAsync(r => r.PrivateKey == key, cancellationToken);
         }
 

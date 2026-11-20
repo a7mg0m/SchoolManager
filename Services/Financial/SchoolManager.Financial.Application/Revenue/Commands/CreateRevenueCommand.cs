@@ -11,6 +11,8 @@ namespace SchoolManager.Financial.Application
         decimal Amount,
         string Currency,
         DateTime RevenueDate,
-        string? Reference
+        string? Reference,
+        /// <summary>The academic year chosen in the admin header</summary>
+        Guid AcademicYearId = default
     ) : ICommand<Guid>;
 }

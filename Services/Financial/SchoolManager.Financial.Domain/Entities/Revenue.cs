@@ -13,12 +13,14 @@ public sealed class Revenue : BaseEntity
     public Money Amount { get; private set; } = default!;
     public DateTime RevenueDate { get; private set; }
     public string? Reference { get; private set; }
+    /// <summary>Academic year the revenue belongs to (null: saved before revenues had a year)</summary>
+    public Guid? AcademicYearId { get; private set; }
     public AuditInfo AuditInfo { get; private set; } = default!;
 
     private Revenue() { }
 
     public static Revenue Create(string title, string? description, RevenueCategory category, RevenueType type,
-        Money amount, DateTime revenueDate, string? reference, AuditInfo auditInfo)
+        Money amount, DateTime revenueDate, string? reference, AuditInfo auditInfo, Guid? academicYearId = null)
     {
 
         var revenue = new Revenue
@@ -31,12 +33,13 @@ public sealed class Revenue : BaseEntity
             Type = type,
             Amount = amount,
             RevenueDate = revenueDate,
-            Reference = reference
+            Reference = reference,
+            AcademicYearId = academicYearId
         };
         return revenue;
     }
     public void Update(string title, string? description, RevenueCategory category, RevenueType type,
-        Money amount, DateTime revenueDate, string? reference, AuditInfo auditInfo)
+        Money amount, DateTime revenueDate, string? reference, AuditInfo auditInfo, Guid? academicYearId = null)
     {
         Title = title.Trim();
         Description = description;
@@ -46,6 +49,9 @@ public sealed class Revenue : BaseEntity
         Amount = amount;
         RevenueDate = revenueDate;
         Reference = reference;
+        // A revenue keeps its year; one saved without a year gets the one sent
+        if (AcademicYearId is null && academicYearId is Guid year && year != Guid.Empty)
+            AcademicYearId = year;
         AuditInfo = auditInfo;
     }
 }

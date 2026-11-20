@@ -9,6 +9,7 @@ namespace SchoolManager.Financial.Infrastructure
         public void Configure(EntityTypeBuilder<Revenue> builder)
         {
             builder.ToTable("Revenues");
+            builder.HasIndex(x => x.AcademicYearId);
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Title).IsRequired().HasMaxLength(200);

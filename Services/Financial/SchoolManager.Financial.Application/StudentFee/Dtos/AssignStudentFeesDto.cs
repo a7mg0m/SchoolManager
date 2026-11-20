@@ -12,5 +12,8 @@ namespace SchoolManager.Financial.Application
         public decimal DiscountAmount { get; set; }
 
         public DateTime DueDate { get; set; }
+
+        /// <summary>Academic year chosen in the admin; the selected fees must be of this year</summary>
+        public Guid? AcademicYearId { get; set; }
     }
 }

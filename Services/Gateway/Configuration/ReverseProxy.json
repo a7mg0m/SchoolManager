@@ -8,7 +8,7 @@
       },
       "management-route": {
         "ClusterId": "management-cluster",
-        "Match": { "Path": "/api/{resource:regex(^(semester|section|timetable-slot|school-info|timetable|parent|teacher|grade|academic-year|subject|stage|student)$)}/{**catch-all}" },
+        "Match": { "Path": "/api/{resource:regex(^(semester|section|timetable-slot|school-info|timetable|parent|teacher|grade|academic-year|subject|stage|student|vaccine|vaccination-campaign|student-vaccination|clinic-visit|student-medical-profile)$)}/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5298" } ]
       },
       "management-album-upload-route": {

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../core/academic_year/academic_year_controller.dart';
+import '../../core/academic_year/academic_year_picker.dart';
+import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import 'fees_service.dart';
@@ -21,7 +24,10 @@ class FeesScreen extends StatefulWidget {
   State<FeesScreen> createState() => _FeesScreenState();
 }
 
-class _FeesScreenState extends State<FeesScreen> {
+class _FeesScreenState extends State<FeesScreen> with ReloadOnAcademicYear {
+  @override
+  Future<void> reloadForAcademicYear() => _load();
+
   Color get _muted => context.palette.muted;
   static const _green = Color(0xFF13864B);
   static const _red = Color(0xFFD93025);
@@ -80,8 +86,22 @@ class _FeesScreenState extends State<FeesScreen> {
               [widget.child.name, widget.child.classInfo].where((s) => s.isNotEmpty).join(' · '),
               style: const TextStyle(fontSize: 12, color: Colors.white70),
             ),
+            // Fees of the academic year chosen in the app
+            if (AcademicYearController.instance.value != null)
+              Text(AcademicYearController.instance.value!.name,
+                  key: const ValueKey('fees-year'),
+                  style: const TextStyle(fontSize: 11.5, color: Colors.white70, fontWeight: FontWeight.w600)),
           ],
         ),
+        toolbarHeight: AcademicYearController.instance.value != null ? 70 : null,
+        actions: [
+          IconButton(
+            key: const ValueKey('fees-change-year'),
+            tooltip: tr('السنة الدراسية', 'Academic year'),
+            icon: const Icon(Icons.date_range_rounded),
+            onPressed: () => showAcademicYearSheet(context),
+          ),
+        ],
       ),
       body: SafeArea(
         child: _loading

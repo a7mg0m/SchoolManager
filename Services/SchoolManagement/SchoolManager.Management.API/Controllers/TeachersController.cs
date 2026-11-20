@@ -69,6 +69,37 @@ namespace SchoolManager.Management.API.Controllers
 			return Ok(new ApiResponse { data = result });
 		}
 
+		/// <summary>
+		/// Active students of one of the logged-in teacher's classes (teacher app: exam scores).
+		/// 404 when the class is not in a grade the teacher teaches.
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-students/{sectionId}")]
+		public async Task<ActionResult<List<TeacherStudentDto>>> GetMyStudents(Guid sectionId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.TeacherId is not Guid teacherId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+			var result = await _mediator.Send(new GetMySectionStudentsQuery(teacherId, sectionId), cancellationToken);
+			if (result is null)
+				return NotFound(new ApiResponse(404, "SectionNotTaught"));
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// Parents of the students in the logged-in teacher's classes, each with those children (teacher app: parents).
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-parents")]
+		public async Task<ActionResult<List<TeacherParentDto>>> GetMyParents(CancellationToken cancellationToken)
+		{
+			if (_currentUser.TeacherId is not Guid teacherId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+			var result = await _mediator.Send(new GetMyParentsQuery(teacherId), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
 		[HttpGet("get/{id}")]
 		public async Task<ActionResult<TeacherDto>> GetById(Guid id, CancellationToken cancellationToken)
 		{

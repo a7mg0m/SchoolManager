@@ -80,6 +80,9 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AcademicYearId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime?>("LastMessageOn")
                         .HasColumnType("datetime2");
 
@@ -88,8 +91,8 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("PrivateKey")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.Property<Guid?>("SectionId")
                         .HasColumnType("uniqueidentifier");
@@ -98,6 +101,8 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
 
                     b.HasIndex("PrivateKey")
                         .IsUnique()
@@ -176,6 +181,9 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("AcademicYearId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(2000)
@@ -197,6 +205,8 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AcademicYearId");
 
                     b.ToTable("Notifications", (string)null);
                 });

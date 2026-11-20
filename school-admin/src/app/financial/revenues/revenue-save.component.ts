@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { RevenueService } from '../../core/services/revenue.service';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { RevenueCategoryService } from '../../core/services/revenue-category.service';
 import { Revenue, RevenueType, REVENUE_TYPES, SaveRevenueRequest } from '../../core/models/revenue.model';
 import { RevenueCategory } from '../../core/models/revenue-category.model';
@@ -34,6 +35,9 @@ export class RevenueSaveComponent implements OnInit, OnDestroy {
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
   isEditMode = signal(false);
+
+  /** Year of the revenue being edited (null: new, or saved before revenues had a year) */
+  savedYearId = signal<string | null>(null);
   revenueId: string | null = null;
 
 
@@ -51,8 +55,11 @@ export class RevenueSaveComponent implements OnInit, OnDestroy {
     private revenueService: RevenueService,
     private revenueCategoryService: RevenueCategoryService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.form = this.formBuilder.group({
@@ -110,6 +117,7 @@ export class RevenueSaveComponent implements OnInit, OnDestroy {
   }
 
   private populateForm(revenue: Revenue): void {
+    this.savedYearId.set(revenue.academicYearId || null);
     this.form.patchValue({
       title: revenue.title,
       categoryId: revenue.categoryId,
@@ -129,6 +137,13 @@ export class RevenueSaveComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // A saved revenue keeps its year; a new one (or one saved without a year) takes the header's
+    const academicYearId = this.savedYearId() || this.academic.yearId() || null;
+    if (!academicYearId) {
+      this.errorMessage.set('Choose the academic year in the header first.');
+      return;
+    }
+
     this.isSaving.set(true);
     this.errorMessage.set(null);
 
@@ -143,7 +158,8 @@ export class RevenueSaveComponent implements OnInit, OnDestroy {
       currency,
       // Date-only value sent as local midnight (no timezone shift)
       revenueDate: `${v.revenueDate}T00:00:00`,
-      reference: (v.reference || '').trim() || null
+      reference: (v.reference || '').trim() || null,
+      academicYearId
     };
 
     const request$ = this.isEditMode()

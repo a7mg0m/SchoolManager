@@ -30,6 +30,21 @@ namespace SchoolManager.Notification.Application
         string? LastMessage,
         Guid? LastMessageSenderId,
         DateTime? LastMessageOn,
+        int UnreadCount,
+        /// <summary>The other person of a private chat</summary>
+        Guid? OtherUserId = null);
+
+    /// <summary>A private chat of the logged-in user (teacher / parent apps), with the other person's names.</summary>
+    public record MyChatDto(
+        Guid RoomId,
+        Guid OtherUserId,
+        string NameAr,
+        string NameEn,
+        string DetailAr,
+        string DetailEn,
+        string? LastMessage,
+        Guid? LastMessageSenderId,
+        DateTime? LastMessageOn,
         int UnreadCount);
 
     public record ChatHistoryDto(

@@ -10,6 +10,7 @@ namespace SchoolManager.Financial.Application
         List<Guid> StudentIds,
         List<Guid> FeeIds,
         decimal DiscountAmount,
-        DateTime DueDate
+        DateTime DueDate,
+        Guid? AcademicYearId = null
     ) : ICommand<List<Guid>>;
 }

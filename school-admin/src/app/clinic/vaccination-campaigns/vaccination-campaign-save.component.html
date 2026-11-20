@@ -1,0 +1,107 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'clinic.editCampaign' | translate }}
+        } @else {
+          {{ 'clinic.newCampaign' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    @if (vaccines().length === 0) {
+      <div class="alert alert-warning">{{ 'clinic.noActiveVaccines' | translate }}</div>
+    }
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="title" class="form-label">{{ 'clinic.campaignTitle' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="title" formControlName="title"
+                     [class.is-invalid]="hasError('title', 'required')" />
+              @if (hasError('title', 'required')) {
+                <div class="invalid-feedback">{{ 'clinic.errors.TitleRequired' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="vaccineId" class="form-label">{{ 'clinic.vaccine' | translate }} <span class="text-danger">*</span></label>
+              <select class="form-select" id="vaccineId" formControlName="vaccineId"
+                      [class.is-invalid]="hasError('vaccineId', 'required')">
+                <option value="">{{ 'common.chooseOne' | translate }}</option>
+                @for (vaccine of vaccines(); track vaccine.id) {
+                  <option [value]="vaccine.id">{{ vaccineName(vaccine) }}</option>
+                }
+              </select>
+              @if (hasError('vaccineId', 'required')) {
+                <div class="invalid-feedback">{{ 'clinic.errors.VaccineIdRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="startDate" class="form-label">{{ 'management.startDate' | translate }} <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="startDate" formControlName="startDate"
+                     [class.is-invalid]="hasError('startDate', 'required')" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="endDate" class="form-label">{{ 'management.endDate' | translate }} <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="endDate" formControlName="endDate"
+                     [class.is-invalid]="hasError('endDate', 'required') || (form.hasError('endBeforeStart') && form.get('endDate')?.touched)" />
+              @if (form.hasError('endBeforeStart')) {
+                <div class="invalid-feedback d-block">{{ 'clinic.errors.EndDateBeforeStartDate' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="row mt-4">
+            <div class="col">
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+                  @if (isSaving()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  }
+                  {{ 'common.save' | translate }}
+                </button>
+                <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+                  {{ 'common.cancel' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

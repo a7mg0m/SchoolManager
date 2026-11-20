@@ -14,7 +14,8 @@ namespace SchoolManager.ExamsHomework.Infrastructure
         private sealed record SubjectItem(Guid Id, string? NameAr, string? NameEn);
         private sealed record SectionItem(Guid SectionId, string? NameAr, string? NameEn);
         private sealed record TeacherSubjectItem(Guid SubjectId, string? SubjectNameAr, string? SubjectNameEn, Guid GradeId,
-            string? GradeNameAr, string? GradeNameEn, List<SectionItem>? Sections);
+            string? GradeNameAr, string? GradeNameEn, List<SectionItem>? Sections, Guid StageId);
+        private sealed record StudentItem(Guid Id, string? NameAr, string? NameEn);
         private sealed record ClassesItem(Guid? AcademicYearId, Guid? SemesterId, List<TeacherSubjectItem>? Subjects);
         private sealed record ApiResponse<T>(T? Data);
 
@@ -80,8 +81,30 @@ namespace SchoolManager.ExamsHomework.Infrastructure
                             s.GradeId, s.GradeNameAr ?? string.Empty, s.GradeNameEn ?? string.Empty,
                             (s.Sections ?? new List<SectionItem>())
                                 .Select(x => new TeacherSection(x.SectionId, x.NameAr ?? string.Empty, x.NameEn ?? string.Empty))
-                                .ToList()))
+                                .ToList(),
+                            s.StageId))
                         .ToList());
+            }
+            catch (Exception ex) when (IsCommunicationError(ex))
+            {
+                return null;
+            }
+        }
+
+        public async Task<IReadOnlyList<SectionStudent>?> GetMySectionStudentsAsync(string authorization, Guid sectionId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var response = await SendAsync($"api/teacher/my-students/{sectionId}", authorization, cancellationToken);
+                if (response is null || (int)response.StatusCode is 401 or 403 or 404)
+                    return Array.Empty<SectionStudent>(); // not a teacher / not their class: no students
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var body = await response.Content.ReadFromJsonAsync<ApiResponse<List<StudentItem>>>(cancellationToken);
+                return (body?.Data ?? new List<StudentItem>())
+                    .Select(s => new SectionStudent(s.Id, s.NameAr ?? string.Empty, s.NameEn ?? string.Empty))
+                    .ToList();
             }
             catch (Exception ex) when (IsCommunicationError(ex))
             {

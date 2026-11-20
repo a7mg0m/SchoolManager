@@ -40,13 +40,22 @@ namespace SchoolManager.Financial.Application
             if (currencies.Count > 1)
                 throw new DomainException($"Selected fees use different currencies ({string.Join(", ", currencies)}). Assign them separately.");
 
+            // One academic year: the chosen one, else the fees' own (fees saved before years go with any year)
+            var feeYears = fees.Where(f => f.AcademicYearId != null).Select(f => f.AcademicYearId!.Value).Distinct().ToList();
+            if (feeYears.Count > 1)
+                throw new DomainException("Selected fees belong to different academic years. Assign them separately.");
+            if (command.AcademicYearId is Guid chosenYear && feeYears.Count == 1 && feeYears[0] != chosenYear)
+                throw new DomainException("Selected fees do not belong to the chosen academic year.");
+            var academicYearId = command.AcademicYearId ?? feeYears.FirstOrDefault() as Guid?;
+            if (academicYearId == Guid.Empty) academicYearId = null;
+
             var currency = fees[0].Amount.Currency;
             var total = new Money(fees.Sum(f => f.Amount.Amount), currency);
 
             var ids = new List<Guid>();
             foreach (var studentId in studentIds)
             {
-                var studentFee = StudentFee.Assign(studentId, total, command.DiscountAmount, command.DueDate);
+                var studentFee = StudentFee.Assign(studentId, total, command.DiscountAmount, command.DueDate, academicYearId);
                 await _repository.AddAsync(studentFee);
                 ids.Add(studentFee.Id);
             }

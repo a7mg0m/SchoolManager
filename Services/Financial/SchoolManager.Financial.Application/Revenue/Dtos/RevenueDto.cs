@@ -14,5 +14,7 @@ namespace SchoolManager.Financial.Application
         public string Currency { get; set; } = string.Empty;
         public DateTime RevenueDate { get; set; }
         public string? Reference { get; set; }
+        /// <summary>Null: saved before revenues had a year</summary>
+        public Guid? AcademicYearId { get; set; }
     }
 }

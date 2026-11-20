@@ -5,6 +5,7 @@ namespace SchoolManager.Financial.Application
 {
     public record CreateFeeCommand(
         Guid GradeId,
+        Guid AcademicYearId,
         string Name,
         FeeType Type,
         decimal Amount,

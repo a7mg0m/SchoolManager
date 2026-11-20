@@ -1,0 +1,145 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'clinic.vaccines' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        *appCan="'add'" (click)="navigateToCreate()"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'clinic.newVaccine' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && vaccines().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-eyedropper text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'clinic.noVaccines' | translate }}</p>
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
+          {{ 'clinic.newVaccine' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Vaccines Table -->
+  @if (!isLoading() && vaccines().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'common.name' | translate }}</th>
+                <th>{{ 'clinic.totalDoses' | translate }}</th>
+                <th>{{ 'clinic.mandatory' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (vaccine of vaccines(); track vaccine.id) {
+                <tr>
+                  <td><strong>{{ name(vaccine) }}</strong></td>
+                  <td>{{ vaccine.totalDoses }}</td>
+                  <td>
+                    @if (vaccine.isMandatory) {
+                      <span class="badge bg-warning text-dark">{{ 'clinic.mandatory' | translate }}</span>
+                    } @else {
+                      <span class="text-muted">{{ 'clinic.optional' | translate }}</span>
+                    }
+                  </td>
+                  <td>
+                    <span [ngClass]="{ 'badge bg-success': vaccine.isActive, 'badge bg-danger': !vaccine.isActive }">
+                      {{ vaccine.isActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        class="btn btn-outline-primary"
+                        *appCan="'edit'" (click)="navigateToEdit(vaccine.id)"
+                        title="{{ 'common.edit' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-secondary"
+                        *appCan="'edit'" (click)="toggleActive(vaccine)"
+                        title="{{ (vaccine.isActive ? 'common.deactivate' : 'common.activate') | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i [class]="vaccine.isActive ? 'pe-7s-close-circle' : 'pe-7s-check'"></i>
+                      </button>
+                      <button
+                        class="btn btn-outline-danger"
+                        *appCan="'delete'" (click)="openDeleteConfirmation(vaccine, deleteModal)"
+                        title="{{ 'common.delete' | translate }}"
+                        [disabled]="isDeleting()"
+                      >
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'clinic.deleteVaccine' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'clinic.confirmDeleteVaccine' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

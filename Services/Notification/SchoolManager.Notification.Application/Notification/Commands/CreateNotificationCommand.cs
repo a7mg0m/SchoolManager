@@ -9,6 +9,7 @@ namespace SchoolManager.Notification.Application
         DateOnly SentOn,
         NotificationTypeEnum NotificationType,
         string? ImageUrl,
-        List<TargetInputDto>? Targets
+        List<TargetInputDto>? Targets,
+        Guid AcademicYearId = default
     ) : ICommand<Guid>;
 }

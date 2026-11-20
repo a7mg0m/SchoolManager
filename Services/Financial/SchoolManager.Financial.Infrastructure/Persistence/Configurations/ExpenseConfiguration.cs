@@ -8,6 +8,7 @@ namespace SchoolManager.Financial.Infrastructure
     {
         public void Configure(EntityTypeBuilder<Expense> builder)
         {
+            builder.HasIndex(x => x.AcademicYearId);
             builder.ToTable("Expenses");
             builder.HasKey(x => x.Id);
 

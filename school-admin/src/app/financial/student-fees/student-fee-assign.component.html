@@ -34,6 +34,8 @@
   }
 
   @if (!isLoading()) {
+    <!-- Fees are assigned for the academic year chosen in the header -->
+    <app-academic-context-note [semester]="false"></app-academic-context-note>
     <!-- Step 1: grade -->
     <div class="card mb-3">
       <div class="card-header"><span class="step">1</span> {{ 'studentFees.assign.chooseGrade' | translate }}</div>

@@ -35,6 +35,11 @@
     </div>
   }
 
+  <!-- Notifications of the academic year chosen in the header -->
+  @if (!isLoading()) {
+    <app-academic-context-note [semester]="false"></app-academic-context-note>
+  }
+
   @if (!isLoading() && notifications().length === 0 && !errorMessage()) {
     <div class="card text-center">
       <div class="card-body py-5">

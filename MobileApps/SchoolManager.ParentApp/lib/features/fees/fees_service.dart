@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../../core/academic_year/academic_year_controller.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
 import '../../core/i18n/app_language.dart';
@@ -95,7 +96,7 @@ class FeesService {
     final http.Response response;
     try {
       response = await http.get(
-        Uri.parse('${AppConfig.apiBaseUrl}/api/student-fee/my-child/${Uri.encodeComponent(studentId)}'),
+        _withYear(Uri.parse('${AppConfig.apiBaseUrl}/api/student-fee/my-child/${Uri.encodeComponent(studentId)}')),
         headers: {'Accept': 'application/json', 'Authorization': 'Bearer ${session.token}'},
       ).timeout(AppConfig.requestTimeout);
     } on TimeoutException {
@@ -141,4 +142,11 @@ FeeState _status(Object? value) {
     'overdue' => FeeState.overdue,
     _ => FeeState.pending,
   };
+}
+
+/// Fees belong to an academic year only: [uri] with ?academicYearId= of the year chosen in the app
+Uri _withYear(Uri uri) {
+  final year = AcademicYearController.instance.selectedId;
+  if (year == null || year.isEmpty) return uri;
+  return uri.replace(queryParameters: {...uri.queryParameters, 'academicYearId': year});
 }

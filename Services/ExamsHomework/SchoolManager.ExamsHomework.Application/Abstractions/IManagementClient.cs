@@ -13,6 +13,12 @@ namespace SchoolManager.ExamsHomework.Application
         Task<IReadOnlyDictionary<Guid, (string Ar, string En)>> GetSubjectNamesAsync(string authorization, CancellationToken cancellationToken = default);
 
         /// <summary>Subjects / classes of the logged-in teacher (for the chosen academic year, else the current one); null when the Management service could not answer.</summary>
+        /// <summary>
+        /// Active students of one of the logged-in teacher's classes; empty when the teacher does not teach that class,
+        /// null when the Management service could not answer.
+        /// </summary>
+        Task<IReadOnlyList<SectionStudent>?> GetMySectionStudentsAsync(string authorization, Guid sectionId, CancellationToken cancellationToken = default);
+
         Task<TeacherClasses?> GetMyClassesAsync(string authorization, Guid? academicYearId = null, Guid? semesterId = null, CancellationToken cancellationToken = default);
     }
 }

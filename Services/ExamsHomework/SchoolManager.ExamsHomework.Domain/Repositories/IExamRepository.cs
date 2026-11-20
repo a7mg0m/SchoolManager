@@ -11,6 +11,12 @@ namespace SchoolManager.ExamsHomework.Domain
         /// Exams of a grade in an academic year that are for the whole grade or for the given section,
         /// with only the given student's results loaded (read-only).
         /// </summary>
+        /// <summary>Exams a teacher added, with their results (read-only); optionally of one academic year / semester</summary>
+        Task<List<Exam>> GetForTeacherAsync(Guid teacherId, Guid? academicYearId, Guid? semesterId, CancellationToken cancellationToken = default);
+
+        /// <summary>One exam with all its results (read-only)</summary>
+        Task<Exam?> GetWithResultsAsync(Guid id, CancellationToken cancellationToken = default);
+
         Task<List<Exam>> GetForStudentAsync(Guid academicYearId, Guid gradeId, Guid sectionId, Guid studentId, CancellationToken cancellationToken = default);
     }
 

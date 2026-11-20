@@ -1,0 +1,101 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'clinic.editVaccine' | translate }}
+        } @else {
+          {{ 'clinic.newVaccine' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <div class="card">
+      <div class="card-body">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="nameAr" class="form-label">{{ 'common.nameAr' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="nameAr" formControlName="nameAr" dir="rtl"
+                     [class.is-invalid]="hasError('nameAr', 'required')" />
+              @if (hasError('nameAr', 'required')) {
+                <div class="invalid-feedback">{{ 'common.nameRequired' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="nameEn" class="form-label">{{ 'common.nameEn' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="nameEn" formControlName="nameEn" dir="ltr"
+                     [class.is-invalid]="hasError('nameEn', 'required')" />
+              @if (hasError('nameEn', 'required')) {
+                <div class="invalid-feedback">{{ 'common.nameRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="totalDoses" class="form-label">{{ 'clinic.totalDoses' | translate }} <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="totalDoses" formControlName="totalDoses" min="1" max="20"
+                     [class.is-invalid]="hasError('totalDoses', 'required') || hasError('totalDoses', 'min') || hasError('totalDoses', 'max')" />
+              @if (hasError('totalDoses', 'required') || hasError('totalDoses', 'min') || hasError('totalDoses', 'max')) {
+                <div class="invalid-feedback">{{ 'clinic.errors.TotalDosesInvalid' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label d-block">{{ 'clinic.mandatory' | translate }}</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="isMandatory" formControlName="isMandatory" />
+                <label class="form-check-label" for="isMandatory">{{ 'clinic.mandatoryHint' | translate }}</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="row mt-4">
+            <div class="col">
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+                  @if (isSaving()) {
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  }
+                  {{ 'common.save' | translate }}
+                </button>
+                <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+                  {{ 'common.cancel' | translate }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

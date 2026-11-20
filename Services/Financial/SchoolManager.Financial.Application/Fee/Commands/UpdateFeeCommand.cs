@@ -9,6 +9,7 @@ namespace SchoolManager.Financial.Application
         FeeType Type,
         decimal Amount,
         string Currency,
-        bool IsMandatory
+        bool IsMandatory,
+        Guid? AcademicYearId = null
     ) : ICommand<bool>;
 }

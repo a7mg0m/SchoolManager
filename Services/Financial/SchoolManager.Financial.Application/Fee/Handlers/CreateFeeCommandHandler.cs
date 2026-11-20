@@ -22,6 +22,7 @@ namespace SchoolManager.Financial.Application
         {
             var entity = Fee.Create(
                 command.GradeId,
+                command.AcademicYearId,
                 command.Name,
                 command.Type,
                 new Money(command.Amount, command.Currency),

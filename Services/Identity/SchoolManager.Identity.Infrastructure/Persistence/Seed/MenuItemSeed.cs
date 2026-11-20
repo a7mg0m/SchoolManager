@@ -19,6 +19,7 @@ namespace SchoolManager.Identity.Infrastructure
         public static readonly Guid Notification = new("6d9f1c00-0000-4000-8000-000000000004");
         public static readonly Guid Exam = new("6d9f1c00-0000-4000-8000-000000000005");
         public static readonly Guid Users = new("6d9f1c00-0000-4000-8000-000000000006");
+        public static readonly Guid Clinic = new("6d9f1c00-0000-4000-8000-000000000007");
 
         private static Guid Child(int group, int index) => new($"6d9f1c00-0000-4000-8000-0000000{group:D2}{index:D3}");
 
@@ -63,6 +64,13 @@ namespace SchoolManager.Identity.Infrastructure
             new(Child(6, 1), Users, "مجموعات الموظفين", "Employee Groups", null, "/users/employee-groups", 1),
             new(Child(6, 2), Users, "الموظفون", "Employees", null, "/users/employees", 2),
             new(Child(6, 3), Users, "صلاحيات المجموعات", "Group Permissions", null, "/users/group-permissions", 3),
+
+            // School clinic
+            new(Clinic, null, "العيادة المدرسية", "School Clinic", "pe-7s-like2", null, 7),
+            new(Child(7, 1), Clinic, "الملفات الصحية للطلاب", "Student Health Files", null, "/clinic/students", 1),
+            new(Child(7, 2), Clinic, "زيارات العيادة", "Clinic Visits", null, "/clinic/visits", 2),
+            new(Child(7, 3), Clinic, "التطعيمات", "Vaccines", null, "/clinic/vaccines", 3),
+            new(Child(7, 4), Clinic, "حملات التطعيم", "Vaccination Campaigns", null, "/clinic/vaccination-campaigns", 4),
         };
     }
 }

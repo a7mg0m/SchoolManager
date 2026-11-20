@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -84,6 +85,12 @@ export class StudentFeeListComponent implements OnInit, OnDestroy {
     return stageId ? this.grades().filter(g => g.stageId === stageId) : this.grades();
   });
 
+  /** Student fees of the header's academic year (before the page filters) */
+  yearFeeCount = computed(() => {
+    const yearId = this.academic.yearId();
+    return this.studentFees().filter(f => !yearId || f.academicYearId === yearId).length;
+  });
+
   filteredFees = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     const stageId = this.stageFilter();
@@ -92,8 +99,12 @@ export class StudentFeeListComponent implements OnInit, OnDestroy {
     const outstanding = this.outstandingOnly();
     const students = this.studentById();
 
+    const yearId = this.academic.yearId();
+
     return this.studentFees()
       .filter(f => {
+        // Only the fees of the academic year chosen in the header
+        if (yearId && f.academicYearId !== yearId) return false;
         const student = students.get(f.studentId);
         if (stageId && student?.stageId !== stageId) return false;
         if (gradeId && student?.gradeId !== gradeId) return false;
@@ -142,8 +153,11 @@ export class StudentFeeListComponent implements OnInit, OnDestroy {
     private translate: TranslateService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private modalService: NgbModal
-  ) {}
+    private modalService: NgbModal,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.languageService.currentLanguage$

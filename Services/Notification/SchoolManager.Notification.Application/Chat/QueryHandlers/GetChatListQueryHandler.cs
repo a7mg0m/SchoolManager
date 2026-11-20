@@ -11,7 +11,9 @@ namespace SchoolManager.Notification.Application
     {
         public async Task<IReadOnlyList<ChatListItemDto>> Handle(GetChatListQuery query, CancellationToken cancellationToken)
         {
-            var userRooms = await rooms.GetUserRoomsAsync(query.UserId, cancellationToken);
+            var userRooms = (await rooms.GetUserRoomsAsync(query.UserId, cancellationToken))
+                .Where(r => query.AcademicYearId == null || r.AcademicYearId == query.AcademicYearId)
+                .ToList();
             if (userRooms.Count == 0) return Array.Empty<ChatListItemDto>();
 
             var roomIds = userRooms.Select(r => r.Id).ToList();
@@ -38,7 +40,10 @@ namespace SchoolManager.Notification.Application
                         last?.Content,
                         last?.SenderId,
                         last?.SentOn ?? room.LastMessageOn,
-                        unread.GetValueOrDefault(room.Id));
+                        unread.GetValueOrDefault(room.Id),
+                        room.Type == ChatRoomType.Private
+                            ? room.Participants.FirstOrDefault(p => p.UserId != query.UserId)?.UserId
+                            : null);
                 })
                 .OrderByDescending(x => x.LastMessageOn)
                 .ToList();

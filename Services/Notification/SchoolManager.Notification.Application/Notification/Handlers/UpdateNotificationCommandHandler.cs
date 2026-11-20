@@ -30,7 +30,8 @@ namespace SchoolManager.Notification.Application
                 command.SentOn,
                 command.NotificationType,
                 command.ImageUrl,
-                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, _currentUser.UserId));
+                new AuditInfo(entity.AuditInfo.CreatedOn, entity.AuditInfo.CreatedBy, DateTime.Now, _currentUser.UserId),
+                command.AcademicYearId == Guid.Empty ? null : command.AcademicYearId);
 
             if (command.Targets is not null)
             {

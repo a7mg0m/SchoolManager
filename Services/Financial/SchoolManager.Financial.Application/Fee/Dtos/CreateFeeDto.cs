@@ -5,6 +5,7 @@ namespace SchoolManager.Financial.Application
     public class CreateFeeDto
     {
         public Guid GradeId { get; set; }
+        public Guid AcademicYearId { get; set; }
         public string Name { get; set; } = string.Empty;
         public FeeType Type { get; set; }
         public decimal Amount { get; set; }

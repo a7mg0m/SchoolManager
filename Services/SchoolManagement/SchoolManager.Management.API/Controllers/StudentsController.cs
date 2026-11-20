@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using BuildingBlocks;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,12 +15,18 @@ namespace SchoolManager.Management.API.Controllers
 		private readonly IMediator _mediator;
 		private readonly IMapper _mapper;
 		private readonly ICurrentUserService _currentUser;
+		private readonly IValidator<SaveStudentMedicalProfileCommand> _medicalProfileValidator;
 
-		public StudentsController(IMediator mediator, IMapper mapper, ICurrentUserService currentUser)
+		public StudentsController(
+			IMediator mediator,
+			IMapper mapper,
+			ICurrentUserService currentUser,
+			IValidator<SaveStudentMedicalProfileCommand> medicalProfileValidator)
 		{
 			_mediator = mediator;
 			_mapper = mapper;
 			_currentUser = currentUser;
+			_medicalProfileValidator = medicalProfileValidator;
 		}
 
 		[HttpGet("get-all")]
@@ -41,6 +48,20 @@ namespace SchoolManager.Management.API.Controllers
 				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
 
 			var result = await _mediator.Send(new GetMyChildrenQuery(parentId), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// Teachers of the logged-in parent's children, with the subjects they teach them (parent app: chat).
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-teachers")]
+		public async Task<ActionResult<List<ParentTeacherDto>>> GetMyTeachers(CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not Guid parentId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+			var result = await _mediator.Send(new GetMyTeachersQuery(parentId), cancellationToken);
 			return Ok(new ApiResponse { data = result });
 		}
 
@@ -77,6 +98,88 @@ namespace SchoolManager.Management.API.Controllers
 			if (result is null)
 				return NotFound(new ApiResponse(404, "StudentNotFound"));
 
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// Clinic medical profile of one of the logged-in parent's children (null data when the clinic has none yet).
+		/// 404 when the student is not the parent's child.
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-children/{studentId}/medical-profile")]
+		public async Task<ActionResult<StudentMedicalProfileDto>> GetMyChildMedicalProfile(Guid studentId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not Guid parentId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+			if (!await _mediator.Send(new IsMyChildQuery(studentId, parentId), cancellationToken))
+				return NotFound(new ApiResponse(404, "StudentNotFound"));
+
+			var result = await _mediator.Send(new GetStudentMedicalProfileByStudentIdQuery(studentId), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// The logged-in parent creates or updates their child's clinic medical profile. The student comes
+		/// from the route (any studentId in the body is ignored). 404 when the student is not the parent's child.
+		/// </summary>
+		[Authorize]
+		[HttpPut("my-children/{studentId}/medical-profile")]
+		public async Task<IActionResult> SaveMyChildMedicalProfile(Guid studentId, [FromBody] SaveStudentMedicalProfileDto dto, CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not Guid parentId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+			if (!await _mediator.Send(new IsMyChildQuery(studentId, parentId), cancellationToken))
+				return NotFound(new ApiResponse(404, "StudentNotFound"));
+
+			dto.StudentId = studentId;
+			var command = _mapper.Map<SaveStudentMedicalProfileCommand>(dto);
+
+			var validation = await _medicalProfileValidator.ValidateAsync(command, cancellationToken);
+			if (!validation.IsValid)
+			{
+				var errors = validation.Errors.Select(e => e.ErrorMessage).Distinct().ToList();
+				return BadRequest(new ApiResponse(400, errors.First()) { errors = errors });
+			}
+
+			var id = await _mediator.Send(command, cancellationToken);
+			return Ok(new ApiResponse { InsertedId = id.ToString(), message = "Saved Successfully" });
+		}
+
+		/// <summary>
+		/// Vaccinations recorded by the clinic for one of the logged-in parent's children (read-only).
+		/// 404 when the student is not the parent's child.
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-children/{studentId}/vaccinations")]
+		public async Task<ActionResult<List<StudentVaccinationDto>>> GetMyChildVaccinations(Guid studentId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not Guid parentId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+			if (!await _mediator.Send(new IsMyChildQuery(studentId, parentId), cancellationToken))
+				return NotFound(new ApiResponse(404, "StudentNotFound"));
+
+			var result = await _mediator.Send(new GetStudentVaccinationsByStudentIdQuery(studentId), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// Clinic visits of one of the logged-in parent's children, with the medications given (read-only).
+		/// 404 when the student is not the parent's child.
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-children/{studentId}/clinic-visits")]
+		public async Task<ActionResult<List<ClinicVisitDto>>> GetMyChildClinicVisits(Guid studentId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not Guid parentId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+			if (!await _mediator.Send(new IsMyChildQuery(studentId, parentId), cancellationToken))
+				return NotFound(new ApiResponse(404, "StudentNotFound"));
+
+			var result = await _mediator.Send(new GetClinicVisitsByStudentIdQuery(studentId), cancellationToken);
 			return Ok(new ApiResponse { data = result });
 		}
 

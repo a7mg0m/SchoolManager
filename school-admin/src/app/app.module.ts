@@ -35,6 +35,7 @@ import { FinancialModule } from './financial.module';
 import { NotificationModule } from './notification.module';
 import { ExamModule } from './exam.module';
 import { UsersModule } from './users.module';
+import { ClinicModule } from './clinic.module';
 
 // LAYOUT
 import {BaseLayoutComponent} from './Layout/base-layout/base-layout.component';
@@ -109,6 +110,7 @@ import {ThemeOptions} from './theme-options';
     NotificationModule,
     ExamModule,
     UsersModule,
+    ClinicModule,
   ],
   providers: [
     ConfigService,

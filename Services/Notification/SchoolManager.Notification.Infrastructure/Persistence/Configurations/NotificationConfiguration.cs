@@ -7,6 +7,7 @@ namespace SchoolManager.Notification.Infrastructure
     {
         public void Configure(EntityTypeBuilder<Domain.Notification> builder)
         {
+            builder.HasIndex(x => x.AcademicYearId);
             builder.ToTable("Notifications");
             builder.HasKey(x => x.Id);
 

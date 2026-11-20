@@ -10,6 +10,8 @@ namespace SchoolManager.Notification.Application
         public DateOnly SentOn { get; set; }
         public NotificationTypeEnum NotificationType { get; set; }
         public string? ImageUrl { get; set; }
+        /// <summary>Null: saved before notifications had a year</summary>
+        public Guid? AcademicYearId { get; set; }
         public DateTime CreatedOn { get; set; }
         /// <summary>Empty = the whole school.</summary>
         public List<NotificationTargetDto> Targets { get; set; } = new();

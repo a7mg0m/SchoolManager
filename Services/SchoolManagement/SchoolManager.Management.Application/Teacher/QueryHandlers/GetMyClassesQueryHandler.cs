@@ -54,6 +54,7 @@ namespace SchoolManager.Management.Application
                         SubjectNameAr = s.Name.Arabic,
                         SubjectNameEn = s.Name.English,
                         GradeId = s.GradeId,
+                        StageId = s.Grade?.StageId ?? Guid.Empty,
                         GradeNameAr = s.Grade?.Name.Arabic ?? string.Empty,
                         GradeNameEn = s.Grade?.Name.English ?? string.Empty,
                         Sections = gradeSections

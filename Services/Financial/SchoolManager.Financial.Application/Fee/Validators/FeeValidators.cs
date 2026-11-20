@@ -7,6 +7,7 @@ namespace SchoolManager.Financial.Application
         public CreateFeeCommandValidator()
         {
             RuleFor(x => x.GradeId).NotEmpty().WithMessage("GradeIdRequired");
+            RuleFor(x => x.AcademicYearId).NotEmpty().WithMessage("AcademicYearIdRequired");
             RuleFor(x => x.Name).NotEmpty().WithMessage("NameRequired");
             RuleFor(x => x.Type).IsInEnum().WithMessage("TypeInvalid");
             RuleFor(x => x.Amount).GreaterThan(0).WithMessage("AmountMustBeGreaterThanZero");

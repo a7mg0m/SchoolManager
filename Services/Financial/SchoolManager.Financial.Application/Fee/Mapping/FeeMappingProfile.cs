@@ -10,6 +10,7 @@ namespace SchoolManager.Financial.Application
             CreateMap<CreateFeeDto, CreateFeeCommand>()
                 .ConstructUsing(src => new CreateFeeCommand(
                     src.GradeId,
+                    src.AcademicYearId,
                     src.Name,
                     src.Type,
                     src.Amount,

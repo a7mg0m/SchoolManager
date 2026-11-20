@@ -35,7 +35,9 @@ namespace SchoolManager.Financial.Application
 
         public async Task<List<FeeDto>> Handle(GetAllFeesQuery query, CancellationToken cancellationToken)
         {
-            var entities = await _repository.GetAllAsync();
+            var entities = (await _repository.GetAllAsync())
+                .Where(f => query.AcademicYearId is not Guid year || f.AcademicYearId == null || f.AcademicYearId == year)
+                .ToList();
             return _mapper.Map<List<FeeDto>>(entities);
         }
     }

@@ -1,0 +1,39 @@
+using BuildingBlocks;
+using BuildingBlocks.CQRS;
+using SchoolManager.Management.Domain;
+
+namespace SchoolManager.Management.Application
+{
+	public class UpdateVaccinationCampaignCommandHandler : ICommandHandler<UpdateVaccinationCampaignCommand, bool>
+	{
+		private readonly ICurrentUserService _currentUser;
+		private readonly IVaccinationCampaignRepository _repository;
+		private readonly IUnitOfWork _unitOfWork;
+
+		public UpdateVaccinationCampaignCommandHandler(ICurrentUserService currentUser, IVaccinationCampaignRepository repository, IUnitOfWork unitOfWork)
+		{
+			_currentUser = currentUser;
+			_repository = repository;
+			_unitOfWork = unitOfWork;
+		}
+
+		public async Task<bool> Handle(UpdateVaccinationCampaignCommand request, CancellationToken cancellationToken)
+		{
+			var entity = await _repository.GetByIdAsync(request.Id);
+
+			if (entity is null)
+				return false;
+
+			entity.Update(
+				request.VaccineId,
+				request.Title.Trim(),
+				request.StartDate,
+				request.EndDate,
+				new AuditInfo(DateTime.Now, _currentUser.UserId));
+
+			await _unitOfWork.SaveChangesAsync();
+
+			return true;
+		}
+	}
+}

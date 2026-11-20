@@ -46,6 +46,11 @@
       </div>
     }
 
+    <!-- New expenses are saved for the academic year chosen in the header; saved ones keep theirs -->
+    @if (!savedYearId()) {
+      <app-academic-context-note [semester]="false"></app-academic-context-note>
+    }
+
     <div class="card">
       <div class="card-body">
         <form [formGroup]="form" (ngSubmit)="onSubmit()">

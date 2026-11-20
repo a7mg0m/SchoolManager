@@ -17,7 +17,8 @@ namespace SchoolManager.Financial.Application
                     src.Amount,
                     src.Currency,
                     src.ExpenseDate,
-                    src.Reference));
+                    src.Reference,
+                    src.AcademicYearId));
 
             CreateMap<Expense, ExpenseDto>()
                 .ForMember(d => d.Amount, o => o.MapFrom(s => s.Amount.Amount))

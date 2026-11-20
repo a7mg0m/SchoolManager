@@ -15,7 +15,8 @@ namespace SchoolManager.Notification.Infrastructure
 
             builder.Property(x => x.Type).HasConversion<int>().IsRequired();
             builder.Property(x => x.Name).HasMaxLength(200);
-            builder.Property(x => x.PrivateKey).HasMaxLength(80);
+            builder.Property(x => x.PrivateKey).HasMaxLength(120);
+            builder.HasIndex(x => x.AcademicYearId);
 
             builder.HasIndex(x => x.PrivateKey).IsUnique().HasFilter("[PrivateKey] IS NOT NULL");
             builder.HasIndex(x => x.SectionId).IsUnique().HasFilter("[SectionId] IS NOT NULL");

@@ -24,6 +24,11 @@ namespace SchoolManager.Management.Infrastructure
             services.AddScoped<IStageRepository, StageRepository>();
             services.AddScoped<IStudentRepository, StudentRepository>();
             services.AddScoped<ISubjectRepository, SubjectRepository>();
+            services.AddScoped<IStudentMedicalProfileRepository, StudentMedicalProfileRepository>();
+            services.AddScoped<IVaccineRepository, VaccineRepository>();
+            services.AddScoped<IVaccinationCampaignRepository, VaccinationCampaignRepository>();
+            services.AddScoped<IStudentVaccinationRepository, StudentVaccinationRepository>();
+            services.AddScoped<IClinicVisitRepository, ClinicVisitRepository>();
             services.AddScoped<ITeacherRepository, TeacherRepository>();
             services.AddScoped<ITimetableRepository, TimetableRepository>();
             services.AddScoped<ITimetableSlotRepository, TimetableSlotRepository>();

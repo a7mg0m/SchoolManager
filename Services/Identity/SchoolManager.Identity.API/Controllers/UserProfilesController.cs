@@ -23,6 +23,22 @@ namespace SchoolManager.Identity.API.Controllers
             _updateMyProfileValidator = updateMyProfileValidator;
         }
 
+        /// <summary>
+        /// Profile picture of a user (chat avatars in the teacher / parent apps). Signed-in users only; 404 when
+        /// the user has no picture. Cached by the client for a while.
+        /// </summary>
+        [Authorize]
+        [HttpGet("photo/{userId:guid}")]
+        public async Task<IActionResult> GetPhoto(Guid userId, CancellationToken cancellationToken)
+        {
+            var photo = await _mediator.Send(new GetUserPhotoQuery(userId), cancellationToken);
+            if (photo is null)
+                return NotFound(new ApiResponse(404, "NoPhoto"));
+
+            Response.Headers.CacheControl = "private, max-age=600";
+            return File(photo.Bytes, photo.ContentType);
+        }
+
         /// <summary>Profile of the logged-in user (user id is taken from the JWT).</summary>
         [Authorize]
         [HttpGet("my-profile")]

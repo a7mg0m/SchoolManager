@@ -14,12 +14,14 @@ public sealed class Expense : BaseEntity
     public Money Amount { get; private set; } = default!;
     public DateTime ExpenseDate { get; private set; }
     public string? Reference { get; private set; }
+    /// <summary>Academic year the expense belongs to (null: saved before expenses had a year)</summary>
+    public Guid? AcademicYearId { get; private set; }
     public AuditInfo AuditInfo { get; private set; }
 
     public Expense() { }
 
     public static Expense Create(string title, string? description,Guid eventId, ExpenseCategory category, ExpenseType type,
-        Money amount, DateTime expenseDate, string? reference, AuditInfo auditInfo )
+        Money amount, DateTime expenseDate, string? reference, AuditInfo auditInfo, Guid? academicYearId = null)
     {
         
         var expense = new Expense
@@ -33,13 +35,14 @@ public sealed class Expense : BaseEntity
             Type = type,
             Amount = amount,
             ExpenseDate = expenseDate,
-            Reference = reference
+            Reference = reference,
+            AcademicYearId = academicYearId
         };
        
         return expense;
     }
     public void Update(string title, string? description,Guid eventId, ExpenseCategory category, ExpenseType type,
-        Money amount, DateTime expenseDate, string? reference, AuditInfo auditInfo )
+        Money amount, DateTime expenseDate, string? reference, AuditInfo auditInfo, Guid? academicYearId = null)
     {
        
         Title = title.Trim();
@@ -51,6 +54,9 @@ public sealed class Expense : BaseEntity
         Amount = amount;
         ExpenseDate = expenseDate;
         Reference = reference;
+        // An expense keeps its year; one saved without a year gets the one sent
+        if (AcademicYearId is null && academicYearId is Guid year && year != Guid.Empty)
+            AcademicYearId = year;
         AuditInfo = auditInfo ;
        
     }

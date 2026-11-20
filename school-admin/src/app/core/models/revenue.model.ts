@@ -35,6 +35,8 @@ export interface Revenue {
   /** ISO date-time, e.g. "2026-11-12T00:00:00" */
   revenueDate: string;
   reference: string | null;
+  /** Academic year it belongs to (null: saved before revenues had a year) */
+  academicYearId: string | null;
 }
 
 /**
@@ -49,6 +51,8 @@ export interface SaveRevenueRequest {
   currency: string;
   revenueDate: string;
   reference: string | null;
+  /** The academic year chosen in the header (an edit only fills it when the revenue has none) */
+  academicYearId: string | null;
 }
 
 export type RevenueListResponse = ApiResponse<Revenue[]>;

@@ -8,6 +8,10 @@ import '../../core/theme/theme_controller.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/i18n/language_switch.dart';
 import '../../data/demo_data.dart';
+import '../chat/chat_screens.dart';
+import '../clinic/clinic_screen.dart';
+import '../notifications/notifications_screen.dart';
+import '../notifications/notifications_service.dart';
 import '../children/children_service.dart';
 import '../profile/edit_profile_screen.dart';
 import '../profile/profile_service.dart';
@@ -28,6 +32,9 @@ import '../school/school_info_service.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen(
       {super.key,
+      this.chatApi = const ChatApi(),
+      this.loadNotifications,
+      this.chatRefreshEvery = const Duration(seconds: 15),
       this.loadChildren,
       this.loadProfile,
       this.loadTimetable,
@@ -64,6 +71,15 @@ class HomeScreen extends StatefulWidget {
 
   /// Loads the school information (About the school page); defaults to the API
   final Future<SchoolInfo?> Function()? loadSchoolInfo;
+
+  /// Chat API calls; defaults to the API (tests pass their own)
+  final ChatApi chatApi;
+
+  /// Loads the notifications of a child; defaults to the API (tests pass their own)
+  final Future<List<AppNotice>> Function(String studentId)? loadNotifications;
+
+  /// How often the chats reload while open (null: never; tests)
+  final Duration? chatRefreshEvery;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -287,6 +303,17 @@ class _HomeScreenState extends State<HomeScreen> {
     ]);
   }
 
+  /// The selected child's next event that is not over yet (null while loading / when there is none)
+  ChildEvent? get _nextEvent {
+    final now = DateTime.now();
+    final upcoming = (_events ?? const <ChildEvent>[]).where((e) => e.isUpcoming(now)).toList()
+      ..sort((a, b) {
+        final d = a.date.compareTo(b.date);
+        return d != 0 ? d : a.start.compareTo(b.start);
+      });
+    return upcoming.isEmpty ? null : upcoming.first;
+  }
+
   void _selectChild(Child child) {
     if (child.id == selectedChild?.id) return;
     setState(() => selectedChild = child);
@@ -329,8 +356,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // The important announcement first, then today, then the services
-                  _Appear(order: 0, child: _buildAnnouncement()),
+                  // The next event as the important notice (none: hidden), then today, then the services
+                  if (_nextEvent != null) _Appear(order: 0, child: _buildAnnouncement(_nextEvent!)),
                   if (_timetable != null) ...[
                     const SizedBox(height: 14),
                     _Appear(order: 1, child: _todayCard(_timetable!)),
@@ -853,10 +880,13 @@ class _HomeScreenState extends State<HomeScreen> {
               for (var i = 0; i < soon.length; i++) ...[
                 if (i > 0) const SizedBox(width: 10),
                 Expanded(
-                  child: i == 0
-                      // Homework: open, with how many are still to do
-                      ? _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openHomework, detail: _homeworkCount())
-                      : _soonTile(soon[i].$1, soon[i].$2, soon[i].$3),
+                  child: switch (i) {
+                    // Homework: open, with how many are still to do
+                    0 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openHomework, detail: _homeworkCount()),
+                    // Clinic: the selected child's health profile
+                    2 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openClinic),
+                    _ => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3),
+                  },
                 ),
               ],
             ],
@@ -967,6 +997,12 @@ class _HomeScreenState extends State<HomeScreen> {
         onSessionExpired: _logout,
       ));
 
+  /// Clinic page (health profile) of the selected child
+  void _openClinic() => _openForChild((child) => ClinicScreen(
+        child: child,
+        onSessionExpired: _logout,
+      ));
+
   void _openFees() => _openForChild((child) => FeesScreen(
         child: child,
         loadFees: widget.loadFees,
@@ -985,51 +1021,75 @@ class _HomeScreenState extends State<HomeScreen> {
     _nav.push(MaterialPageRoute(builder: (_) => page(child)));
   }
 
-  /// The important announcement: a glowing strip with a megaphone
-  Widget _buildAnnouncement() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        color: context.palette.card,
+  /// The next upcoming event as the important notice (hidden when there is none); tap it or "View all" for the events
+  Widget _buildAnnouncement(ChildEvent event) {
+    final palette = context.palette;
+    return Material(
+      color: palette.card,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        key: const ValueKey('announcement'),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFFFC044).withValues(alpha: .55)),
-        boxShadow: [BoxShadow(color: const Color(0xFFFFB21A).withValues(alpha: .14), blurRadius: 16, offset: const Offset(0, 6))],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(colors: [Color(0xFFFFC044), Color(0xFFFF8A3D)]),
-            ),
-            child: const Icon(Icons.campaign_rounded, color: Colors.white, size: 26),
+        onTap: _openEvents,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFFFC044).withValues(alpha: .55)),
+            boxShadow: [BoxShadow(color: const Color(0xFFFFB21A).withValues(alpha: .14), blurRadius: 16, offset: const Offset(0, 6))],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(tr('إعلان هام', 'Important notice'),
-                    style: TextStyle(color: context.palette.ink, fontWeight: FontWeight.bold, fontSize: 15.5)),
-                const SizedBox(height: 3),
-                Text(tr('موعد الرحلة المدرسية القادمة يوم الخميس القادم.', 'The next school trip is next Thursday.'),
-                    style: TextStyle(color: context.palette.muted, fontSize: 12.5)),
-              ],
-            ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(colors: [Color(0xFFFFC044), Color(0xFFFF8A3D)]),
+                ),
+                child: const Icon(Icons.campaign_rounded, color: Colors.white, size: 26),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tr('إعلان هام', 'Important notice'),
+                        style: TextStyle(color: palette.ink, fontWeight: FontWeight.bold, fontSize: 15.5)),
+                    const SizedBox(height: 3),
+                    Text(event.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: palette.ink, fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.event_rounded, size: 13, color: palette.muted),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text('${_when(event.date)} · ${formatTime(event.start)}',
+                              maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: palette.muted, fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                key: const ValueKey('announcement-view-all'),
+                borderRadius: BorderRadius.circular(20),
+                onTap: _openEvents,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(color: AppTheme.blue.withValues(alpha: .1), borderRadius: BorderRadius.circular(20)),
+                  child: Text(tr('عرض الكل', 'View all'),
+                      style: const TextStyle(color: AppTheme.blue, fontWeight: FontWeight.bold, fontSize: 11)),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppTheme.blue.withValues(alpha: .1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(tr('عرض الكل', 'View all'),
-                style: const TextStyle(color: AppTheme.blue, fontWeight: FontWeight.bold, fontSize: 11)),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1056,6 +1116,45 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
 
+  /// Notifications of the child selected in the header (chosen academic year), above the home page; the bar stays
+  Future<void> _openNotifications() async {
+    if (selectedTab == 1) return;
+    final child = selectedChild;
+    if (child == null) {
+      _showMessage(isLoadingChildren
+          ? tr('جاري تحميل بيانات الأبناء...', 'Loading your children...')
+          : tr('لا يوجد أبناء مرتبطون بحسابك.', 'No children are linked to your account.'));
+      return;
+    }
+    _nav.popUntil((route) => route.isFirst);
+    setState(() => selectedTab = 1);
+    await _nav.push(MaterialPageRoute(
+      builder: (_) => NotificationsScreen(
+        loadNotices: () => (widget.loadNotifications ?? NotificationsService.instance.getForChild)(child.id),
+        subtitle: child.name,
+        targetedLabel: tr('لابنك', 'For your child'),
+        onSessionExpired: _logout,
+      ),
+    ));
+    if (mounted && selectedTab == 1) setState(() => selectedTab = 0);
+  }
+
+  /// Chats with the teachers of my children, above the home page; the bar stays
+  Future<void> _openChats() async {
+    if (selectedTab == 2) return;
+    _nav.popUntil((route) => route.isFirst);
+    setState(() => selectedTab = 2);
+    await _nav.push(MaterialPageRoute(
+      builder: (_) => ChatListScreen(
+        api: widget.chatApi,
+        onSessionExpired: _logout,
+        refreshEvery: widget.chatRefreshEvery,
+        newChatHint: tr('راسل معلمي أبنائك.', "Message your children's teachers."),
+      ),
+    ));
+    if (mounted && selectedTab == 2) setState(() => selectedTab = 0);
+  }
+
   /// Floating rounded bar; the selected item becomes a coloured pill
   Widget _bottomNavigation() {
     final items = [
@@ -1072,6 +1171,14 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       // Home from any page: back to the home page
       if (index == 0) _nav.popUntil((route) => route.isFirst);
+      if (index == 1) {
+        _openNotifications();
+        return;
+      }
+      if (index == 2) {
+        _openChats();
+        return;
+      }
       setState(() => selectedTab = index);
       if (index != 0) {
         _showMessage(tr('صفحة ${items[index].$2} سيتم تنفيذها في المرحلة التالية.',

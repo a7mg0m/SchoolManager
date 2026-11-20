@@ -5,6 +5,7 @@ import '../../core/i18n/app_language.dart';
 import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import '../schedule/schedule_format.dart';
+import 'homework_details_screen.dart';
 import 'homework_service.dart';
 
 const _green = Color(0xFF13864B);
@@ -265,44 +266,13 @@ class _HomeworkScreenState extends State<HomeworkScreen> with ReloadOnAcademicYe
   }
 
   void _openDetails(ChildHomework h) {
-    final (dueText, dueColor) = _due(h);
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      builder: (sheetContext) {
-        final palette = sheetContext.palette;
-        return SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(h.subject, style: const TextStyle(color: _teal, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(h.title, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: palette.ink)),
-                const SizedBox(height: 6),
-                Text(dueText, style: TextStyle(color: dueColor, fontWeight: FontWeight.bold, fontSize: 13)),
-                if (h.description.isNotEmpty) ...[
-                  const SizedBox(height: 14),
-                  Text(h.description, style: TextStyle(fontSize: 14.5, height: 1.6, color: palette.ink)),
-                ],
-                for (var i = 0; i < h.questions.length; i++) ...[
-                  const SizedBox(height: 14),
-                  Text('${i + 1}. ${h.questions[i].header}',
-                      style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: palette.ink)),
-                  for (final item in h.questions[i].items)
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(start: 16, top: 4),
-                      child: Text('• $item', style: TextStyle(fontSize: 13.5, color: palette.ink)),
-                    ),
-                ],
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    Navigator.of(context).push(MaterialPageRoute<void>(
+      builder: (_) => HomeworkDetailsScreen(
+        homework: h,
+        childName: pickLang(widget.child.fullNameAr, widget.child.fullNameEn),
+        now: widget.now,
+      ),
+    ));
   }
 
   Widget _message(IconData icon, String text, {bool retry = false}) => Center(

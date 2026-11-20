@@ -39,6 +39,8 @@
   @if (!isLoading()) {
     <div class="card">
       <div class="card-body">
+        <!-- New fees are saved for the academic year chosen in the header -->
+        <app-academic-context-note [semester]="false"></app-academic-context-note>
         <form [formGroup]="form" (ngSubmit)="onSubmit()">
           <div class="row">
             <!-- Stage -->

@@ -45,6 +45,8 @@ export interface Expense {
   /** ISO date-time, e.g. "2026-11-12T00:00:00" */
   expenseDate: string;
   reference: string | null;
+  /** Academic year it belongs to (null: saved before expenses had a year) */
+  academicYearId: string | null;
 }
 
 /**
@@ -60,6 +62,8 @@ export interface SaveExpenseRequest {
   currency: string;
   expenseDate: string;
   reference: string | null;
+  /** The academic year chosen in the header (an edit only fills it when the expense has none) */
+  academicYearId: string | null;
 }
 
 export type ExpenseListResponse = ApiResponse<Expense[]>;

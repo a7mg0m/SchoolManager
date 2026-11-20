@@ -377,6 +377,45 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Order = 3,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
                             Route = "/users/group-permissions"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                            Icon = "pe-7s-like2",
+                            IsActive = true,
+                            Order = 7
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000007001"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                            Route = "/clinic/students"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000007002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                            Route = "/clinic/visits"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000007003"),
+                            IsActive = true,
+                            Order = 3,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                            Route = "/clinic/vaccines"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000007004"),
+                            IsActive = true,
+                            Order = 4,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                            Route = "/clinic/vaccination-campaigns"
                         });
                 });
 
@@ -930,6 +969,36 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                     MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006003"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 });
                         });
 
@@ -1125,6 +1194,36 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                     MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006003"),
                                     Arabic = "صلاحيات المجموعات",
                                     English = "Group Permissions"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                                    Arabic = "العيادة المدرسية",
+                                    English = "School Clinic"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007001"),
+                                    Arabic = "الملفات الصحية للطلاب",
+                                    English = "Student Health Files"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007002"),
+                                    Arabic = "زيارات العيادة",
+                                    English = "Clinic Visits"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007003"),
+                                    Arabic = "التطعيمات",
+                                    English = "Vaccines"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007004"),
+                                    Arabic = "حملات التطعيم",
+                                    English = "Vaccination Campaigns"
                                 });
                         });
 

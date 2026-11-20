@@ -18,6 +18,8 @@ namespace SchoolManager.ExamsHomework.Application
         double Weight,
         double SuccessScore,
         string? AnswerModelUrl,
-        int? Month = null
+        int? Month = null,
+        /// <summary>Teacher adding the exam from the teacher app (null: added by the school)</summary>
+        Guid? TeacherId = null
     ) : ICommand<Guid>;
 }

@@ -14,6 +14,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
         private const int DescriptionMaxLength = 2000;
         private const int QuestionHeaderMaxLength = 500;
         private const int MaxQuestions = 30;
+        private const int MaxSubQuestions = 30;
 
         private readonly IMediator _mediator;
         private readonly IManagementClient _management;
@@ -66,6 +67,8 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             if (questions.Count > MaxQuestions) return BadRequest(new ApiResponse(400, "TooManyQuestions"));
             if (questions.Any(q => q.Header.Trim().Length > QuestionHeaderMaxLength))
                 return BadRequest(new ApiResponse(400, "QuestionTooLong"));
+            if (QuestionItemsInvalid(questions) is string itemsError)
+                return BadRequest(new ApiResponse(400, itemsError));
 
             var classes = await _management.GetMyClassesAsync(Request.Headers.Authorization.ToString(), dto.AcademicYearId, dto.SemesterId, cancellationToken);
             if (classes is null)
@@ -79,6 +82,58 @@ namespace SchoolManager.ExamsHomework.API.Controllers
                 teacherId, dto.SubjectId, dto.GradeId, yearId, semesterId,
                 title, description, dto.DueDate, questions), cancellationToken);
             return Ok(new ApiResponse { InsertedId = id.ToString() });
+        }
+
+        /// <summary>
+        /// Edit one of the logged-in teacher's homework: title, description, due date and the questions (each
+        /// question header with its sub-questions; the list replaces the saved one). Published classes see the change.
+        /// </summary>
+        [Authorize]
+        [HttpPut("my/{id}")]
+        public async Task<IActionResult> UpdateMyHomework(Guid id, [FromBody] UpdateMyHomeworkDto dto, CancellationToken cancellationToken)
+        {
+            if (CurrentTeacherId is not Guid teacherId)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+            var homework = await _homeworks.GetByIdAsync(id);
+            if (homework is null || homework.TeacherId != teacherId)
+                return NotFound(new ApiResponse(404, "HomeworkNotFound"));
+
+            var title = dto.Title?.Trim() ?? string.Empty;
+            var description = dto.Description?.Trim() ?? string.Empty;
+            var questions = (dto.Questions ?? new List<HomeworkQuestionItemDto>())
+                .Where(q => !string.IsNullOrWhiteSpace(q.Header))
+                .ToList();
+
+            if (title.Length == 0) return BadRequest(new ApiResponse(400, "TitleRequired"));
+            if (title.Length > TitleMaxLength) return BadRequest(new ApiResponse(400, "TitleTooLong"));
+            if (description.Length > DescriptionMaxLength) return BadRequest(new ApiResponse(400, "DescriptionTooLong"));
+            // A due date already passed may stay as it is, but not be moved into the past
+            if (dto.DueDate < DateOnly.FromDateTime(DateTime.Today) && dto.DueDate != homework.DueDate)
+                return BadRequest(new ApiResponse(400, "DueDateInPast"));
+            if (questions.Count > MaxQuestions) return BadRequest(new ApiResponse(400, "TooManyQuestions"));
+            if (questions.Any(q => q.Header.Trim().Length > QuestionHeaderMaxLength))
+                return BadRequest(new ApiResponse(400, "QuestionTooLong"));
+            if (QuestionItemsInvalid(questions) is string itemsError)
+                return BadRequest(new ApiResponse(400, itemsError));
+
+            var updated = await _mediator.Send(new UpdateTeacherHomeworkCommand(
+                id, teacherId, title, description, dto.DueDate, questions), cancellationToken);
+            return updated
+                ? Ok(new ApiResponse { message = "Updated Successfully" })
+                : NotFound(new ApiResponse(404, "HomeworkNotFound"));
+        }
+
+        /// <summary>Sub-questions of each header: at most MaxSubQuestions, each up to QuestionHeaderMaxLength</summary>
+        private static string? QuestionItemsInvalid(IEnumerable<HomeworkQuestionItemDto> questions)
+        {
+            foreach (var q in questions)
+            {
+                var items = (q.Items ?? new List<string>()).Where(i => !string.IsNullOrWhiteSpace(i)).ToList();
+                if (items.Count > MaxSubQuestions) return "TooManySubQuestions";
+                if (items.Any(i => i.Trim().Length > QuestionHeaderMaxLength)) return "QuestionTooLong";
+            }
+            return null;
         }
 
         /// <summary>

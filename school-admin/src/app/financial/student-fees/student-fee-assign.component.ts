@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { AcademicContextService } from '../../core/services/academic-context.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -69,6 +70,8 @@ export class StudentFeeAssignComponent implements OnInit, OnDestroy {
   gradeFees = computed(() =>
     this.fees()
       .filter(f => f.gradeId === this.gradeId())
+      // Fees of the header's academic year (and those saved without a year)
+      .filter(f => !this.academic.yearId() || !f.academicYearId || f.academicYearId === this.academic.yearId())
       .sort((a, b) => Number(b.isMandatory) - Number(a.isMandatory) || a.name.localeCompare(b.name))
   );
 
@@ -86,7 +89,10 @@ export class StudentFeeAssignComponent implements OnInit, OnDestroy {
   /** How many student-fee records each student already has (to warn about duplicates) */
   existingCountByStudent = computed(() => {
     const map = new Map<string, number>();
+    const yearId = this.academic.yearId();
     for (const sf of this.existingStudentFees()) {
+      // Fees already assigned in the header's academic year only
+      if (yearId && sf.academicYearId !== yearId) continue;
       map.set(sf.studentId, (map.get(sf.studentId) || 0) + 1);
     }
     return map;
@@ -128,8 +134,11 @@ export class StudentFeeAssignComponent implements OnInit, OnDestroy {
     private gradeService: GradeService,
     private languageService: LanguageService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.languageService.currentLanguage$
@@ -263,7 +272,8 @@ export class StudentFeeAssignComponent implements OnInit, OnDestroy {
         studentIds: [...this.selectedStudentIds()],
         feeIds: this.selectedFees().map(f => f.id),
         discountAmount: this.discount() || 0,
-        dueDate: `${this.dueDate()}T00:00:00`
+        dueDate: `${this.dueDate()}T00:00:00`,
+        academicYearId: this.academic.yearId() || null
       })
       .pipe(takeUntil(this.destroy$))
       .subscribe({

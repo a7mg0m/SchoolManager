@@ -15,6 +15,15 @@ namespace SchoolManager.Notification.Infrastructure
         public override async Task<List<SchoolEvent>> GetAllAsync()
             => await _dbSet.Include(x => x.Targets).ToListAsync();
 
+        public async Task<List<SchoolEvent>> GetForTeacherAsync(Guid? academicYearId, Guid? semesterId, Guid teacherId, CancellationToken cancellationToken = default)
+            => await _dbSet.AsNoTracking()
+                .Where(e => academicYearId == null || e.AcademicYearId == academicYearId)
+                .Where(e => semesterId == null || e.SemesterId == semesterId)
+                .Where(e => e.EventFor == EventForEnum.All
+                    || (e.EventFor == EventForEnum.Teacher
+                        && (!e.Targets.Any() || e.Targets.Any(t => t.TeacherId == teacherId))))
+                .ToListAsync(cancellationToken);
+
         public async Task<List<SchoolEvent>> GetForStudentAsync(Guid? academicYearId, Guid? semesterId, Guid gradeId, Guid sectionId, Guid studentId, CancellationToken cancellationToken = default)
             => await _dbSet.Include(x => x.Targets)
                 // The academic year / semester chosen in the app (all when none is given)

@@ -1,0 +1,149 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'clinic.visits' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        *appCan="'add'" (click)="navigateToCreate()"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'clinic.newVisit' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && visits().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-like2 text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'clinic.noVisits' | translate }}</p>
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
+          {{ 'clinic.newVisit' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Visits Table -->
+  @if (!isLoading() && visits().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="row g-2 mb-3">
+          <div class="col-md-8">
+            <input type="search" class="form-control" [placeholder]="'clinic.searchVisits' | translate" (input)="setSearch($event)" />
+          </div>
+          <div class="col-md-4">
+            <select class="form-select" (change)="setOutcome($event)">
+              <option value="">{{ 'clinic.allOutcomes' | translate }}</option>
+              @for (o of outcomes; track o.value) {
+                <option [value]="o.value">{{ o.key | translate }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'clinic.visitDate' | translate }}</th>
+                <th>{{ 'clinic.student' | translate }}</th>
+                <th>{{ 'clinic.complaint' | translate }}</th>
+                <th>{{ 'clinic.diagnosis' | translate }}</th>
+                <th>{{ 'clinic.doctor' | translate }}</th>
+                <th>{{ 'clinic.outcome' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (visit of filtered(); track visit.id) {
+                <tr>
+                  <td class="text-nowrap">{{ formatDateTime(visit.visitDate) }}</td>
+                  <td>
+                    <a href="javascript:void(0)" (click)="navigateToStudent(visit.studentId)">{{ studentName(visit.studentId) }}</a>
+                  </td>
+                  <td>{{ visit.complaint }}</td>
+                  <td>{{ visit.diagnosis || '-' }}</td>
+                  <td>{{ visit.doctorName || '-' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="outcomeInfo(visit).badge">{{ outcomeInfo(visit).key | translate }}</span>
+                    @if (visit.parentNotified) {
+                      <i class="pe-7s-call text-success ms-1" title="{{ 'clinic.parentNotified' | translate }}"></i>
+                    }
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button class="btn btn-outline-primary" *appCan="'edit'" (click)="navigateToEdit(visit.id)"
+                              title="{{ 'common.edit' | translate }}" [disabled]="isDeleting()">
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" *appCan="'delete'" (click)="openDeleteConfirmation(visit, deleteModal)"
+                              title="{{ 'common.delete' | translate }}" [disabled]="isDeleting()">
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+              @if (filtered().length === 0) {
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">{{ 'common.noDataFound' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'clinic.deleteVisit' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'clinic.confirmDeleteVisit' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

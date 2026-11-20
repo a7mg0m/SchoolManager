@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/theme/app_theme.dart';
+import 'homework_details_screen.dart';
 import 'homework_service.dart';
 
 const _green = Color(0xFF13864B);
@@ -20,12 +21,22 @@ String homeworkDate(DateTime d) {
   return '${(en ? enDays : arDays)[d.weekday - 1]} ${d.day} ${(en ? enMonths : arMonths)[d.month - 1]}';
 }
 
+/// Label of the [index]th sub-question: أ ب ج … / a b c …
+String subQuestionLabel(int index) {
+  const ar = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح', 'ط', 'ي', 'ك', 'ل', 'م', 'ن', 'س', 'ع', 'ف', 'ص', 'ق', 'ر', 'ش', 'ت', 'ث', 'خ', 'ذ', 'ض', 'ظ', 'غ'];
+  if (AppLanguage.instance.isEnglish) {
+    return index < 26 ? String.fromCharCode(97 + index) : '${index + 1}';
+  }
+  return index < ar.length ? ar[index] : '${index + 1}';
+}
+
 /// The API calls the screens use (tests pass their own)
 class HomeworkApi {
   const HomeworkApi({
     this.loadClasses,
     this.loadHomeworks,
     this.create,
+    this.update,
     this.publish,
     this.delete,
   });
@@ -40,6 +51,13 @@ class HomeworkApi {
     required DateTime dueDate,
     List<HomeworkQuestion> questions,
   })? create;
+  final Future<void> Function(
+    String homeworkId, {
+    required String title,
+    required String description,
+    required DateTime dueDate,
+    List<HomeworkQuestion> questions,
+  })? update;
   final Future<int> Function(String homeworkId, List<String> sectionIds)? publish;
   final Future<void> Function(String homeworkId)? delete;
 
@@ -55,6 +73,15 @@ class HomeworkApi {
   }) =>
       (create ?? HomeworkService.instance.createHomework)(
           subjectId: subjectId, gradeId: gradeId, title: title, description: description, dueDate: dueDate, questions: questions);
+  Future<void> updateHomework(
+    String homeworkId, {
+    required String title,
+    required String description,
+    required DateTime dueDate,
+    List<HomeworkQuestion> questions = const [],
+  }) =>
+      (update ?? HomeworkService.instance.updateHomework)(homeworkId,
+          title: title, description: description, dueDate: dueDate, questions: questions);
   Future<int> publishTo(String homeworkId, List<String> sectionIds) =>
       (publish ?? HomeworkService.instance.publish)(homeworkId, sectionIds);
   Future<void> deleteHomework(String homeworkId) => (delete ?? HomeworkService.instance.delete)(homeworkId);
@@ -122,11 +149,28 @@ class _HomeworkListScreenState extends State<HomeworkListScreen> with ReloadOnAc
       ..showSnackBar(SnackBar(content: Text(text)));
   }
 
-  Future<void> _openForm() async {
+  /// New homework, or edit [homework]
+  Future<void> _openForm([TeacherHomework? homework]) async {
     final saved = await Navigator.of(context).push<bool>(MaterialPageRoute(
-      builder: (_) => HomeworkFormScreen(api: widget.api, classes: _classes),
+      builder: (_) => HomeworkFormScreen(api: widget.api, classes: _classes, homework: homework),
     ));
     if (saved == true) await _load();
+  }
+
+  /// The homework on its own page; edit / publish asked there are done here
+  Future<void> _openDetails(TeacherHomework homework) async {
+    final action = await Navigator.of(context).push<HomeworkDetailsAction>(MaterialPageRoute(
+      builder: (_) => HomeworkDetailsScreen(homework: homework),
+    ));
+    if (!mounted) return;
+    switch (action) {
+      case HomeworkDetailsAction.edit:
+        await _openForm(homework);
+      case HomeworkDetailsAction.publish:
+        await _publish(homework);
+      case null:
+        break;
+    }
   }
 
   Future<void> _publish(TeacherHomework homework) async {
@@ -251,13 +295,9 @@ class _HomeworkListScreenState extends State<HomeworkListScreen> with ReloadOnAc
                             homework: h,
                             busy: _busyId == h.id,
                             onPublish: () => _publish(h),
+                            onEdit: () => _openForm(h),
                             onDelete: () => _delete(h),
-                            onTap: () => showModalBottomSheet<void>(
-                              context: context,
-                              showDragHandle: true,
-                              isScrollControlled: true,
-                              builder: (_) => _HomeworkDetails(homework: h),
-                            ),
+                            onTap: () => _openDetails(h),
                           ),
                           const SizedBox(height: 12),
                         ],
@@ -298,6 +338,7 @@ class _HomeworkCard extends StatelessWidget {
     required this.homework,
     required this.busy,
     required this.onPublish,
+    required this.onEdit,
     required this.onDelete,
     required this.onTap,
   });
@@ -305,6 +346,7 @@ class _HomeworkCard extends StatelessWidget {
   final TeacherHomework homework;
   final bool busy;
   final VoidCallback onPublish;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onTap;
 
@@ -408,6 +450,12 @@ class _HomeworkCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
+                    key: ValueKey('edit-${homework.id}'),
+                    tooltip: tr('تعديل', 'Edit'),
+                    onPressed: busy ? null : onEdit,
+                    icon: const Icon(Icons.edit_outlined, color: AppTheme.blue),
+                  ),
+                  IconButton(
                     tooltip: tr('حذف', 'Delete'),
                     onPressed: busy ? null : onDelete,
                     icon: const Icon(Icons.delete_outline_rounded, color: _red),
@@ -503,82 +551,79 @@ class _PublishSheetState extends State<_PublishSheet> {
   }
 }
 
-/// Full homework: description and questions
-class _HomeworkDetails extends StatelessWidget {
-  const _HomeworkDetails({required this.homework});
-
-  final TeacherHomework homework;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.palette;
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(homework.title, style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: palette.ink)),
-            const SizedBox(height: 4),
-            Text('${[homework.subjectName, homework.gradeName].where((s) => s.isNotEmpty).join(' · ')}  •  '
-                '${tr('التسليم', 'Due')}: ${homeworkDate(homework.dueDate)}',
-                style: TextStyle(fontSize: 12.5, color: palette.muted)),
-            if (homework.description.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              Text(homework.description, style: TextStyle(fontSize: 14.5, height: 1.6, color: palette.ink)),
-            ],
-            for (var i = 0; i < homework.questions.length; i++) ...[
-              const SizedBox(height: 14),
-              Text('${i + 1}. ${homework.questions[i].header}',
-                  style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: palette.ink)),
-              for (final item in homework.questions[i].items)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 16, top: 4),
-                  child: Text('• $item', style: TextStyle(fontSize: 13.5, color: palette.ink)),
-                ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Add a homework: subject, title, description, due date, questions; optionally publish right away
+/// Add or edit a homework: subject, title, description, due date, questions (each header with its
+/// sub-questions); a new homework can be published right away
 class HomeworkFormScreen extends StatefulWidget {
-  const HomeworkFormScreen({super.key, required this.api, required this.classes});
+  const HomeworkFormScreen({super.key, required this.api, required this.classes, this.homework});
 
   final HomeworkApi api;
   final TeacherClasses classes;
+
+  /// The homework to edit (null: a new one)
+  final TeacherHomework? homework;
 
   @override
   State<HomeworkFormScreen> createState() => _HomeworkFormScreenState();
 }
 
+/// One question being edited: its header and its sub-questions
 class _QuestionFields {
-  final header = TextEditingController();
-  final items = TextEditingController();
+  _QuestionFields({String header = '', List<String> items = const []})
+      : header = TextEditingController(text: header),
+        items = [for (final i in items) TextEditingController(text: i)];
+
+  final TextEditingController header;
+  final List<TextEditingController> items;
 
   void dispose() {
     header.dispose();
-    items.dispose();
+    for (final i in items) {
+      i.dispose();
+    }
   }
 }
 
 class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
+  static const _maxQuestions = 30;
+  static const _maxSubQuestions = 30;
+
   final _formKey = GlobalKey<FormState>();
-  final _title = TextEditingController();
-  final _description = TextEditingController();
+  late final TextEditingController _title;
+  late final TextEditingController _description;
   final _questions = <_QuestionFields>[];
   TeacherSubject? _subject;
-  late DateTime _dueDate = DateTime.now().add(const Duration(days: 1));
+  late DateTime _dueDate;
   final _publishTo = <String>{};
   bool _saving = false;
+
+  bool get _isEdit => widget.homework != null;
 
   @override
   void initState() {
     super.initState();
-    if (widget.classes.subjects.length == 1) _subject = widget.classes.subjects.first;
+    final hw = widget.homework;
+    _title = TextEditingController(text: hw?.title ?? '');
+    _description = TextEditingController(text: hw?.description ?? '');
+    _dueDate = hw?.dueDate ?? DateTime.now().add(const Duration(days: 1));
+    for (final q in hw?.questions ?? const <HomeworkQuestion>[]) {
+      _questions.add(_QuestionFields(header: q.header, items: q.items));
+    }
+    if (hw != null) {
+      // The homework's own subject (it does not change on edit)
+      _subject = widget.classes.subjects
+              .where((s) => s.subjectId == hw.subjectId && s.gradeId == hw.gradeId)
+              .firstOrNull ??
+          TeacherSubject(
+            subjectId: hw.subjectId,
+            subjectNameAr: hw.subjectNameAr,
+            subjectNameEn: hw.subjectNameEn,
+            gradeId: hw.gradeId,
+            gradeNameAr: hw.gradeNameAr,
+            gradeNameEn: hw.gradeNameEn,
+          );
+    } else if (widget.classes.subjects.length == 1) {
+      _subject = widget.classes.subjects.first;
+    }
   }
 
   @override
@@ -593,43 +638,67 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
 
   Future<void> _pickDate() async {
     final today = DateTime.now();
+    final first = DateTime(today.year, today.month, today.day);
     final picked = await showDatePicker(
       context: context,
-      initialDate: _dueDate,
-      firstDate: DateTime(today.year, today.month, today.day),
+      initialDate: _dueDate.isBefore(first) ? first : _dueDate,
+      firstDate: first,
       lastDate: today.add(const Duration(days: 365)),
     );
     if (picked != null) setState(() => _dueDate = picked);
   }
+
+  void _addQuestion() => setState(() => _questions.add(_QuestionFields(items: const [''])));
+
+  void _removeQuestion(int i) => setState(() => _questions.removeAt(i).dispose());
+
+  void _addSubQuestion(int i) => setState(() => _questions[i].items.add(TextEditingController()));
+
+  void _removeSubQuestion(int i, int j) => setState(() => _questions[i].items.removeAt(j).dispose());
+
+  /// Questions with a header; empty sub-questions are dropped
+  List<HomeworkQuestion> _collectQuestions() => _questions
+      .where((q) => q.header.text.trim().isNotEmpty)
+      .map((q) => HomeworkQuestion(
+            header: q.header.text.trim(),
+            items: q.items.map((c) => c.text.trim()).where((s) => s.isNotEmpty).toList(),
+          ))
+      .toList();
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _subject == null) return;
     setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final questions = _questions
-          .where((q) => q.header.text.trim().isNotEmpty)
-          .map((q) => HomeworkQuestion(
-                header: q.header.text.trim(),
-                items: q.items.text.split('\n').map((s) => s.trim()).where((s) => s.isNotEmpty).toList(),
-              ))
-          .toList();
-      final id = await widget.api.createHomework(
-        subjectId: _subject!.subjectId,
-        gradeId: _subject!.gradeId,
-        title: _title.text.trim(),
-        description: _description.text.trim(),
-        dueDate: _dueDate,
-        questions: questions,
-      );
-      if (_publishTo.isNotEmpty && id.isNotEmpty) {
-        await widget.api.publishTo(id, _publishTo.toList());
+      final questions = _collectQuestions();
+      if (_isEdit) {
+        await widget.api.updateHomework(
+          widget.homework!.id,
+          title: _title.text.trim(),
+          description: _description.text.trim(),
+          dueDate: _dueDate,
+          questions: questions,
+        );
+      } else {
+        final id = await widget.api.createHomework(
+          subjectId: _subject!.subjectId,
+          gradeId: _subject!.gradeId,
+          title: _title.text.trim(),
+          description: _description.text.trim(),
+          dueDate: _dueDate,
+          questions: questions,
+        );
+        if (_publishTo.isNotEmpty && id.isNotEmpty) {
+          await widget.api.publishTo(id, _publishTo.toList());
+        }
       }
       if (!mounted) return;
       messenger.showSnackBar(SnackBar(
-          content: Text(_publishTo.isEmpty
-              ? tr('تم حفظ الواجب.', 'Homework saved.')
-              : tr('تم حفظ الواجب ونشره.', 'Homework saved and published.'))));
+          content: Text(_isEdit
+              ? tr('تم حفظ التعديلات.', 'Changes saved.')
+              : _publishTo.isEmpty
+                  ? tr('تم حفظ الواجب.', 'Homework saved.')
+                  : tr('تم حفظ الواجب ونشره.', 'Homework saved and published.'))));
       Navigator.of(context).pop(true);
     } on HomeworkException catch (e) {
       if (!mounted) return;
@@ -642,10 +711,14 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
   Widget build(BuildContext context) {
     final subjects = widget.classes.subjects;
     final palette = context.palette;
+    final blocked = !_isEdit && (subjects.isEmpty || !widget.classes.hasActiveSemester);
 
     return Scaffold(
-      appBar: AppBar(title: Text(tr('واجب جديد', 'New homework'), style: const TextStyle(fontWeight: FontWeight.bold))),
-      body: subjects.isEmpty || !widget.classes.hasActiveSemester
+      appBar: AppBar(
+        title: Text(_isEdit ? tr('تعديل الواجب', 'Edit homework') : tr('واجب جديد', 'New homework'),
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      body: blocked
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -665,20 +738,27 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 children: [
-                  DropdownButtonFormField<TeacherSubject>(
-                    key: const ValueKey('homework-subject'),
-                    initialValue: _subject,
-                    isExpanded: true,
-                    decoration: _decoration(tr('المادة والصف', 'Subject and grade'), Icons.menu_book_rounded),
-                    items: [
-                      for (final s in subjects) DropdownMenuItem(value: s, child: Text(s.label, overflow: TextOverflow.ellipsis)),
-                    ],
-                    validator: (v) => v == null ? tr('اختر المادة', 'Choose the subject') : null,
-                    onChanged: (v) => setState(() {
-                      _subject = v;
-                      _publishTo.clear();
-                    }),
-                  ),
+                  if (_isEdit)
+                    // The subject / grade of a saved homework does not change
+                    InputDecorator(
+                      decoration: _decoration(tr('المادة والصف', 'Subject and grade'), Icons.menu_book_rounded),
+                      child: Text(_subject?.label ?? '', style: TextStyle(color: palette.ink, fontWeight: FontWeight.w600)),
+                    )
+                  else
+                    DropdownButtonFormField<TeacherSubject>(
+                      key: const ValueKey('homework-subject'),
+                      initialValue: _subject,
+                      isExpanded: true,
+                      decoration: _decoration(tr('المادة والصف', 'Subject and grade'), Icons.menu_book_rounded),
+                      items: [
+                        for (final s in subjects) DropdownMenuItem(value: s, child: Text(s.label, overflow: TextOverflow.ellipsis)),
+                      ],
+                      validator: (v) => v == null ? tr('اختر المادة', 'Choose the subject') : null,
+                      onChanged: (v) => setState(() {
+                        _subject = v;
+                        _publishTo.clear();
+                      }),
+                    ),
                   const SizedBox(height: 14),
                   TextFormField(
                     key: const ValueKey('homework-title'),
@@ -714,54 +794,19 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                       ),
                       TextButton.icon(
                         key: const ValueKey('add-question'),
-                        onPressed: _questions.length >= 30 ? null : () => setState(() => _questions.add(_QuestionFields())),
+                        onPressed: _questions.length >= _maxQuestions ? null : _addQuestion,
                         icon: const Icon(Icons.add_rounded),
                         label: Text(tr('إضافة سؤال', 'Add question')),
                       ),
                     ],
                   ),
-                  for (var i = 0; i < _questions.length; i++)
-                    Container(
-                      margin: const EdgeInsets.only(top: 8),
-                      padding: const EdgeInsets.fromLTRB(12, 8, 4, 12),
-                      decoration: BoxDecoration(color: palette.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: palette.line)),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(radius: 13, backgroundColor: AppTheme.blue.withValues(alpha: .12),
-                                  child: Text('${i + 1}', style: const TextStyle(fontSize: 12, color: AppTheme.blue, fontWeight: FontWeight.bold))),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: TextFormField(
-                                  controller: _questions[i].header,
-                                  maxLength: 500,
-                                  decoration: InputDecoration(hintText: tr('نص السؤال', 'Question'), counterText: ''),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: tr('حذف السؤال', 'Remove question'),
-                                onPressed: () => setState(() => _questions.removeAt(i).dispose()),
-                                icon: const Icon(Icons.close_rounded, color: _red),
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsetsDirectional.only(start: 34, end: 8),
-                            child: TextFormField(
-                              controller: _questions[i].items,
-                              minLines: 1,
-                              maxLines: 5,
-                              decoration: InputDecoration(
-                                hintText: tr('النقاط أو الخيارات (كل سطر نقطة) - اختياري', 'Points or choices (one per line) - optional'),
-                                hintStyle: const TextStyle(fontSize: 12.5),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (_subject != null && _subject!.sections.isNotEmpty) ...[
+                  Text(
+                    tr('لكل سؤال عنوان، ويمكنك إضافة عدة أسئلة فرعية تحته.',
+                        'Each question has a header; you can add several sub-questions under it.'),
+                    style: TextStyle(fontSize: 12, color: palette.muted),
+                  ),
+                  for (var i = 0; i < _questions.length; i++) _questionCard(i, palette),
+                  if (!_isEdit && _subject != null && _subject!.sections.isNotEmpty) ...[
                     const SizedBox(height: 22),
                     Text(tr('النشر الآن لفصول (اختياري)', 'Publish now to classes (optional)'),
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: palette.ink)),
@@ -789,12 +834,96 @@ class _HomeworkFormScreenState extends State<HomeworkFormScreen> {
                     onPressed: _saving ? null : _save,
                     icon: _saving
                         ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
-                        : Icon(_publishTo.isEmpty ? Icons.save_rounded : Icons.send_rounded),
-                    label: Text(_publishTo.isEmpty ? tr('حفظ الواجب', 'Save homework') : tr('حفظ ونشر', 'Save and publish')),
+                        : Icon(!_isEdit && _publishTo.isNotEmpty ? Icons.send_rounded : Icons.save_rounded),
+                    label: Text(_isEdit
+                        ? tr('حفظ التعديلات', 'Save changes')
+                        : _publishTo.isEmpty
+                            ? tr('حفظ الواجب', 'Save homework')
+                            : tr('حفظ ونشر', 'Save and publish')),
                   ),
                 ],
               ),
             ),
+    );
+  }
+
+  /// One question: numbered header, then its sub-questions (أ، ب، … / a, b, …) and "add sub-question"
+  Widget _questionCard(int i, AppPalette palette) {
+    final q = _questions[i];
+    return Container(
+      key: ValueKey('question-$i'),
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.fromLTRB(12, 8, 4, 10),
+      decoration: BoxDecoration(color: palette.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: palette.line)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 13,
+                backgroundColor: AppTheme.blue.withValues(alpha: .12),
+                child: Text('${i + 1}', style: const TextStyle(fontSize: 12, color: AppTheme.blue, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextFormField(
+                  key: ValueKey('question-$i-header'),
+                  controller: q.header,
+                  maxLength: 500,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(hintText: tr('عنوان السؤال', 'Question header'), counterText: ''),
+                ),
+              ),
+              IconButton(
+                tooltip: tr('حذف السؤال', 'Remove question'),
+                onPressed: () => _removeQuestion(i),
+                icon: const Icon(Icons.close_rounded, color: _red),
+              ),
+            ],
+          ),
+          for (var j = 0; j < q.items.length; j++)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(start: 26, top: 2),
+              child: Row(
+                children: [
+                  Text('${subQuestionLabel(j)})', style: TextStyle(color: palette.muted, fontWeight: FontWeight.bold)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      key: ValueKey('question-$i-item-$j'),
+                      controller: q.items[j],
+                      maxLength: 500,
+                      minLines: 1,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: tr('سؤال فرعي', 'Sub-question'),
+                        hintStyle: const TextStyle(fontSize: 13),
+                        counterText: '',
+                        isDense: true,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: tr('حذف السؤال الفرعي', 'Remove sub-question'),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _removeSubQuestion(i, j),
+                    icon: Icon(Icons.remove_circle_outline_rounded, color: palette.faint, size: 20),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 18),
+            child: TextButton.icon(
+              key: ValueKey('question-$i-add-item'),
+              onPressed: q.items.length >= _maxSubQuestions ? null : () => _addSubQuestion(i),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: Text(tr('إضافة سؤال فرعي', 'Add sub-question')),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

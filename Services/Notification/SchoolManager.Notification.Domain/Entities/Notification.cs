@@ -14,6 +14,9 @@ namespace SchoolManager.Notification.Domain
       
         public NotificationTypeEnum NotificationType { get; private set; }
 
+        /// <summary>Academic year the notification belongs to (null: saved before notifications had a year)</summary>
+        public Guid? AcademicYearId { get; private set; }
+
         public string? ImageUrl { get; private set; } // ØµÙˆØ±Ø© Ø§Ù„Ø­Ø¯Ø«
         public AuditInfo AuditInfo { get; private set; }
 
@@ -27,13 +30,15 @@ namespace SchoolManager.Notification.Domain
             DateOnly sentOn,
             NotificationTypeEnum notificationType,
             string? imageUrl,
-            AuditInfo auditInfo)
+            AuditInfo auditInfo,
+            Guid? academicYearId = null)
         {
             Title = title;
             Description = description;
             SentOn = sentOn;
             NotificationType = notificationType;
             ImageUrl = imageUrl;
+            AcademicYearId = academicYearId;
             AuditInfo = auditInfo;
         }
 
@@ -43,13 +48,16 @@ namespace SchoolManager.Notification.Domain
             DateOnly sentOn,
             NotificationTypeEnum notificationType,
             string? imageUrl,
-            AuditInfo auditInfo)
+            AuditInfo auditInfo,
+            Guid? academicYearId = null)
         {
             Title = title;
             Description = description;
             SentOn = sentOn;
             NotificationType = notificationType;
             ImageUrl = imageUrl;
+            // A year is kept once set (an edit without one does not clear it)
+            AcademicYearId = academicYearId ?? AcademicYearId;
             AuditInfo = auditInfo;
         }
 

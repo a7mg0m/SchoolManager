@@ -35,7 +35,9 @@ namespace SchoolManager.Financial.Application
 
         public async Task<List<StudentFeeDto>> Handle(GetStudentFeesByStudentQuery query, CancellationToken cancellationToken)
         {
-            var entities = await _repository.SearchAsync(x => x.StudentId == query.StudentId);
+            var year = query.AcademicYearId;
+            var entities = await _repository.SearchAsync(x => x.StudentId == query.StudentId
+                && (year == null || x.AcademicYearId == null || x.AcademicYearId == year));
             return _mapper.Map<List<StudentFeeDto>>(entities);
         }
     }
@@ -53,7 +55,9 @@ namespace SchoolManager.Financial.Application
 
         public async Task<List<StudentFeeDto>> Handle(GetAllStudentFeesQuery query, CancellationToken cancellationToken)
         {
-            var entities = await _repository.GetAllAsync();
+            var entities = (await _repository.GetAllAsync())
+                .Where(x => query.AcademicYearId is not Guid year || x.AcademicYearId == null || x.AcademicYearId == year)
+                .ToList();
             return _mapper.Map<List<StudentFeeDto>>(entities);
         }
     }

@@ -8,11 +8,22 @@ import '../../core/i18n/language_switch.dart';
 import '../../core/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
+import '../chat/chat_screens.dart';
+import '../notifications/notifications_screen.dart';
+import '../notifications/notifications_service.dart';
 import '../profile/edit_profile_screen.dart';
 import '../profile/profile_service.dart';
 import '../school/school_info_screen.dart';
 import '../school/school_info_service.dart';
 import '../homework/homework_screens.dart';
+import '../classes/classes_screens.dart';
+import '../classes/classes_service.dart';
+import '../events/event_format.dart' as ev;
+import '../events/events_screen.dart';
+import '../parents/parents_screen.dart';
+import '../parents/parents_service.dart';
+import '../events/events_service.dart';
+import '../exams/exam_screens.dart';
 import '../timetable/teacher_timetable_screen.dart';
 import '../timetable/teacher_timetable_service.dart';
 
@@ -20,9 +31,17 @@ import '../timetable/teacher_timetable_service.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
+    this.chatApi = const ChatApi(),
+    this.loadNotifications,
+    this.chatRefreshEvery = const Duration(seconds: 15),
     this.loadProfile,
     this.loadSchoolInfo,
     this.homeworkApi = const HomeworkApi(),
+    this.examApi = const ExamApi(),
+    this.loadEvents,
+    this.loadMyClasses,
+    this.loadClassStudents,
+    this.loadParents,
     this.loadAcademicYears,
     this.loadTimetable,
   });
@@ -36,11 +55,33 @@ class HomeScreen extends StatefulWidget {
   /// Homework API calls; defaults to the API (tests pass their own)
   final HomeworkApi homeworkApi;
 
+  /// Exam / score API calls; defaults to the API (tests pass their own)
+  final ExamApi examApi;
+
+  /// Loads the teacher's events (for everyone / for teachers); defaults to the API
+  final Future<List<SchoolEvent>> Function()? loadEvents;
+
+  /// Loads the teacher's classes and a class's students; default to the API
+  final Future<List<MyClass>> Function()? loadMyClasses;
+  final Future<List<ClassStudent>> Function(String sectionId)? loadClassStudents;
+
+  /// Loads the parents of the teacher's students; defaults to the API
+  final Future<List<TeacherParent>> Function()? loadParents;
+
   /// Loads the signed-in user's profile (name + picture); defaults to the API (tests pass their own)
   final Future<MyProfile?> Function()? loadProfile;
 
   /// Loads the school information (logo, About the school page); defaults to the API
   final Future<SchoolInfo?> Function()? loadSchoolInfo;
+
+  /// Chat API calls; defaults to the API (tests pass their own)
+  final ChatApi chatApi;
+
+  /// Loads my notifications; defaults to the API (tests pass their own)
+  final Future<List<AppNotice>> Function()? loadNotifications;
+
+  /// How often the chats reload while open (null: never; tests)
+  final Duration? chatRefreshEvery;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -61,8 +102,51 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadProfile();
     _loadSchoolInfo();
+    _loadEvents();
     // Academic years for the picker (homework is listed / created in the chosen year)
     AcademicYearController.instance.ensureLoaded(fetch: widget.loadAcademicYears);
+    // Another year: its events
+    AcademicYearController.instance.addListener(_loadEvents);
+  }
+
+  @override
+  void dispose() {
+    AcademicYearController.instance.removeListener(_loadEvents);
+    super.dispose();
+  }
+
+  /// Events for everyone / for teachers (chosen academic year), for the important notice
+  List<SchoolEvent>? _events;
+
+  Future<void> _loadEvents() async {
+    try {
+      final result = await (widget.loadEvents ?? EventsService.instance.getMyEvents)();
+      if (mounted) setState(() => _events = result);
+    } catch (_) {
+      // No notice then; the events page reports the error
+      if (mounted) setState(() => _events = null);
+    }
+  }
+
+  /// The next event that is not over yet (null while loading / when there is none)
+  SchoolEvent? get _nextEvent {
+    final now = DateTime.now();
+    final upcoming = (_events ?? const <SchoolEvent>[]).where((e) => e.isUpcoming(now)).toList()
+      ..sort((a, b) {
+        final d = a.date.compareTo(b.date);
+        return d != 0 ? d : a.start.compareTo(b.start);
+      });
+    return upcoming.isEmpty ? null : upcoming.first;
+  }
+
+  /// "اليوم" / "غداً" / "بعد 3 أيام" / "25 نوفمبر"
+  String _eventWhen(DateTime date) {
+    final today = DateTime.now();
+    final days = DateTime(date.year, date.month, date.day).difference(DateTime(today.year, today.month, today.day)).inDays;
+    if (days <= 0) return tr('اليوم', 'today');
+    if (days == 1) return tr('غداً', 'tomorrow');
+    if (days <= 6) return tr('بعد $days أيام', 'in $days days');
+    return '${date.day} ${ev.monthNames[date.month - 1]}';
   }
 
   /// Name and picture from My Profile; on failure the header keeps the login name and the person icon
@@ -95,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _refresh() => Future.wait([_loadProfile(), _loadSchoolInfo()]);
+  Future<void> _refresh() => Future.wait([_loadProfile(), _loadSchoolInfo(), _loadEvents()]);
 
   // ----- Navigation -----
 
@@ -108,6 +192,39 @@ class _HomeScreenState extends State<HomeScreen> {
   void _openHomework() {
     _nav.push(MaterialPageRoute(
       builder: (_) => HomeworkListScreen(api: widget.homeworkApi, onSessionExpired: _logout),
+    ));
+  }
+
+  void _openClasses() {
+    _nav.push(MaterialPageRoute(
+      builder: (_) => MyClassesScreen(
+        loadClasses: widget.loadMyClasses,
+        loadStudents: widget.loadClassStudents,
+        onSessionExpired: _logout,
+      ),
+    ));
+  }
+
+  void _openParents() {
+    _nav.push(MaterialPageRoute(
+      builder: (_) => ParentsScreen(
+        loadParents: widget.loadParents,
+        onSessionExpired: _logout,
+        chatApi: widget.chatApi,
+        chatRefreshEvery: widget.chatRefreshEvery == null ? null : const Duration(seconds: 5),
+      ),
+    ));
+  }
+
+  void _openEvents() {
+    _nav.push(MaterialPageRoute(
+      builder: (_) => EventsScreen(loadEvents: widget.loadEvents, onSessionExpired: _logout),
+    ));
+  }
+
+  void _openExams() {
+    _nav.push(MaterialPageRoute(
+      builder: (_) => ExamListScreen(api: widget.examApi, onSessionExpired: _logout),
     ));
   }
 
@@ -188,8 +305,11 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _Appear(order: 0, child: _buildAnnouncement()),
-                  const SizedBox(height: 22),
+                  // The next event as the important notice (none: hidden)
+                  if (_nextEvent != null) ...[
+                    _Appear(order: 0, child: _buildAnnouncement(_nextEvent!)),
+                    const SizedBox(height: 22),
+                  ],
                   _sectionTitle(tr('الخدمات', 'Services')),
                   _buildServices(),
                 ],
@@ -370,47 +490,75 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ----- Notice and services -----
 
-  Widget _buildAnnouncement() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: context.palette.card,
+  /// The next upcoming event as the important notice (hidden when there is none); tap it or "View all" for the events
+  Widget _buildAnnouncement(SchoolEvent event) {
+    final palette = context.palette;
+    return Material(
+      color: palette.card,
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        key: const ValueKey('announcement'),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFFFFC044).withValues(alpha: .55)),
-        boxShadow: [BoxShadow(color: const Color(0xFFFFB21A).withValues(alpha: .14), blurRadius: 16, offset: const Offset(0, 6))],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(colors: [Color(0xFFFFC044), Color(0xFFFF8A3D)]),
-            ),
-            child: const Icon(Icons.campaign_rounded, color: Colors.white, size: 26),
+        onTap: _openEvents,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFFFC044).withValues(alpha: .55)),
+            boxShadow: [BoxShadow(color: const Color(0xFFFFB21A).withValues(alpha: .14), blurRadius: 16, offset: const Offset(0, 6))],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(tr('إعلان هام', 'Important notice'),
-                    style: TextStyle(color: context.palette.ink, fontWeight: FontWeight.bold, fontSize: 15.5)),
-                const SizedBox(height: 3),
-                Text(tr('اجتماع المعلمين يوم الأحد القادم بعد الحصة الأخيرة.', 'Staff meeting next Sunday after the last lesson.'),
-                    style: TextStyle(color: context.palette.muted, fontSize: 12.5)),
-              ],
-            ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(colors: [Color(0xFFFFC044), Color(0xFFFF8A3D)]),
+                ),
+                child: const Icon(Icons.campaign_rounded, color: Colors.white, size: 26),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tr('إعلان هام', 'Important notice'),
+                        style: TextStyle(color: palette.ink, fontWeight: FontWeight.bold, fontSize: 15.5)),
+                    const SizedBox(height: 3),
+                    Text(event.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: palette.ink, fontSize: 13, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Icon(Icons.event_rounded, size: 13, color: palette.muted),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text('${_eventWhen(event.date)} · ${ev.formatTime(event.start)}',
+                              maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: palette.muted, fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              InkWell(
+                key: const ValueKey('announcement-view-all'),
+                borderRadius: BorderRadius.circular(20),
+                onTap: _openEvents,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(color: AppTheme.blue.withValues(alpha: .1), borderRadius: BorderRadius.circular(20)),
+                  child: Text(tr('عرض الكل', 'View all'),
+                      style: const TextStyle(color: AppTheme.blue, fontWeight: FontWeight.bold, fontSize: 11)),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(color: AppTheme.blue.withValues(alpha: .1), borderRadius: BorderRadius.circular(20)),
-            child: Text(tr('عرض الكل', 'View all'),
-                style: const TextStyle(color: AppTheme.blue, fontWeight: FontWeight.bold, fontSize: 11)),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -484,8 +632,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: gap),
                       Expanded(
-                        child: tile(Icons.fact_check_rounded, tr('رصد الدرجات', 'Marks'), soonText,
-                            const [Color(0xFF9B6BFF), Color(0xFF6A3FD8)]),
+                        // Quizzes / monthly exams and the students' scores
+                        child: _BentoTile(
+                          icon: Icons.fact_check_rounded,
+                          label: tr('الاختبارات والدرجات', 'Exams & scores'),
+                          detail: tr('أضف اختباراً وارصد الدرجات', 'Add an exam, enter scores'),
+                          colors: const [Color(0xFF9B6BFF), Color(0xFF6A3FD8)],
+                          onTap: _openExams,
+                        ),
                       ),
                     ],
                   ),
@@ -517,7 +671,11 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               for (var i = 0; i < small.length; i++) ...[
                 if (i > 0) const SizedBox(width: 10),
-                Expanded(child: _soonTile(small[i].$1, small[i].$2, small[i].$3)),
+                // Events, my classes and parents are ready; the others say "soon"
+                Expanded(
+                  child: _soonTile(small[i].$1, small[i].$2, small[i].$3,
+                      onTap: switch (i) { 0 => _openEvents, 1 => _openClasses, 3 => _openParents, _ => null }),
+                ),
               ],
             ],
           ),
@@ -527,9 +685,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// A service that is not ready yet: small card with a "soon" label
-  Widget _soonTile(IconData icon, String label, Color color) {
+  Widget _soonTile(IconData icon, String label, Color color, {VoidCallback? onTap}) {
     return _Pressable(
-      onTap: () => _comingSoon(label),
+      onTap: onTap ?? () => _comingSoon(label),
       child: Container(
         height: 104,
         padding: const EdgeInsets.fromLTRB(6, 10, 6, 8),
@@ -553,7 +711,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 10.5, height: 1.2, fontWeight: FontWeight.w600, color: context.palette.ink)),
             ),
-            Text(tr('قريباً', 'Soon'), style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: context.palette.faint)),
+            if (onTap == null)
+              Text(tr('قريباً', 'Soon'), style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: context.palette.faint)),
           ],
         ),
       ),
@@ -561,6 +720,37 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ----- Bottom bar and the More menu -----
+
+  /// Notifications for everyone / for me (chosen academic year), above the home page; the bar stays
+  Future<void> _openNotifications() async {
+    if (selectedTab == 1) return;
+    _nav.popUntil((route) => route.isFirst);
+    setState(() => selectedTab = 1);
+    await _nav.push(MaterialPageRoute(
+      builder: (_) => NotificationsScreen(
+        loadNotices: widget.loadNotifications ?? NotificationsService.instance.getMine,
+        targetedLabel: tr('لك', 'For you'),
+        onSessionExpired: _logout,
+      ),
+    ));
+    if (mounted && selectedTab == 1) setState(() => selectedTab = 0);
+  }
+
+  /// Chats (teachers <-> parents of their students), above the home page; the bar stays
+  Future<void> _openChats() async {
+    if (selectedTab == 2) return;
+    _nav.popUntil((route) => route.isFirst);
+    setState(() => selectedTab = 2);
+    await _nav.push(MaterialPageRoute(
+      builder: (_) => ChatListScreen(
+        api: widget.chatApi,
+        onSessionExpired: _logout,
+        refreshEvery: widget.chatRefreshEvery,
+        newChatHint: tr('راسل أولياء أمور طلابك.', 'Message the parents of your students.'),
+      ),
+    ));
+    if (mounted && selectedTab == 2) setState(() => selectedTab = 0);
+  }
 
   /// Floating rounded bar; the selected item becomes a coloured pill
   Widget _bottomNavigation() {
@@ -578,6 +768,14 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       // Home from any page: back to the home page
       if (index == 0) _nav.popUntil((route) => route.isFirst);
+      if (index == 1) {
+        _openNotifications();
+        return;
+      }
+      if (index == 2) {
+        _openChats();
+        return;
+      }
       setState(() => selectedTab = index);
       if (index != 0) {
         _showMessage(tr('صفحة ${items[index].$2} سيتم تنفيذها في المرحلة التالية.',

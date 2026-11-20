@@ -35,6 +35,11 @@
     </div>
   }
 
+  <!-- Revenues of the academic year chosen in the header -->
+  @if (!isLoading()) {
+    <app-academic-context-note [semester]="false"></app-academic-context-note>
+  }
+
   <!-- Empty State -->
   @if (!isLoading() && revenues().length === 0) {
     <div class="card text-center">

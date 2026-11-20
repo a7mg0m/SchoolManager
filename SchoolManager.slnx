@@ -4,6 +4,12 @@
   </Folder>
   <Folder Name="/MobileApps/" />
   <Folder Name="/Services/" />
+  <Folder Name="/Services/Attendance/">
+    <Project Path="Services/Attendance/SchoolManager.Attendance.API/SchoolManager.Attendance.API.csproj" Id="f62dd196-6969-4c43-90a0-96c84e5eb1aa" />
+    <Project Path="Services/Attendance/SchoolManager.Attendance.Application/SchoolManager.Attendance.Application.csproj" Id="cf1ce5a4-5609-4c7c-91c7-742983dc74f6" />
+    <Project Path="Services/Attendance/SchoolManager.Attendance.Domain/SchoolManager.Attendance.Domain.csproj" Id="6c4b4807-7504-4a41-acf2-6dfc4370b0c0" />
+    <Project Path="Services/Attendance/SchoolManager.Attendance.Infrastructure/SchoolManager.Attendance.Infrastructure.csproj" Id="ba99a397-2e23-4c4e-a29f-a9ac5be9a625" />
+  </Folder>
   <Folder Name="/Services/ExamsHomework/">
     <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.API/SchoolManager.ExamsHomework.API.csproj" Id="13c4075e-beed-4ff1-844d-350060fcf615" />
     <Project Path="Services/ExamsHomework/SchoolManager.ExamsHomework.Application/SchoolManager.ExamsHomework.Application.csproj" Id="8430d7df-2b90-4028-bd57-925473e1fc59" />

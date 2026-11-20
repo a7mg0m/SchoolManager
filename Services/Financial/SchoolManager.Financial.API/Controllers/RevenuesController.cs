@@ -19,10 +19,11 @@ namespace SchoolManager.Financial.API.Controllers
             _mapper = mapper;
         }
 
+        /// <summary>Revenues of the academic year chosen in the admin header (null: all)</summary>
         [HttpGet("get-all")]
-        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAll([FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new GetAllRevenuesQuery(), cancellationToken);
+            var result = await _mediator.Send(new GetAllRevenuesQuery(academicYearId), cancellationToken);
             return Ok(new ApiResponse { data = result });
         }
 
@@ -48,7 +49,7 @@ namespace SchoolManager.Financial.API.Controllers
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateRevenueDto dto, CancellationToken cancellationToken)
         {
             var command = new UpdateRevenueCommand(id, dto.Title, dto.Description, dto.CategoryId, dto.Type,
-                dto.Amount, dto.Currency, dto.RevenueDate, dto.Reference);
+                dto.Amount, dto.Currency, dto.RevenueDate, dto.Reference, dto.AcademicYearId);
             var success = await _mediator.Send(command, cancellationToken);
 
             if (!success)

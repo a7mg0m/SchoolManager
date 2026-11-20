@@ -13,6 +13,8 @@ namespace SchoolManager.ExamsHomework.Domain
         public Guid? SectionId { get; private set; } // Optional: null = exam for the whole grade
         public Guid AcademicYearId { get; private set; }
         public Guid SemesterId { get; private set; }
+        /// <summary>Teacher who added the exam from the teacher app; null for exams added by the school</summary>
+        public Guid? TeacherId { get; private set; }
 
         public ExamType ExamType { get; private set; }
         /// <summary>Month of a Monthly exam (1 = January … 12 = December); null for the other types.</summary>
@@ -106,6 +108,9 @@ namespace SchoolManager.ExamsHomework.Domain
             AnswerModelUrl = answerModelUrl;
             AuditInfo = auditInfo;
         }
+
+        /// <summary>The exam belongs to this teacher (teacher app)</summary>
+        public void AssignTeacher(Guid teacherId) => TeacherId = teacherId;
 
         /// <summary>Only Monthly exams have a month</summary>
         private static int? MonthFor(ExamType examType, int? month) => examType == ExamType.Monthly ? month : null;

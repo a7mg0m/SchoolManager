@@ -12,6 +12,8 @@ namespace SchoolManager.Financial.Application
         decimal Amount,
         string Currency,
         DateTime RevenueDate,
-        string? Reference
+        string? Reference,
+        /// <summary>Only used when the revenue has no year yet</summary>
+        Guid? AcademicYearId = null
     ) : ICommand<bool>;
 }

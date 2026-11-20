@@ -54,3 +54,13 @@ export { EmployeeListComponent } from './users/employees/employee-list.component
 export { EmployeeSaveComponent } from './users/employees/employee-save.component';
 export { MyProfileComponent } from './users/my-profile/my-profile.component';
 export { GroupPermissionsComponent } from './users/group-permissions/group-permissions.component';
+
+// Clinic
+export { VaccineListComponent } from './clinic/vaccines/vaccine-list.component';
+export { VaccineSaveComponent } from './clinic/vaccines/vaccine-save.component';
+export { VaccinationCampaignListComponent } from './clinic/vaccination-campaigns/vaccination-campaign-list.component';
+export { VaccinationCampaignSaveComponent } from './clinic/vaccination-campaigns/vaccination-campaign-save.component';
+export { ClinicVisitListComponent } from './clinic/visits/clinic-visit-list.component';
+export { ClinicVisitSaveComponent } from './clinic/visits/clinic-visit-save.component';
+export { StudentClinicListComponent } from './clinic/students/student-clinic-list.component';
+export { StudentClinicComponent } from './clinic/students/student-clinic.component';

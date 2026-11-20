@@ -1,0 +1,233 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'clinic.editVisit' | translate }}
+        } @else {
+          {{ 'clinic.newVisit' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Student, doctor, date -->
+      <div class="card mb-3">
+        <div class="card-header">{{ 'clinic.visitInfo' | translate }}</div>
+        <div class="card-body">
+          <!-- Stage -> grade -> section -> student -->
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label for="stageId" class="form-label">{{ 'clinic.stage' | translate }}</label>
+              <select class="form-select" id="stageId" formControlName="stageId">
+                <option value="">{{ 'common.chooseOne' | translate }}</option>
+                @for (stage of stages(); track stage.id) {
+                  <option [value]="stage.id">{{ localName(stage) }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label for="gradeId" class="form-label">{{ 'clinic.grade' | translate }}</label>
+              <select class="form-select" id="gradeId" formControlName="gradeId">
+                <option value="">{{ (stageId() ? 'common.chooseOne' : 'clinic.chooseStageFirst') | translate }}</option>
+                @for (grade of stageGrades(); track grade.id) {
+                  <option [value]="grade.id">{{ localName(grade) }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label for="sectionId" class="form-label">{{ 'clinic.section' | translate }}</label>
+              <select class="form-select" id="sectionId" formControlName="sectionId">
+                <option value="">{{ (gradeId() ? 'common.chooseOne' : 'clinic.chooseGradeFirst') | translate }}</option>
+                @for (section of gradeSections(); track section.id) {
+                  <option [value]="section.id">{{ localName(section) }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-3 mb-3">
+              <label for="studentId" class="form-label">{{ 'clinic.student' | translate }} <span class="text-danger">*</span></label>
+              <select class="form-select" id="studentId" formControlName="studentId"
+                      [class.is-invalid]="hasError('studentId', 'required')">
+                <option value="">
+                  {{ (!sectionId() ? 'clinic.chooseSectionFirst' : sectionStudents().length ? 'common.chooseOne' : 'clinic.noStudentsInSection') | translate }}
+                </option>
+                @for (student of sectionStudents(); track student.id) {
+                  <option [value]="student.id">{{ studentLabel(student) }}</option>
+                }
+              </select>
+              @if (hasError('studentId', 'required')) {
+                <div class="invalid-feedback">{{ 'clinic.errors.StudentIdRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="visitDate" class="form-label">{{ 'clinic.visitDate' | translate }} <span class="text-danger">*</span></label>
+              <input type="datetime-local" class="form-control" id="visitDate" formControlName="visitDate"
+                     [class.is-invalid]="hasError('visitDate', 'required')" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="doctorName" class="form-label">{{ 'clinic.doctor' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="doctorName" formControlName="doctorName" maxlength="200"
+                     [placeholder]="'clinic.doctorNamePlaceholder' | translate"
+                     [class.is-invalid]="hasError('doctorName', 'required') || hasError('doctorName', 'maxlength')" />
+              @if (hasError('doctorName', 'required')) {
+                <div class="invalid-feedback">{{ 'clinic.errors.DoctorNameRequired' | translate }}</div>
+              }
+              @if (hasError('doctorName', 'maxlength')) {
+                <div class="invalid-feedback">{{ 'clinic.errors.DoctorNameTooLong' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Examination and diagnosis -->
+      <div class="card mb-3">
+        <div class="card-header">{{ 'clinic.examination' | translate }}</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="complaint" class="form-label">{{ 'clinic.complaint' | translate }} <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="complaint" rows="2" formControlName="complaint"
+                      [class.is-invalid]="hasError('complaint', 'required')"></textarea>
+            @if (hasError('complaint', 'required')) {
+              <div class="invalid-feedback">{{ 'clinic.errors.ComplaintRequired' | translate }}</div>
+            }
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="temperature" class="form-label">{{ 'clinic.temperature' | translate }}</label>
+              <input type="number" step="0.1" class="form-control" id="temperature" formControlName="temperature"
+                     [class.is-invalid]="hasError('temperature', 'min') || hasError('temperature', 'max')" />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="weight" class="form-label">{{ 'clinic.weight' | translate }}</label>
+              <input type="number" step="0.01" class="form-control" id="weight" formControlName="weight"
+                     [class.is-invalid]="hasError('weight', 'min') || hasError('weight', 'max')" />
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="height" class="form-label">{{ 'clinic.height' | translate }}</label>
+              <input type="number" step="0.01" class="form-control" id="height" formControlName="height"
+                     [class.is-invalid]="hasError('height', 'min') || hasError('height', 'max')" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="diagnosis" class="form-label">{{ 'clinic.diagnosis' | translate }}</label>
+              <textarea class="form-control" id="diagnosis" rows="3" formControlName="diagnosis"></textarea>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="treatment" class="form-label">{{ 'clinic.treatment' | translate }}</label>
+              <textarea class="form-control" id="treatment" rows="3" formControlName="treatment"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Medications given -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>{{ 'clinic.medications' | translate }}</span>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="addMedication()">
+            <i class="pe-7s-plus"></i> {{ 'clinic.addMedication' | translate }}
+          </button>
+        </div>
+        <div class="card-body">
+          @if (medications.length === 0) {
+            <p class="text-muted mb-0">{{ 'clinic.noMedications' | translate }}</p>
+          }
+          <div formArrayName="medications">
+            @for (medication of medications.controls; track $index; let i = $index) {
+              <div class="row g-2 mb-2 align-items-start" [formGroupName]="i">
+                <div class="col-md-6">
+                  <input type="text" class="form-control" formControlName="medicineName" [placeholder]="'clinic.medicineName' | translate"
+                         [class.is-invalid]="medication.get('medicineName')?.invalid && medication.get('medicineName')?.touched" />
+                </div>
+                <div class="col-md-5">
+                  <input type="text" class="form-control" formControlName="dose" [placeholder]="'clinic.dose' | translate"
+                         [class.is-invalid]="medication.get('dose')?.invalid && medication.get('dose')?.touched" />
+                </div>
+                <div class="col-md-1">
+                  <button type="button" class="btn btn-outline-danger w-100" (click)="removeMedication(i)" title="{{ 'common.delete' | translate }}">
+                    <i class="pe-7s-trash"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Outcome -->
+      <div class="card mb-3">
+        <div class="card-header">{{ 'clinic.outcome' | translate }}</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="outcome" class="form-label">{{ 'clinic.outcome' | translate }} <span class="text-danger">*</span></label>
+              <select class="form-select" id="outcome" formControlName="outcome">
+                @for (o of outcomes; track o.value) {
+                  <option [ngValue]="o.value">{{ o.key | translate }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label d-block">{{ 'clinic.parentNotified' | translate }}</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="parentNotified" formControlName="parentNotified" />
+                <label class="form-check-label" for="parentNotified">{{ 'clinic.parentNotifiedHint' | translate }}</label>
+              </div>
+            </div>
+          </div>
+          <div class="mb-0">
+            <label for="notes" class="form-label">{{ 'clinic.notes' | translate }}</label>
+            <textarea class="form-control" id="notes" rows="2" formControlName="notes"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex gap-2 mb-4">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ 'common.save' | translate }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

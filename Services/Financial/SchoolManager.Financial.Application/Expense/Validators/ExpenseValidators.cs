@@ -11,6 +11,7 @@ namespace SchoolManager.Financial.Application
             RuleFor(x => x.Amount).GreaterThan(0).WithMessage("AmountMustBeGreaterThanZero");
             RuleFor(x => x.Currency).NotEmpty().WithMessage("CurrencyRequired");
             RuleFor(x => x.Type).IsInEnum().WithMessage("TypeInvalid");
+            RuleFor(x => x.AcademicYearId).NotEmpty().WithMessage("AcademicYearRequired");
         }
     }
 

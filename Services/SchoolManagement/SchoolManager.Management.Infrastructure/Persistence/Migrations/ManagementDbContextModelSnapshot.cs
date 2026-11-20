@@ -47,6 +47,65 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.ToTable("AcademicYears", (string)null);
                 });
 
+            modelBuilder.Entity("SchoolManager.Management.Domain.ClinicVisit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Complaint")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Diagnosis")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("DoctorName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal?>("Height")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("Outcome")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ParentNotified")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("Temperature")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("decimal(4,1)");
+
+                    b.Property<string>("Treatment")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("VisitDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("Weight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("ClinicVisits", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Management.Domain.Grade", b =>
                 {
                     b.Property<Guid>("Id")
@@ -410,6 +469,93 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.ToTable("Students", (string)null);
                 });
 
+            modelBuilder.Entity("SchoolManager.Management.Domain.StudentMedicalProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Allergies")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("BloodType")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("ChronicDiseases")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("EmergencyPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("RegularMedications")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentId")
+                        .IsUnique();
+
+                    b.ToTable("StudentMedicalProfiles", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.StudentVaccination", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CampaignId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DoseNumber")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("GivenByEmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("Place")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly?>("VaccinationDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("VaccineId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.HasIndex("VaccineId");
+
+                    b.HasIndex("StudentId", "VaccineId", "DoseNumber")
+                        .IsUnique();
+
+                    b.ToTable("StudentVaccinations", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Management.Domain.Subject", b =>
                 {
                     b.Property<Guid>("Id")
@@ -577,6 +723,83 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.ToTable("TimetableSlots", (string)null);
                 });
 
+            modelBuilder.Entity("SchoolManager.Management.Domain.VaccinationCampaign", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("VaccineId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VaccineId");
+
+                    b.ToTable("VaccinationCampaigns", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.Vaccine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("TotalDoses")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Vaccines", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.VisitMedication", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Dose")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("MedicineName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("VisitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VisitId");
+
+                    b.ToTable("VisitMedications", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Management.Infrastructure.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -654,6 +877,49 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
 
                     b.Navigation("AuditInfo")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.ClinicVisit", b =>
+                {
+                    b.HasOne("SchoolManager.Management.Domain.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("ClinicVisitId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("ClinicVisitId");
+
+                            b1.ToTable("ClinicVisits");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ClinicVisitId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.Grade", b =>
@@ -1404,6 +1670,107 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Navigation("Stage");
                 });
 
+            modelBuilder.Entity("SchoolManager.Management.Domain.StudentMedicalProfile", b =>
+                {
+                    b.HasOne("SchoolManager.Management.Domain.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("StudentMedicalProfileId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("StudentMedicalProfileId");
+
+                            b1.ToTable("StudentMedicalProfiles");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StudentMedicalProfileId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.StudentVaccination", b =>
+                {
+                    b.HasOne("SchoolManager.Management.Domain.VaccinationCampaign", "Campaign")
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("SchoolManager.Management.Domain.Student", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SchoolManager.Management.Domain.Vaccine", "Vaccine")
+                        .WithMany()
+                        .HasForeignKey("VaccineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("StudentVaccinationId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("StudentVaccinationId");
+
+                            b1.ToTable("StudentVaccinations");
+
+                            b1.WithOwner()
+                                .HasForeignKey("StudentVaccinationId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("Campaign");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Vaccine");
+                });
+
             modelBuilder.Entity("SchoolManager.Management.Domain.Subject", b =>
                 {
                     b.HasOne("SchoolManager.Management.Domain.Grade", "Grade")
@@ -1731,9 +2098,131 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Navigation("Teacher");
                 });
 
+            modelBuilder.Entity("SchoolManager.Management.Domain.VaccinationCampaign", b =>
+                {
+                    b.HasOne("SchoolManager.Management.Domain.Vaccine", "Vaccine")
+                        .WithMany()
+                        .HasForeignKey("VaccineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("VaccinationCampaignId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("VaccinationCampaignId");
+
+                            b1.ToTable("VaccinationCampaigns");
+
+                            b1.WithOwner()
+                                .HasForeignKey("VaccinationCampaignId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("Vaccine");
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.Vaccine", b =>
+                {
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("VaccineId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("VaccineId");
+
+                            b1.ToTable("Vaccines");
+
+                            b1.WithOwner()
+                                .HasForeignKey("VaccineId");
+                        });
+
+                    b.OwnsOne("BuildingBlocks.NameLocalized", "Name", b1 =>
+                        {
+                            b1.Property<Guid>("VaccineId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Arabic")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("NameAr");
+
+                            b1.Property<string>("English")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("nvarchar(200)")
+                                .HasColumnName("NameEn");
+
+                            b1.HasKey("VaccineId");
+
+                            b1.ToTable("Vaccines");
+
+                            b1.WithOwner()
+                                .HasForeignKey("VaccineId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+
+                    b.Navigation("Name")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.VisitMedication", b =>
+                {
+                    b.HasOne("SchoolManager.Management.Domain.ClinicVisit", "Visit")
+                        .WithMany("Medications")
+                        .HasForeignKey("VisitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Visit");
+                });
+
             modelBuilder.Entity("SchoolManager.Management.Domain.AcademicYear", b =>
                 {
                     b.Navigation("Semesters");
+                });
+
+            modelBuilder.Entity("SchoolManager.Management.Domain.ClinicVisit", b =>
+                {
+                    b.Navigation("Medications");
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.Grade", b =>

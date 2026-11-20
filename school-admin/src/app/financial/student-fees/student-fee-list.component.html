@@ -60,6 +60,8 @@
   }
 
   @if (!isLoading() && studentFees().length > 0) {
+    <!-- Student fees of the academic year chosen in the header -->
+    <app-academic-context-note [semester]="false"></app-academic-context-note>
     <!-- Summary -->
     <div class="row g-2 mb-3">
       @for (s of summary(); track s.currency) {
@@ -91,7 +93,7 @@
           <div class="card-body">
             <span class="text-muted small">{{ 'studentFees.statuses.overdue' | translate }}</span>
             <div class="summary-value" [class.text-danger]="overdueCount() > 0">{{ overdueCount() }}</div>
-            <div class="summary-meta text-muted">{{ filteredFees().length }} / {{ studentFees().length }} {{ 'studentFees.records' | translate }}</div>
+            <div class="summary-meta text-muted">{{ filteredFees().length }} / {{ yearFeeCount() }} {{ 'studentFees.records' | translate }}</div>
           </div>
         </div>
       </div>

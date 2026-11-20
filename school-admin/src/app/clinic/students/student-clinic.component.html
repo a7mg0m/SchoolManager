@@ -1,0 +1,318 @@
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2 class="mb-0">{{ 'clinic.studentFile' | translate }}</h2>
+      @if (student()) {
+        <small class="text-muted">{{ studentName() }} · {{ student()!.nationalId }}</small>
+      }
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-outline-secondary" (click)="back()">{{ 'common.back' | translate }}</button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && student()) {
+    <!-- Mandatory vaccines not completed -->
+    @if (missingMandatory().length > 0) {
+      <div class="alert alert-warning">
+        <strong>{{ 'clinic.missingMandatory' | translate }}:</strong>
+        @for (v of missingMandatory(); track v.id; let last = $last) {
+          <a href="javascript:void(0)" class="alert-link" *appCan="'add'" (click)="openNewDose(v.id)">{{ vaccineName(v) }}</a>{{ last ? '' : '، ' }}
+        }
+      </div>
+    }
+
+    <!-- Medical profile -->
+    <div class="card mb-3">
+      <div class="card-header">{{ 'clinic.medicalProfile' | translate }}</div>
+      <div class="card-body">
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="bloodType" class="form-label">{{ 'clinic.bloodType' | translate }}</label>
+              <select class="form-select" id="bloodType" formControlName="bloodType">
+                <option value="">{{ 'clinic.unknown' | translate }}</option>
+                @for (type of bloodTypes; track type) {
+                  <option [value]="type">{{ type }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="emergencyPhone" class="form-label">{{ 'clinic.emergencyPhone' | translate }}</label>
+              <input type="tel" class="form-control" id="emergencyPhone" formControlName="emergencyPhone" dir="ltr" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="allergies" class="form-label">{{ 'clinic.allergies' | translate }}</label>
+              <textarea class="form-control" id="allergies" rows="2" formControlName="allergies"></textarea>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="chronicDiseases" class="form-label">{{ 'clinic.chronicDiseases' | translate }}</label>
+              <textarea class="form-control" id="chronicDiseases" rows="2" formControlName="chronicDiseases"></textarea>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="regularMedications" class="form-label">{{ 'clinic.regularMedications' | translate }}</label>
+              <textarea class="form-control" id="regularMedications" rows="2" formControlName="regularMedications"></textarea>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="profileNotes" class="form-label">{{ 'clinic.notes' | translate }}</label>
+            <textarea class="form-control" id="profileNotes" rows="2" formControlName="notes"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" *appCan="'edit'" [disabled]="isSavingProfile() || profileForm.pristine">
+            @if (isSavingProfile()) {
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            }
+            {{ 'clinic.saveProfile' | translate }}
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Vaccinations -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>{{ 'clinic.vaccinations' | translate }}</span>
+        @if (!showDoseForm()) {
+          <button type="button" class="btn btn-sm btn-primary" *appCan="'add'" (click)="openNewDose()">
+            <i class="pe-7s-plus"></i> {{ 'clinic.addDose' | translate }}
+          </button>
+        }
+      </div>
+      <div class="card-body">
+        <!-- Add / edit dose -->
+        @if (showDoseForm()) {
+          <form [formGroup]="doseForm" (ngSubmit)="saveDose()" class="border rounded p-3 mb-3 bg-light">
+            <h6 class="mb-3">{{ (editingDose() ? 'clinic.editDose' : 'clinic.addDose') | translate }}</h6>
+            @if (doseError()) {
+              <div class="alert alert-danger py-2">{{ doseError() }}</div>
+            }
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label for="doseVaccine" class="form-label">{{ 'clinic.vaccine' | translate }} <span class="text-danger">*</span></label>
+                <select class="form-select" id="doseVaccine" formControlName="vaccineId"
+                        [class.is-invalid]="doseForm.get('vaccineId')?.invalid && doseForm.get('vaccineId')?.touched">
+                  <option value="">{{ 'common.chooseOne' | translate }}</option>
+                  @for (vaccine of doseVaccines(); track vaccine.id) {
+                    <option [value]="vaccine.id">{{ vaccineName(vaccine) }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-2 mb-3">
+                <label for="doseNumber" class="form-label">{{ 'clinic.doseNumber' | translate }} <span class="text-danger">*</span></label>
+                <input type="number" min="1" class="form-control" id="doseNumber" formControlName="doseNumber" />
+                @if (totalDoses(doseVaccineId()); as total) {
+                  <small class="text-muted">{{ 'clinic.ofDoses' | translate: { total: total } }}</small>
+                }
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="doseStatus" class="form-label">{{ 'clinic.vaccinationStatusLabel' | translate }} <span class="text-danger">*</span></label>
+                <select class="form-select" id="doseStatus" formControlName="status">
+                  @for (s of statuses; track s.value) {
+                    <option [ngValue]="s.value">{{ s.key | translate }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-3 mb-3">
+                <label for="doseDate" class="form-label">{{ 'clinic.vaccinationDate' | translate }}</label>
+                <input type="date" class="form-control" id="doseDate" formControlName="vaccinationDate" />
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <label for="dosePlace" class="form-label">{{ 'clinic.place' | translate }}</label>
+                <select class="form-select" id="dosePlace" formControlName="place">
+                  @for (p of places; track p.value) {
+                    <option [ngValue]="p.value">{{ p.key | translate }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label for="doseCampaign" class="form-label">{{ 'clinic.campaign' | translate }}</label>
+                <select class="form-select" id="doseCampaign" formControlName="campaignId">
+                  <option value="">{{ 'clinic.noCampaign' | translate }}</option>
+                  @for (c of doseCampaigns(); track c.id) {
+                    <option [value]="c.id">{{ c.title }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-md-5 mb-3">
+                <label for="doseGivenBy" class="form-label">{{ 'clinic.givenBy' | translate }}</label>
+                <select class="form-select" id="doseGivenBy" formControlName="givenByEmployeeId">
+                  <option value="">-</option>
+                  @for (e of staff(); track e.id) {
+                    <option [value]="e.id">{{ personName(e) }} · {{ e.jobTitle }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="doseNotes" class="form-label">{{ 'clinic.notes' | translate }}</label>
+              <input type="text" class="form-control" id="doseNotes" formControlName="notes" />
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary btn-sm" [disabled]="isSavingDose()">
+                @if (isSavingDose()) {
+                  <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                }
+                {{ 'common.save' | translate }}
+              </button>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="cancelDose()" [disabled]="isSavingDose()">
+                {{ 'common.cancel' | translate }}
+              </button>
+            </div>
+          </form>
+        }
+
+        @if (vaccinations().length === 0) {
+          <p class="text-muted mb-0">{{ 'clinic.noVaccinations' | translate }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'clinic.vaccine' | translate }}</th>
+                  <th>{{ 'clinic.doseNumber' | translate }}</th>
+                  <th>{{ 'clinic.vaccinationStatusLabel' | translate }}</th>
+                  <th>{{ 'clinic.vaccinationDate' | translate }}</th>
+                  <th>{{ 'clinic.place' | translate }}</th>
+                  <th>{{ 'clinic.givenBy' | translate }}</th>
+                  <th>{{ 'common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (dose of sortedVaccinations(); track dose.id) {
+                  <tr>
+                    <td>
+                      <strong>{{ vaccineLabel(dose) }}</strong>
+                      @if (campaignTitle(dose.campaignId)) {
+                        <small class="d-block text-muted">{{ campaignTitle(dose.campaignId) }}</small>
+                      }
+                    </td>
+                    <td>{{ dose.doseNumber }}@if (totalDoses(dose.vaccineId); as total) { / {{ total }} }</td>
+                    <td><span class="badge" [ngClass]="statusInfo(dose).badge">{{ statusInfo(dose).key | translate }}</span></td>
+                    <td>{{ formatDate(dose.vaccinationDate) }}</td>
+                    <td>{{ placeKey(dose) | translate }}</td>
+                    <td>{{ staffName(dose.givenByEmployeeId) || '-' }}</td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-primary" *appCan="'edit'" (click)="editDose(dose)" title="{{ 'common.edit' | translate }}">
+                          <i class="pe-7s-note"></i>
+                        </button>
+                        <button class="btn btn-outline-danger" *appCan="'delete'" (click)="openDeleteDose(dose, deleteModal)" title="{{ 'common.delete' | translate }}">
+                          <i class="pe-7s-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Visits -->
+    <div class="card mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>{{ 'clinic.visits' | translate }}</span>
+        <button type="button" class="btn btn-sm btn-primary" *appCan="'add'" (click)="newVisit()">
+          <i class="pe-7s-plus"></i> {{ 'clinic.newVisit' | translate }}
+        </button>
+      </div>
+      <div class="card-body">
+        @if (visits().length === 0) {
+          <p class="text-muted mb-0">{{ 'clinic.noVisits' | translate }}</p>
+        } @else {
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'clinic.visitDate' | translate }}</th>
+                  <th>{{ 'clinic.complaint' | translate }}</th>
+                  <th>{{ 'clinic.diagnosis' | translate }}</th>
+                  <th>{{ 'clinic.medications' | translate }}</th>
+                  <th>{{ 'clinic.doctor' | translate }}</th>
+                  <th>{{ 'clinic.outcome' | translate }}</th>
+                  <th>{{ 'common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (visit of sortedVisits(); track visit.id) {
+                  <tr>
+                    <td class="text-nowrap">{{ formatDateTime(visit.visitDate) }}</td>
+                    <td>{{ visit.complaint }}</td>
+                    <td>{{ visit.diagnosis || '-' }}</td>
+                    <td>
+                      @for (m of visit.medications; track $index) {
+                        <small class="d-block">{{ m.medicineName }} · {{ m.dose }}</small>
+                      } @empty {
+                        -
+                      }
+                    </td>
+                    <td>{{ visit.doctorName || '-' }}</td>
+                    <td><span class="badge" [ngClass]="outcomeInfo(visit).badge">{{ outcomeInfo(visit).key | translate }}</span></td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary" *appCan="'edit'" (click)="editVisit(visit)" title="{{ 'common.edit' | translate }}">
+                        <i class="pe-7s-note"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Dose Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'clinic.deleteDose' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'clinic.confirmDeleteDose' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDeleteDose()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

@@ -39,6 +39,8 @@ export interface AppNotification {
   sentOn: string;
   notificationType: NotificationType;
   imageUrl: string | null;
+  /** Academic year it belongs to (null: saved before notifications had a year) */
+  academicYearId: string | null;
   /** ISO date-time */
   createdOn: string;
   targets: NotificationTarget[];
@@ -52,6 +54,8 @@ export interface CreateNotificationRequest {
   sentOn: string;
   notificationType: NotificationType;
   imageUrl: string | null;
+  /** The academic year chosen in the header (kept as saved on edit) */
+  academicYearId: string | null;
   /** Empty = the whole school */
   targets: EventTargetInput[];
 }

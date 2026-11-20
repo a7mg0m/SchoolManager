@@ -18,6 +18,7 @@ import { SchoolEventService } from '../core/services/school-event.service';
 import { NotificationService } from '../core/services/notification.service';
 import { LanguageService } from '../ThemeOptions/store/language.service';
 import { Student } from '../core/models/student.model';
+import { AcademicContextService } from '../core/services/academic-context.service';
 import { Teacher } from '../core/models/teacher.model';
 import { Parent } from '../core/models/parent.model';
 import { Section } from '../core/models/section.model';
@@ -90,18 +91,34 @@ export class HomeComponent implements OnInit, OnDestroy {
   /** Data sources that failed to load (the rest of the dashboard still renders) */
   failedSources = signal<string[]>([]);
 
-  private students = signal<Student[]>([]);
+  // Everything loaded; the dashboard shows the academic year chosen in the header (below)
+  private allStudents = signal<Student[]>([]);
   private teachers = signal<Teacher[]>([]);
   private parents = signal<Parent[]>([]);
   private sections = signal<Section[]>([]);
   private grades = signal<Grade[]>([]);
   private stages = signal<Stage[]>([]);
   private academicYears = signal<AcademicYear[]>([]);
-  private fees = signal<StudentFee[]>([]);
-  private revenues = signal<Revenue[]>([]);
-  private expenses = signal<Expense[]>([]);
-  private events = signal<SchoolEvent[]>([]);
-  private notifications = signal<AppNotification[]>([]);
+  private allFees = signal<StudentFee[]>([]);
+  private allRevenues = signal<Revenue[]>([]);
+  private allExpenses = signal<Expense[]>([]);
+  private allEvents = signal<SchoolEvent[]>([]);
+  private allNotifications = signal<AppNotification[]>([]);
+
+  /** Records of the academic year chosen in the header (all of them while no year is chosen) */
+  private ofYear<T extends { academicYearId?: string | null }>(items: T[]): T[] {
+    const yearId = this.academic.yearId();
+    return yearId ? items.filter(x => x.academicYearId === yearId) : items;
+  }
+
+  // The header's academic year: fees, revenues, expenses, events and notifications.
+  // Students (all of them), teachers, parents, classes, grades and stages are the school's.
+  private students = computed(() => this.allStudents());
+  private fees = computed(() => this.ofYear(this.allFees()));
+  private revenues = computed(() => this.ofYear(this.allRevenues()));
+  private expenses = computed(() => this.ofYear(this.allExpenses()));
+  private events = computed(() => this.ofYear(this.allEvents()));
+  private notifications = computed(() => this.ofYear(this.allNotifications()));
 
   /** Per-chart "show as table" toggles */
   showTable = signal<Record<string, boolean>>({});
@@ -126,7 +143,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     };
   });
 
+  /** The year chosen in the header, else the one running today */
   currentYear = computed(() => {
+    const chosen = this.academic.year();
+    if (chosen) return chosen;
     const today = this.todayIso();
     const years = this.academicYears();
     return (
@@ -136,7 +156,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     );
   });
 
+  /** The semester chosen in the header, else the one running today */
   currentSemester = computed(() => {
+    const chosen = this.academic.semester();
+    if (chosen) return chosen;
     const today = this.todayIso();
     return (
       this.currentYear()?.semesters?.find(
@@ -275,7 +298,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   monthRows = computed<MonthRow[]>(() => {
     const currency = this.currency();
     const rows: MonthRow[] = [];
-    const now = new Date();
+    // The last months up to today, or up to the end of a past academic year chosen in the header
+    const yearEnd = (this.academic.year()?.endDate || '').substring(0, 10);
+    const now = yearEnd && yearEnd < this.todayIso() ? new Date(`${yearEnd}T00:00:00`) : new Date();
     for (let i = MONTHS_SHOWN - 1; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       rows.push({
@@ -398,8 +423,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private languageService: LanguageService,
     private translate: TranslateService,
-    private router: Router
-  ) {}
+    private router: Router,
+    public academic: AcademicContextService
+  ) {
+    this.academic.load();
+  }
 
   ngOnInit(): void {
     this.languageService.currentLanguage$
@@ -444,18 +472,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe(r => {
-        this.students.set(list(r.students));
+        this.allStudents.set(list(r.students));
         this.teachers.set(list(r.teachers));
         this.parents.set(list(r.parents));
         this.sections.set(list(r.sections));
         this.grades.set(list(r.grades));
         this.stages.set(list(r.stages));
         this.academicYears.set(list(r.academicYears));
-        this.fees.set(list(r.fees));
-        this.revenues.set(list(r.revenues));
-        this.expenses.set(list(r.expenses));
-        this.events.set(list(r.events));
-        this.notifications.set(list(r.notifications));
+        this.allFees.set(list(r.fees));
+        this.allRevenues.set(list(r.revenues));
+        this.allExpenses.set(list(r.expenses));
+        this.allEvents.set(list(r.events));
+        this.allNotifications.set(list(r.notifications));
         this.failedSources.set([...new Set(failed)]);
         this.isLoading.set(false);
       });

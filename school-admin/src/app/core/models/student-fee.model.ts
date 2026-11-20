@@ -58,6 +58,8 @@ export function feeStatusInfo(fee: StudentFee) {
  * studentId refers to a Student in the Management service.
  */
 export interface StudentFee {
+  /** null: assigned before academic years (shown in every year) */
+  academicYearId?: string | null;
   id: string;
   studentId: string;
   totalAmount: number;
@@ -100,6 +102,8 @@ export function canRestoreWaiver(fee: StudentFee): boolean {
  */
 export interface AssignStudentFeesRequest {
   studentIds: string[];
+  /** The header's academic year (the fees must be of this year) */
+  academicYearId?: string | null;
   feeIds: string[];
   /** Discount applied to each student's total (same currency as the fees) */
   discountAmount: number;
