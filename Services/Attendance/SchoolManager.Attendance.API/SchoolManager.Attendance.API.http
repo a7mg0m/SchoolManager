@@ -1,6 +1,91 @@
-@SchoolManager.Attendance.API_HostAddress = http://localhost:5106
+@SchoolManager.Attendance.API_HostAddress = http://localhost:59273
+@token = paste-a-login-token-here
 
-GET {{SchoolManager.Attendance.API_HostAddress}}/weatherforecast/
+### Daily attendance: a teacher records one lesson for the section
+POST {{SchoolManager.Attendance.API_HostAddress}}/api/daily-attendance/record-period
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "timetableSlotId": "00000000-0000-0000-0000-000000000001",
+  "subjectId": "00000000-0000-0000-0000-000000000002",
+  "sectionId": "00000000-0000-0000-0000-000000000003",
+  "gradeId": "00000000-0000-0000-0000-000000000004",
+  "academicYearId": "00000000-0000-0000-0000-000000000005",
+  "date": "2026-11-21",
+  "startTime": "08:00:00",
+  "students": [
+    { "studentId": "00000000-0000-0000-0000-000000000006", "status": 0 },
+    { "studentId": "00000000-0000-0000-0000-000000000007", "status": 1, "absenceReason": "Sick" }
+  ]
+}
+
+### Student evaluation: a teacher evaluates a student in a lesson (ratings 1..5)
+POST {{SchoolManager.Attendance.API_HostAddress}}/api/student-evaluation/evaluate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "studentId": "00000000-0000-0000-0000-000000000006",
+  "subjectId": "00000000-0000-0000-0000-000000000002",
+  "timetableSlotId": "00000000-0000-0000-0000-000000000001",
+  "date": "2026-11-21",
+  "focus": 4,
+  "interaction": 5,
+  "behavior": 5,
+  "healthStatus": 0,
+  "comment": "Very good participation",
+  "evaluationRequestId": null
+}
+
+### Evaluation request: a parent asks a teacher to evaluate their child
+POST {{SchoolManager.Attendance.API_HostAddress}}/api/evaluation-request/create
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "studentId": "00000000-0000-0000-0000-000000000006",
+  "teacherId": "00000000-0000-0000-0000-000000000008",
+  "subjectId": null,
+  "note": "How is he doing in math?"
+}
+
+### Bus routes
+GET {{SchoolManager.Attendance.API_HostAddress}}/api/bus-route/get-all
+Accept: application/json
+
+### Bus: new bus on a route
+POST {{SchoolManager.Attendance.API_HostAddress}}/api/bus/create
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "number": "B-01",
+  "plateNumber": "ABC 1234",
+  "capacity": 30,
+  "driverName": "Mahmoud Ali",
+  "driverPhone": "0100000000",
+  "busRouteId": "00000000-0000-0000-0000-000000000009"
+}
+
+### Bus assignment: students ride a bus with their own bus fee
+POST {{SchoolManager.Attendance.API_HostAddress}}/api/bus-assignment/assign
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "busId": "00000000-0000-0000-0000-000000000010",
+  "academicYearId": "00000000-0000-0000-0000-000000000005",
+  "busRouteStopId": null,
+  "studentIds": [ "00000000-0000-0000-0000-000000000006" ],
+  "feeAmount": 1500,
+  "currency": "EGP",
+  "startDate": "2026-09-01",
+  "dueDate": "2026-10-01T00:00:00"
+}
+
+### Trip: today's trips of a bus
+GET {{SchoolManager.Attendance.API_HostAddress}}/api/trip/get-by-date?date=2026-11-21&busId=00000000-0000-0000-0000-000000000010
 Accept: application/json
 
 ###

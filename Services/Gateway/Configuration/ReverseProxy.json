@@ -37,6 +37,11 @@
         "ClusterId": "financial-cluster",
         "Match": { "Path": "/api/{resource:regex(^(fee|student-fee|payment|payment-method|expense|expense-category|revenue|revenue-category)$)}/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5128" } ]
+      },
+      "attendance-route": {
+        "ClusterId": "attendance-cluster",
+        "Match": { "Path": "/api/{resource:regex(^(daily-attendance|student-evaluation|evaluation-request|bus-route|bus|bus-assignment|trip)$)}/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:59273" } ]
       }
     },
     "Clusters": {
@@ -63,6 +68,11 @@
       "financial-cluster": {
         "Destinations": {
           "financial-api": { "Address": "http://localhost:61194/" }
+        }
+      },
+      "attendance-cluster": {
+        "Destinations": {
+          "attendance-api": { "Address": "http://localhost:59273/" }
         }
       }
     }

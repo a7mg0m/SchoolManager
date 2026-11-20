@@ -11,6 +11,7 @@ namespace SchoolManager.Identity.Domain
         public string Description { get; private set; }
 
 
+
         public Role()
         {
         }

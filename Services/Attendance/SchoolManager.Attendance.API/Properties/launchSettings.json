@@ -1,9 +1,5 @@
 {
   "profiles": {
-    "WSL": {
-      "commandName": "WSL2",
-      "distributionName": ""
-    },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
