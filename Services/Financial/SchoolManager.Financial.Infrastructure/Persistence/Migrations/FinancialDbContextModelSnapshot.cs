@@ -253,6 +253,9 @@ namespace SchoolManager.Financial.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("AcademicYearId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("BusAssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("DueDate")
                         .HasColumnType("datetime2");
 
@@ -275,6 +278,10 @@ namespace SchoolManager.Financial.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BusAssignmentId")
+                        .IsUnique()
+                        .HasFilter("[BusAssignmentId] IS NOT NULL");
 
                     b.ToTable("StudentFees", (string)null);
                 });

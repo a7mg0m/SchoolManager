@@ -53,7 +53,7 @@ namespace SchoolManager.Management.Application
 				var grade = await _gradeRepository.GetByIdAsync(s.GradeId)
 					?? throw new InvalidOperationException("Grade not found.");
 
-				entity.Students.Add(new Student(
+				var student = new Student(
 					new NameLocalized(s.FullNameAr, s.FullNameEn),
 					s.DateOfBirth,
 					s.NationalId,
@@ -66,7 +66,9 @@ namespace SchoolManager.Management.Application
 					s.SectionId,
 					s.AcademicYearId,
 					entity.Id,
-					new AuditInfo(DateTime.Now, _currentUser.UserId)));
+					new AuditInfo(DateTime.Now, _currentUser.UserId));
+				student.SetLocation(s.Latitude, s.Longitude);
+				entity.Students.Add(student);
 			}
 
 			await _repository.AddAsync(entity);

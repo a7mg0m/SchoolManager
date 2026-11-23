@@ -20,7 +20,9 @@ namespace SchoolManager.Management.Application
                     src.GradeId,
                     src.SectionId,
                     src.AcademicYearId,
-                    src.ParentId));
+                    src.ParentId,
+                    src.Latitude,
+                    src.Longitude));
 
             CreateMap<UpdateStudentDto, UpdateStudentCommand>()
                 .ConstructUsing(src => new UpdateStudentCommand(
@@ -32,7 +34,9 @@ namespace SchoolManager.Management.Application
                     src.Address,
                     src.GradeId,
                     src.SectionId,
-                    src.AcademicYearId));
+                    src.AcademicYearId,
+                    src.Latitude,
+                    src.Longitude));
 
 			CreateMap<Student, StudentDto>()
                 .ForMember(d => d.FullNameAr, o => o.MapFrom(s => s.FullName.Arabic))

@@ -1,4 +1,6 @@
 using BuildingBlocks;
+using BuildingBlocks.Messaging;
+using BuildingBlocks.Messaging.Events;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +32,10 @@ namespace SchoolManager.Financial.Infrastructure
                 client.BaseAddress = new Uri(configuration["ManagementService:BaseUrl"] ?? "http://localhost:53607/");
                 client.Timeout = TimeSpan.FromSeconds(15);
             });
+
+            // Kafka: a student's bus assigned / fee changed / ended in Attendance -> the student's bus fee (Transportation)
+            services.AddKafkaConsumer<BusFeeIntegrationEvent, BusFeeIntegrationEventHandler>(
+                configuration, Topics.AttendanceBusFees);
 
             return services;
         }

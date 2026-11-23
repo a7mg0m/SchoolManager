@@ -19,6 +19,10 @@ namespace SchoolManager.Management.Domain
         public string? Email { get; private set; }
         public string Address { get; private set; }
 
+        // Home location (map pin, e.g. for the school bus); both or neither
+        public double? Latitude { get; private set; }
+        public double? Longitude { get; private set; }
+
         // Academic Info
         public Guid StageId { get; private set; }
         public Guid GradeId { get; private set; }
@@ -94,6 +98,13 @@ namespace SchoolManager.Management.Domain
             AcademicYearId = academicYearId;
             AuditInfo = auditInfo;
 
+        }
+
+        /// <summary>The student's home location (both values, or neither to clear it)</summary>
+        public void SetLocation(double? latitude, double? longitude)
+        {
+            Latitude = latitude;
+            Longitude = longitude;
         }
 
         // Deactivate Student

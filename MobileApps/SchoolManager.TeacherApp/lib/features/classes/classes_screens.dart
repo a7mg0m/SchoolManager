@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/theme/app_theme.dart';
+import '../attendance/attendance_screens.dart' show AttendanceApi;
+import '../attendance/class_attendance_screen.dart';
 import '../homework/homework_screens.dart' show homeworkDate;
 import 'classes_service.dart';
 
@@ -231,7 +233,7 @@ class _MyClassesScreenState extends State<MyClassesScreen> with ReloadOnAcademic
 
 /// Students of one class: boys / girls count, search, and each student's details
 class ClassStudentsScreen extends StatefulWidget {
-  const ClassStudentsScreen({super.key, required this.myClass, this.loadStudents, this.onSessionExpired, this.now});
+  const ClassStudentsScreen({super.key, required this.myClass, this.loadStudents, this.onSessionExpired, this.now, this.attendanceApi});
 
   final MyClass myClass;
 
@@ -239,6 +241,9 @@ class ClassStudentsScreen extends StatefulWidget {
   final Future<List<ClassStudent>> Function(String sectionId)? loadStudents;
   final Future<void> Function()? onSessionExpired;
   final DateTime? now;
+
+  /// The class attendance page's API calls; defaults to the API with [loadStudents] (tests pass their own)
+  final AttendanceApi? attendanceApi;
 
   @override
   State<ClassStudentsScreen> createState() => _ClassStudentsScreenState();
@@ -286,13 +291,35 @@ class _ClassStudentsScreenState extends State<ClassStudentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.myClass.label, style: const TextStyle(fontWeight: FontWeight.bold))),
+      appBar: AppBar(
+        title: Text(widget.myClass.label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          // The class's attendance on a day
+          TextButton.icon(
+            key: const ValueKey('class-attendance'),
+            onPressed: _openAttendance,
+            icon: const Icon(Icons.how_to_reg_rounded, color: Colors.white),
+            label: Text(tr('الحضور', 'Attendance'), style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? _message(context, Icons.error_outline_rounded, _error!, retry: _load)
               : RefreshIndicator(onRefresh: _load, child: _content(_students!)),
     );
+  }
+
+  void _openAttendance() {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ClassAttendanceScreen(
+        myClass: widget.myClass,
+        api: widget.attendanceApi ?? AttendanceApi(loadStudents: widget.loadStudents),
+        onSessionExpired: widget.onSessionExpired,
+        today: widget.now,
+      ),
+    ));
   }
 
   Widget _content(List<ClassStudent> students) {

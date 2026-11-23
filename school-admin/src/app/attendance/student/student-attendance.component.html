@@ -1,0 +1,217 @@
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2 class="mb-0">{{ 'attendance.studentTitle' | translate }}</h2>
+      @if (student()) {
+        <small class="text-muted">{{ studentName() }} · {{ student()!.nationalId }}</small>
+      }
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-outline-secondary" (click)="back()">{{ 'common.back' | translate }}</button>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && student()) {
+    <!-- Range -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label for="from" class="form-label">{{ 'attendance.from' | translate }}</label>
+            <input type="date" id="from" class="form-control" [value]="from()" (change)="onFromChange($event)" />
+          </div>
+          <div class="col-md-3">
+            <label for="to" class="form-label">{{ 'attendance.to' | translate }}</label>
+            <input type="date" id="to" class="form-control" [value]="to()" (change)="onToChange($event)" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul ngbNav #nav="ngbNav" [(activeId)]="activeTab" class="nav-tabs">
+      <!-- Attendance -->
+      <li [ngbNavItem]="1">
+        <button ngbNavLink>{{ 'attendance.attendanceTab' | translate }}</button>
+        <ng-template ngbNavContent>
+          <!-- Summary cards -->
+          <div class="row g-3 mb-3">
+            @for (s of summary(); track s.value) {
+              <div class="col-6 col-md-3">
+                <div class="card summary-card">
+                  <div class="card-body text-center">
+                    <span class="badge mb-2" [ngClass]="s.badge">{{ s.key | translate }}</span>
+                    <div class="fs-3 fw-bold">{{ s.count }}</div>
+                    <small class="text-muted">{{ 'attendance.days' | translate }}</small>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              @if (isLoadingRange()) {
+                <div class="text-center py-4">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+                  </div>
+                </div>
+              } @else {
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th style="width: 2.5rem;"></th>
+                        <th>{{ 'attendance.date' | translate }}</th>
+                        <th>{{ 'attendance.dayStatus' | translate }}</th>
+                        <th>{{ 'attendance.checkIn' | translate }}</th>
+                        <th>{{ 'attendance.checkOut' | translate }}</th>
+                        <th class="text-center">{{ 'attendance.attendedPeriods' | translate }}</th>
+                        <th class="text-center">{{ 'attendance.absentPeriods' | translate }}</th>
+                        <th>{{ 'attendance.notes' | translate }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (d of sortedDays(); track d.id) {
+                        <tr class="day-row" (click)="toggleDay(d.id)">
+                          <td class="text-center">
+                            @if (d.periods.length > 0) {
+                              <i [class]="expanded().has(d.id) ? 'pe-7s-angle-down' : 'pe-7s-angle-right flip-rtl'"></i>
+                            }
+                          </td>
+                          <td class="text-nowrap">{{ day(d.date) }}</td>
+                          <td><span class="badge" [ngClass]="statusInfo(d.status).badge">{{ statusInfo(d.status).key | translate }}</span></td>
+                          <td class="text-nowrap">{{ time(d.checkInTime) }}</td>
+                          <td class="text-nowrap">{{ time(d.checkOutTime) }}</td>
+                          <td class="text-center">{{ d.attendedPeriodsCount }}</td>
+                          <td class="text-center">{{ d.absentPeriodsCount }}</td>
+                          <td>{{ d.notes || '-' }}</td>
+                        </tr>
+                        @if (expanded().has(d.id) && d.periods.length > 0) {
+                          <tr class="periods-row">
+                            <td></td>
+                            <td colspan="7">
+                              <table class="table table-sm mb-0">
+                                <thead>
+                                  <tr>
+                                    <th>{{ 'attendance.startTime' | translate }}</th>
+                                    <th>{{ 'attendance.subject' | translate }}</th>
+                                    <th>{{ 'attendance.teacher' | translate }}</th>
+                                    <th>{{ 'attendance.periodStatusLabel' | translate }}</th>
+                                    <th>{{ 'attendance.absenceReason' | translate }}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  @for (p of sortedPeriods(d); track p.id) {
+                                    <tr>
+                                      <td class="text-nowrap">{{ time(p.startTime) }}</td>
+                                      <td>{{ subjectName(p.subjectId) }}</td>
+                                      <td>{{ teacherName(p.teacherId) }}</td>
+                                      <td><span class="badge" [ngClass]="periodStatusInfo(p.status).badge">{{ periodStatusInfo(p.status).key | translate }}</span></td>
+                                      <td>{{ p.absenceReason || '-' }}</td>
+                                    </tr>
+                                  }
+                                </tbody>
+                              </table>
+                            </td>
+                          </tr>
+                        }
+                      }
+                      @if (sortedDays().length === 0) {
+                        <tr>
+                          <td colspan="8" class="text-center text-muted py-4">{{ 'attendance.noDays' | translate }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          </div>
+        </ng-template>
+      </li>
+
+      <!-- Evaluations -->
+      <li [ngbNavItem]="2">
+        <button ngbNavLink>
+          {{ 'attendance.evaluationsTab' | translate }}
+          <span class="badge bg-secondary ms-1">{{ evaluations().length }}</span>
+        </button>
+        <ng-template ngbNavContent>
+          <div class="card">
+            <div class="card-body">
+              @if (isLoadingRange()) {
+                <div class="text-center py-4">
+                  <div class="spinner-border" role="status">
+                    <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+                  </div>
+                </div>
+              } @else {
+                <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>{{ 'attendance.date' | translate }}</th>
+                        <th>{{ 'attendance.subject' | translate }}</th>
+                        <th>{{ 'attendance.teacher' | translate }}</th>
+                        <th>{{ 'attendance.focus' | translate }}</th>
+                        <th>{{ 'attendance.interaction' | translate }}</th>
+                        <th>{{ 'attendance.behavior' | translate }}</th>
+                        <th>{{ 'attendance.healthStatus' | translate }}</th>
+                        <th>{{ 'attendance.comment' | translate }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (e of sortedEvaluations(); track e.id) {
+                        <tr>
+                          <td class="text-nowrap">{{ day(e.date) }}</td>
+                          <td>{{ subjectName(e.subjectId) }}</td>
+                          <td>{{ teacherName(e.teacherId) }}</td>
+                          @for (rating of [e.focus, e.interaction, e.behavior]; track $index) {
+                            <td class="text-nowrap" [title]="ratingInfo(rating).key | translate">
+                              <span class="stars">
+                                @for (i of stars; track i) {
+                                  <span [class.on]="i <= rating">★</span>
+                                }
+                              </span>
+                              <small class="d-block text-muted">{{ ratingInfo(rating).key | translate }}</small>
+                            </td>
+                          }
+                          <td><span class="badge" [ngClass]="healthInfo(e.healthStatus).badge">{{ healthInfo(e.healthStatus).key | translate }}</span></td>
+                          <td>{{ e.comment || '-' }}</td>
+                        </tr>
+                      }
+                      @if (sortedEvaluations().length === 0) {
+                        <tr>
+                          <td colspan="8" class="text-center text-muted py-4">{{ 'attendance.noEvaluations' | translate }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+            </div>
+          </div>
+        </ng-template>
+      </li>
+    </ul>
+    <div [ngbNavOutlet]="nav" class="mt-3"></div>
+  }
+</div>

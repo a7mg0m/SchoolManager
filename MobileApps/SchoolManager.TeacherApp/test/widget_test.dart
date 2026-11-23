@@ -5,6 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:smart_school_teacher/features/attendance/attendance_screens.dart';
+import 'package:smart_school_teacher/features/attendance/attendance_service.dart';
 import 'package:smart_school_teacher/features/chat/chat_screens.dart';
 import 'package:smart_school_teacher/features/notifications/notifications_screen.dart';
 import 'package:smart_school_teacher/features/notifications/notifications_service.dart';
@@ -27,6 +29,7 @@ import 'package:smart_school_teacher/features/homework/homework_screens.dart';
 import 'package:smart_school_teacher/features/homework/homework_service.dart';
 import 'package:smart_school_teacher/features/timetable/teacher_timetable_screen.dart';
 import 'package:smart_school_teacher/features/timetable/teacher_timetable_service.dart';
+import 'package:smart_school_teacher/features/profile/edit_profile_screen.dart';
 import 'package:smart_school_teacher/features/profile/profile_service.dart';
 import 'package:smart_school_teacher/features/school/school_info_service.dart';
 import 'package:smart_school_teacher/main.dart';
@@ -140,10 +143,7 @@ void main() {
     expect(find.text('الحضور والغياب'), findsOneWidget);
     expect(find.text('الاختبارات والدرجات'), findsOneWidget);
 
-    // Services that are not ready yet say so
-    await tester.tap(find.text('الحضور والغياب'));
-    await tester.pump();
-    expect(find.text('خدمة "الحضور والغياب" ستتوفر قريباً.'), findsOneWidget);
+    expect(find.text('تقييم الطلاب'), findsOneWidget);
   });
 
   testWidgets('Important notice shows the next upcoming event; tapping it opens the events',
@@ -201,6 +201,57 @@ void main() {
     await tester.tap(find.text('الرئيسية'));
     await tester.pumpAndSettle();
     expect(find.text('الخدمات'), findsOneWidget);
+  });
+
+  testWidgets('Job level is shown on the home header and read only in the profile',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    const profile = MyProfile(firstName: 'منى', lastName: 'علي', loginName: 'mona', jobLevel: 'معلم أول');
+    await tester.pumpWidget(_home(profile: profile));
+    await tester.pumpAndSettle();
+
+    // The chip shows the job level instead of the plain "Teacher"
+    expect(find.text('معلم أول'), findsOneWidget);
+    expect(find.text('معلم'), findsNothing);
+
+    // Profile: the job level is in a disabled, read-only field
+    await tester.pumpWidget(MaterialApp(
+      locale: AppLanguage.instance.value,
+      supportedLocales: AppLanguage.supported,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: const EditProfileScreen(profile: profile),
+    ));
+    await tester.pumpAndSettle();
+
+    final finder = find.byKey(const ValueKey('jobLevelField'));
+    expect(finder, findsOneWidget);
+    expect(find.text('المستوى الوظيفي'), findsOneWidget);
+    final field = tester.widget<TextField>(find.descendant(of: finder, matching: find.byType(TextField)));
+    expect(field.readOnly, isTrue);
+    expect(field.enabled, isFalse);
+    expect(field.controller?.text, 'معلم أول');
+  });
+
+  testWidgets('No job level: the home chip says Teacher and the profile has no job level field',
+      (WidgetTester tester) async {
+    _phoneSize(tester);
+    const profile = MyProfile(firstName: 'منى', lastName: 'علي', loginName: 'mona');
+    await tester.pumpWidget(MaterialApp(
+      locale: AppLanguage.instance.value,
+      supportedLocales: AppLanguage.supported,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: const EditProfileScreen(profile: profile),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('jobLevelField')), findsNothing);
   });
 
   testWidgets('More menu switches the teacher app to English (LTR)',
@@ -518,6 +569,101 @@ void main() {
       ExamStudentScore(studentId: 'st-1', nameAr: 'سارة أحمد', nameEn: 'Sara Ahmed', score: 18),
       ExamStudentScore(studentId: 'st-2', nameAr: 'عمر خالد', nameEn: 'Omar Khaled'),
     ]);
+
+    testWidgets('Exams of my subjects by the school or other teachers are listed read-only; scores can be entered',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      final mid = TeacherExam(
+        id: 'e-mid',
+        subjectId: 'sub-math',
+        subjectNameAr: 'رياضيات',
+        subjectNameEn: 'Math',
+        gradeId: 'g1',
+        gradeNameAr: 'الصف الأول',
+        gradeNameEn: 'Grade 1',
+        // Whole grade
+        sectionId: '',
+        sectionNameAr: '',
+        sectionNameEn: '',
+        type: TeacherExamType.monthly,
+        month: 11,
+        date: DateTime(today.year, today.month, today.day),
+        startMinutes: 9 * 60,
+        endMinutes: 11 * 60,
+        weight: 50,
+        successScore: 25,
+        isMine: false,
+        addedByTeacher: false,
+      );
+      final otherTeacher = TeacherExam.fromJson({
+        'id': 'e-other',
+        'subjectId': 'sub-math',
+        'subjectNameAr': 'رياضيات',
+        'gradeId': 'g1',
+        'gradeNameAr': 'الصف الأول',
+        'sectionId': 's-b',
+        'sectionNameAr': 'فصل ب',
+        'examType': 1,
+        'examDate': '2026-11-20',
+        'startTime': '10:00:00',
+        'endTime': '10:30:00',
+        'weight': 10,
+        'successScore': 5,
+        'isMine': false,
+        'addedByTeacher': true,
+      });
+      String? scoresOf;
+      final api = ExamApi(
+        loadClasses: () async => classes,
+        loadExams: () async => [exam('e1', TeacherExamType.quiz), mid, otherTeacher],
+        loadScores: (id) async {
+          scoresOf = id;
+          return scores;
+        },
+      );
+      await tester.pumpWidget(MaterialApp(home: ExamListScreen(api: api)));
+      await tester.pumpAndSettle();
+
+      // My quiz can be edited / deleted; the others cannot and say who added them
+      expect(find.byKey(const ValueKey('edit-exam-e1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('edit-exam-e-mid')), findsNothing);
+      expect(find.byKey(const ValueKey('delete-exam-e-other')), findsNothing);
+      expect(find.text('من إدارة المدرسة'), findsOneWidget);
+      expect(find.text('أضافه معلم آخر'), findsOneWidget);
+      expect(find.text('رياضيات · الصف الأول · كل الفصول'), findsOneWidget);
+      // Quizzes and monthly exams only: no mid-term / final filter
+      expect(find.byKey(const ValueKey('exam-filter-school')), findsNothing);
+
+      // Filter: mine
+      await tester.tap(find.byKey(const ValueKey('exam-filter-mine')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('scores-e1')), findsOneWidget);
+      expect(find.byKey(const ValueKey('scores-e-mid')), findsNothing);
+      await tester.tap(find.byKey(const ValueKey('exam-filter-all')));
+      await tester.pumpAndSettle();
+
+      // The school's exam: scores open
+      await tester.tap(find.byKey(const ValueKey('scores-e-mid')));
+      await tester.pumpAndSettle();
+      expect(scoresOf, 'e-mid');
+      expect(find.text('سارة أحمد'), findsOneWidget);
+    });
+
+    testWidgets('The new exam form offers only quiz and monthly', (WidgetTester tester) async {
+      _phoneSize(tester);
+      await tester.pumpWidget(MaterialApp(home: ExamFormScreen(api: const ExamApi(), classes: classes)));
+      await tester.pumpAndSettle();
+      expect(find.text('اختبار قصير'), findsOneWidget);
+      expect(find.text('امتحان شهري'), findsOneWidget);
+    });
+
+    test('Only quizzes and monthly exams are shown (mid-term = 3, final = 4 are not)', () {
+      expect(TeacherExamType.isShown(1), isTrue);
+      expect(TeacherExamType.isShown(2), isTrue);
+      expect(TeacherExamType.isShown(3), isFalse);
+      expect(TeacherExamType.isShown(4), isFalse);
+      expect(TeacherExamType.values, [TeacherExamType.quiz, TeacherExamType.monthly]);
+    });
 
     testWidgets('Home tile opens the exams; filter by type; scores are entered and only the changes saved',
         (WidgetTester tester) async {
@@ -1129,6 +1275,275 @@ void main() {
       expect(t.now, 605);
       expect(t.dayOf(2)!.lessons.single.start, 570);
       expect(t.dayOf(2)!.lessons.single.subject, 'علوم');
+    });
+  });
+
+  group('Attendance', () {
+    TeacherLesson lesson(String id, String subject, int start, String section) => TeacherLesson(
+          id: id,
+          start: start,
+          end: start + 45,
+          subjectNameAr: subject,
+          subjectNameEn: subject,
+          gradeNameAr: 'الصف الأول',
+          sectionNameAr: section,
+          subjectId: 'sub-$id',
+          gradeId: 'g1',
+          sectionId: 'sec-$section',
+        );
+
+    const students = [
+      ClassStudent(id: 'st1', nameAr: 'أحمد', nameEn: 'Ahmed'),
+      ClassStudent(id: 'st2', nameAr: 'بسمة', nameEn: 'Basma'),
+      ClassStudent(id: 'st3', nameAr: 'تامر', nameEn: 'Tamer'),
+    ];
+
+    testWidgets('Home tile opens the lessons of today; taking a lesson saves every student', (WidgetTester tester) async {
+      _phoneSize(tester);
+      final today = DateTime.now().weekday % 7;
+      final math = lesson('l1', 'رياضيات', 480, 'فصل أ');
+      final science = lesson('l2', 'علوم', 570, 'فصل ب');
+      final week = TeacherTimetable(today: today, now: 600, academicYearId: 'y-2026', days: [
+        TeacherTimetableDay(dayOfWeek: today, lessons: [math, science]),
+      ]);
+      // Science was taken already: Basma absent
+      final saved = <String, List<RecordedAttendance>>{
+        'l2': const [
+          RecordedAttendance(studentId: 'st1', status: LessonAttendanceStatus.present),
+          RecordedAttendance(studentId: 'st2', status: LessonAttendanceStatus.absent, absenceReason: 'مريضة'),
+        ],
+      };
+      List<StudentAttendanceInput>? sent;
+      String? sentYear;
+      final api = AttendanceApi(
+        loadTimetable: () async => week,
+        loadStudents: (sectionId) async => students,
+        loadRecorded: (l, date) async => saved[l.id] ?? const [],
+        save: (l, date, yearId, list) async {
+          sent = list;
+          sentYear = yearId;
+          saved[l.id] = [for (final s in list) RecordedAttendance(studentId: s.studentId, status: s.status)];
+        },
+      );
+
+      await tester.pumpWidget(ListenableBuilder(
+        listenable: AppLanguage.instance,
+        builder: (context, _) => MaterialApp(
+          locale: AppLanguage.instance.value,
+          supportedLocales: AppLanguage.supported,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: HomeScreen(
+            loadProfile: () async => null,
+            loadSchoolInfo: () async => null,
+            loadAcademicYears: () async => _years,
+            attendanceApi: api,
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('الحضور والغياب'));
+      await tester.pumpAndSettle();
+
+      // Today's lessons with their state
+      expect(find.text('رياضيات'), findsOneWidget);
+      expect(find.text('لم يُؤخذ الحضور'), findsOneWidget);
+      expect(find.text('تم أخذ الحضور'), findsOneWidget);
+      expect(find.text('1 غائب'), findsOneWidget);
+      expect(find.text('تم أخذ الحضور في 1 من 2 حصص'), findsOneWidget);
+
+      // Math: everyone present by default, Tamer absent with a reason, Basma late
+      await tester.tap(find.byKey(const ValueKey('lesson-l1')));
+      await tester.pumpAndSettle();
+      expect(find.text('أخذ الحضور'), findsOneWidget);
+      expect(find.text('أحمد'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('status-st3-absent')));
+      await tester.pump();
+      await tester.enterText(find.byKey(const ValueKey('reason-st3')), 'سفر');
+      await tester.tap(find.byKey(const ValueKey('status-st2-late')));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('reason-st2')), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('save-attendance')));
+      await tester.pumpAndSettle();
+
+      expect(sentYear, 'y-2026');
+      expect(sent!.map((s) => '${s.studentId}:${s.status.name}').toList(), ['st1:present', 'st2:late', 'st3:absent']);
+      expect(sent!.last.toJson()['absenceReason'], 'سفر');
+      // Back on the lessons: both taken now
+      expect(find.text('لم يُؤخذ الحضور'), findsNothing);
+      expect(find.text('تم أخذ الحضور في 2 من 2 حصص'), findsOneWidget);
+    });
+
+    testWidgets('A lesson already taken opens with the saved statuses and can be updated', (WidgetTester tester) async {
+      _phoneSize(tester);
+      final science = lesson('l2', 'علوم', 570, 'فصل ب');
+      await tester.pumpWidget(MaterialApp(
+        home: TakeAttendanceScreen(
+          api: AttendanceApi(
+            loadStudents: (_) async => students,
+            loadRecorded: (l, d) async => const [
+              RecordedAttendance(studentId: 'st2', status: LessonAttendanceStatus.excused, absenceReason: 'موعد طبيب'),
+            ],
+          ),
+          lesson: science,
+          date: DateTime(2026, 11, 22),
+          academicYearId: 'y-2026',
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('تم أخذ الحضور من قبل — يمكنك تعديله'), findsOneWidget);
+      expect(find.text('تحديث الحضور'), findsOneWidget);
+      expect(find.text('موعد طبيب'), findsOneWidget);
+
+      // All present clears the excuse
+      await tester.tap(find.byKey(const ValueKey('all-present')));
+      await tester.pump();
+      expect(find.byKey(const ValueKey('reason-st2')), findsNothing);
+    });
+
+    testWidgets('A day without lessons says so and the next day cannot be after today', (WidgetTester tester) async {
+      _phoneSize(tester);
+      await tester.pumpWidget(MaterialApp(
+        home: AttendanceLessonsScreen(
+          api: AttendanceApi(loadTimetable: () async => const TeacherTimetable(today: 0, now: 0, days: [])),
+          today: DateTime(2026, 11, 22),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      expect(find.text('لا توجد لديك حصص في هذا اليوم.'), findsOneWidget);
+      final next = tester.widget<IconButton>(find.byKey(const ValueKey('next-day')));
+      expect(next.onPressed, isNull);
+    });
+
+    test('Lesson ids come from the timetable JSON; a present student sends no reason', () {
+      final l = TeacherLesson.fromJson({
+        'id': 'slot',
+        'startTime': '08:00:00',
+        'endTime': '08:45:00',
+        'subjectId': 'sub',
+        'gradeId': 'g',
+        'sectionId': 'sec',
+      });
+      expect([l.subjectId, l.gradeId, l.sectionId], ['sub', 'g', 'sec']);
+      expect(TeacherTimetable.fromJson({'academicYearId': 'y', 'days': []}).academicYearId, 'y');
+      expect(minutesToTime(l.start), '08:00:00');
+      expect(attendanceDate(DateTime(2026, 1, 5)), '2026-01-05');
+      expect(const StudentAttendanceInput(studentId: 's', status: LessonAttendanceStatus.present, absenceReason: 'x').toJson(),
+          {'studentId': 's', 'status': 0, 'absenceReason': null});
+      expect(LessonAttendanceStatus.fromCode(2), LessonAttendanceStatus.late);
+    });
+
+    group('Class attendance', () {
+      const math = TeacherSubject(
+        subjectId: 'sub-math',
+        subjectNameAr: 'رياضيات',
+        subjectNameEn: 'Math',
+        gradeId: 'g1',
+        gradeNameAr: 'الصف الأول',
+        gradeNameEn: 'Grade 1',
+        sections: [TeacherSection(id: 's-a', nameAr: 'فصل أ', nameEn: 'Class A')],
+      );
+      final myClass = MyClass(
+        section: const TeacherSection(id: 's-a', nameAr: 'فصل أ', nameEn: 'Class A'),
+        gradeId: 'g1',
+        gradeNameAr: 'الصف الأول',
+        gradeNameEn: 'Grade 1',
+        subjects: const [math],
+      );
+      const classStudents = [
+        ClassStudent(id: 'st1', nameAr: 'أحمد', nameEn: 'Ahmed'),
+        ClassStudent(id: 'st2', nameAr: 'بسمة', nameEn: 'Basma'),
+        ClassStudent(id: 'st3', nameAr: 'تامر', nameEn: 'Tamer'),
+      ];
+      final days = [
+        const StudentDay(studentId: 'st1', status: DayAttendanceStatus.present, attendedLessons: 2, lessons: [
+          DayLesson(timetableSlotId: 'l1', subjectId: 'sub-math', teacherId: 't', start: 480, status: LessonAttendanceStatus.present),
+          DayLesson(timetableSlotId: 'l2', subjectId: 'other', teacherId: 't2', start: 570, status: LessonAttendanceStatus.late),
+        ]),
+        const StudentDay(studentId: 'st2', status: DayAttendanceStatus.absent, absentLessons: 1, lessons: [
+          DayLesson(timetableSlotId: 'l1', subjectId: 'sub-math', teacherId: 't', start: 480, status: LessonAttendanceStatus.absent, absenceReason: 'مريضة'),
+        ]),
+      ];
+
+      testWidgets('The class page opens its attendance: summary, filters and each student\'s lessons', (WidgetTester tester) async {
+        _phoneSize(tester);
+        final asked = <String>[];
+        await tester.pumpWidget(MaterialApp(
+          home: ClassStudentsScreen(
+            myClass: myClass,
+            loadStudents: (_) async => classStudents,
+            now: DateTime(2026, 11, 22),
+            attendanceApi: AttendanceApi(
+              loadStudents: (_) async => classStudents,
+              loadClassDays: (sectionId, date) async {
+                asked.add('$sectionId ${attendanceDate(date)}');
+                return attendanceDate(date) == '2026-11-22' ? days : const [];
+              },
+            ),
+          ),
+        ));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byKey(const ValueKey('class-attendance')));
+        await tester.pumpAndSettle();
+
+        expect(find.text('حضور الفصل'), findsOneWidget);
+        expect(asked, ['s-a 2026-11-22']);
+        // 3 students, 2 recorded, 1 absent, 50% attendance
+        expect(find.text('50%'), findsOneWidget);
+        expect(find.text('لم يُسجَّل (1)'), findsOneWidget);
+        expect(find.text('غائب (1)'), findsOneWidget);
+
+        // Only the absent
+        await tester.tap(find.byKey(const ValueKey('class-filter-absent')));
+        await tester.pumpAndSettle();
+        expect(find.text('بسمة'), findsOneWidget);
+        expect(find.text('أحمد'), findsNothing);
+
+        // Back to all; Ahmed's lessons: mine by subject name, another teacher's as "lesson"
+        await tester.tap(find.byKey(const ValueKey('class-filter-all')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('class-student-st1')));
+        await tester.pumpAndSettle();
+        expect(find.text('رياضيات'), findsOneWidget);
+        expect(find.text('حصة'), findsOneWidget);
+        expect(find.text('متأخر'), findsOneWidget);
+
+        // The previous day has nothing recorded
+        await tester.tap(find.byKey(const ValueKey('class-previous-day')));
+        await tester.pumpAndSettle();
+        expect(asked.last, 's-a 2026-11-21');
+        expect(find.text('لم يُسجَّل حضور هذا الفصل في هذا اليوم بعد.'), findsOneWidget);
+      });
+
+      test('Student day JSON: status, times, lessons by time', () {
+        final d = StudentDay.fromJson({
+          'studentId': 's',
+          'status': 2,
+          'checkInTime': '07:45:00',
+          'checkOutTime': null,
+          'notes': '',
+          'attendedPeriodsCount': 1,
+          'absentPeriodsCount': 1,
+          'periods': [
+            {'timetableSlotId': 'b', 'subjectId': 'x', 'teacherId': 't', 'startTime': '09:30:00', 'status': 1, 'absenceReason': 'خرج'},
+            {'timetableSlotId': 'a', 'subjectId': 'y', 'teacherId': 't', 'startTime': '08:00:00', 'status': 0},
+          ],
+        });
+        expect(d.status, DayAttendanceStatus.partiallyPresent);
+        expect(d.checkIn, 465);
+        expect(d.checkOut, isNull);
+        expect(d.notes, isNull);
+        expect(d.lessons.map((l) => l.timetableSlotId).toList(), ['a', 'b']);
+        expect(d.lessons.last.status, LessonAttendanceStatus.absent);
+      });
     });
   });
 

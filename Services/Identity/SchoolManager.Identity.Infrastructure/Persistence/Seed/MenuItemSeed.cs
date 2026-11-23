@@ -20,6 +20,8 @@ namespace SchoolManager.Identity.Infrastructure
         public static readonly Guid Exam = new("6d9f1c00-0000-4000-8000-000000000005");
         public static readonly Guid Users = new("6d9f1c00-0000-4000-8000-000000000006");
         public static readonly Guid Clinic = new("6d9f1c00-0000-4000-8000-000000000007");
+        public static readonly Guid Attendance = new("6d9f1c00-0000-4000-8000-000000000008");
+        public static readonly Guid Transport = new("6d9f1c00-0000-4000-8000-000000000009");
 
         private static Guid Child(int group, int index) => new($"6d9f1c00-0000-4000-8000-0000000{group:D2}{index:D3}");
 
@@ -71,6 +73,18 @@ namespace SchoolManager.Identity.Infrastructure
             new(Child(7, 2), Clinic, "زيارات العيادة", "Clinic Visits", null, "/clinic/visits", 2),
             new(Child(7, 3), Clinic, "التطعيمات", "Vaccines", null, "/clinic/vaccines", 3),
             new(Child(7, 4), Clinic, "حملات التطعيم", "Vaccination Campaigns", null, "/clinic/vaccination-campaigns", 4),
+
+            // Attendance
+            new(Attendance, null, "الحضور والغياب", "Attendance", "pe-7s-check", null, 8),
+            new(Child(8, 1), Attendance, "الحضور اليومي", "Daily Attendance", null, "/attendance/daily", 1),
+            new(Child(8, 2), Attendance, "تقييمات الطلاب", "Student Evaluations", null, "/attendance/evaluations", 2),
+
+            // School transport
+            new(Transport, null, "النقل المدرسي", "School Transport", "pe-7s-car", null, 9),
+            new(Child(9, 1), Transport, "خطوط السير", "Bus Routes", null, "/transport/routes", 1),
+            new(Child(9, 2), Transport, "الباصات", "Buses", null, "/transport/buses", 2),
+            new(Child(9, 3), Transport, "توزيع الطلاب على الباصات", "Bus Assignments", null, "/transport/assignments", 3),
+            new(Child(9, 4), Transport, "الرحلات", "Trips", null, "/transport/trips", 4),
         };
     }
 }

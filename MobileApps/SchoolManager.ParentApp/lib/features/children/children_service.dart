@@ -17,9 +17,30 @@ class Child {
     required this.stageName,
     required this.gradeName,
     required this.sectionName,
+    this.latitude,
+    this.longitude,
   });
 
   final String id;
+
+  /// Home location (map pin, e.g. for the school bus); null when not set
+  final double? latitude;
+  final double? longitude;
+
+  bool get hasLocation => latitude != null && longitude != null;
+
+  /// The same child with another home location (null clears it)
+  Child withLocation(double? lat, double? lng) => Child(
+        id: id,
+        fullNameAr: fullNameAr,
+        fullNameEn: fullNameEn,
+        gender: gender,
+        stageName: stageName,
+        gradeName: gradeName,
+        sectionName: sectionName,
+        latitude: lat,
+        longitude: lng,
+      );
   final String fullNameAr;
   final String fullNameEn;
   final String gender;
@@ -49,6 +70,8 @@ class Child {
         stageName: _pick(json, 'stageNameAr', 'stageNameEn'),
         gradeName: _pick(json, 'gradeNameAr', 'gradeNameEn'),
         sectionName: _pick(json, 'sectionNameAr', 'sectionNameEn'),
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
       );
 }
 

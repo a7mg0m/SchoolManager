@@ -1,0 +1,166 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>{{ 'attendance.evaluationsTitle' | translate }}</h2>
+      <p class="text-muted mb-0">{{ 'attendance.evaluationsHint' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <!-- Search -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label for="grade" class="form-label">{{ 'attendance.grade' | translate }}</label>
+            <select id="grade" class="form-select" [value]="gradeId()" (change)="onGradeChange($event)">
+              <option value="">{{ 'attendance.allGrades' | translate }}</option>
+              @for (g of activeGrades(); track g.id) {
+                <option [value]="g.id">{{ localName(g) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="section" class="form-label">{{ 'attendance.section' | translate }}</label>
+            <select id="section" class="form-select" [value]="sectionId()" (change)="onSectionChange($event)" [disabled]="!gradeId()">
+              <option value="">{{ 'attendance.allSections' | translate }}</option>
+              @for (s of gradeSections(); track s.id) {
+                <option [value]="s.id">{{ localName(s) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="studentSearch" class="form-label">{{ 'attendance.findStudent' | translate }}</label>
+            <input type="search" id="studentSearch" class="form-control" [value]="studentSearch()" (input)="onStudentSearch($event)"
+                   [placeholder]="'attendance.searchStudents' | translate" />
+          </div>
+        </div>
+        <div class="row g-2 mt-1">
+          <div class="col-md-6">
+            <label for="student" class="form-label">{{ 'attendance.student' | translate }} <span class="text-danger">*</span></label>
+            <select id="student" class="form-select" [value]="studentId()" (change)="onStudentChange($event)">
+              <option value="">
+                {{ (pickableStudents().length ? 'common.chooseOne' : 'attendance.noStudentsFound') | translate }}
+              </option>
+              @for (s of pickableStudents(); track s.id) {
+                <option [value]="s.id">{{ studentName(s) }} · {{ s.nationalId }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="from" class="form-label">{{ 'attendance.from' | translate }}</label>
+            <input type="date" id="from" class="form-control" [value]="from()" (change)="onFromChange($event)" />
+          </div>
+          <div class="col-md-3">
+            <label for="to" class="form-label">{{ 'attendance.to' | translate }}</label>
+            <input type="date" id="to" class="form-control" [value]="to()" (change)="onToChange($event)" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (!studentId()) {
+      <div class="card text-center">
+        <div class="card-body py-5">
+          <i class="pe-7s-star text-muted" style="font-size: 3rem;"></i>
+          <p class="text-muted mt-3 mb-0">{{ 'attendance.chooseStudentHint' | translate }}</p>
+        </div>
+      </div>
+    }
+
+    @if (studentId() && isSearching()) {
+      <div class="text-center py-5">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+        </div>
+      </div>
+    }
+
+    @if (studentId() && !isSearching() && searched()) {
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+            <div class="d-flex flex-wrap gap-3">
+              @if (averages(); as avg) {
+                <span>{{ 'attendance.focus' | translate }}: <strong>{{ avg.focus | number: '1.1-1' }}</strong> / 5</span>
+                <span>{{ 'attendance.interaction' | translate }}: <strong>{{ avg.interaction | number: '1.1-1' }}</strong> / 5</span>
+                <span>{{ 'attendance.behavior' | translate }}: <strong>{{ avg.behavior | number: '1.1-1' }}</strong> / 5</span>
+              }
+            </div>
+            <div class="d-flex gap-2">
+              <select class="form-select form-select-sm w-auto" (change)="onSubjectFilter($event)" [value]="subjectFilter()">
+                <option value="">{{ 'attendance.allSubjects' | translate }}</option>
+                @for (s of resultSubjects(); track s.id) {
+                  <option [value]="s.id">{{ localName(s) }}</option>
+                }
+              </select>
+              <button type="button" class="btn btn-sm btn-outline-primary text-nowrap" (click)="navigateToStudent()">
+                {{ 'attendance.openStudentFile' | translate }}
+              </button>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'attendance.date' | translate }}</th>
+                  <th>{{ 'attendance.subject' | translate }}</th>
+                  <th>{{ 'attendance.teacher' | translate }}</th>
+                  <th>{{ 'attendance.focus' | translate }}</th>
+                  <th>{{ 'attendance.interaction' | translate }}</th>
+                  <th>{{ 'attendance.behavior' | translate }}</th>
+                  <th>{{ 'attendance.healthStatus' | translate }}</th>
+                  <th>{{ 'attendance.comment' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of filtered(); track e.id) {
+                  <tr>
+                    <td class="text-nowrap">{{ day(e.date) }}</td>
+                    <td>{{ subjectName(e.subjectId) }}</td>
+                    <td>{{ teacherName(e.teacherId) }}</td>
+                    @for (rating of [e.focus, e.interaction, e.behavior]; track $index) {
+                      <td class="text-nowrap" [title]="ratingInfo(rating).key | translate">
+                        <span class="stars">
+                          @for (i of stars; track i) {
+                            <span [class.on]="i <= rating">★</span>
+                          }
+                        </span>
+                        <small class="d-block text-muted">{{ ratingInfo(rating).key | translate }}</small>
+                      </td>
+                    }
+                    <td><span class="badge" [ngClass]="healthInfo(e.healthStatus).badge">{{ healthInfo(e.healthStatus).key | translate }}</span></td>
+                    <td>{{ e.comment || '-' }}</td>
+                  </tr>
+                }
+                @if (filtered().length === 0) {
+                  <tr>
+                    <td colspan="8" class="text-center text-muted py-4">{{ 'attendance.noEvaluations' | translate }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

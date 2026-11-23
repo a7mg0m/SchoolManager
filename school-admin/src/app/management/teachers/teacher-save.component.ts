@@ -99,6 +99,8 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       // Required: the teacher's login account (Identity service) needs an email
       email: ['', [Validators.required, Validators.email, Validators.maxLength(256)]],
       address: ['', [Validators.required, Validators.maxLength(500)]],
+      // Job level (المستوى الوظيفي): optional free text
+      jobLevel: ['', Validators.maxLength(100)],
       isActive: [true],
       // Login account of the teacher (created / updated in the Identity service)
       loginName: ['', [
@@ -158,6 +160,7 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       phoneNumber: teacher.phoneNumber ?? '',
       email: teacher.email ?? '',
       address: teacher.address ?? '',
+      jobLevel: teacher.jobLevel ?? '',
       isActive: teacher.isActive ?? true,
       // Teachers saved before login names existed sign in with their national ID
       loginName: teacher.loginName || teacher.nationalId || ''
@@ -246,6 +249,7 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       phoneNumber: v.phoneNumber.trim(),
       email: this.normalizeEmail(v.email),
       address: v.address.trim(),
+      jobLevel: (v.jobLevel ?? '').trim() || null,
       isActive: !!v.isActive,
       loginName: v.loginName.trim(),
       password: v.password
@@ -276,6 +280,7 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       phoneNumber: v.phoneNumber.trim(),
       email: this.normalizeEmail(v.email),
       address: v.address.trim(),
+      jobLevel: (v.jobLevel ?? '').trim() || null,
       isActive: !!v.isActive,
       loginName: v.loginName.trim(),
       // Empty: keep the current password

@@ -1,0 +1,146 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'transport.routes' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        *appCan="'add'" (click)="navigateToCreate()"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'transport.newRoute' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && routes().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-map-2 text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'transport.noRoutes' | translate }}</p>
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
+          {{ 'transport.newRoute' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Routes Table -->
+  @if (!isLoading() && routes().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="row g-2 mb-3">
+          <div class="col-md-8">
+            <input type="search" class="form-control" [placeholder]="'transport.searchRoutes' | translate" (input)="setSearch($event)" />
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'common.name' | translate }}</th>
+                <th>{{ 'transport.stops' | translate }}</th>
+                <th class="text-center">{{ 'transport.busesOnRoute' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (route of filtered(); track route.id) {
+                <tr>
+                  <td>
+                    <span class="fw-semibold">{{ localName(route) }}</span>
+                    @if (route.description) {
+                      <small class="d-block text-muted">{{ route.description }}</small>
+                    }
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary me-1">{{ route.stops.length }}</span>
+                    <small class="text-muted">{{ stopsText(route) || '-' }}</small>
+                  </td>
+                  <td class="text-center">{{ busCount(route.id) }}</td>
+                  <td>
+                    <span [ngClass]="{ 'badge bg-success': route.isActive, 'badge bg-danger': !route.isActive }">
+                      {{ route.isActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button class="btn btn-outline-primary" *appCan="'edit'" (click)="navigateToEdit(route.id)"
+                              title="{{ 'common.edit' | translate }}" [disabled]="isDeleting()">
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button class="btn btn-outline-secondary" *appCan="'edit'" (click)="toggleActive(route)"
+                              title="{{ (route.isActive ? 'common.deactivate' : 'common.activate') | translate }}" [disabled]="isDeleting()">
+                        <i [class]="route.isActive ? 'pe-7s-close-circle' : 'pe-7s-check'"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" *appCan="'delete'" (click)="openDeleteConfirmation(route, deleteModal)"
+                              title="{{ 'common.delete' | translate }}" [disabled]="isDeleting()">
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+              @if (filtered().length === 0) {
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">{{ 'common.noDataFound' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'transport.deleteRoute' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'transport.confirmDeleteRoute' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

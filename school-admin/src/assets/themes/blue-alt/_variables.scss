@@ -42,17 +42,17 @@ $grays: map-merge(
 );
 
 //--#{$color}
-$brand: #033C73;
+$brand: #059669; // emerald (soft gradient theme: emerald lime)
 $indigo: #6610f2;
 $purple: #6f42c1;
 $pink: #e83e8c;
-$red: #C71C22;
+$red: #c81e3a; // deep red so errors stand out from the green theme
 $orange: #fd7e14;
-$yellow: #DD5600;
-$green: #73A839;
-$teal: #20c997;
-$cyan: #2FA4E7;
-$blue-light: #d5d9eb;
+$yellow: #f59e0b;
+$green: #16a34a;
+$teal: #14b8a6;
+$cyan: #0ea5e9;
+$blue-light: #eaf7ef; // mint white (bootstrap "light")
 
 $primary: $brand;
 $secondary: $gray-400;
@@ -62,7 +62,7 @@ $warning: $yellow;
 $danger: $red;
 $light: $blue-light;
 $dark: $gray-800;
-$focus: $indigo;
+$focus: #7c3aed; // plum accent
 $alt: $purple;
 
 $theme-colors: ();
@@ -85,7 +85,11 @@ $theme-colors: map-merge( $theme-colors, $custom-colors);
 
 // BOOTSTRAP OVERWRITES
 
-$headings-font-weight: 400;
+$headings-font-weight: 700;
+$border-radius: .75rem;
+$border-radius-sm: .5rem;
+$border-radius-lg: 1rem;
+$border-radius-pill: 50rem;
 
 $font-size-base: 0.88rem;
 $font-size-lg: ($font-size-base * 1.35);

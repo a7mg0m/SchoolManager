@@ -307,6 +307,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             _field(_phone, tr('رقم الجوال', 'Mobile number'), Icons.phone_outlined, keyboard: TextInputType.phone, ltr: true, maxLength: 50),
             _field(_address, tr('العنوان', 'Address'), Icons.home_outlined, maxLength: 500, lines: 2),
+            // Set by the school; shown here but not editable
+            if (widget.profile.jobLevel.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: TextFormField(
+                  key: const ValueKey('jobLevelField'),
+                  initialValue: widget.profile.jobLevel,
+                  readOnly: true,
+                  enabled: false,
+                  decoration: InputDecoration(
+                    labelText: tr('المستوى الوظيفي', 'Job level'),
+                    helperText: tr('تحدده إدارة المدرسة', 'Set by the school'),
+                    prefixIcon: const Icon(Icons.workspace_premium_outlined),
+                    suffixIcon: const Icon(Icons.lock_outline, size: 18),
+                    filled: true,
+                    fillColor: context.palette.field,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+              ),
             const SizedBox(height: 6),
             _button(tr('حفظ التعديلات', 'Save changes'), _isSavingProfile, _saveProfile),
           ],

@@ -43,6 +43,72 @@ namespace SchoolManager.Attendance.Application
     }
 
     /// <summary>
+    /// Parent: the child's trips (the child must be the parent's) between two dates, newest first, with the bus and the
+    /// child's status on each. Null when Management could not tell the parent's children.
+    /// </summary>
+    public class GetMyChildTripsQueryHandler : IQueryHandler<GetMyChildTripsQuery, List<ChildTripDto>?>
+    {
+        private readonly ITripRepository _repository;
+        private readonly IBusRepository _busRepository;
+        private readonly IParentChildrenService _parentChildren;
+        private readonly ICurrentUserService _currentUser;
+
+        public GetMyChildTripsQueryHandler(
+            ICurrentUserService currentUser,
+            ITripRepository repository,
+            IBusRepository busRepository,
+            IParentChildrenService parentChildren)
+        {
+            _currentUser = currentUser;
+            _repository = repository;
+            _busRepository = busRepository;
+            _parentChildren = parentChildren;
+        }
+
+        public async Task<List<ChildTripDto>?> Handle(GetMyChildTripsQuery query, CancellationToken cancellationToken)
+        {
+            var children = await ParentChildrenCheck.MyChildrenAsync(_currentUser, _parentChildren, query.Authorization, cancellationToken);
+            if (children is null) return null;
+            ParentChildrenCheck.EnsureMyChild(children, query.StudentId);
+
+            var studentId = query.StudentId;
+            var from = query.From;
+            var to = query.To;
+            var trips = await _repository.SearchAsync(t => t.Date >= from && t.Date <= to && t.Students.Any(s => s.StudentId == studentId));
+
+            // The buses of these trips (one lookup each)
+            var buses = new Dictionary<Guid, Bus?>();
+            foreach (var busId in trips.Select(t => t.BusId).Distinct())
+                buses[busId] = await _busRepository.GetByIdAsync(busId);
+
+            return trips
+                .OrderByDescending(t => t.Date).ThenByDescending(t => t.Type)
+                .Select(t =>
+                {
+                    var student = t.Students.First(s => s.StudentId == studentId);
+                    var bus = buses.GetValueOrDefault(t.BusId);
+                    return new ChildTripDto
+                    {
+                        TripId = t.Id,
+                        Date = t.Date,
+                        Type = t.Type,
+                        Status = t.Status,
+                        StartedAt = t.StartedAt,
+                        EndedAt = t.EndedAt,
+                        BusId = t.BusId,
+                        BusNumber = bus?.Number ?? string.Empty,
+                        PlateNumber = bus?.PlateNumber ?? string.Empty,
+                        DriverName = bus?.DriverName ?? string.Empty,
+                        StudentStatus = student.Status,
+                        BoardedAt = student.BoardedAt,
+                        DroppedOffAt = student.DroppedOffAt
+                    };
+                })
+                .ToList();
+        }
+    }
+
+    /// <summary>
     /// Parent: the child (must be the parent's) on a running trip today, with the bus, driver, last position and the
     /// child's status on it. Throws when Management could not tell the parent's children.
     /// </summary>

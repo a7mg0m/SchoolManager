@@ -17,6 +17,7 @@ class MyProfile {
     this.email = '',
     this.phoneNumber = '',
     this.address = '',
+    this.jobLevel = '',
     this.image,
   });
 
@@ -26,6 +27,9 @@ class MyProfile {
   final String email;
   final String phoneNumber;
   final String address;
+
+  /// Job level (المستوى الوظيفي) set by the school in the admin dashboard; read only here, '' when not set
+  final String jobLevel;
 
   /// Profile picture bytes, or null when the user has none
   final Uint8List? image;
@@ -40,6 +44,17 @@ class MyProfile {
     final e = email.toLowerCase();
     return e.endsWith('@teachers.local') || e.endsWith('@parents.local');
   }
+
+  MyProfile withJobLevel(String value) => MyProfile(
+        firstName: firstName,
+        lastName: lastName,
+        loginName: loginName,
+        email: email,
+        phoneNumber: phoneNumber,
+        address: address,
+        jobLevel: value,
+        image: image,
+      );
 
   factory MyProfile.fromJson(Map<String, dynamic> json) => MyProfile(
         firstName: (json['firstName'] as String?)?.trim() ?? '',
@@ -85,17 +100,37 @@ class ProfileService {
   /// Largest picture the API accepts
   static const maxImageBytes = 1024 * 1024;
 
-  /// Null when the profile could not be loaded (the home screen then keeps the default avatar)
+  /// Last job level read from the teacher record (kept on the profile returned after a save)
+  String _jobLevel = '';
+
+  /// Null when the profile could not be loaded (the home screen then keeps the default avatar).
+  /// The job level comes from the teacher record (GET /api/teacher/my-profile).
   Future<MyProfile?> getMyProfile() async {
     try {
-      final response = await _send('GET', '/api/user-profile/my-profile');
+      final results = await Future.wait([_send('GET', '/api/user-profile/my-profile'), _loadJobLevel()]);
+      final response = results[0] as http.Response;
+      _jobLevel = results[1] as String;
       if (response.statusCode != 200) return null;
       final data = _data(response);
-      return data is Map<String, dynamic> ? MyProfile.fromJson(data) : null;
+      return data is Map<String, dynamic> ? MyProfile.fromJson(data).withJobLevel(_jobLevel) : null;
     } on SessionExpiredException {
       rethrow;
     } catch (_) {
       return null;
+    }
+  }
+
+  /// '' when it is not set or cannot be read (the profile still loads)
+  Future<String> _loadJobLevel() async {
+    try {
+      final response = await _send('GET', '/api/teacher/my-profile');
+      if (response.statusCode != 200) return '';
+      final data = _data(response);
+      return data is Map<String, dynamic> ? (data['jobLevel'] as String?)?.trim() ?? '' : '';
+    } on SessionExpiredException {
+      rethrow;
+    } catch (_) {
+      return '';
     }
   }
 
@@ -122,7 +157,7 @@ class ProfileService {
 
     if (response.statusCode == 200) {
       final data = _data(response);
-      if (data is Map<String, dynamic>) return MyProfile.fromJson(data);
+      if (data is Map<String, dynamic>) return MyProfile.fromJson(data).withJobLevel(_jobLevel);
     }
     throw ProfileException(_errorMessage(response, tr('تعذر حفظ الملف الشخصي، حاول مرة أخرى.', 'Could not save your profile. Please try again.')));
   }

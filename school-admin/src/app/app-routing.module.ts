@@ -72,7 +72,22 @@ import {
   ClinicVisitListComponent,
   ClinicVisitSaveComponent,
   StudentClinicListComponent,
-  StudentClinicComponent
+  StudentClinicComponent,
+
+  // Attendance components
+  DailyAttendanceListComponent,
+  StudentAttendanceComponent,
+  EvaluationListComponent,
+
+  // Transport components
+  BusRouteListComponent,
+  BusRouteSaveComponent,
+  BusListComponent,
+  BusSaveComponent,
+  BusAssignmentListComponent,
+  BusAssignmentAssignComponent,
+  TripListComponent,
+  TripDetailsComponent
 } from './components.barrel';
 
 // Import user pages
@@ -189,6 +204,23 @@ const routes: Routes = [
       {path: 'clinic/vaccination-campaigns', component: VaccinationCampaignListComponent, data: {extraParameter: 'clinicMenu'}},
       {path: 'clinic/vaccination-campaigns/save', component: VaccinationCampaignSaveComponent, data: {extraParameter: 'clinicMenu', permission: 'add'}},
       {path: 'clinic/vaccination-campaigns/save/:id', component: VaccinationCampaignSaveComponent, data: {extraParameter: 'clinicMenu', permission: 'edit'}},
+
+      // Attendance (the student page sits under /attendance/daily so it uses that menu item's permissions)
+      {path: 'attendance/daily', component: DailyAttendanceListComponent, data: {extraParameter: 'attendanceMenu'}},
+      {path: 'attendance/daily/student/:studentId', component: StudentAttendanceComponent, data: {extraParameter: 'attendanceMenu'}},
+      {path: 'attendance/evaluations', component: EvaluationListComponent, data: {extraParameter: 'attendanceMenu'}},
+
+      // Transport
+      {path: 'transport/routes', component: BusRouteListComponent, data: {extraParameter: 'transportMenu'}},
+      {path: 'transport/routes/save', component: BusRouteSaveComponent, data: {extraParameter: 'transportMenu', permission: 'add'}},
+      {path: 'transport/routes/save/:id', component: BusRouteSaveComponent, data: {extraParameter: 'transportMenu', permission: 'edit'}},
+      {path: 'transport/buses', component: BusListComponent, data: {extraParameter: 'transportMenu'}},
+      {path: 'transport/buses/save', component: BusSaveComponent, data: {extraParameter: 'transportMenu', permission: 'add'}},
+      {path: 'transport/buses/save/:id', component: BusSaveComponent, data: {extraParameter: 'transportMenu', permission: 'edit'}},
+      {path: 'transport/assignments', component: BusAssignmentListComponent, data: {extraParameter: 'transportMenu'}},
+      {path: 'transport/assignments/assign', component: BusAssignmentAssignComponent, data: {extraParameter: 'transportMenu', permission: 'add'}},
+      {path: 'transport/trips', component: TripListComponent, data: {extraParameter: 'transportMenu'}},
+      {path: 'transport/trips/:id', component: TripDetailsComponent, data: {extraParameter: 'transportMenu'}},
 
       // My profile (opened from the header user box)
       {path: 'my-profile', component: MyProfileComponent, data: {permission: false, title: 'myProfile.title'}},

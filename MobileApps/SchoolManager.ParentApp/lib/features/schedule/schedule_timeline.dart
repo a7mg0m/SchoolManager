@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import 'schedule_format.dart';
 import 'schedule_service.dart';
-import '../../core/i18n/app_language.dart';
 
+const _ink = AppTheme.ink;
+const _muted = Color(0xFF637394);
+const _faded = Color(0xFFA0AABF);
+const _rail = Color(0xFFE3E9F3);
 const _green = Color(0xFF13864B);
 const _orange = Color(0xFFF08C00);
 
@@ -33,26 +36,26 @@ class ScheduleTimeline extends StatefulWidget {
 }
 
 class _ScheduleTimelineState extends State<ScheduleTimeline> {
-  Color get _ink => context.palette.ink;
-  Color get _muted => context.palette.muted;
-  Color get _faded => context.palette.faint;
-  Color get _rail => context.palette.chip;
-
   bool _showFinished = false;
 
   int get _now => widget.now;
 
-  SlotStatus _statusOf(ScheduleSlot slot) => slot.statusAt(_now, isToday: widget.isToday);
+  SlotStatus _statusOf(ScheduleSlot slot) =>
+      slot.statusAt(_now, isToday: widget.isToday);
 
   @override
   Widget build(BuildContext context) {
     final slots = widget.slots;
     final statuses = {for (final s in slots) s.id: _statusOf(s)};
-    final finishedCount = statuses.values.where((s) => s == SlotStatus.finished).length;
+    final finishedCount =
+        statuses.values.where((s) => s == SlotStatus.finished).length;
     // Fold finished lessons away while some lessons are still ahead
     final canFold = finishedCount > 0 && finishedCount < slots.length;
     final hideFinished = canFold && !_showFinished;
-    final nextId = slots.where((s) => statuses[s.id] == SlotStatus.upcoming).firstOrNull?.id;
+    final nextId = slots
+        .where((s) => statuses[s.id] == SlotStatus.upcoming)
+        .firstOrNull
+        ?.id;
 
     final rows = <Widget>[];
     ScheduleSlot? previous;
@@ -63,11 +66,14 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
         previous = slot;
         continue;
       }
-      if (previous != null && (!hideFinished || statuses[previous.id] != SlotStatus.finished)) {
+      if (previous != null &&
+          (!hideFinished || statuses[previous.id] != SlotStatus.finished)) {
         final gap = slot.start - previous.end;
-        if (gap >= _minBreakMinutes) rows.add(_breakRow(previous.end, slot.start, gap));
+        if (gap >= _minBreakMinutes)
+          rows.add(_breakRow(previous.end, slot.start, gap));
       }
-      rows.add(_lessonRow(slot, i + 1, status, isNext: slot.id == nextId, isLast: i == slots.length - 1));
+      rows.add(_lessonRow(slot, i + 1, status,
+          isNext: slot.id == nextId, isLast: i == slots.length - 1));
       previous = slot;
     }
 
@@ -76,13 +82,15 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
       children: [
         if (hideFinished) _finishedToggle(finishedCount, expanded: false),
         ...rows,
-        if (canFold && _showFinished) _finishedToggle(finishedCount, expanded: true),
+        if (canFold && _showFinished)
+          _finishedToggle(finishedCount, expanded: true),
       ],
     );
   }
 
   /// One lesson: time | rail with dot | card
-  Widget _lessonRow(ScheduleSlot slot, int period, SlotStatus status, {required bool isNext, required bool isLast}) {
+  Widget _lessonRow(ScheduleSlot slot, int period, SlotStatus status,
+      {required bool isNext, required bool isLast}) {
     final isNow = status == SlotStatus.current;
     final isDone = status == SlotStatus.finished;
     // "Next" is only worth a badge on today
@@ -102,8 +110,13 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(formatTime(slot.start, withPeriod: false),
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: isDone ? _faded : _ink)),
-                  Text(timePeriod(slot.start), style: TextStyle(fontSize: 10.5, color: isDone ? _faded : _muted)),
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: isDone ? _faded : _ink)),
+                  Text(timePeriod(slot.start),
+                      style: TextStyle(
+                          fontSize: 10.5, color: isDone ? _faded : _muted)),
                 ],
               ),
             ),
@@ -120,10 +133,19 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: color,
-                    border: Border.all(color: context.palette.card, width: 2),
-                    boxShadow: isNow ? [BoxShadow(color: color.withValues(alpha: .45), blurRadius: 8, spreadRadius: 2)] : null,
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: isNow
+                        ? [
+                            BoxShadow(
+                                color: color.withValues(alpha: .45),
+                                blurRadius: 8,
+                                spreadRadius: 2)
+                          ]
+                        : null,
                   ),
-                  child: isDone ? const Icon(Icons.check, size: 7, color: Colors.white) : null,
+                  child: isDone
+                      ? const Icon(Icons.check, size: 7, color: Colors.white)
+                      : null,
                 ),
                 if (!isLast) Expanded(child: Container(width: 2, color: _rail)),
               ],
@@ -136,9 +158,15 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
               padding: const EdgeInsets.only(bottom: 10),
               child: Container(
                 decoration: BoxDecoration(
-                  color: isNow ? color.withValues(alpha: .08) : (isDone ? context.palette.soft : context.palette.card),
+                  color: isNow
+                      ? color.withValues(alpha: .08)
+                      : (isDone ? const Color(0xFFF7F9FC) : Colors.white),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: isNow ? color.withValues(alpha: .55) : context.palette.line, width: isNow ? 1.5 : 1),
+                  border: Border.all(
+                      color: isNow
+                          ? color.withValues(alpha: .55)
+                          : const Color(0xFFE6ECF5),
+                      width: isNow ? 1.5 : 1),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
@@ -159,10 +187,20 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
                                 spacing: 6,
                                 runSpacing: 6,
                                 children: [
-                                  _chip(tr('الحصة $period', 'Period $period'), color.withValues(alpha: isDone ? .10 : .12), color),
-                                  if (isNow) _chip(tr('الآن', 'Now'), _green, Colors.white, icon: Icons.play_arrow_rounded),
-                                  if (showNext) _chip(tr('الحصة التالية', 'Next lesson'), AppTheme.blue, Colors.white),
-                                  if (isDone) Icon(Icons.check_circle_rounded, size: 18, color: _faded),
+                                  _chip(
+                                      'الحصة $period',
+                                      color.withValues(
+                                          alpha: isDone ? .10 : .12),
+                                      color),
+                                  if (isNow)
+                                    _chip('الآن', _green, Colors.white,
+                                        icon: Icons.play_arrow_rounded),
+                                  if (showNext)
+                                    _chip('الحصة التالية', AppTheme.blue,
+                                        Colors.white),
+                                  if (isDone)
+                                    const Icon(Icons.check_circle_rounded,
+                                        size: 18, color: _faded),
                                 ],
                               ),
                               const SizedBox(height: 8),
@@ -172,7 +210,9 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: isDone ? _faded : _ink,
-                                  decoration: isDone ? TextDecoration.lineThrough : null,
+                                  decoration: isDone
+                                      ? TextDecoration.lineThrough
+                                      : null,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -180,15 +220,26 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
                                 spacing: 10,
                                 runSpacing: 2,
                                 children: [
-                                  if (slot.teacher.isNotEmpty) _meta(Icons.person_outline_rounded, slot.teacher, isDone),
-                                  _meta(Icons.schedule_rounded, '${formatTime(slot.start)} - ${formatTime(slot.end)}', isDone),
+                                  if (slot.teacher.isNotEmpty)
+                                    _meta(Icons.person_outline_rounded,
+                                        slot.teacher, isDone),
+                                  _meta(
+                                      Icons.schedule_rounded,
+                                      '${formatTime(slot.start)} - ${formatTime(slot.end)}',
+                                      isDone),
                                 ],
                               ),
-                              if (isNow) ...[const SizedBox(height: 10), _nowProgress(slot, color)],
+                              if (isNow) ...[
+                                const SizedBox(height: 10),
+                                _nowProgress(slot, color)
+                              ],
                               if (showNext) ...[
                                 const SizedBox(height: 8),
-                                Text(tr('تبدأ ${formatIn(slot.start - _now)}', 'Starts ${formatIn(slot.start - _now)}'),
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.blue)),
+                                Text('تبدأ ${formatIn(slot.start - _now)}',
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.blue)),
                               ],
                             ],
                           ),
@@ -214,11 +265,16 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(6),
-          child: LinearProgressIndicator(value: done / length, minHeight: 6, backgroundColor: context.palette.chip, color: color),
+          child: LinearProgressIndicator(
+              value: done / length,
+              minHeight: 6,
+              backgroundColor: Colors.white,
+              color: color),
         ),
         const SizedBox(height: 5),
-        Text(tr('تنتهي ${formatIn(slot.end - _now)}', 'Ends ${formatIn(slot.end - _now)}'),
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _green)),
+        Text('تنتهي ${formatIn(slot.end - _now)}',
+            style: const TextStyle(
+                fontSize: 12, fontWeight: FontWeight.bold, color: _green)),
       ],
     );
   }
@@ -233,18 +289,23 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
           const SizedBox(width: 58),
           SizedBox(
             width: 22,
-            child: Center(child: Icon(Icons.local_cafe_rounded, size: 14, color: isNow ? _orange : _faded)),
+            child: Center(
+                child: Icon(Icons.local_cafe_rounded,
+                    size: 14, color: isNow ? _orange : _faded)),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
               decoration: BoxDecoration(
-                color: isNow ? context.palette.warnTint : context.palette.soft,
+                color:
+                    isNow ? const Color(0xFFFFF4E5) : const Color(0xFFF7F9FC),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                isNow ? tr('استراحة الآن · تنتهي ${formatIn(to - _now)}', 'Break now · ends ${formatIn(to - _now)}') : tr('استراحة ${formatDuration(minutes)}', 'Break ${formatDuration(minutes)}'),
+                isNow
+                    ? 'استراحة الآن · تنتهي ${formatIn(to - _now)}'
+                    : 'استراحة ${formatDuration(minutes)}',
                 style: TextStyle(
                   fontSize: 12,
                   color: isNow ? const Color(0xFFB36200) : _muted,
@@ -263,8 +324,11 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
       alignment: AlignmentDirectional.centerStart,
       child: TextButton.icon(
         onPressed: () => setState(() => _showFinished = !expanded),
-        icon: Icon(expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded, size: 18),
-        label: Text(expanded ? tr('إخفاء الحصص المنتهية', 'Hide finished lessons') : tr('عرض الحصص المنتهية ($count)', 'Show finished lessons ($count)')),
+        icon: Icon(
+            expanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+            size: 18),
+        label: Text(
+            expanded ? 'إخفاء الحصص المنتهية' : 'عرض الحصص المنتهية ($count)'),
       ),
     );
   }
@@ -278,21 +342,30 @@ class _ScheduleTimelineState extends State<ScheduleTimeline> {
         Icon(icon, size: 14, color: color),
         const SizedBox(width: 3),
         Flexible(
-          child: Text(text, overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(fontSize: 12, color: color)),
+          child: Text(text,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: TextStyle(fontSize: 12, color: color)),
         ),
       ],
     );
   }
 
-  Widget _chip(String text, Color background, Color foreground, {IconData? icon}) {
+  Widget _chip(String text, Color background, Color foreground,
+      {IconData? icon}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+          color: background, borderRadius: BorderRadius.circular(20)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) Icon(icon, size: 13, color: foreground),
-          Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: foreground)),
+          Text(text,
+              style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: foreground)),
         ],
       ),
     );

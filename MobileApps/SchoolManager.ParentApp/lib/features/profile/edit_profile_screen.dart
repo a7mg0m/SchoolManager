@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_theme.dart';
 import 'profile_service.dart';
-import '../../core/i18n/app_language.dart';
 
 typedef SaveProfile = Future<MyProfile> Function({
   required String firstName,
@@ -16,7 +15,8 @@ typedef SaveProfile = Future<MyProfile> Function({
   bool removeImage,
 });
 
-typedef ChangePassword = Future<void> Function(String currentPassword, String newPassword);
+typedef ChangePassword = Future<void> Function(
+    String currentPassword, String newPassword);
 
 /// Edit the signed-in parent's profile (name, contact details, picture) and change the password.
 /// Saving the profile returns to home right away; pops with true when something was saved,
@@ -48,7 +48,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late final _firstName = TextEditingController(text: widget.profile.firstName);
   late final _lastName = TextEditingController(text: widget.profile.lastName);
   // A placeholder email (parent without email) is not shown; an empty field keeps it
-  late final _email = TextEditingController(text: widget.profile.hasPlaceholderEmail ? '' : widget.profile.email);
+  late final _email = TextEditingController(
+      text: widget.profile.hasPlaceholderEmail ? '' : widget.profile.email);
   late final _phone = TextEditingController(text: widget.profile.phoneNumber);
   late final _address = TextEditingController(text: widget.profile.address);
 
@@ -67,7 +68,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   void dispose() {
-    for (final c in [_firstName, _lastName, _email, _phone, _address, _currentPassword, _newPassword, _confirmPassword]) {
+    for (final c in [
+      _firstName,
+      _lastName,
+      _email,
+      _phone,
+      _address,
+      _currentPassword,
+      _newPassword,
+      _confirmPassword
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -78,7 +88,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<Uint8List?> _pick(ImageSource source) async {
     if (widget.pickImage != null) return widget.pickImage!(source);
     // Small square-ish picture: well under the 1 MB the API accepts
-    final file = await ImagePicker().pickImage(source: source, maxWidth: 512, maxHeight: 512, imageQuality: 80);
+    final file = await ImagePicker().pickImage(
+        source: source, maxWidth: 512, maxHeight: 512, imageQuality: 80);
     return file?.readAsBytes();
   }
 
@@ -91,20 +102,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library_outlined, color: AppTheme.blue),
-              title: Text(tr('اختيار من المعرض', 'Choose from gallery')),
+              leading: const Icon(Icons.photo_library_outlined,
+                  color: AppTheme.blue),
+              title: const Text('اختيار من المعرض'),
               onTap: () => Navigator.pop(sheet, 'gallery'),
             ),
             if (!kIsWeb)
               ListTile(
-                leading: const Icon(Icons.photo_camera_outlined, color: AppTheme.blue),
-                title: Text(tr('التقاط صورة', 'Take a photo')),
+                leading: const Icon(Icons.photo_camera_outlined,
+                    color: AppTheme.blue),
+                title: const Text('التقاط صورة'),
                 onTap: () => Navigator.pop(sheet, 'camera'),
               ),
             if (_image != null)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: Color(0xFFD93025)),
-                title: Text(tr('حذف الصورة', 'Remove photo'), style: TextStyle(color: Color(0xFFD93025))),
+                leading:
+                    const Icon(Icons.delete_outline, color: Color(0xFFD93025)),
+                title: const Text('حذف الصورة',
+                    style: TextStyle(color: Color(0xFFD93025))),
                 onTap: () => Navigator.pop(sheet, 'remove'),
               ),
             const SizedBox(height: 8),
@@ -124,10 +139,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     try {
-      final bytes = await _pick(choice == 'camera' ? ImageSource.camera : ImageSource.gallery);
+      final bytes = await _pick(
+          choice == 'camera' ? ImageSource.camera : ImageSource.gallery);
       if (!mounted || bytes == null) return;
       if (bytes.length > ProfileService.maxImageBytes) {
-        _showMessage(tr('الصورة كبيرة جداً، اختر صورة أصغر.', 'The photo is too large. Choose a smaller one.'));
+        _showMessage('الصورة كبيرة جداً، اختر صورة أصغر.');
         return;
       }
       setState(() {
@@ -136,7 +152,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _removeImage = false;
       });
     } catch (_) {
-      if (mounted) _showMessage(tr('تعذر فتح الصورة.', 'Could not open the photo.'));
+      if (mounted) _showMessage('تعذر فتح الصورة.');
     }
   }
 
@@ -146,13 +162,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     FocusScope.of(context).unfocus();
     if (!(_profileForm.currentState?.validate() ?? false)) return;
 
-    final email = _email.text.trim().isEmpty && widget.profile.hasPlaceholderEmail
-        ? widget.profile.email // keep the placeholder
-        : _email.text.trim();
+    final email =
+        _email.text.trim().isEmpty && widget.profile.hasPlaceholderEmail
+            ? widget.profile.email // keep the placeholder
+            : _email.text.trim();
 
     setState(() => _isSavingProfile = true);
     try {
-      final save = widget.saveProfile ?? ProfileService.instance.updateMyProfile;
+      final save =
+          widget.saveProfile ?? ProfileService.instance.updateMyProfile;
       await save(
         firstName: _firstName.text,
         lastName: _lastName.text,
@@ -167,7 +185,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _removeImage = false;
       if (!mounted) return;
       // The app-wide messenger keeps the message visible on the home screen after the pop
-      _showMessage(tr('تم حفظ الملف الشخصي.', 'Profile saved.'));
+      _showMessage('تم حفظ الملف الشخصي.');
       // Back to home, which refreshes its data
       final navigator = Navigator.of(context);
       if (navigator.canPop()) navigator.pop(true);
@@ -186,12 +204,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _isChangingPassword = true);
     try {
-      final change = widget.changePassword ?? ProfileService.instance.changePassword;
+      final change =
+          widget.changePassword ?? ProfileService.instance.changePassword;
       await change(_currentPassword.text, _newPassword.text);
       _currentPassword.clear();
       _newPassword.clear();
       _confirmPassword.clear();
-      if (mounted) _showMessage(tr('تم تغيير كلمة المرور.', 'Password changed.'));
+      if (mounted) _showMessage('تم تغيير كلمة المرور.');
     } on ProfileException catch (e) {
       if (mounted) _showMessage(e.message);
     } on SessionExpiredException {
@@ -217,7 +236,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (!didPop) Navigator.of(context).pop(_saved);
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(tr('الملف الشخصي', 'My Profile'))),
+        appBar: AppBar(title: const Text('الملف الشخصي')),
         body: SafeArea(
           child: Center(
             child: ConstrainedBox(
@@ -230,7 +249,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   Center(
                     child: Text(widget.profile.loginName,
                         textDirection: TextDirection.ltr,
-                        style: TextStyle(color: context.palette.muted)),
+                        style: const TextStyle(color: Color(0xFF637394))),
                   ),
                   const SizedBox(height: 18),
                   _profileCard(),
@@ -262,10 +281,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             left: -4,
             child: Material(
               color: AppTheme.blue,
-              shape: const CircleBorder(side: BorderSide(color: Colors.white, width: 3)),
+              shape: const CircleBorder(
+                  side: BorderSide(color: Colors.white, width: 3)),
               child: IconButton(
-                tooltip: tr('تغيير الصورة', 'Change photo'),
-                icon: const Icon(Icons.photo_camera_rounded, color: Colors.white, size: 20),
+                tooltip: 'تغيير الصورة',
+                icon: const Icon(Icons.photo_camera_rounded,
+                    color: Colors.white, size: 20),
                 onPressed: _isSavingProfile ? null : _choosePicture,
               ),
             ),
@@ -277,38 +298,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Widget _profileCard() {
     return _card(
-      title: tr('البيانات الشخصية', 'Personal details'),
+      title: 'البيانات الشخصية',
       child: Form(
         key: _profileForm,
         child: Column(
           children: [
             Row(
               children: [
-                Expanded(child: _field(_firstName, tr('الاسم الأول', 'First name'), Icons.person_outline, required: true, maxLength: 100)),
+                Expanded(
+                    child: _field(
+                        _firstName, 'الاسم الأول', Icons.person_outline,
+                        required: true, maxLength: 100)),
                 const SizedBox(width: 10),
-                Expanded(child: _field(_lastName, tr('اسم العائلة', 'Last name'), Icons.badge_outlined, required: true, maxLength: 100)),
+                Expanded(
+                    child: _field(
+                        _lastName, 'اسم العائلة', Icons.badge_outlined,
+                        required: true, maxLength: 100)),
               ],
             ),
             _field(
               _email,
-              tr('البريد الإلكتروني', 'Email'),
+              'البريد الإلكتروني',
               Icons.email_outlined,
               keyboard: TextInputType.emailAddress,
               ltr: true,
               required: !widget.profile.hasPlaceholderEmail,
-              helper: widget.profile.hasPlaceholderEmail ? tr('اختياري', 'Optional') : null,
+              helper: widget.profile.hasPlaceholderEmail ? 'اختياري' : null,
               validator: (v) {
                 final value = v?.trim() ?? '';
-                if (value.isNotEmpty && !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
-                  return tr('البريد الإلكتروني غير صحيح', 'Invalid email address');
+                if (value.isNotEmpty &&
+                    !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+                  return 'البريد الإلكتروني غير صحيح';
                 }
                 return null;
               },
             ),
-            _field(_phone, tr('رقم الجوال', 'Mobile number'), Icons.phone_outlined, keyboard: TextInputType.phone, ltr: true, maxLength: 50),
-            _field(_address, tr('العنوان', 'Address'), Icons.home_outlined, maxLength: 500, lines: 2),
+            _field(_phone, 'رقم الجوال', Icons.phone_outlined,
+                keyboard: TextInputType.phone, ltr: true, maxLength: 50),
+            _field(_address, 'العنوان', Icons.home_outlined,
+                maxLength: 500, lines: 2),
             const SizedBox(height: 6),
-            _button(tr('حفظ التعديلات', 'Save changes'), _isSavingProfile, _saveProfile),
+            _button('حفظ التعديلات', _isSavingProfile, _saveProfile),
           ],
         ),
       ),
@@ -317,31 +347,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Widget _passwordCard() {
     return _card(
-      title: tr('تغيير كلمة المرور', 'Change password'),
+      title: 'تغيير كلمة المرور',
       child: Form(
         key: _passwordForm,
         child: Column(
           children: [
-            _field(_currentPassword, tr('كلمة المرور الحالية', 'Current password'), Icons.lock_outline,
+            _field(_currentPassword, 'كلمة المرور الحالية', Icons.lock_outline,
                 password: true, ltr: true, required: true),
-            _field(_newPassword, tr('كلمة المرور الجديدة', 'New password'), Icons.lock_reset_outlined,
+            _field(
+                _newPassword, 'كلمة المرور الجديدة', Icons.lock_reset_outlined,
                 password: true, ltr: true, required: true, validator: (v) {
-              if ((v ?? '').length < 6) return tr('كلمة المرور يجب ألا تقل عن 6 أحرف', 'Password must be at least 6 characters');
-              if (v == _currentPassword.text) return tr('كلمة المرور الجديدة يجب أن تختلف عن الحالية', 'The new password must be different from the current one');
+              if ((v ?? '').length < 6)
+                return 'كلمة المرور يجب ألا تقل عن 6 أحرف';
+              if (v == _currentPassword.text)
+                return 'كلمة المرور الجديدة يجب أن تختلف عن الحالية';
               return null;
             }),
-            _field(_confirmPassword, tr('تأكيد كلمة المرور', 'Confirm password'), Icons.lock_reset_outlined,
-                password: true, ltr: true, required: true,
-                validator: (v) => v != _newPassword.text ? tr('كلمتا المرور غير متطابقتين', 'The passwords do not match') : null),
+            _field(_confirmPassword, 'تأكيد كلمة المرور',
+                Icons.lock_reset_outlined,
+                password: true,
+                ltr: true,
+                required: true,
+                validator: (v) => v != _newPassword.text
+                    ? 'كلمتا المرور غير متطابقتين'
+                    : null),
             Align(
               alignment: AlignmentDirectional.centerStart,
               child: TextButton.icon(
-                onPressed: () => setState(() => _hidePasswords = !_hidePasswords),
-                icon: Icon(_hidePasswords ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 18),
-                label: Text(_hidePasswords ? tr('إظهار كلمات المرور', 'Show passwords') : tr('إخفاء كلمات المرور', 'Hide passwords')),
+                onPressed: () =>
+                    setState(() => _hidePasswords = !_hidePasswords),
+                icon: Icon(
+                    _hidePasswords
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    size: 18),
+                label: Text(_hidePasswords
+                    ? 'إظهار كلمات المرور'
+                    : 'إخفاء كلمات المرور'),
               ),
             ),
-            _button(tr('تغيير كلمة المرور', 'Change password'), _isChangingPassword, _changePassword),
+            _button('تغيير كلمة المرور', _isChangingPassword, _changePassword),
           ],
         ),
       ),
@@ -351,11 +396,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _card({required String title, required Widget child}) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      decoration: BoxDecoration(color: context.palette.card, borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+          color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: context.palette.ink)),
+          Text(title,
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.ink)),
           const SizedBox(height: 14),
           child,
         ],
@@ -389,12 +439,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           helperText: helper,
           prefixIcon: Icon(icon),
           filled: true,
-          fillColor: context.palette.field,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+          fillColor: const Color(0xFFF3F6FC),
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none),
         ),
         validator: (v) {
-          if (required && (v == null || v.trim().isEmpty)) return tr('هذا الحقل مطلوب', 'This field is required');
-          if (maxLength != null && (v?.trim().length ?? 0) > maxLength) return tr('الحد الأقصى $maxLength حرف', 'Maximum $maxLength characters');
+          if (required && (v == null || v.trim().isEmpty))
+            return 'هذا الحقل مطلوب';
+          if (maxLength != null && (v?.trim().length ?? 0) > maxLength)
+            return 'الحد الأقصى $maxLength حرف';
           return validator?.call(v);
         },
       ),
@@ -408,11 +462,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         onPressed: busy ? null : onPressed,
         style: FilledButton.styleFrom(
           backgroundColor: AppTheme.blue,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
         child: busy
-            ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
-            : Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2.5, color: Colors.white))
+            : Text(text,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }

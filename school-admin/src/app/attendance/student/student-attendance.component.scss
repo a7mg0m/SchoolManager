@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+.summary-card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: 1px solid #e3e6f0;
+}
+
+.day-row {
+  cursor: pointer;
+}
+
+.periods-row > td {
+  background-color: #f8f9fa;
+}
+
+/* The "closed" arrow points to the reading direction */
+:host-context([dir="rtl"]) .flip-rtl {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
+.stars {
+  letter-spacing: 1px;
+  color: #d6d8db;
+
+  .on {
+    color: #f7b924;
+  }
+}

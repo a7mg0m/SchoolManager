@@ -175,7 +175,8 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
     display: block;
     line-height: 2.4rem;
     height: 2.4rem;
-    padding: 0 1.5rem 0 45px;
+    padding-block: 0;
+    padding-inline: 45px 1.5rem; // start (icon side) / end (arrow side), mirrored in RTL
     position: relative;
     border-radius: .25rem;
     color: $gray-700;
@@ -188,7 +189,7 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
     border: 0;
     background: transparent;
     width: 100%;
-    text-align: left;
+    text-align: start;
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
@@ -197,6 +198,10 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
     &:hover {
       @extend %side-link-hover;
       transform: translateX(2px);
+
+      [dir="rtl"] & {
+        transform: translateX(-2px);
+      }
     }
 
     &.active-item {
@@ -230,7 +235,7 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
     height: 34px;
     line-height: 34px;
     position: absolute;
-    left: 5px;
+    inset-inline-start: 5px;
     top: 50%;
     margin-top: -17px;
     font-size: 1.5rem;
@@ -246,7 +251,7 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
     height: 34px;
     line-height: 34px;
     position: absolute;
-    right: 5px;
+    inset-inline-end: 5px;
     top: 50%;
     margin-top: -17px;
     font-size: 1.5rem;
@@ -254,6 +259,11 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
     opacity: .3;
     transition: all 300ms;
     transform: rotate(270deg); // ROTATE 270 DEGREES TO POINT RIGHT
+
+    // Arabic: a closed group points to the reading direction (left)
+    [dir="rtl"] & {
+      transform: rotate(90deg);
+    }
 
     &:after {
       content: '\e688'; // Original chevron icon
@@ -276,13 +286,14 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
       width: 3px;
       background: $dropdown-link-hover-bg;
       position: absolute;
-      left: 20px;
+      inset-inline-start: 20px;
       top: 0;
       border-radius: 15px;
     }
 
     .vsm-list {
-      padding: ($layout-spacer-x / 2) 0 ($layout-spacer-x / 2) $layout-spacer-x * 1.5;
+      padding-block: ($layout-spacer-x / 2);
+      padding-inline: ($layout-spacer-x * 1.5) 0;
     }
 
     .vsm-item {
@@ -309,7 +320,7 @@ $sidebar-box-shadow: 7px 0 60px rgba(0, 0, 0, 0.05);
     white-space: nowrap;
     position: relative;
     letter-spacing: 0.5px;
-    padding-left: 5px;
+    padding-inline-start: 5px;
     
     &:first-child {
       margin-top: ($layout-spacer-x / 2);

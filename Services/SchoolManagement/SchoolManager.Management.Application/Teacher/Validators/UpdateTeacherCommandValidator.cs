@@ -16,6 +16,7 @@ namespace SchoolManager.Management.Application
                 .EmailAddress().WithMessage("EmailInvalid")
                 .MaximumLength(256);
             RuleFor(x => x.Address).NotEmpty().WithMessage("AddressRequired");
+            RuleFor(x => x.JobLevel).MaximumLength(100).When(x => !string.IsNullOrWhiteSpace(x.JobLevel)).WithMessage("JobLevelTooLong");
         }
     }
 }

@@ -1,0 +1,162 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'transport.buses' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        *appCan="'add'" (click)="navigateToCreate()"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'transport.newBus' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && buses().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-car text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'transport.noBuses' | translate }}</p>
+        <button class="btn btn-primary" *appCan="'add'" (click)="navigateToCreate()">
+          {{ 'transport.newBus' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Buses Table -->
+  @if (!isLoading() && buses().length > 0) {
+    <!-- Seats are counted in the academic year chosen in the header -->
+    <app-academic-context-note [semester]="false"></app-academic-context-note>
+    <div class="card">
+      <div class="card-body">
+        <div class="row g-2 mb-3">
+          <div class="col-md-8">
+            <input type="search" class="form-control" [placeholder]="'transport.searchBuses' | translate" (input)="setSearch($event)" />
+          </div>
+          <div class="col-md-4">
+            <select class="form-select" (change)="setRoute($event)">
+              <option value="">{{ 'transport.allRoutes' | translate }}</option>
+              @for (r of routes(); track r.id) {
+                <option [value]="r.id">{{ localName(r) }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'transport.busNumber' | translate }}</th>
+                <th>{{ 'transport.plateNumber' | translate }}</th>
+                <th>{{ 'transport.route' | translate }}</th>
+                <th>{{ 'transport.driver' | translate }}</th>
+                <th style="min-width: 10rem;">{{ 'transport.seats' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (bus of filtered(); track bus.id) {
+                <tr>
+                  <td class="fw-semibold">{{ bus.number }}</td>
+                  <td dir="ltr" class="text-nowrap">{{ bus.plateNumber }}</td>
+                  <td>{{ routeName(bus.busRouteId) }}</td>
+                  <td>
+                    {{ bus.driverName }}
+                    <small class="d-block text-muted" dir="ltr">{{ bus.driverPhone }}</small>
+                  </td>
+                  <td>
+                    <a href="javascript:void(0)" (click)="navigateToAssignments(bus.id)">
+                      {{ seatsTaken(bus) }} / {{ bus.capacity }}
+                    </a>
+                    <div class="progress mt-1" style="height: 6px;">
+                      <div class="progress-bar" [ngClass]="seatsClass(bus)" [style.width.%]="seatsPercent(bus)"></div>
+                    </div>
+                  </td>
+                  <td>
+                    <span [ngClass]="{ 'badge bg-success': bus.isActive, 'badge bg-danger': !bus.isActive }">
+                      {{ bus.isActive ? ('common.active' | translate) : ('common.inactive' | translate) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button class="btn btn-outline-primary" *appCan="'edit'" (click)="navigateToEdit(bus.id)"
+                              title="{{ 'common.edit' | translate }}" [disabled]="isDeleting()">
+                        <i class="pe-7s-note"></i>
+                      </button>
+                      <button class="btn btn-outline-secondary" *appCan="'edit'" (click)="toggleActive(bus)"
+                              title="{{ (bus.isActive ? 'common.deactivate' : 'common.activate') | translate }}" [disabled]="isDeleting()">
+                        <i [class]="bus.isActive ? 'pe-7s-close-circle' : 'pe-7s-check'"></i>
+                      </button>
+                      <button class="btn btn-outline-danger" *appCan="'delete'" (click)="openDeleteConfirmation(bus, deleteModal)"
+                              title="{{ 'common.delete' | translate }}" [disabled]="isDeleting()">
+                        <i class="pe-7s-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+              @if (filtered().length === 0) {
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">{{ 'common.noDataFound' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #deleteModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'transport.deleteBus' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p>{{ 'transport.confirmDeleteBus' | translate }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelDelete()" [disabled]="isDeleting()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-danger" (click)="confirmDelete()" [disabled]="isDeleting()">
+      @if (isDeleting()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.delete' | translate }}
+    </button>
+  </div>
+</ng-template>

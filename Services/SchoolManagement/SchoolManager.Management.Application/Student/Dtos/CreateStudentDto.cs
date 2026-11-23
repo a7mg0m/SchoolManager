@@ -10,6 +10,9 @@
         public string PhoneNumber { get; set; } = string.Empty;
         public string? Email { get; set; }
         public string Address { get; set; } = string.Empty;
+        /// <summary>Home location (map pin); both or neither</summary>
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public Guid GradeId { get; set; }
         public Guid SectionId { get; set; }
         public Guid AcademicYearId { get; set; }

@@ -1,0 +1,127 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'transport.editBus' | translate }}
+        } @else {
+          {{ 'transport.newBus' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="card mb-3">
+        <div class="card-header">{{ 'transport.busInfo' | translate }}</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="number" class="form-label">{{ 'transport.busNumber' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="number" formControlName="number" maxlength="50"
+                     [class.is-invalid]="hasError('number', 'required')" />
+              @if (hasError('number', 'required')) {
+                <div class="invalid-feedback">{{ 'transport.errors.NumberRequired' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="plateNumber" class="form-label">{{ 'transport.plateNumber' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="plateNumber" formControlName="plateNumber" maxlength="20"
+                     [class.is-invalid]="hasError('plateNumber', 'required')" />
+              @if (hasError('plateNumber', 'required')) {
+                <div class="invalid-feedback">{{ 'transport.errors.PlateNumberRequired' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="capacity" class="form-label">{{ 'transport.capacity' | translate }} <span class="text-danger">*</span></label>
+              <input type="number" min="1" step="1" class="form-control" id="capacity" formControlName="capacity"
+                     [class.is-invalid]="hasError('capacity', 'required') || hasError('capacity', 'min')" />
+              @if (hasError('capacity', 'required') || hasError('capacity', 'min')) {
+                <div class="invalid-feedback">{{ 'transport.errors.CapacityMustBeGreaterThanZero' | translate }}</div>
+              }
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="busRouteId" class="form-label">{{ 'transport.route' | translate }} <span class="text-danger">*</span></label>
+              <select class="form-select" id="busRouteId" formControlName="busRouteId"
+                      [class.is-invalid]="hasError('busRouteId', 'required')">
+                <option value="">{{ (routes().length ? 'common.chooseOne' : 'transport.noActiveRoutes') | translate }}</option>
+                @for (r of routes(); track r.id) {
+                  <option [value]="r.id">{{ localName(r) }}{{ r.isActive ? '' : ' (' + ('common.inactive' | translate) + ')' }}</option>
+                }
+              </select>
+              @if (hasError('busRouteId', 'required')) {
+                <div class="invalid-feedback">{{ 'transport.errors.BusRouteIdRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-header">{{ 'transport.driver' | translate }}</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="driverName" class="form-label">{{ 'transport.driverName' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="driverName" formControlName="driverName" maxlength="200"
+                     [class.is-invalid]="hasError('driverName', 'required')" />
+              @if (hasError('driverName', 'required')) {
+                <div class="invalid-feedback">{{ 'transport.errors.DriverNameRequired' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="driverPhone" class="form-label">{{ 'transport.driverPhone' | translate }} <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" id="driverPhone" formControlName="driverPhone" maxlength="20" dir="ltr"
+                     [class.is-invalid]="hasError('driverPhone', 'required')" />
+              @if (hasError('driverPhone', 'required')) {
+                <div class="invalid-feedback">{{ 'transport.errors.DriverPhoneRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex gap-2 mb-4">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ 'common.save' | translate }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

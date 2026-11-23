@@ -61,9 +61,10 @@ class ExamApi {
       (saveScores ?? ExamService.instance.saveScores)(examId, scores);
 }
 
-enum _Filter { all, quiz, monthly }
+enum _Filter { all, mine, quiz, monthly }
 
-/// The teacher's quizzes and monthly exams for the chosen academic year / semester: add, edit, delete and enter scores
+/// The quizzes and monthly exams of the teacher's subjects and classes for the chosen academic year / semester:
+/// their own (add, edit, delete) and the ones by the school office / other teachers (view); scores for all
 class ExamListScreen extends StatefulWidget {
   const ExamListScreen({super.key, this.api = const ExamApi(), this.onSessionExpired, this.now});
 
@@ -179,9 +180,11 @@ class _ExamListScreenState extends State<ExamListScreen> with ReloadOnAcademicYe
   Widget build(BuildContext context) {
     final list = _exams.where((e) => switch (_filter) {
           _Filter.all => true,
+          _Filter.mine => e.isMine,
           _Filter.quiz => e.type == TeacherExamType.quiz,
           _Filter.monthly => e.type == TeacherExamType.monthly,
         }).toList();
+    final othersCount = _exams.where((e) => !e.isMine).length;
 
     return Scaffold(
       appBar: AppBar(title: Text(tr('الاختبارات والدرجات', 'Exams & scores'), style: const TextStyle(fontWeight: FontWeight.bold))),
@@ -205,8 +208,11 @@ class _ExamListScreenState extends State<ExamListScreen> with ReloadOnAcademicYe
                     children: [
                       Wrap(
                         spacing: 8,
+                        runSpacing: 4,
                         children: [
                           _filterChip(_Filter.all, tr('الكل', 'All'), _exams.length),
+                          // Only when others' exams are listed too
+                          if (othersCount > 0) _filterChip(_Filter.mine, tr('اختباراتي', 'Mine'), _exams.where((e) => e.isMine).length),
                           _filterChip(_Filter.quiz, tr('اختبارات قصيرة', 'Quizzes'),
                               _exams.where((e) => e.type == TeacherExamType.quiz).length),
                           _filterChip(_Filter.monthly, tr('شهرية', 'Monthly'),
@@ -242,6 +248,7 @@ class _ExamListScreenState extends State<ExamListScreen> with ReloadOnAcademicYe
   }
 
   Widget _filterChip(_Filter value, String label, int count) => ChoiceChip(
+        key: ValueKey('exam-filter-${value.name}'),
         label: Text('$label ($count)'),
         selected: _filter == value,
         onSelected: (_) => setState(() => _filter = value),
@@ -322,7 +329,7 @@ class _ExamCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(color: Colors.white, fontSize: 15.5, fontWeight: FontWeight.bold)),
                       Text(
-                        [exam.subjectName, exam.gradeName, exam.sectionName].where((s) => s.isNotEmpty).join(' · '),
+                        [exam.subjectName, exam.gradeName, exam.classText].where((s) => s.isNotEmpty).join(' · '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: Colors.white.withValues(alpha: .88), fontSize: 12),
@@ -334,6 +341,15 @@ class _ExamCard extends StatelessWidget {
                   const Padding(
                     padding: EdgeInsets.all(12),
                     child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
+                  )
+                else if (!exam.isMine)
+                  // Someone else's exam: who added it, no edit / delete
+                  Container(
+                    key: ValueKey('exam-added-by-${exam.id}'),
+                    margin: const EdgeInsetsDirectional.only(end: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: .22), borderRadius: BorderRadius.circular(20)),
+                    child: Text(exam.addedByText, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
                   )
                 else ...[
                   IconButton(
@@ -602,8 +618,8 @@ class _ExamFormScreenState extends State<ExamFormScreen> {
                   _label(tr('نوع الاختبار', 'Exam type')),
                   Row(
                     children: [
-                      for (final t in TeacherExamType.values) ...[
-                        if (t != TeacherExamType.values.first) const SizedBox(width: 10),
+                      for (final t in TeacherExamType.creatable) ...[
+                        if (t != TeacherExamType.creatable.first) const SizedBox(width: 10),
                         Expanded(child: _typeCard(t)),
                       ],
                     ],
@@ -1003,7 +1019,7 @@ class _ExamScoresScreenState extends State<ExamScoresScreen> {
                           Text(exam.title, style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 2),
                           Text(
-                            [exam.subjectName, exam.sectionName, homeworkDate(exam.date)].where((s) => s.isNotEmpty).join(' · '),
+                            [exam.subjectName, exam.classText, homeworkDate(exam.date)].where((s) => s.isNotEmpty).join(' · '),
                             style: TextStyle(color: Colors.white.withValues(alpha: .88), fontSize: 12.5),
                           ),
                           const SizedBox(height: 14),

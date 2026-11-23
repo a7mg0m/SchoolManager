@@ -34,10 +34,12 @@ namespace SchoolManager.Attendance.Application
             ParentChildrenCheck.EnsureMyChild(children, command.StudentId);
             var parentId = _currentUser.ParentId!.Value;
 
+            // One waiting request per student, teacher and subject (the parent asks about one subject at a time)
             var studentId = command.StudentId;
             var teacherId = command.TeacherId;
+            var subjectId = command.SubjectId;
             var pending = await _repository.SearchAsync(r => r.StudentId == studentId && r.TeacherId == teacherId
-                && r.Status == EvaluationRequestStatus.Pending);
+                && r.SubjectId == subjectId && r.Status == EvaluationRequestStatus.Pending);
             if (pending.Count > 0)
                 throw new DomainException("There is already a pending evaluation request for this student to this teacher.");
 

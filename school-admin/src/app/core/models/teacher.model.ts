@@ -21,6 +21,8 @@ export interface Teacher {
   email: string | null;
   address: string;
   isActive: boolean;
+  /** Job level (المستوى الوظيفي), free text; null when not set */
+  jobLevel?: string | null;
   /** Login name of the teacher's account (null for teachers saved before it existed) */
   loginName?: string | null;
 }
@@ -39,6 +41,8 @@ export interface CreateTeacherRequest {
   email: string | null;
   address: string;
   isActive: boolean;
+  /** Job level, free text (null when empty) */
+  jobLevel: string | null;
   /** Login name of the teacher's account (required) */
   loginName: string;
   /** First password (required) */
@@ -57,6 +61,8 @@ export interface UpdateTeacherRequest {
   email: string | null;
   address: string;
   isActive: boolean;
+  /** Job level, free text (null when empty) */
+  jobLevel: string | null;
   loginName: string;
   /** New password, or null to keep the current one */
   password: string | null;

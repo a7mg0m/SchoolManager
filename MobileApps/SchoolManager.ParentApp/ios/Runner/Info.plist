@@ -4,6 +4,8 @@
 <dict>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose a profile picture.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your location is used to set your child's home location for the school bus.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Take a profile picture.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

@@ -2,10 +2,17 @@ using SchoolManager.ExamsHomework.Domain;
 
 namespace SchoolManager.ExamsHomework.Application
 {
-    /// <summary>An exam the logged-in teacher added (teacher app list).</summary>
+    /// <summary>
+    /// An exam of the logged-in teacher's subjects and classes (teacher app list): one they added, or one by the
+    /// school office / another teacher (<see cref="IsMine"/> false: read-only, scores can still be entered).
+    /// </summary>
     public class TeacherExamDto
     {
         public Guid Id { get; set; }
+        /// <summary>The logged-in teacher added it (only then it can be edited / deleted)</summary>
+        public bool IsMine { get; set; }
+        /// <summary>Added by a teacher (true) or by the school office (false)</summary>
+        public bool AddedByTeacher { get; set; }
         public Guid SubjectId { get; set; }
         public string SubjectNameAr { get; set; } = string.Empty;
         public string SubjectNameEn { get; set; } = string.Empty;

@@ -14,6 +14,14 @@ namespace SchoolManager.ExamsHomework.Domain
         /// <summary>Exams a teacher added, with their results (read-only); optionally of one academic year / semester</summary>
         Task<List<Exam>> GetForTeacherAsync(Guid teacherId, Guid? academicYearId, Guid? semesterId, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// The teacher's exams and every exam of the given subjects in the given grades (by the school office or
+        /// another teacher), with their results (read-only); optionally of one academic year / semester. The caller
+        /// keeps the subject / grade / class combinations the teacher really teaches.
+        /// </summary>
+        Task<List<Exam>> GetForTeacherClassesAsync(Guid teacherId, IReadOnlyCollection<Guid> subjectIds, IReadOnlyCollection<Guid> gradeIds,
+            Guid? academicYearId, Guid? semesterId, CancellationToken cancellationToken = default);
+
         /// <summary>One exam with all its results (read-only)</summary>
         Task<Exam?> GetWithResultsAsync(Guid id, CancellationToken cancellationToken = default);
 

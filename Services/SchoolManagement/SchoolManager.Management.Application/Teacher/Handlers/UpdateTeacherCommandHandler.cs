@@ -44,6 +44,7 @@ namespace SchoolManager.Management.Application
 			var loginName = await TeacherAccount.ValidateLoginNameAsync(request.LoginName, entity.Id, _repository, _parents);
 			var passwordHash = TeacherAccount.HashPassword(request.Password, required: false);
 			entity.SetLoginName(loginName);
+			entity.SetJobLevel(request.JobLevel);
 
 			entity.Update(
 				new NameLocalized(request.FullNameAr.Trim(), request.FullNameEn.Trim()),

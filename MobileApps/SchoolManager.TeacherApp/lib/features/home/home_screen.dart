@@ -8,7 +8,9 @@ import '../../core/i18n/language_switch.dart';
 import '../../core/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
+import '../attendance/attendance_screens.dart';
 import '../chat/chat_screens.dart';
+import '../evaluation/evaluation_screens.dart';
 import '../notifications/notifications_screen.dart';
 import '../notifications/notifications_service.dart';
 import '../profile/edit_profile_screen.dart';
@@ -38,6 +40,8 @@ class HomeScreen extends StatefulWidget {
     this.loadSchoolInfo,
     this.homeworkApi = const HomeworkApi(),
     this.examApi = const ExamApi(),
+    this.attendanceApi,
+    this.evaluationApi,
     this.loadEvents,
     this.loadMyClasses,
     this.loadClassStudents,
@@ -57,6 +61,13 @@ class HomeScreen extends StatefulWidget {
 
   /// Exam / score API calls; defaults to the API (tests pass their own)
   final ExamApi examApi;
+
+  /// Lesson attendance API calls; defaults to the API with [loadTimetable] / [loadClassStudents] (tests pass their own)
+  final AttendanceApi? attendanceApi;
+
+  /// Student evaluation / parent request API calls; defaults to the API with [loadTimetable] / [loadMyClasses] /
+  /// [loadClassStudents] (tests pass their own)
+  final EvaluationApi? evaluationApi;
 
   /// Loads the teacher's events (for everyone / for teachers); defaults to the API
   final Future<List<SchoolEvent>> Function()? loadEvents;
@@ -222,6 +233,26 @@ class _HomeScreenState extends State<HomeScreen> {
     ));
   }
 
+  void _openAttendance() {
+    final api = widget.attendanceApi ??
+        AttendanceApi(loadTimetable: widget.loadTimetable, loadStudents: widget.loadClassStudents);
+    _nav.push(MaterialPageRoute(
+      builder: (_) => AttendanceLessonsScreen(api: api, onSessionExpired: _logout),
+    ));
+  }
+
+  void _openEvaluations() {
+    final api = widget.evaluationApi ??
+        EvaluationApi(
+          loadTimetable: widget.loadTimetable,
+          loadClasses: widget.loadMyClasses,
+          loadStudents: widget.loadClassStudents,
+        );
+    _nav.push(MaterialPageRoute(
+      builder: (_) => EvaluationsScreen(api: api, onSessionExpired: _logout),
+    ));
+  }
+
   void _openExams() {
     _nav.push(MaterialPageRoute(
       builder: (_) => ExamListScreen(api: widget.examApi, onSessionExpired: _logout),
@@ -377,7 +408,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _headerChip(Icons.co_present_rounded, tr('معلم', 'Teacher')),
+                        // Job level from the teacher record (read only), else just "Teacher"
+                        _headerChip(
+                          Icons.co_present_rounded,
+                          (profile?.jobLevel.isNotEmpty ?? false) ? profile!.jobLevel : tr('معلم', 'Teacher'),
+                        ),
                         _headerChip(Icons.calendar_today_rounded, _dateText(now)),
                         // Academic year (tap to change)
                         const AcademicYearChip(),
@@ -589,15 +624,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildServices() {
     const unit = 116.0;
     const gap = 12.0;
-    final soonText = tr('قريباً', 'Coming soon');
-
-    _BentoTile tile(IconData icon, String label, String detail, List<Color> colors, {bool big = false, bool wide = false}) =>
-        _BentoTile(icon: icon, label: label, detail: detail, colors: colors, big: big, wide: wide, onTap: () => _comingSoon(label));
-
     final small = [
       (Icons.celebration_rounded, tr('الفعاليات', 'Events'), const Color(0xFFE0457B)),
       (Icons.groups_rounded, tr('فصولي', 'My classes'), const Color(0xFF0FA5A5)),
-      (Icons.sticky_note_2_rounded, tr('ملاحظات الطلاب', 'Student notes'), const Color(0xFFD93025)),
+      (Icons.rate_review_rounded, tr('تقييم الطلاب', 'Evaluations'), const Color(0xFF4C5FD5)),
       (Icons.chat_rounded, tr('أولياء الأمور', 'Parents'), const Color(0xFFB7791F)),
     ];
 
@@ -627,8 +657,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        child: tile(Icons.how_to_reg_rounded, tr('الحضور والغياب', 'Attendance'), soonText,
-                            const [Color(0xFF2F80ED), Color(0xFF1B4FC4)]),
+                        // Lesson attendance of the teacher's classes
+                        child: _BentoTile(
+                          icon: Icons.how_to_reg_rounded,
+                          label: tr('الحضور والغياب', 'Attendance'),
+                          detail: tr('سجّل حضور طلاب حصصك', 'Take attendance in your lessons'),
+                          colors: const [Color(0xFF2F80ED), Color(0xFF1B4FC4)],
+                          onTap: _openAttendance,
+                        ),
                       ),
                       const SizedBox(height: gap),
                       Expanded(
@@ -674,7 +710,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Events, my classes and parents are ready; the others say "soon"
                 Expanded(
                   child: _soonTile(small[i].$1, small[i].$2, small[i].$3,
-                      onTap: switch (i) { 0 => _openEvents, 1 => _openClasses, 3 => _openParents, _ => null }),
+                      onTap: switch (i) { 0 => _openEvents, 1 => _openClasses, 2 => _openEvaluations, 3 => _openParents, _ => null }),
                 ),
               ],
             ],

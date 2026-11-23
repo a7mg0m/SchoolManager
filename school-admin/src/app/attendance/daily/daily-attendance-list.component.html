@@ -1,0 +1,285 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'attendance.dailyTitle' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      @if (sectionId()) {
+        <button
+          class="btn btn-success"
+          *appCan="'add'" (click)="openMarkAllPresent(markAllModal)"
+          [disabled]="isLoadingDay() || isSaving() || unrecorded().length === 0"
+        >
+          <i class="pe-7s-check"></i> {{ 'attendance.markAllPresent' | translate }}
+          @if (unrecorded().length > 0) {
+            ({{ unrecorded().length }})
+          }
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading()) {
+    <!-- Days are saved in the academic year chosen in the header -->
+    <app-academic-context-note [semester]="false"></app-academic-context-note>
+
+    <!-- Filters -->
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label for="grade" class="form-label">{{ 'attendance.grade' | translate }}</label>
+            <select id="grade" class="form-select" [value]="gradeId()" (change)="onGradeChange($event)">
+              <option value="">{{ 'common.chooseOne' | translate }}</option>
+              @for (g of activeGrades(); track g.id) {
+                <option [value]="g.id">{{ stageName(g.stageId) ? stageName(g.stageId) + ' - ' : '' }}{{ localName(g) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="section" class="form-label">{{ 'attendance.section' | translate }}</label>
+            <select id="section" class="form-select" [value]="sectionId()" (change)="onSectionChange($event)" [disabled]="!gradeId()">
+              <option value="">{{ (gradeId() ? 'common.chooseOne' : 'attendance.chooseGradeFirst') | translate }}</option>
+              @for (s of gradeSections(); track s.id) {
+                <option [value]="s.id">{{ localName(s) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label for="date" class="form-label">{{ 'attendance.date' | translate }}</label>
+            <input type="date" id="date" class="form-control" [value]="date()" (change)="onDateChange($event)" />
+          </div>
+          <div class="col-md-3">
+            <label for="search" class="form-label">{{ 'common.search' | translate }}</label>
+            <input type="search" id="search" class="form-control" [placeholder]="'attendance.searchStudents' | translate"
+                   (input)="setSearch($event)" [disabled]="!sectionId()" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (!sectionId()) {
+      <div class="card text-center">
+        <div class="card-body py-5">
+          <i class="pe-7s-check text-muted" style="font-size: 3rem;"></i>
+          <p class="text-muted mt-3 mb-0">{{ 'attendance.chooseSectionHint' | translate }}</p>
+        </div>
+      </div>
+    }
+
+    @if (sectionId() && isLoadingDay()) {
+      <div class="text-center py-5">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+        </div>
+      </div>
+    }
+
+    @if (sectionId() && !isLoadingDay()) {
+      <!-- Summary -->
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        @for (s of summary().byStatus; track s.value) {
+          <span class="badge fs-6" [ngClass]="s.badge">{{ s.key | translate }}: {{ s.count }}</span>
+        }
+        <span class="badge fs-6 bg-light text-dark border">{{ 'attendance.notRecorded' | translate }}: {{ summary().notRecorded }}</span>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'attendance.student' | translate }}</th>
+                  <th>{{ 'attendance.dayStatus' | translate }}</th>
+                  <th>{{ 'attendance.checkIn' | translate }}</th>
+                  <th>{{ 'attendance.checkOut' | translate }}</th>
+                  <th class="text-center">{{ 'attendance.attendedPeriods' | translate }}</th>
+                  <th class="text-center">{{ 'attendance.absentPeriods' | translate }}</th>
+                  <th>{{ 'attendance.notes' | translate }}</th>
+                  <th>{{ 'common.actions' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of rows(); track row.student.id) {
+                  <tr>
+                    <td>
+                      <a href="javascript:void(0)" (click)="navigateToStudent(row.student.id)">{{ studentName(row.student) }}</a>
+                      <small class="d-block text-muted">{{ row.student.nationalId }}</small>
+                    </td>
+                    <td>
+                      @if (row.record) {
+                        <span class="badge" [ngClass]="statusInfo(row.record.status).badge">{{ statusInfo(row.record.status).key | translate }}</span>
+                      } @else {
+                        <span class="badge bg-light text-dark border">{{ 'attendance.notRecorded' | translate }}</span>
+                      }
+                    </td>
+                    <td class="text-nowrap">{{ time(row.record?.checkInTime) }}</td>
+                    <td class="text-nowrap">{{ time(row.record?.checkOutTime) }}</td>
+                    <td class="text-center">{{ row.record?.attendedPeriodsCount ?? '-' }}</td>
+                    <td class="text-center">{{ row.record?.absentPeriodsCount ?? '-' }}</td>
+                    <td class="notes-cell">{{ row.record?.notes || '-' }}</td>
+                    <td>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-primary" *appCan="row.record ? 'edit' : 'add'" (click)="openSetStatus(row, statusModal)"
+                                title="{{ 'attendance.setStatus' | translate }}" [disabled]="isSaving()">
+                          <i class="pe-7s-note"></i>
+                        </button>
+                        @if (row.record) {
+                          <button class="btn btn-outline-secondary" *appCan="'edit'" (click)="openCheckOut(row, checkOutModal)"
+                                  title="{{ 'attendance.checkOutAction' | translate }}" [disabled]="isSaving()">
+                            <i class="pe-7s-clock"></i>
+                          </button>
+                        }
+                        <button class="btn btn-outline-info" (click)="navigateToStudent(row.student.id)"
+                                title="{{ 'attendance.details' | translate }}">
+                          <i class="pe-7s-search"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+                @if (rows().length === 0) {
+                  <tr>
+                    <td colspan="8" class="text-center text-muted py-4">{{ 'attendance.noStudentsInSection' | translate }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- Set status Modal -->
+<ng-template #statusModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'attendance.setStatus' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelModal()"></button>
+  </div>
+  <form [formGroup]="dayForm" (ngSubmit)="saveStatus()">
+    <div class="modal-body">
+      @if (editingRow(); as row) {
+        <p class="fw-semibold mb-3">{{ studentName(row.student) }} · {{ date() }}</p>
+      }
+      @if (modalError()) {
+        <div class="alert alert-danger py-2">{{ modalError() }}</div>
+      }
+      <div class="mb-3">
+        <label for="dayStatus" class="form-label">{{ 'attendance.dayStatus' | translate }} <span class="text-danger">*</span></label>
+        <select id="dayStatus" class="form-select" formControlName="status">
+          @for (s of statuses; track s.value) {
+            <option [ngValue]="s.value">{{ s.key | translate }}</option>
+          }
+        </select>
+      </div>
+      <div class="row">
+        <div class="col-6 mb-3">
+          <label for="checkInTime" class="form-label">{{ 'attendance.checkIn' | translate }}</label>
+          <input type="time" id="checkInTime" class="form-control" formControlName="checkInTime" />
+        </div>
+        <div class="col-6 mb-3">
+          <label for="checkOutTime" class="form-label">{{ 'attendance.checkOut' | translate }}</label>
+          <input type="time" id="checkOutTime" class="form-control" formControlName="checkOutTime" />
+        </div>
+      </div>
+      <div class="mb-0">
+        <label for="dayNotes" class="form-label">{{ 'attendance.notes' | translate }}</label>
+        <textarea id="dayNotes" class="form-control" rows="2" formControlName="notes"
+                  [class.is-invalid]="dayForm.get('notes')?.invalid"></textarea>
+        @if (dayForm.get('notes')?.invalid) {
+          <div class="invalid-feedback">{{ 'attendance.errors.NotesTooLong' | translate: { max: 500 } }}</div>
+        }
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="cancelModal()" [disabled]="isSaving()">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+        @if (isSaving()) {
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        }
+        {{ 'common.save' | translate }}
+      </button>
+    </div>
+  </form>
+</ng-template>
+
+<!-- Check out Modal -->
+<ng-template #checkOutModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'attendance.checkOutAction' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelModal()"></button>
+  </div>
+  <div class="modal-body">
+    @if (editingRow(); as row) {
+      <p class="fw-semibold mb-3">{{ studentName(row.student) }} · {{ date() }}</p>
+    }
+    @if (modalError()) {
+      <div class="alert alert-danger py-2">{{ modalError() }}</div>
+    }
+    <label for="checkOutAt" class="form-label">{{ 'attendance.checkOutTime' | translate }} <span class="text-danger">*</span></label>
+    <input type="time" id="checkOutAt" class="form-control" [value]="checkOutTime()" (input)="onCheckOutTime($event)" />
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelModal()" [disabled]="isSaving()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-primary" (click)="confirmCheckOut()" [disabled]="isSaving() || !checkOutTime()">
+      @if (isSaving()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.save' | translate }}
+    </button>
+  </div>
+</ng-template>
+
+<!-- Mark all present Modal -->
+<ng-template #markAllModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'attendance.markAllPresent' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelModal()" [disabled]="isSaving()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-0">{{ 'attendance.confirmMarkAllPresent' | translate: { count: unrecorded().length, date: date() } }}</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelModal()" [disabled]="isSaving()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-success" (click)="confirmMarkAllPresent()" [disabled]="isSaving()">
+      @if (isSaving()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.confirm' | translate }}
+    </button>
+  </div>
+</ng-template>

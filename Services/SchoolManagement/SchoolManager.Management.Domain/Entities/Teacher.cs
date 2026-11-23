@@ -21,6 +21,9 @@ namespace SchoolManager.Management.Domain
         /// <summary>Login name of the teacher's account (the Identity service keeps the login itself)</summary>
         public string? LoginName { get; private set; }
 
+        /// <summary>Job level (المستوى الوظيفي), typed by the school; null when not set</summary>
+        public string? JobLevel { get; private set; }
+
         public AuditInfo AuditInfo { get; private set; }
 
         // Navigation
@@ -66,6 +69,11 @@ namespace SchoolManager.Management.Domain
             Address = address;
 
             AuditInfo = auditInfo;
+        }
+
+        public void SetJobLevel(string? jobLevel)
+        {
+            JobLevel = string.IsNullOrWhiteSpace(jobLevel) ? null : jobLevel.Trim();
         }
 
         public void SetLoginName(string? loginName)

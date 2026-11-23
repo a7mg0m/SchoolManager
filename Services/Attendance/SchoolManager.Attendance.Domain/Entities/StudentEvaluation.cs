@@ -76,4 +76,13 @@ public sealed class StudentEvaluation : BaseEntity
         Comment = comment;
         AuditInfo = auditInfo;
     }
+
+    /// <summary>The evaluation answers (part of) a parent's request, e.g. one subject of an "all subjects" request</summary>
+    public void AnswerRequest(Guid evaluationRequestId)
+    {
+        if (evaluationRequestId == Guid.Empty)
+            throw new DomainException("Evaluation request not found.");
+
+        EvaluationRequestId = evaluationRequestId;
+    }
 }

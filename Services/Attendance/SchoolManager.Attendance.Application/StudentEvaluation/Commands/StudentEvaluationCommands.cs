@@ -18,7 +18,10 @@ namespace SchoolManager.Attendance.Application
         EvaluationRating Behavior,
         HealthStatus HealthStatus,
         string? Comment,
-        Guid? EvaluationRequestId
+        Guid? EvaluationRequestId,
+        // An "all subjects" request is closed only when this is true (the teacher's last subject); a request for
+        // one subject is closed by its evaluation
+        bool CompleteRequest = true
     ) : ICommand<Guid>;
 
     /// <summary>Only the teacher who made the evaluation can change it</summary>

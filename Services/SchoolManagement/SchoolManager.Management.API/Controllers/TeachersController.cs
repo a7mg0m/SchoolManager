@@ -40,6 +40,23 @@ namespace SchoolManager.Management.API.Controllers
 		}
 
 		/// <summary>
+		/// The logged-in teacher's own record (read only, e.g. the job level shown in the teacher app).
+		/// The teacher id comes from the login token.
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-profile")]
+		public async Task<ActionResult<TeacherDto>> GetMyProfile(CancellationToken cancellationToken)
+		{
+			if (_currentUser.TeacherId is not Guid teacherId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+			var result = await _mediator.Send(new GetTeacherByIdQuery(teacherId), cancellationToken);
+			if (result is null)
+				return NotFound(new ApiResponse(404, "TeacherNotFound"));
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
 		/// What the logged-in teacher teaches: subjects with their grade and classes, and the current academic
 		/// year / semester (teacher app: homework). The teacher id comes from the login token.
 		/// </summary>

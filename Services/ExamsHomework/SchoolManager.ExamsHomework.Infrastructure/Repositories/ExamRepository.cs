@@ -19,6 +19,17 @@ namespace SchoolManager.ExamsHomework.Infrastructure
                 .OrderByDescending(e => e.ExamDate).ThenByDescending(e => e.StartTime)
                 .ToListAsync(cancellationToken);
 
+        public async Task<List<Exam>> GetForTeacherClassesAsync(Guid teacherId, IReadOnlyCollection<Guid> subjectIds, IReadOnlyCollection<Guid> gradeIds,
+            Guid? academicYearId, Guid? semesterId, CancellationToken cancellationToken = default)
+            => await _dbSet
+                .AsNoTracking()
+                .Where(e => (e.TeacherId == teacherId || (subjectIds.Contains(e.SubjectId) && gradeIds.Contains(e.GradeId)))
+                            && (academicYearId == null || e.AcademicYearId == academicYearId)
+                            && (semesterId == null || e.SemesterId == semesterId))
+                .Include(e => e.ExamResults)
+                .OrderByDescending(e => e.ExamDate).ThenByDescending(e => e.StartTime)
+                .ToListAsync(cancellationToken);
+
         public async Task<Exam?> GetWithResultsAsync(Guid id, CancellationToken cancellationToken = default)
             => await _dbSet
                 .AsNoTracking()

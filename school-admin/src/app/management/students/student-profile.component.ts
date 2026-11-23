@@ -245,7 +245,7 @@ export class StudentProfileComponent implements OnInit, OnDestroy {
     return alt && alt !== this.displayName(item) ? alt : '';
   }
 
-  initials(s: Student): string {
+  initials(s: { fullNameAr: string; fullNameEn: string }): string {
     const parts = (s.fullNameEn || s.fullNameAr || '').trim().split(/\s+/).filter(Boolean);
     return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || '?';
   }

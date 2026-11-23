@@ -10,6 +10,9 @@
         public string Address { get; set; } = string.Empty;
         public bool IsActive { get; set; }
 
+        /// <summary>Job level (free text, optional)</summary>
+        public string? JobLevel { get; set; }
+
         /// <summary>Login name of the teacher's account (required).</summary>
         public string? LoginName { get; set; }
 

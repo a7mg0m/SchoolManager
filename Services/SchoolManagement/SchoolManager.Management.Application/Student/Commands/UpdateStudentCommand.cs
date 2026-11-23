@@ -11,6 +11,8 @@ namespace SchoolManager.Management.Application
         string Address,
         Guid GradeId,
         Guid SectionId,
-        Guid AcademicYearId
+        Guid AcademicYearId,
+        double? Latitude = null,
+        double? Longitude = null
     ) : ICommand<bool>;
 }

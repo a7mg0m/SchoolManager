@@ -23,3 +23,5 @@ export * from './employee-group.model';
 export * from './employee.model';
 export * from './my-profile.model';
 export * from './group-permission.model';
+export * from './attendance.model';
+export * from './transport.model';

@@ -14,6 +14,12 @@ public sealed class StudentFee : BaseEntity
     public FeeStatus Status { get; private set; }
     public DateTime DueDate { get; private set; }
 
+    /// <summary>
+    /// Bus fee: the bus assignment in the Attendance service it comes from (null for the grade / school fees).
+    /// The fee is per student, not taken from the grade fees.
+    /// </summary>
+    public Guid? BusAssignmentId { get; private set; }
+
     /// <summary>Unpaid balance forgiven by <see cref="Waive"/> (same currency as TotalAmount).</summary>
     public decimal WaivedAmount { get; private set; }
     public string? WaiveReason { get; private set; }
@@ -54,6 +60,47 @@ public sealed class StudentFee : BaseEntity
         // A 100% discount leaves nothing to pay
         fee.Status = fee.NetAmount.Amount == 0 ? FeeStatus.Waived : FeeStatus.Pending;
         return fee;
+    }
+
+    /// <summary>The bus fee of a student's bus assignment (Transportation), sent by the Attendance service</summary>
+    public static StudentFee AssignBusFee(Guid studentId, Money fee, DateTime dueDate, Guid academicYearId, Guid busAssignmentId)
+    {
+        if (busAssignmentId == Guid.Empty)
+            throw new DomainException("Bus assignment is required.");
+
+        var studentFee = Assign(studentId, fee, 0, dueDate, academicYearId);
+        studentFee.BusAssignmentId = busAssignmentId;
+        return studentFee;
+    }
+
+    /// <summary>
+    /// A new bus fee for the assignment. Payments already made stay; the fee cannot drop below them and the
+    /// currency can only change before any payment.
+    /// </summary>
+    public void ChangeBusFee(Money fee, DateTime utcNow)
+    {
+        if (BusAssignmentId is null)
+            throw new DomainException("Only a bus fee can be changed this way.");
+        if (fee.Amount <= 0)
+            throw new DomainException("Total amount must be greater than zero.");
+
+        var currencyChanged = !string.Equals(fee.Currency, TotalAmount.Currency, StringComparison.OrdinalIgnoreCase);
+        if (currencyChanged && (PaidAmount.Amount > 0 || WaivedAmount > 0))
+            throw new DomainException($"The bus fee is partly paid in {TotalAmount.Currency}; its currency cannot change.");
+        if (fee.Amount < PaidAmount.Amount + WaivedAmount + DiscountAmount.Amount)
+            throw new DomainException("The bus fee cannot be lower than what is already paid.");
+
+        TotalAmount = new Money(fee.Amount, fee.Currency);
+        if (currencyChanged)
+        {
+            DiscountAmount = new Money(DiscountAmount.Amount, fee.Currency);
+            PaidAmount = Money.Zero(fee.Currency);
+        }
+
+        Status = Balance.Amount == 0
+            ? (WaivedAmount > 0 ? FeeStatus.Waived : FeeStatus.Paid)
+            : PaidAmount.Amount > 0 ? FeeStatus.PartiallyPaid : FeeStatus.Pending;
+        MarkOverdueIfDue(utcNow);
     }
 
     public void ApplyPayment(Money amount)

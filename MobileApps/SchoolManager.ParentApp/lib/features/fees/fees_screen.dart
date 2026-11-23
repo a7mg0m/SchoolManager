@@ -277,6 +277,18 @@ class _FeesScreenState extends State<FeesScreen> with ReloadOnAcademicYear {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // What the fee is for: the bus (per student) or the school fees
+                    Row(
+                      key: ValueKey('fee-kind-${fee.id}'),
+                      children: [
+                        Icon(fee.isBusFee ? Icons.directions_bus_rounded : Icons.school_rounded,
+                            size: 18, color: fee.isBusFee ? const Color(0xFFB7791F) : context.palette.muted),
+                        const SizedBox(width: 6),
+                        Text(fee.isBusFee ? tr('رسوم الباص', 'Bus fee') : tr('الرسوم الدراسية', 'School fees'),
+                            style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: context.palette.ink)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                     // Status and due date (wraps on narrow screens)
                     Wrap(
                       alignment: WrapAlignment.spaceBetween,

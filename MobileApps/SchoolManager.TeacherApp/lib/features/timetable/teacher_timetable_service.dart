@@ -22,9 +22,17 @@ class TeacherLesson {
     this.gradeNameEn = '',
     this.sectionNameAr = '',
     this.sectionNameEn = '',
+    this.subjectId = '',
+    this.gradeId = '',
+    this.sectionId = '',
   });
 
   final String id;
+
+  /// Ids of the lesson's subject and class (needed to record attendance)
+  final String subjectId;
+  final String gradeId;
+  final String sectionId;
 
   /// Minutes since midnight
   final int start;
@@ -59,6 +67,9 @@ class TeacherLesson {
         gradeNameEn: (json['gradeNameEn'] as String?) ?? '',
         sectionNameAr: (json['sectionNameAr'] as String?) ?? '',
         sectionNameEn: (json['sectionNameEn'] as String?) ?? '',
+        subjectId: '${json['subjectId'] ?? ''}',
+        gradeId: '${json['gradeId'] ?? ''}',
+        sectionId: '${json['sectionId'] ?? ''}',
       );
 }
 
@@ -82,7 +93,10 @@ class TeacherTimetableDay {
 
 /// The teacher's week (GET /api/teacher/my-timetable)
 class TeacherTimetable {
-  const TeacherTimetable({required this.today, required this.now, required this.days});
+  const TeacherTimetable({required this.today, required this.now, required this.days, this.academicYearId});
+
+  /// The academic year the lessons are for (null when the school has none)
+  final String? academicYearId;
 
   /// School day (0 = Sunday … 6 = Saturday) and time (minutes) when it was loaded
   final int today;
@@ -98,6 +112,7 @@ class TeacherTimetable {
   factory TeacherTimetable.fromJson(Map<String, dynamic> json) => TeacherTimetable(
         today: dayOfWeekIndex(json['today']),
         now: timeToMinutes(json['now']),
+        academicYearId: json['academicYearId'] == null ? null : '${json['academicYearId']}',
         days: (json['days'] as List? ?? const [])
             .whereType<Map<String, dynamic>>()
             .map(TeacherTimetableDay.fromJson)

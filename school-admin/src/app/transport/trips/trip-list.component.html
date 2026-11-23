@@ -1,0 +1,171 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2>{{ 'transport.trips' | translate }}</h2>
+    </div>
+    <div class="col-md-6 text-end">
+      <button
+        class="btn btn-primary"
+        *appCan="'add'" (click)="openNewTrip(newTripModal)"
+        [disabled]="isLoading()"
+      >
+        <i class="pe-7s-plus"></i> {{ 'transport.newTrip' | translate }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Filters -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <label for="date" class="form-label">{{ 'transport.date' | translate }}</label>
+          <input type="date" id="date" class="form-control" [value]="date()" (change)="onDateChange($event)" />
+        </div>
+        <div class="col-md-4">
+          <label for="bus" class="form-label">{{ 'transport.bus' | translate }}</label>
+          <select id="bus" class="form-select" [value]="busId()" (change)="onBusChange($event)">
+            <option value="">{{ 'transport.allBuses' | translate }}</option>
+            @for (b of buses(); track b.id) {
+              <option [value]="b.id">{{ b.number }} · {{ b.plateNumber }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && trips().length === 0) {
+    <div class="card text-center">
+      <div class="card-body py-5">
+        <i class="pe-7s-map-marker text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-3">{{ 'transport.noTrips' | translate }}</p>
+        <button class="btn btn-primary" *appCan="'add'" (click)="openNewTrip(newTripModal)">
+          {{ 'transport.newTrip' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Trips Table -->
+  @if (!isLoading() && trips().length > 0) {
+    <div class="card">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'transport.bus' | translate }}</th>
+                <th>{{ 'transport.tripTypeLabel' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'transport.startedAt' | translate }}</th>
+                <th>{{ 'transport.endedAt' | translate }}</th>
+                <th class="text-center">{{ 'transport.onBoard' | translate }}</th>
+                <th class="text-center">{{ 'transport.absent' | translate }}</th>
+                <th>{{ 'common.actions' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (trip of sortedTrips(); track trip.id) {
+                <tr class="trip-row" (click)="navigateToDetails(trip.id)">
+                  <td>
+                    <span class="fw-semibold">{{ busNumber(trip.busId) }}</span>
+                    @if (bus(trip.busId); as b) {
+                      <small class="d-block text-muted">{{ b.driverName }}</small>
+                    }
+                  </td>
+                  <td>{{ typeKey(trip.type) | translate }}</td>
+                  <td><span class="badge" [ngClass]="statusInfo(trip.status).badge">{{ statusInfo(trip.status).key | translate }}</span></td>
+                  <td class="text-nowrap">{{ time(trip.startedAt) }}</td>
+                  <td class="text-nowrap">{{ time(trip.endedAt) }}</td>
+                  <td class="text-center">{{ ridersText(trip) }}</td>
+                  <td class="text-center">{{ absentCount(trip) }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-primary" (click)="navigateToDetails(trip.id); $event.stopPropagation()"
+                            title="{{ 'transport.details' | translate }}">
+                      <i class="pe-7s-search"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- New Trip Modal -->
+<ng-template #newTripModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">{{ 'transport.newTrip' | translate }}</h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelModal()" [disabled]="isSaving()"></button>
+  </div>
+  <div class="modal-body">
+    @if (modalError()) {
+      <div class="alert alert-danger py-2">{{ modalError() }}</div>
+    }
+    <p class="text-muted small">{{ 'transport.newTripHint' | translate }}</p>
+    <div class="mb-3">
+      <label for="newBus" class="form-label">{{ 'transport.bus' | translate }} <span class="text-danger">*</span></label>
+      <select id="newBus" class="form-select" [value]="newBusId()" (change)="onNewBus($event)">
+        <option value="">{{ (activeBuses().length ? 'common.chooseOne' : 'transport.noActiveBuses') | translate }}</option>
+        @for (b of activeBuses(); track b.id) {
+          <option [value]="b.id">{{ b.number }} · {{ b.plateNumber }}</option>
+        }
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="newDate" class="form-label">{{ 'transport.date' | translate }} <span class="text-danger">*</span></label>
+      <input type="date" id="newDate" class="form-control" [value]="newDate()" (change)="onNewDate($event)" />
+    </div>
+    <div>
+      <label class="form-label d-block">{{ 'transport.tripTypeLabel' | translate }} <span class="text-danger">*</span></label>
+      <div class="btn-group w-100" role="group">
+        @for (t of tripTypes; track t.value) {
+          <input type="radio" class="btn-check" name="tripType" [id]="'tripType' + t.value"
+                 [checked]="newType() === t.value" (change)="onNewType(t.value)" />
+          <label class="btn btn-outline-primary" [for]="'tripType' + t.value">{{ t.key | translate }}</label>
+        }
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelModal()" [disabled]="isSaving()">
+      {{ 'common.cancel' | translate }}
+    </button>
+    <button type="button" class="btn btn-primary" (click)="confirmNewTrip()" [disabled]="isSaving() || !newBusId() || !newDate()">
+      @if (isSaving()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'transport.createTrip' | translate }}
+    </button>
+  </div>
+</ng-template>

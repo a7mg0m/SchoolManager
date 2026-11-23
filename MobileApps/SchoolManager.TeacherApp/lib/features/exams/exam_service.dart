@@ -8,13 +8,19 @@ import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
 import '../../core/i18n/app_language.dart';
 
-/// The exam types a teacher can add (ExamType on the API)
+/// The exam types of the teacher app: quizzes and monthly exams only (ExamType on the API)
 enum TeacherExamType {
   quiz(1),
   monthly(2);
 
   const TeacherExamType(this.value);
   final int value;
+
+  /// The types a teacher can add
+  static const creatable = [TeacherExamType.quiz, TeacherExamType.monthly];
+
+  /// A quiz or monthly exam (other types, e.g. mid-term / final, are not shown)
+  static bool isShown(Object? value) => TeacherExamType.values.any((t) => '${t.value}' == '$value' || t.name == '$value'.toLowerCase());
 
   String get label => switch (this) {
         TeacherExamType.quiz => tr('اختبار قصير', 'Quiz'),
@@ -54,7 +60,8 @@ String examClock(int minutes) {
 /// "15" / "12.5"
 String examMark(num value) => value.toStringAsFixed(2).replaceFirst(RegExp(r'\.?0+$'), '');
 
-/// An exam the teacher added (GET /api/exam/my)
+/// An exam of the teacher's subjects and classes (GET /api/exam/my): one they added, or one by the school office /
+/// another teacher (read-only; scores can still be entered)
 class TeacherExam {
   const TeacherExam({
     required this.id,
@@ -76,9 +83,17 @@ class TeacherExam {
     required this.successScore,
     this.resultCount = 0,
     this.averageScore,
+    this.isMine = true,
+    this.addedByTeacher = true,
   });
 
   final String id;
+
+  /// The logged-in teacher added it (only then it can be edited / deleted)
+  final bool isMine;
+
+  /// Added by a teacher (another one when not [isMine]) or by the school office
+  final bool addedByTeacher;
   final String subjectId;
   final String subjectNameAr;
   final String subjectNameEn;
@@ -106,6 +121,15 @@ class TeacherExam {
   String get gradeName => pickLang(gradeNameAr, gradeNameEn);
   String get sectionName => pickLang(sectionNameAr, sectionNameEn);
 
+  /// An exam for the whole grade (no class)
+  bool get isWholeGrade => sectionId.isEmpty;
+
+  /// The class, or "all classes" for a whole-grade exam
+  String get classText => isWholeGrade ? tr('كل الفصول', 'All classes') : sectionName;
+
+  /// Who added an exam that is not the teacher's own
+  String get addedByText => addedByTeacher ? tr('أضافه معلم آخر', 'By another teacher') : tr('من إدارة المدرسة', 'By the school');
+
   /// "اختبار قصير" / "امتحان شهر نوفمبر"
   String get title => type == TeacherExamType.monthly && month != null
       ? tr('امتحان شهر ${examMonthName(month!)}', '${examMonthName(month!)} monthly exam')
@@ -123,7 +147,7 @@ class TeacherExam {
       gradeId: '${json['gradeId'] ?? ''}',
       gradeNameAr: (json['gradeNameAr'] as String?) ?? '',
       gradeNameEn: (json['gradeNameEn'] as String?) ?? '',
-      sectionId: '${json['sectionId'] ?? ''}',
+      sectionId: json['sectionId'] == null ? '' : '${json['sectionId']}',
       sectionNameAr: (json['sectionNameAr'] as String?) ?? '',
       sectionNameEn: (json['sectionNameEn'] as String?) ?? '',
       type: TeacherExamType.from(json['examType']),
@@ -135,6 +159,8 @@ class TeacherExam {
       successScore: (json['successScore'] as num?)?.toDouble() ?? 0,
       resultCount: (json['resultCount'] as num?)?.toInt() ?? 0,
       averageScore: (json['averageScore'] as num?)?.toDouble(),
+      isMine: json['isMine'] != false,
+      addedByTeacher: json['addedByTeacher'] != false,
     );
   }
 }
@@ -232,7 +258,10 @@ class ExamService {
 
   Future<List<TeacherExam>> getMyExams() async {
     final data = await _send('GET', _withYear('/api/exam/my'), fallback: tr('تعذر تحميل الاختبارات.', 'Could not load the exams.'));
-    return data is List ? data.whereType<Map<String, dynamic>>().map(TeacherExam.fromJson).toList() : const [];
+    // Quizzes and monthly exams only
+    return data is List
+        ? data.whereType<Map<String, dynamic>>().where((e) => TeacherExamType.isShown(e['examType'])).map(TeacherExam.fromJson).toList()
+        : const [];
   }
 
   /// Returns the new exam id

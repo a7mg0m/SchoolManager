@@ -1,0 +1,48 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "SchoolManager.ParentApp",
+            "cwd": "MobileApps\\SchoolManager.ParentApp",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "SchoolManager.ParentApp (profile mode)",
+            "cwd": "MobileApps\\SchoolManager.ParentApp",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "SchoolManager.ParentApp (release mode)",
+            "cwd": "MobileApps\\SchoolManager.ParentApp",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "SchoolManager.TeacherApp",
+            "cwd": "MobileApps\\SchoolManager.TeacherApp",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "SchoolManager.TeacherApp (profile mode)",
+            "cwd": "MobileApps\\SchoolManager.TeacherApp",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "SchoolManager.TeacherApp (release mode)",
+            "cwd": "MobileApps\\SchoolManager.TeacherApp",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

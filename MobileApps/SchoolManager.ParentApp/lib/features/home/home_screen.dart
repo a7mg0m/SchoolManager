@@ -9,7 +9,11 @@ import '../../core/i18n/app_language.dart';
 import '../../core/i18n/language_switch.dart';
 import '../../data/demo_data.dart';
 import '../chat/chat_screens.dart';
+import '../attendance/attendance_screen.dart';
+import '../bus/bus_screen.dart';
+import '../attendance/attendance_service.dart';
 import '../clinic/clinic_screen.dart';
+import '../evaluation/evaluation_screens.dart';
 import '../notifications/notifications_screen.dart';
 import '../notifications/notifications_service.dart';
 import '../children/children_service.dart';
@@ -43,7 +47,19 @@ class HomeScreen extends StatefulWidget {
       this.loadEvents,
       this.loadHomeworks,
       this.loadAcademicYears,
+      this.loadAttendance,
+      this.evaluationApi = const EvaluationApi(),
+      this.busApi = const BusApi(),
       this.loadSchoolInfo});
+
+  /// Evaluation requests to the child's teachers; defaults to the API (tests pass their own)
+  final EvaluationApi evaluationApi;
+
+  /// School bus tracking, trips and home location; defaults to the API (tests pass their own)
+  final BusApi busApi;
+
+  /// Loads a child's attendance between two dates; defaults to the API (tests pass their own)
+  final Future<List<AttendanceDay>> Function(String studentId, DateTime from, DateTime to)? loadAttendance;
 
   /// Loads the parent's children; defaults to the API (tests pass their own)
   final Future<List<Child>> Function()? loadChildren;
@@ -874,6 +890,22 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: gap),
         _Appear(
+          order: 3,
+          child: SizedBox(
+            height: unit - 16,
+            // Ask the child's teachers for an evaluation, and see their answers
+            child: _BentoTile(
+              icon: Icons.rate_review_rounded,
+              label: tr('تقييم المعلمين', 'Teacher evaluations'),
+              detail: tr('اطلب من المعلم تقييم مستوى طفلك', 'Ask a teacher how your child is doing'),
+              colors: const [Color(0xFF6D7DF2), Color(0xFF4C5FD5)],
+              wide: true,
+              onTap: _openEvaluations,
+            ),
+          ),
+        ),
+        const SizedBox(height: gap),
+        _Appear(
           order: 4,
           child: Row(
             children: [
@@ -883,8 +915,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: switch (i) {
                     // Homework: open, with how many are still to do
                     0 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openHomework, detail: _homeworkCount()),
+                    // Attendance: the selected child's days in the chosen academic year
+                    1 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openAttendance),
                     // Clinic: the selected child's health profile
                     2 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openClinic),
+                    // School bus: follow the trip, trips, home location
+                    3 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openBus),
                     _ => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3),
                   },
                 ),
@@ -996,6 +1032,38 @@ class _HomeScreenState extends State<HomeScreen> {
         loadExams: widget.loadExams,
         onSessionExpired: _logout,
       ));
+
+  /// Attendance page of the selected child (the academic year chosen in the app)
+  void _openAttendance() => _openForChild((child) => AttendanceScreen(
+        child: child,
+        loadAttendance: widget.loadAttendance,
+        loadTimetable: widget.loadTimetable,
+        onSessionExpired: _logout,
+      ));
+
+  /// Evaluation requests of the selected child to their teachers
+  void _openEvaluations() => _openForChild((child) => EvaluationRequestsScreen(
+        child: child,
+        api: widget.evaluationApi,
+        onSessionExpired: _logout,
+      ));
+
+  /// School bus of the selected child: running trip on the map, trips, home location
+  void _openBus() => _openForChild((child) => BusScreen(
+        child: child,
+        api: widget.busApi,
+        onSessionExpired: _logout,
+        onLocationSaved: _childLocationSaved,
+      ));
+
+  /// The child's new home location (from the bus page) is kept for the next visit
+  void _childLocationSaved(Child updated) {
+    if (!mounted) return;
+    setState(() {
+      children = [for (final c in children) c.id == updated.id ? updated : c];
+      if (selectedChild?.id == updated.id) selectedChild = updated;
+    });
+  }
 
   /// Clinic page (health profile) of the selected child
   void _openClinic() => _openForChild((child) => ClinicScreen(

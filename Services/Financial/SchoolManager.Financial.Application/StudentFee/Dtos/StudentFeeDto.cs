@@ -6,6 +6,8 @@ namespace SchoolManager.Financial.Application
     {
         public Guid Id { get; set; }
         public Guid StudentId { get; set; }
+        /// <summary>Bus fee: the bus assignment it comes from (null for the grade / school fees)</summary>
+        public Guid? BusAssignmentId { get; set; }
 
         /// <summary>null: assigned before years (shown in every year)</summary>
         public Guid? AcademicYearId { get; set; }

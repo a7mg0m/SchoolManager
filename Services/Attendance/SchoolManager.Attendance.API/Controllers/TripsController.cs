@@ -156,6 +156,38 @@ namespace SchoolManager.Attendance.API.Controllers
         /// last position, the child's status). data is null when the child is on no running trip. The child must be
         /// the parent's (checked with the Management service); otherwise 404.
         /// </summary>
+        /// <summary>
+        /// Parent app: the trips of one of the logged-in parent's children between two dates ("yyyy-MM-dd", both
+        /// included; default the last 30 days), newest first, with the bus and the child's status on each. The child
+        /// must be the parent's (checked with the Management service); otherwise 404.
+        /// </summary>
+        [Authorize]
+        [HttpGet("my-child/{studentId}/trips")]
+        public async Task<IActionResult> GetMyChildTrips(Guid studentId, [FromQuery] DateOnly? from, [FromQuery] DateOnly? to, CancellationToken cancellationToken)
+        {
+            if (_currentUser.ParentId is null)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+            var end = to ?? DateOnly.FromDateTime(DateTime.Today);
+            var start = from ?? end.AddDays(-30);
+            if (start > end)
+                return Ok(new ApiResponse { status = 400, message = "End date cannot be before the start date." });
+
+            try
+            {
+                var result = await _mediator.Send(
+                    new GetMyChildTripsQuery(studentId, start, end, Request.Headers.Authorization.ToString()), cancellationToken);
+                if (result is null)
+                    return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiResponse(503, "ManagementUnavailable"));
+
+                return Ok(new ApiResponse { data = result });
+            }
+            catch (DomainException)
+            {
+                return NotFound(new ApiResponse(404, "StudentNotFound"));
+            }
+        }
+
         [Authorize]
         [HttpGet("my-child/{studentId}")]
         public async Task<IActionResult> GetMyChildCurrentTrip(Guid studentId, CancellationToken cancellationToken)

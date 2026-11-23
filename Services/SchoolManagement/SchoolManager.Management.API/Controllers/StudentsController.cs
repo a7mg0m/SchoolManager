@@ -148,6 +148,33 @@ namespace SchoolManager.Management.API.Controllers
 		}
 
 		/// <summary>
+		/// The logged-in parent sets their child's home location (map pin): both values, or neither to clear it.
+		/// 404 when the student is not the parent's child.
+		/// </summary>
+		[Authorize]
+		[HttpPut("my-children/{studentId}/location")]
+		public async Task<IActionResult> SetMyChildLocation(Guid studentId, [FromBody] SetStudentLocationDto dto, CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not Guid parentId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
+
+			if (!await _mediator.Send(new IsMyChildQuery(studentId, parentId), cancellationToken))
+				return NotFound(new ApiResponse(404, "StudentNotFound"));
+
+			var command = new SetStudentLocationCommand(studentId, dto?.Latitude, dto?.Longitude);
+			var validation = await new SetStudentLocationCommandValidator().ValidateAsync(command, cancellationToken);
+			if (!validation.IsValid)
+			{
+				var errors = validation.Errors.Select(e => e.ErrorMessage).Distinct().ToList();
+				return BadRequest(new ApiResponse(400, errors.First()) { errors = errors });
+			}
+
+			if (!await _mediator.Send(command, cancellationToken))
+				return NotFound(new ApiResponse(404, "StudentNotFound"));
+			return Ok(new ApiResponse { message = "Saved Successfully" });
+		}
+
+		/// <summary>
 		/// Vaccinations recorded by the clinic for one of the logged-in parent's children (read-only).
 		/// 404 when the student is not the parent's child.
 		/// </summary>

@@ -1285,6 +1285,31 @@ void main() {
     expect(find.text('2026-2027 · الفصل الثاني'), findsOneWidget);
   });
 
+  testWidgets('Fees screen shows the bus fee next to the school fees', (WidgetTester tester) async {
+    _phoneSize(tester);
+    final due = DateTime.now().add(const Duration(days: 20));
+    await tester.pumpWidget(MaterialApp(
+      home: FeesScreen(
+        child: _sara,
+        loadFees: (_) async => [
+          StudentFeeItem.fromJson({
+            'id': 'f-school', 'totalAmount': 5000, 'discountAmount': 0, 'paidAmount': 1000, 'waivedAmount': 0,
+            'netAmount': 5000, 'balance': 4000, 'currency': 'EGP', 'status': 'PartiallyPaid', 'dueDate': due.toIso8601String(),
+          }),
+          StudentFeeItem.fromJson({
+            'id': 'f-bus', 'busAssignmentId': 'ba-1', 'totalAmount': 1500, 'discountAmount': 0, 'paidAmount': 0, 'waivedAmount': 0,
+            'netAmount': 1500, 'balance': 1500, 'currency': 'EGP', 'status': 'Pending', 'dueDate': due.toIso8601String(),
+          }),
+        ],
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.descendant(of: find.byKey(const ValueKey('fee-kind-f-bus')), matching: find.text('رسوم الباص')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('fee-kind-f-school')), matching: find.text('الرسوم الدراسية')), findsOneWidget);
+    expect(StudentFeeItem.fromJson({'id': 'x', 'busAssignmentId': null}).isBusFee, isFalse);
+  });
+
   testWidgets('Fees screen shows the academic year and reloads for another one', (WidgetTester tester) async {
     _phoneSize(tester);
     await AcademicYearController.instance.ensureLoaded(fetch: () async => _years);

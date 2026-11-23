@@ -44,6 +44,8 @@ namespace SchoolManager.Management.Application
                 command.ParentId,
                 new AuditInfo(DateTime.Now, _currentUser.UserId));
 
+			entity.SetLocation(command.Latitude, command.Longitude);
+
 			await _repository.AddAsync(entity);
 			await _unitOfWork.SaveChangesAsync();
 

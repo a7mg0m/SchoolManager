@@ -34,7 +34,9 @@ namespace SchoolManager.Management.Application
                     SectionId = s.SectionId,
                     SectionNameAr = s.Section?.Name.Arabic ?? string.Empty,
                     SectionNameEn = s.Section?.Name.English ?? string.Empty,
-                    AcademicYearId = s.AcademicYearId
+                    AcademicYearId = s.AcademicYearId,
+                    Latitude = s.Latitude,
+                    Longitude = s.Longitude
                 })
                 .ToList();
         }

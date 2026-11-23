@@ -64,3 +64,18 @@ export { ClinicVisitListComponent } from './clinic/visits/clinic-visit-list.comp
 export { ClinicVisitSaveComponent } from './clinic/visits/clinic-visit-save.component';
 export { StudentClinicListComponent } from './clinic/students/student-clinic-list.component';
 export { StudentClinicComponent } from './clinic/students/student-clinic.component';
+
+// Attendance
+export { DailyAttendanceListComponent } from './attendance/daily/daily-attendance-list.component';
+export { StudentAttendanceComponent } from './attendance/student/student-attendance.component';
+export { EvaluationListComponent } from './attendance/evaluations/evaluation-list.component';
+
+// Transport
+export { BusRouteListComponent } from './transport/routes/bus-route-list.component';
+export { BusRouteSaveComponent } from './transport/routes/bus-route-save.component';
+export { BusListComponent } from './transport/buses/bus-list.component';
+export { BusSaveComponent } from './transport/buses/bus-save.component';
+export { BusAssignmentListComponent } from './transport/assignments/bus-assignment-list.component';
+export { BusAssignmentAssignComponent } from './transport/assignments/bus-assignment-assign.component';
+export { TripListComponent } from './transport/trips/trip-list.component';
+export { TripDetailsComponent } from './transport/trips/trip-details.component';

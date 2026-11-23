@@ -28,9 +28,7 @@ html:dir(rtl) {
       padding: 0 ($layout-spacer-x / 2) 0 0;
     }
 
-    .app-header-right {
-      flex-direction: row-reverse;
-    }
+    // .app-header-right mirrors on its own in RTL (no row-reverse: it would undo that)
   }
 
   // ========== MAIN CONTENT ==========

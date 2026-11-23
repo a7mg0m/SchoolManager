@@ -40,6 +40,7 @@ namespace SchoolManager.Management.Application
                 request.SectionId,
                 request.AcademicYearId,
                 new AuditInfo(DateTime.Now, _currentUser.UserId));
+			entity.SetLocation(request.Latitude, request.Longitude);
 
 			await _unitOfWork.SaveChangesAsync();
 

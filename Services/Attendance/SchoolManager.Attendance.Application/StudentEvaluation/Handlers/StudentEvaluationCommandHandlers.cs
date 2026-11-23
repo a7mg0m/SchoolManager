@@ -6,7 +6,8 @@ namespace SchoolManager.Attendance.Application
 {
     /// <summary>
     /// Creates or updates (same student, slot and day) the logged-in teacher's evaluation, then marks the parent's
-    /// request(s) as evaluated: the given request, or every pending request of the student to this teacher.
+    /// request(s) as evaluated: the given request (an "all subjects" one only when CompleteRequest), or the
+    /// student's pending requests to this teacher about the evaluated subject.
     /// One SaveChanges.
     /// </summary>
     public class EvaluateStudentCommandHandler : ICommandHandler<EvaluateStudentCommand, Guid>
@@ -69,15 +70,31 @@ namespace SchoolManager.Attendance.Application
             var now = DateTime.UtcNow;
             if (request is not null)
             {
-                request.MarkEvaluated(evaluation.Id, now);
-                await _requestRepository.UpdateAsync(request);
+                if (request.Status != EvaluationRequestStatus.Pending)
+                    throw new DomainException("Only a pending request can be evaluated.");
+
+                // The evaluation belongs to the request (an "all subjects" request collects one per subject)
+                if (evaluation.EvaluationRequestId != request.Id)
+                    evaluation.AnswerRequest(request.Id);
+
+                // One subject: answered. All subjects: answered when the teacher says this was the last one.
+                if (request.SubjectId is not null || command.CompleteRequest)
+                {
+                    request.MarkEvaluated(evaluation.Id, now);
+                    await _requestRepository.UpdateAsync(request);
+                }
             }
             else
             {
+                // Evaluated without opening a request: answers the waiting requests about this subject only
+                // ("all subjects" requests wait until the teacher answers them for every subject)
+                var subjectId = command.SubjectId;
                 var pending = await _requestRepository.SearchAsync(r => r.StudentId == studentId && r.TeacherId == teacherId
-                    && r.Status == EvaluationRequestStatus.Pending);
+                    && r.Status == EvaluationRequestStatus.Pending && r.SubjectId == subjectId);
                 foreach (var pendingRequest in pending)
                 {
+                    if (evaluation.EvaluationRequestId is null)
+                        evaluation.AnswerRequest(pendingRequest.Id);
                     pendingRequest.MarkEvaluated(evaluation.Id, now);
                     await _requestRepository.UpdateAsync(pendingRequest);
                 }

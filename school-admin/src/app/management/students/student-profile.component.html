@@ -1,8 +1,8 @@
-<div class="container-fluid">
+<div class="container-fluid student-profile">
   <!-- Top bar -->
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-    <button class="btn btn-link px-0" (click)="backToList()">
-      <i class="pe-7s-angle-left"></i> {{ 'students.backToList' | translate }}
+    <button class="btn btn-link px-0 back-link" (click)="backToList()">
+      <i class="pe-7s-angle-left back-arrow"></i> {{ 'students.backToList' | translate }}
     </button>
     @if (student() && !isLoading()) {
       <div class="d-flex flex-wrap gap-2">
@@ -45,201 +45,273 @@
   }
 
   @if (!isLoading() && student(); as s) {
-    <!-- Header -->
-    <div class="card mb-3 profile-header">
-      <div class="card-body d-flex flex-wrap align-items-center gap-3">
-        <span class="avatar avatar-lg" [class.avatar-female]="s.gender === 'Female'">{{ initials(s) }}</span>
-        <div class="flex-grow-1 min-w-0">
-          <h3 class="mb-0 text-truncate">{{ displayName(s) }}</h3>
+    <!-- Hero: gradient cover, big avatar, name, badges and quick facts -->
+    <div class="card profile-hero mb-3">
+      <div class="hero-cover">
+        <span class="bubble bubble-1"></span>
+        <span class="bubble bubble-2"></span>
+        <span class="bubble bubble-3"></span>
+      </div>
+      <div class="hero-body">
+        <div class="hero-avatar" [class.avatar-female]="s.gender === 'Female'">
+          {{ initials(s) }}
+          <span class="status-dot" [class.inactive]="!s.isActive" [title]="(s.isActive ? 'common.active' : 'common.inactive') | translate"></span>
+        </div>
+
+        <div class="hero-identity">
+          <h3 class="hero-name">{{ displayName(s) }}</h3>
           @if (altName(s)) {
-            <div class="text-muted">{{ altName(s) }}</div>
+            <div class="hero-alt">{{ altName(s) }}</div>
           }
-          <div class="d-flex flex-wrap gap-1 mt-2">
-            <span class="badge" [class.bg-success]="s.isActive" [class.bg-secondary]="!s.isActive">
-              {{ (s.isActive ? 'common.active' : 'common.inactive') | translate }}
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <span class="pill" [class.pill-success]="s.isActive" [class.pill-muted]="!s.isActive">
+              <i class="pe-7s-check"></i> {{ (s.isActive ? 'common.active' : 'common.inactive') | translate }}
             </span>
-            <span class="badge bg-light text-dark border">{{ gradeName(s.gradeId) }} · {{ sectionName(s.sectionId) }}</span>
-            <span class="badge bg-light text-dark border">{{ academicYearName(s.academicYearId) }}</span>
+            <span class="pill"><i class="pe-7s-study"></i> {{ gradeName(s.gradeId) }} · {{ sectionName(s.sectionId) }}</span>
+            <span class="pill"><i class="pe-7s-date"></i> {{ academicYearName(s.academicYearId) }}</span>
+          </div>
+        </div>
+
+        <div class="hero-facts">
+          <div class="fact">
+            <span class="fact-value">{{ age(s.dateOfBirth) ?? '-' }}</span>
+            <span class="fact-label">{{ 'students.age' | translate }}</span>
+          </div>
+          <div class="fact">
+            <span class="fact-value">{{ fees().length }}</span>
+            <span class="fact-label">{{ 'students.feesTitle' | translate }}</span>
+          </div>
+          <div class="fact" [class.fact-danger]="overdueCount() > 0">
+            <span class="fact-value">{{ overdueCount() }}</span>
+            <span class="fact-label">{{ 'students.overdue' | translate }}</span>
           </div>
         </div>
       </div>
     </div>
 
     <div class="row g-3">
-      <!-- Left column: details -->
+      <!-- Details -->
       <div class="col-xl-4 col-lg-5">
-        <div class="card mb-3">
-          <div class="card-header">{{ 'students.personalInfo' | translate }}</div>
-          <div class="card-body">
-            <dl class="row details-list mb-0">
-              <dt class="col-5">{{ 'parents.fullNameAr' | translate }}</dt>
-              <dd class="col-7" dir="rtl">{{ s.fullNameAr || '-' }}</dd>
-              <dt class="col-5">{{ 'parents.fullNameEn' | translate }}</dt>
-              <dd class="col-7" dir="ltr">{{ s.fullNameEn || '-' }}</dd>
-              <dt class="col-5">{{ 'parents.nationalId' | translate }}</dt>
-              <dd class="col-7" dir="ltr">{{ s.nationalId || '-' }}</dd>
-              <dt class="col-5">{{ 'parents.dateOfBirth' | translate }}</dt>
-              <dd class="col-7">
-                {{ formatDate(s.dateOfBirth) }}
-                @if (age(s.dateOfBirth) !== null) {
-                  <small class="text-muted">({{ 'students.ageYears' | translate: { age: age(s.dateOfBirth) } }})</small>
-                }
-              </dd>
-              <dt class="col-5">{{ 'parents.gender' | translate }}</dt>
-              <dd class="col-7">{{ genderLabel(s.gender) }}</dd>
-              <dt class="col-5">{{ 'parents.phoneNumber' | translate }}</dt>
-              <dd class="col-7" dir="ltr">
-                @if (s.phoneNumber) { <a [href]="'tel:' + s.phoneNumber">{{ s.phoneNumber }}</a> } @else { - }
-              </dd>
-              <dt class="col-5">{{ 'parents.email' | translate }}</dt>
-              <dd class="col-7" dir="ltr">
-                @if (s.email) { <a [href]="'mailto:' + s.email">{{ s.email }}</a> } @else { - }
-              </dd>
-              <dt class="col-5">{{ 'parents.address' | translate }}</dt>
-              <dd class="col-7">{{ s.address || '-' }}</dd>
-            </dl>
+        <!-- Personal -->
+        <div class="card info-card mb-3">
+          <div class="info-card-title">
+            <span class="title-icon"><i class="pe-7s-id"></i></span>
+            {{ 'students.personalInfo' | translate }}
+          </div>
+          <div class="info-rows">
+            <div class="info-row">
+              <span class="row-icon"><i class="pe-7s-user"></i></span>
+              <div class="row-text">
+                <span class="row-label">{{ 'parents.fullNameAr' | translate }}</span>
+                <span class="row-value" dir="rtl">{{ s.fullNameAr || '-' }}</span>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="row-icon"><i class="pe-7s-user"></i></span>
+              <div class="row-text">
+                <span class="row-label">{{ 'parents.fullNameEn' | translate }}</span>
+                <span class="row-value" dir="ltr">{{ s.fullNameEn || '-' }}</span>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="row-icon"><i class="pe-7s-key"></i></span>
+              <div class="row-text">
+                <span class="row-label">{{ 'parents.nationalId' | translate }}</span>
+                <span class="row-value" dir="ltr">{{ s.nationalId || '-' }}</span>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="row-icon"><i class="pe-7s-gift"></i></span>
+              <div class="row-text">
+                <span class="row-label">{{ 'parents.dateOfBirth' | translate }}</span>
+                <span class="row-value">
+                  {{ formatDate(s.dateOfBirth) }}
+                  @if (age(s.dateOfBirth) !== null) {
+                    <small class="text-muted">({{ 'students.ageYears' | translate: { age: age(s.dateOfBirth) } }})</small>
+                  }
+                </span>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="row-icon"><i class="pe-7s-users"></i></span>
+              <div class="row-text">
+                <span class="row-label">{{ 'parents.gender' | translate }}</span>
+                <span class="row-value">{{ genderLabel(s.gender) }}</span>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="row-icon"><i class="pe-7s-phone"></i></span>
+              <div class="row-text">
+                <span class="row-label">{{ 'parents.phoneNumber' | translate }}</span>
+                <span class="row-value" dir="ltr">
+                  @if (s.phoneNumber) { <a [href]="'tel:' + s.phoneNumber">{{ s.phoneNumber }}</a> } @else { - }
+                </span>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="row-icon"><i class="pe-7s-mail"></i></span>
+              <div class="row-text">
+                <span class="row-label">{{ 'parents.email' | translate }}</span>
+                <span class="row-value" dir="ltr">
+                  @if (s.email) { <a [href]="'mailto:' + s.email">{{ s.email }}</a> } @else { - }
+                </span>
+              </div>
+            </div>
+            <div class="info-row">
+              <span class="row-icon"><i class="pe-7s-home"></i></span>
+              <div class="row-text">
+                <span class="row-label">{{ 'parents.address' | translate }}</span>
+                <span class="row-value">{{ s.address || '-' }}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="card mb-3">
-          <div class="card-header">{{ 'students.academicInfo' | translate }}</div>
-          <div class="card-body">
-            <dl class="row details-list mb-0">
-              <dt class="col-5">{{ 'parents.academicYear' | translate }}</dt>
-              <dd class="col-7">{{ academicYearName(s.academicYearId) }}</dd>
-              <dt class="col-5">{{ 'parents.stage' | translate }}</dt>
-              <dd class="col-7">{{ stageName(s) }}</dd>
-              <dt class="col-5">{{ 'parents.grade' | translate }}</dt>
-              <dd class="col-7">{{ gradeName(s.gradeId) }}</dd>
-              <dt class="col-5">{{ 'parents.section' | translate }}</dt>
-              <dd class="col-7">{{ sectionName(s.sectionId) }}</dd>
-            </dl>
+        <!-- Academic: a small grid of tiles -->
+        <div class="card info-card mb-3">
+          <div class="info-card-title">
+            <span class="title-icon"><i class="pe-7s-study"></i></span>
+            {{ 'students.academicInfo' | translate }}
+          </div>
+          <div class="academic-grid">
+            <div class="academic-tile">
+              <span class="row-label">{{ 'parents.academicYear' | translate }}</span>
+              <span class="tile-value">{{ academicYearName(s.academicYearId) }}</span>
+            </div>
+            <div class="academic-tile">
+              <span class="row-label">{{ 'parents.stage' | translate }}</span>
+              <span class="tile-value">{{ stageName(s) }}</span>
+            </div>
+            <div class="academic-tile">
+              <span class="row-label">{{ 'parents.grade' | translate }}</span>
+              <span class="tile-value">{{ gradeName(s.gradeId) }}</span>
+            </div>
+            <div class="academic-tile">
+              <span class="row-label">{{ 'parents.section' | translate }}</span>
+              <span class="tile-value">{{ sectionName(s.sectionId) }}</span>
+            </div>
           </div>
         </div>
 
-        <div class="card mb-3">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <span>{{ 'students.parentInfo' | translate }}</span>
+        <!-- Parent -->
+        <div class="card info-card mb-3">
+          <div class="info-card-title">
+            <span class="title-icon"><i class="pe-7s-users"></i></span>
+            <span class="flex-grow-1">{{ 'students.parentInfo' | translate }}</span>
             @if (parent()) {
               <button class="btn btn-link btn-sm p-0" *appCan="'edit'; route: '/management/parents'" (click)="editViaParent()">{{ 'common.edit' | translate }}</button>
             }
           </div>
-          <div class="card-body">
-            @if (parent(); as p) {
-              <dl class="row details-list mb-0">
-                <dt class="col-5">{{ 'students.name' | translate }}</dt>
-                <dd class="col-7">
-                  {{ displayName(p) }}
-                  @if (altName(p)) { <small class="text-muted d-block">{{ altName(p) }}</small> }
-                </dd>
-                <dt class="col-5">{{ 'parents.phoneNumber' | translate }}</dt>
-                <dd class="col-7" dir="ltr">
-                  @if (p.phoneNumber) { <a [href]="'tel:' + p.phoneNumber">{{ p.phoneNumber }}</a> } @else { - }
-                </dd>
-                <dt class="col-5">{{ 'parents.email' | translate }}</dt>
-                <dd class="col-7" dir="ltr">
-                  @if (p.email) { <a [href]="'mailto:' + p.email">{{ p.email }}</a> } @else { - }
-                </dd>
-                <dt class="col-5">{{ 'parents.address' | translate }}</dt>
-                <dd class="col-7">{{ p.address || '-' }}</dd>
-                @if (p.students.length > 1) {
-                  <dt class="col-5">{{ 'students.siblings' | translate }}</dt>
-                  <dd class="col-7">
-                    @for (sib of p.students; track sib.id) {
-                      @if (sib.id !== s.id) {
-                        <a class="d-block" [routerLink]="['/management/students', sib.id]">{{ displayName(sib) }}</a>
-                      }
+          @if (parent(); as p) {
+            <div class="parent-head">
+              <span class="parent-avatar">{{ initials(p) }}</span>
+              <div class="min-w-0">
+                <div class="parent-name text-truncate">{{ displayName(p) }}</div>
+                @if (altName(p)) { <small class="text-muted d-block text-truncate">{{ altName(p) }}</small> }
+              </div>
+            </div>
+            <div class="d-flex flex-wrap gap-2 px-3 pb-3">
+              @if (p.phoneNumber) {
+                <a class="contact-chip" [href]="'tel:' + p.phoneNumber" dir="ltr"><i class="pe-7s-phone"></i> {{ p.phoneNumber }}</a>
+              }
+              @if (p.email) {
+                <a class="contact-chip" [href]="'mailto:' + p.email" dir="ltr"><i class="pe-7s-mail"></i> {{ p.email }}</a>
+              }
+              @if (p.address) {
+                <span class="contact-chip"><i class="pe-7s-home"></i> {{ p.address }}</span>
+              }
+            </div>
+            @if (p.students.length > 1) {
+              <div class="siblings">
+                <span class="row-label d-block mb-2">{{ 'students.siblings' | translate }}</span>
+                <div class="d-flex flex-wrap gap-2">
+                  @for (sib of p.students; track sib.id) {
+                    @if (sib.id !== s.id) {
+                      <a class="sibling" [routerLink]="['/management/students', sib.id]">
+                        <span class="sibling-avatar" [class.avatar-female]="sib.gender === 'Female'">{{ initials(sib) }}</span>
+                        {{ displayName(sib) }}
+                      </a>
                     }
-                  </dd>
-                }
-              </dl>
-            } @else {
-              <p class="text-muted mb-0">{{ 'students.noParentInfo' | translate }}</p>
+                  }
+                </div>
+              </div>
             }
-          </div>
+          } @else {
+            <p class="text-muted mb-0 px-3 pb-3">{{ 'students.noParentInfo' | translate }}</p>
+          }
         </div>
       </div>
 
-      <!-- Right column: fees -->
+      <!-- Fees -->
       <div class="col-xl-8 col-lg-7">
-        <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <span>{{ 'students.feesTitle' | translate }} <span class="badge bg-secondary ms-1">{{ fees().length }}</span></span>
+        <div class="card info-card">
+          <div class="info-card-title">
+            <span class="title-icon"><i class="pe-7s-cash"></i></span>
+            <span class="flex-grow-1">{{ 'students.feesTitle' | translate }} <span class="count-pill">{{ fees().length }}</span></span>
             <button class="btn btn-outline-primary btn-sm" *appCan="'add'; route: '/financial/student-fees'" (click)="assignFees()" [disabled]="feesUnavailable()">
               <i class="pe-7s-plus"></i> {{ 'studentFees.assign.button' | translate }}
             </button>
           </div>
-          <div class="card-body">
+          <div class="card-body pt-2">
             @if (feesUnavailable()) {
               <div class="alert alert-warning mb-0 py-2 small">{{ 'students.feesUnavailable' | translate }}</div>
             } @else if (fees().length === 0) {
-              <div class="text-center py-4">
-                <i class="pe-7s-cash text-muted" style="font-size: 2.5rem;"></i>
-                <p class="text-muted mt-2 mb-2">{{ 'students.noFees' | translate }}</p>
+              <div class="empty-fees">
+                <span class="empty-icon"><i class="pe-7s-cash"></i></span>
+                <p class="text-muted mt-3 mb-2">{{ 'students.noFees' | translate }}</p>
                 <button class="btn btn-primary btn-sm" *appCan="'add'; route: '/financial/student-fees'" (click)="assignFees()">{{ 'studentFees.assign.button' | translate }}</button>
               </div>
             } @else {
               <!-- Summary -->
-              <div class="row g-2 mb-3">
+              <div class="row g-3 mb-3">
                 @for (sum of summary(); track sum.currency) {
                   <div class="col-sm-6">
-                    <div class="summary-tile">
+                    <div class="kpi kpi-main">
                       <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted small">{{ 'studentFees.netDue' | translate }}</span>
-                        <span class="badge bg-light text-dark border">{{ sum.currency }}</span>
+                        <span class="kpi-label">{{ 'studentFees.netDue' | translate }}</span>
+                        <span class="kpi-currency">{{ sum.currency }}</span>
                       </div>
-                      <div class="summary-value">{{ formatAmount(sum.net) }}</div>
-                      <div class="d-flex justify-content-between gap-2 summary-meta">
-                        <span class="text-success">{{ 'studentFees.paid' | translate }}: {{ formatAmount(sum.paid) }}</span>
-                        <span class="text-danger">{{ 'studentFees.balance' | translate }}: {{ formatAmount(sum.balance) }}</span>
+                      <div class="kpi-value">{{ formatAmount(sum.net) }}</div>
+                      <div class="kpi-progress">
+                        <div class="kpi-bar paid" [style.width.%]="paidPercent(sum.net, sum.paid, sum.balance)"></div>
+                        <div class="kpi-bar waived" [style.width.%]="sum.net > 0 ? (sum.waived / sum.net) * 100 : 0"></div>
+                      </div>
+                      <div class="d-flex justify-content-between gap-2 kpi-meta">
+                        <span>{{ 'studentFees.paid' | translate }}: <strong>{{ formatAmount(sum.paid) }}</strong></span>
+                        <span>{{ 'studentFees.balance' | translate }}: <strong>{{ formatAmount(sum.balance) }}</strong></span>
                       </div>
                       @if (sum.waived > 0) {
-                        <div class="summary-meta text-secondary">{{ 'studentFees.waive.waived' | translate }}: {{ formatAmount(sum.waived) }}</div>
+                        <div class="kpi-meta">{{ 'studentFees.waive.waived' | translate }}: {{ formatAmount(sum.waived) }}</div>
                       }
-                      <div class="progress summary-progress">
-                        <div class="progress-bar bg-success" [style.width.%]="paidPercent(sum.net, sum.paid, sum.balance)"></div>
-                        <div class="progress-bar bg-secondary" [style.width.%]="sum.net > 0 ? (sum.waived / sum.net) * 100 : 0"></div>
-                      </div>
                     </div>
                   </div>
                 }
                 <div class="col-sm-6">
-                  <div class="summary-tile" [class.border-danger]="overdueCount() > 0">
-                    <span class="text-muted small">{{ 'students.nextDue' | translate }}</span>
+                  <div class="kpi" [class.kpi-danger]="overdueCount() > 0">
+                    <span class="kpi-icon"><i class="pe-7s-clock"></i></span>
+                    <span class="kpi-label">{{ 'students.nextDue' | translate }}</span>
                     @if (nextDue(); as nd) {
-                      <div class="summary-value" [class.text-danger]="isPastDue(nd)">{{ formatDate(nd.dueDate) }}</div>
-                      <div class="summary-meta text-muted">{{ formatAmount(nd.balance, nd.currency) }}</div>
+                      <div class="kpi-value" [class.text-danger]="isPastDue(nd)">{{ formatDate(nd.dueDate) }}</div>
+                      <div class="kpi-meta text-muted">{{ formatAmount(nd.balance, nd.currency) }}</div>
                     } @else {
-                      <div class="summary-value text-success">{{ 'students.allSettled' | translate }}</div>
+                      <div class="kpi-value text-success">{{ 'students.allSettled' | translate }}</div>
                     }
                     @if (overdueCount() > 0) {
-                      <div class="summary-meta text-danger">{{ 'students.overdueCount' | translate: { count: overdueCount() } }}</div>
+                      <div class="kpi-meta text-danger">{{ 'students.overdueCount' | translate: { count: overdueCount() } }}</div>
                     }
                   </div>
                 </div>
               </div>
 
               <!-- Status filter chips -->
-              <div class="d-flex flex-wrap gap-1 mb-2">
-                <button
-                  type="button"
-                  class="btn btn-sm"
-                  [class.btn-dark]="statusFilter() === ''"
-                  [class.btn-outline-secondary]="statusFilter() !== ''"
-                  (click)="statusFilter.set('')"
-                >
-                  {{ 'studentFees.allStatuses' | translate }} ({{ fees().length }})
+              <div class="d-flex flex-wrap gap-2 mb-3">
+                <button type="button" class="chip" [class.chip-active]="statusFilter() === ''" (click)="statusFilter.set('')">
+                  {{ 'studentFees.allStatuses' | translate }} <span class="chip-count">{{ fees().length }}</span>
                 </button>
                 @for (st of statuses; track st.value) {
                   @if (statusCount(st.value) > 0) {
-                    <button
-                      type="button"
-                      class="btn btn-sm"
-                      [class.btn-dark]="statusFilter() === '' + st.value"
-                      [class.btn-outline-secondary]="statusFilter() !== '' + st.value"
-                      (click)="setStatusFilter('' + st.value)"
-                    >
-                      {{ st.key | translate }} ({{ statusCount(st.value) }})
+                    <button type="button" class="chip" [class.chip-active]="statusFilter() === '' + st.value" (click)="setStatusFilter('' + st.value)">
+                      {{ st.key | translate }} <span class="chip-count">{{ statusCount(st.value) }}</span>
                     </button>
                   }
                 }

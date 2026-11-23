@@ -1,0 +1,241 @@
+<div class="container-fluid">
+  <div class="row mb-4 align-items-center">
+    <div class="col">
+      <h2 class="mb-0">{{ 'transport.tripDetails' | translate }}</h2>
+      @if (trip(); as t) {
+        <small class="text-muted">{{ dateText(t.date) }} · {{ typeKey() | translate }}</small>
+      }
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-outline-secondary" (click)="back()">{{ 'common.back' | translate }}</button>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && trip(); as t) {
+    <div class="row g-3 mb-3">
+      <!-- Trip -->
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'transport.tripInfo' | translate }}</span>
+            <span class="badge fs-6" [ngClass]="statusInfo(t.status).badge">{{ statusInfo(t.status).key | translate }}</span>
+          </div>
+          <div class="card-body">
+            <dl class="row mb-0">
+              <dt class="col-5">{{ 'transport.bus' | translate }}</dt>
+              <dd class="col-7">
+                @if (bus(); as b) {
+                  {{ b.number }} · <span dir="ltr">{{ b.plateNumber }}</span>
+                } @else {
+                  -
+                }
+              </dd>
+              <dt class="col-5">{{ 'transport.route' | translate }}</dt>
+              <dd class="col-7">{{ route() ? (currentLanguage() === 'ar' ? route()!.nameAr : route()!.nameEn) : '-' }}</dd>
+              <dt class="col-5">{{ 'transport.driver' | translate }}</dt>
+              <dd class="col-7">
+                @if (bus(); as b) {
+                  {{ b.driverName }}
+                  <a class="d-block" dir="ltr" [href]="'tel:' + b.driverPhone">{{ b.driverPhone }}</a>
+                } @else {
+                  -
+                }
+              </dd>
+              <dt class="col-5">{{ 'transport.startedAt' | translate }}</dt>
+              <dd class="col-7">{{ dateTime(t.startedAt) }}</dd>
+              <dt class="col-5">{{ 'transport.endedAt' | translate }}</dt>
+              <dd class="col-7 mb-0">{{ dateTime(t.endedAt) }}</dd>
+            </dl>
+
+            <div class="d-flex flex-wrap gap-2 mt-3">
+              @if (canStart()) {
+                <button class="btn btn-primary" *appCan="'edit'" (click)="openAction('start', confirmModal)" [disabled]="isSaving()">
+                  <i class="pe-7s-play"></i> {{ 'transport.startTrip' | translate }}
+                </button>
+              }
+              @if (canComplete()) {
+                <button class="btn btn-success" *appCan="'edit'" (click)="openAction('complete', confirmModal)" [disabled]="isSaving()">
+                  <i class="pe-7s-check"></i> {{ 'transport.completeTrip' | translate }}
+                </button>
+              }
+              @if (canCancel()) {
+                <button class="btn btn-outline-danger" *appCan="'edit'" (click)="openAction('cancel', confirmModal)" [disabled]="isSaving()">
+                  <i class="pe-7s-close-circle"></i> {{ 'transport.cancelTrip' | translate }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Last location -->
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'transport.lastLocation' | translate }}</span>
+            @if (isRunning()) {
+              <small class="text-muted">
+                <span class="spinner-grow spinner-grow-sm text-success me-1" role="status" aria-hidden="true"></span>
+                {{ 'transport.autoRefresh' | translate }}
+              </small>
+            }
+          </div>
+          <div class="card-body">
+            @if (hasLocation()) {
+              <dl class="row mb-2">
+                <dt class="col-5">{{ 'transport.latitude' | translate }}</dt>
+                <dd class="col-7" dir="ltr">{{ t.currentLatitude }}</dd>
+                <dt class="col-5">{{ 'transport.longitude' | translate }}</dt>
+                <dd class="col-7" dir="ltr">{{ t.currentLongitude }}</dd>
+                <dt class="col-5">{{ 'transport.lastLocationAt' | translate }}</dt>
+                <dd class="col-7 mb-0">{{ dateTime(t.lastLocationAt) }}</dd>
+              </dl>
+              <a class="btn btn-outline-primary" [href]="mapsUrl()" target="_blank" rel="noopener noreferrer">
+                <i class="pe-7s-map-marker"></i> {{ 'transport.openInMaps' | translate }}
+              </a>
+            } @else {
+              <p class="text-muted mb-0">{{ 'transport.noLocation' | translate }}</p>
+            }
+            @if (lastRefresh()) {
+              <div class="d-flex align-items-center gap-2 mt-3 small text-muted">
+                <span>{{ 'transport.updatedAt' | translate }} {{ lastRefresh() | date: 'shortTime' }}</span>
+                <button type="button" class="btn btn-link btn-sm p-0" (click)="reload()">{{ 'transport.refresh' | translate }}</button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students -->
+    <div class="card">
+      <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <span>{{ 'transport.tripStudents' | translate }} <span class="badge bg-secondary ms-1">{{ t.students.length }}</span></span>
+        <div class="d-flex flex-wrap gap-1">
+          @for (c of counts(); track c.value) {
+            <span class="badge" [ngClass]="c.badge">{{ c.key | translate }}: {{ c.count }}</span>
+          }
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'transport.student' | translate }}</th>
+                <th>{{ 'transport.stop' | translate }}</th>
+                <th>{{ 'common.status' | translate }}</th>
+                <th>{{ 'transport.boardedAt' | translate }}</th>
+                <th>{{ 'transport.droppedOffAt' | translate }}</th>
+                @if (isRunning()) {
+                  <th>{{ 'common.actions' | translate }}</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of sortedStudents(); track s.id) {
+                <tr>
+                  <td>{{ studentName(s.studentId) }}</td>
+                  <td>{{ stopName(s.studentId) }}</td>
+                  <td><span class="badge" [ngClass]="studentStatusInfo(s.status).badge">{{ studentStatusInfo(s.status).key | translate }}</span></td>
+                  <td class="text-nowrap">{{ time(s.boardedAt) }}</td>
+                  <td class="text-nowrap">{{ time(s.droppedOffAt) }}</td>
+                  @if (isRunning()) {
+                    <td class="text-nowrap">
+                      @if (markingStudentId() === s.studentId) {
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      } @else {
+                        <div class="btn-group btn-group-sm" role="group" *appCan="'edit'">
+                          @if (canBoard(s)) {
+                            <button class="btn btn-outline-primary" (click)="markStudent(s, TripStudentStatus.Boarded)" [disabled]="!!markingStudentId()">
+                              {{ 'transport.markBoarded' | translate }}
+                            </button>
+                          }
+                          @if (canDropOff(s)) {
+                            <button class="btn btn-outline-success" (click)="markStudent(s, TripStudentStatus.DroppedOff)" [disabled]="!!markingStudentId()">
+                              {{ 'transport.markDroppedOff' | translate }}
+                            </button>
+                          }
+                          @if (canMarkAbsent(s)) {
+                            <button class="btn btn-outline-danger" (click)="markStudent(s, TripStudentStatus.Absent)" [disabled]="!!markingStudentId()">
+                              {{ 'transport.markAbsent' | translate }}
+                            </button>
+                          }
+                        </div>
+                      }
+                    </td>
+                  }
+                </tr>
+              }
+              @if (sortedStudents().length === 0) {
+                <tr>
+                  <td [attr.colspan]="isRunning() ? 6 : 5" class="text-center text-muted py-4">{{ 'transport.noTripStudents' | translate }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Start / Complete / Cancel Confirmation Modal -->
+<ng-template #confirmModal let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">
+      @switch (pendingAction()) {
+        @case ('start') { {{ 'transport.startTrip' | translate }} }
+        @case ('complete') { {{ 'transport.completeTrip' | translate }} }
+        @default { {{ 'transport.cancelTrip' | translate }} }
+      }
+    </h4>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelModal()" [disabled]="isSaving()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-0">
+      @switch (pendingAction()) {
+        @case ('start') { {{ 'transport.confirmStartTrip' | translate }} }
+        @case ('complete') { {{ 'transport.confirmCompleteTrip' | translate }} }
+        @default { {{ 'transport.confirmCancelTrip' | translate }} }
+      }
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelModal()" [disabled]="isSaving()">
+      {{ 'common.close' | translate }}
+    </button>
+    <button type="button" class="btn" [ngClass]="pendingAction() === 'cancel' ? 'btn-danger' : 'btn-primary'"
+            (click)="confirmAction()" [disabled]="isSaving()">
+      @if (isSaving()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      {{ 'common.confirm' | translate }}
+    </button>
+  </div>
+</ng-template>

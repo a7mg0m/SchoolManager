@@ -416,6 +416,68 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Order = 4,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
                             Route = "/clinic/vaccination-campaigns"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
+                            Icon = "pe-7s-check",
+                            IsActive = true,
+                            Order = 8
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000008001"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
+                            Route = "/attendance/daily"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000008002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
+                            Route = "/attendance/evaluations"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
+                            Icon = "pe-7s-car",
+                            IsActive = true,
+                            Order = 9
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009001"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
+                            Route = "/transport/routes"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
+                            Route = "/transport/buses"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009003"),
+                            IsActive = true,
+                            Order = 3,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
+                            Route = "/transport/assignments"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009004"),
+                            IsActive = true,
+                            Order = 4,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
+                            Route = "/transport/trips"
                         });
                 });
 
@@ -999,6 +1061,54 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                     MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007004"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009001"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 });
                         });
 
@@ -1224,6 +1334,54 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                     MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007004"),
                                     Arabic = "حملات التطعيم",
                                     English = "Vaccination Campaigns"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
+                                    Arabic = "الحضور والغياب",
+                                    English = "Attendance"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008001"),
+                                    Arabic = "الحضور اليومي",
+                                    English = "Daily Attendance"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008002"),
+                                    Arabic = "تقييمات الطلاب",
+                                    English = "Student Evaluations"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
+                                    Arabic = "النقل المدرسي",
+                                    English = "School Transport"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009001"),
+                                    Arabic = "خطوط السير",
+                                    English = "Bus Routes"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009002"),
+                                    Arabic = "الباصات",
+                                    English = "Buses"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009003"),
+                                    Arabic = "توزيع الطلاب على الباصات",
+                                    English = "Bus Assignments"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009004"),
+                                    Arabic = "الرحلات",
+                                    English = "Trips"
                                 });
                         });
 

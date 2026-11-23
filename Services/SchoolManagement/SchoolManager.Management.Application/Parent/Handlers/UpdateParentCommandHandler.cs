@@ -82,10 +82,11 @@ namespace SchoolManager.Management.Application
                         s.SectionId,
                         s.AcademicYearId,
                         NewAudit());
+                    existing.SetLocation(s.Latitude, s.Longitude);
                 }
                 else
                 {
-                    await _studentRepository.AddAsync(new Student(
+                    var student = new Student(
                         new NameLocalized(s.FullNameAr, s.FullNameEn),
                         s.DateOfBirth,
                         s.NationalId,
@@ -98,7 +99,9 @@ namespace SchoolManager.Management.Application
                         s.SectionId,
                         s.AcademicYearId,
                         entity.Id,
-                        NewAudit()));
+                        NewAudit());
+                    student.SetLocation(s.Latitude, s.Longitude);
+                    await _studentRepository.AddAsync(student);
                 }
             }
 

@@ -220,6 +220,23 @@
             }
           </div>
 
+          <!-- Job level (optional) -->
+          <div class="mb-3">
+            <label for="jobLevel" class="form-label">{{ 'teachers.jobLevel' | translate }}</label>
+            <input
+              type="text"
+              class="form-control"
+              id="jobLevel"
+              formControlName="jobLevel"
+              maxlength="100"
+              [placeholder]="'teachers.jobLevelPlaceholder' | translate"
+              [class.is-invalid]="isInvalid('jobLevel')"
+            />
+            @if (hasError('jobLevel', 'maxlength')) {
+              <div class="invalid-feedback">{{ 'teachers.maxLength' | translate: { max: 100 } }}</div>
+            }
+          </div>
+
           <!-- Is Active -->
           <div class="mb-3">
             <label for="isActive" class="form-label">{{ 'common.status' | translate }}</label>

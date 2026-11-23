@@ -13,6 +13,7 @@ namespace SchoolManager.Management.Application
         string Address,
         bool IsActive,
         string? LoginName = null,
-        string? Password = null
+        string? Password = null,
+        string? JobLevel = null
     ) : ICommand<Guid>;
 }

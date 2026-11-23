@@ -25,9 +25,15 @@ class StudentFeeItem {
     required this.status,
     required this.dueDate,
     this.waiveReason,
+    this.busAssignmentId,
   });
 
   final String id;
+
+  /// Bus fee: the child's bus assignment it comes from (null for the school / grade fees)
+  final String? busAssignmentId;
+
+  bool get isBusFee => busAssignmentId != null;
   final double total;
   final double discount;
   final double paid;
@@ -70,6 +76,7 @@ class StudentFeeItem {
         status: _status(json['status']),
         dueDate: DateTime.tryParse('${json['dueDate']}') ?? DateTime.now(),
         waiveReason: (json['waiveReason'] as String?)?.trim(),
+        busAssignmentId: json['busAssignmentId'] == null || '${json['busAssignmentId']}'.isEmpty ? null : '${json['busAssignmentId']}',
       );
 }
 

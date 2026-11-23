@@ -8,9 +8,11 @@ using SchoolManager.ExamsHomework.Domain;
 namespace SchoolManager.ExamsHomework.API.Controllers
 {
     /// <summary>
-    /// Teacher app: the logged-in teacher's own exams (quizzes and monthly exams only) for the classes they teach,
-    /// and the students' scores. The teacher id comes from the login token; what they teach is checked with the
-    /// Management service. Parents see these exams and their child's score in the parent app.
+    /// Teacher app: the quizzes and monthly exams of the subjects the logged-in teacher teaches, in the classes they
+    /// teach them (their own and the ones by the school office or other teachers), and the students' scores.
+    /// The teacher adds, edits and deletes only their own quizzes and monthly exams. The teacher id comes from the
+    /// login token; what they teach is checked with the Management service. Parents see these exams and their
+    /// child's score in the parent app.
     /// </summary>
     [Authorize]
     [Route("api/exam/my")]
@@ -31,17 +33,80 @@ namespace SchoolManager.ExamsHomework.API.Controllers
 
         private string Authorization => Request.Headers.Authorization.ToString();
 
-        /// <summary>The teacher's exams in the academic year / semester (null: all), newest first, with score counts.</summary>
+        /// <summary>
+        /// The quizzes and monthly exams of the teacher's subjects and classes in the academic year / semester (null:
+        /// all), newest first, with score counts: their own and the ones by the school office or other teachers
+        /// (whole-grade exams too). Mid-term and final exams are not listed.
+        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetMyExams([FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
         {
             if (CurrentTeacherId is not Guid teacherId)
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
 
-            var classes = await _management.GetMyClassesAsync(Authorization, academicYearId, semesterId, cancellationToken)
-                ?? new TeacherClasses(null, null, Array.Empty<TeacherSubject>()); // names are optional here
-            var exams = await _exams.GetForTeacherAsync(teacherId, academicYearId, semesterId, cancellationToken);
-            return Ok(new ApiResponse { data = exams.Select(e => ToDto(e, classes)).ToList() });
+            var classes = await _management.GetMyClassesAsync(Authorization, academicYearId, semesterId, cancellationToken);
+            if (classes is null)
+            {
+                // Management unavailable: the teacher's own exams only (names are optional here)
+                var own = await _exams.GetForTeacherAsync(teacherId, academicYearId, semesterId, cancellationToken);
+                var none = new TeacherClasses(null, null, Array.Empty<TeacherSubject>());
+                return Ok(new ApiResponse
+                {
+                    data = own.Where(e => AllowedTypes.Contains(e.ExamType)).Select(e => ToDto(e, none, teacherId)).ToList()
+                });
+            }
+
+            var subjectIds = classes.Subjects.Select(s => s.SubjectId).Distinct().ToList();
+            var gradeIds = classes.Subjects.Select(s => s.GradeId).Distinct().ToList();
+            var exams = await _exams.GetForTeacherClassesAsync(teacherId, subjectIds, gradeIds, academicYearId, semesterId, cancellationToken);
+            return Ok(new ApiResponse
+            {
+                data = exams
+                    .Where(e => AllowedTypes.Contains(e.ExamType) && (e.TeacherId == teacherId || Teaches(classes, e)))
+                    .Select(e => ToDto(e, classes, teacherId))
+                    .ToList()
+            });
+        }
+
+        /// <summary>The exam is of a subject the teacher teaches in its grade, for the whole grade or one of their classes</summary>
+        private static bool Teaches(TeacherClasses classes, Exam e)
+        {
+            var subject = classes.Subject(e.SubjectId, e.GradeId);
+            return subject is not null && (e.SectionId is null || subject.Sections.Any(s => s.Id == e.SectionId));
+        }
+
+        /// <summary>
+        /// The classes whose students the teacher scores in this exam: its class, or (whole-grade exam) the
+        /// teacher's classes of the subject in that grade. Null when the teacher may not open it; empty list when
+        /// the Management service could not answer.
+        /// </summary>
+        private async Task<List<Guid>?> ScoreSectionsAsync(Exam exam, Guid teacherId, CancellationToken cancellationToken)
+        {
+            if (exam.TeacherId == teacherId && exam.SectionId is Guid own)
+                return new List<Guid> { own };
+
+            var classes = await _management.GetMyClassesAsync(Authorization, exam.AcademicYearId, exam.SemesterId, cancellationToken);
+            if (classes is null)
+                return new List<Guid>();
+            if (exam.TeacherId != teacherId && !Teaches(classes, exam))
+                return null;
+            if (exam.SectionId is Guid sectionId)
+                return new List<Guid> { sectionId };
+            return classes.Subject(exam.SubjectId, exam.GradeId)?.Sections.Select(s => s.Id).ToList() ?? new List<Guid>();
+        }
+
+        /// <summary>The students of the given classes, by name; null when the Management service could not answer</summary>
+        private async Task<List<SectionStudent>?> StudentsOfAsync(List<Guid> sectionIds, CancellationToken cancellationToken)
+        {
+            var all = new List<SectionStudent>();
+            foreach (var sectionId in sectionIds)
+            {
+                var students = await _management.GetMySectionStudentsAsync(Authorization, sectionId, cancellationToken);
+                if (students is null)
+                    return null;
+                all.AddRange(students);
+            }
+            return all.GroupBy(s => s.Id).Select(g => g.First()).ToList();
         }
 
         /// <summary>New quiz / monthly exam for a class of a subject the teacher teaches.</summary>
@@ -129,10 +194,12 @@ namespace SchoolManager.ExamsHomework.API.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
 
             var exam = await _exams.GetWithResultsAsync(id, cancellationToken);
-            if (exam is null || exam.TeacherId != teacherId || exam.SectionId is not Guid sectionId)
+            if (exam is null)
                 return NotFound(new ApiResponse(404, "ExamNotFound"));
-
-            var students = await _management.GetMySectionStudentsAsync(Authorization, sectionId, cancellationToken);
+            var sections = await ScoreSectionsAsync(exam, teacherId, cancellationToken);
+            if (sections is null)
+                return NotFound(new ApiResponse(404, "ExamNotFound"));
+            var students = sections.Count == 0 ? null : await StudentsOfAsync(sections, cancellationToken);
             if (students is null)
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiResponse(503, "ManagementUnavailable"));
 
@@ -165,7 +232,10 @@ namespace SchoolManager.ExamsHomework.API.Controllers
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
 
             var exam = await _exams.GetWithResultsAsync(id, cancellationToken);
-            if (exam is null || exam.TeacherId != teacherId || exam.SectionId is not Guid sectionId)
+            if (exam is null)
+                return NotFound(new ApiResponse(404, "ExamNotFound"));
+            var sections = await ScoreSectionsAsync(exam, teacherId, cancellationToken);
+            if (sections is null)
                 return NotFound(new ApiResponse(404, "ExamNotFound"));
 
             var results = dto?.Results ?? new List<StudentScoreDto>();
@@ -174,8 +244,9 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             if (results.Any(r => r.Score is double s && (!double.IsFinite(s) || s < 0 || s > exam.Weight)))
                 return BadRequest(new ApiResponse(400, "ScoreInvalid"));
 
-            // Only students of the exam's class
-            var students = await _management.GetMySectionStudentsAsync(Authorization, sectionId, cancellationToken);
+            // Only students of the exam's class (whole-grade exam: of the teacher's classes); scores of other
+            // students stay as they are
+            var students = sections.Count == 0 ? null : await StudentsOfAsync(sections, cancellationToken);
             if (students is null)
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiResponse(503, "ManagementUnavailable"));
             var inClass = students.Select(s => s.Id).ToHashSet();
@@ -207,13 +278,15 @@ namespace SchoolManager.ExamsHomework.API.Controllers
 
         private static double Minutes(SaveMyExamDto dto) => (dto.EndTime - dto.StartTime).TotalMinutes;
 
-        private static TeacherExamDto ToDto(Exam e, TeacherClasses classes)
+        private static TeacherExamDto ToDto(Exam e, TeacherClasses classes, Guid teacherId)
         {
             var subject = classes.Subject(e.SubjectId, e.GradeId);
             var section = subject?.Sections.FirstOrDefault(s => s.Id == e.SectionId);
             return new TeacherExamDto
             {
                 Id = e.Id,
+                IsMine = e.TeacherId == teacherId,
+                AddedByTeacher = e.TeacherId is not null,
                 SubjectId = e.SubjectId,
                 SubjectNameAr = subject?.SubjectNameAr ?? string.Empty,
                 SubjectNameEn = subject?.SubjectNameEn ?? string.Empty,

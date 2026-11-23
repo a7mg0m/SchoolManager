@@ -1,0 +1,158 @@
+<div class="container-fluid">
+  <div class="row mb-4">
+    <div class="col">
+      <h2>
+        @if (isEditMode()) {
+          {{ 'transport.editRoute' | translate }}
+        } @else {
+          {{ 'transport.newRoute' | translate }}
+        }
+      </h2>
+    </div>
+  </div>
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.success' | translate }}:</strong> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!isLoading()) {
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="card mb-3">
+        <div class="card-header">{{ 'transport.routeInfo' | translate }}</div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="nameAr" class="form-label">{{ 'common.nameAr' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="nameAr" formControlName="nameAr" dir="rtl" maxlength="200"
+                     [class.is-invalid]="hasError('nameAr', 'required')" />
+              @if (hasError('nameAr', 'required')) {
+                <div class="invalid-feedback">{{ 'transport.errors.NameArRequired' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="nameEn" class="form-label">{{ 'common.nameEn' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="nameEn" formControlName="nameEn" dir="ltr" maxlength="200"
+                     [class.is-invalid]="hasError('nameEn', 'required')" />
+              @if (hasError('nameEn', 'required')) {
+                <div class="invalid-feedback">{{ 'transport.errors.NameEnRequired' | translate }}</div>
+              }
+            </div>
+          </div>
+          <div class="mb-0">
+            <label for="description" class="form-label">{{ 'transport.description' | translate }}</label>
+            <textarea class="form-control" id="description" rows="2" formControlName="description" maxlength="500"
+                      [class.is-invalid]="hasError('description', 'maxlength')"></textarea>
+            @if (hasError('description', 'maxlength')) {
+              <div class="invalid-feedback">{{ 'transport.errors.DescriptionTooLong' | translate: { count: 500 } }}</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Stops -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>{{ 'transport.stops' | translate }} <span class="badge bg-secondary ms-1">{{ stops.length }}</span></span>
+          <button type="button" class="btn btn-sm btn-outline-primary" (click)="addStop()">
+            <i class="pe-7s-plus"></i> {{ 'transport.addStop' | translate }}
+          </button>
+        </div>
+        <div class="card-body">
+          @if (stops.length === 0) {
+            <p class="text-muted mb-0">{{ 'transport.noStops' | translate }}</p>
+          } @else {
+            <p class="text-muted small">{{ 'transport.stopsHint' | translate }}</p>
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0" formArrayName="stops">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center" style="width: 4rem;">{{ 'transport.order' | translate }}</th>
+                    <th>{{ 'common.nameAr' | translate }} <span class="text-danger">*</span></th>
+                    <th>{{ 'common.nameEn' | translate }} <span class="text-danger">*</span></th>
+                    <th style="width: 9rem;">{{ 'transport.latitude' | translate }}</th>
+                    <th style="width: 9rem;">{{ 'transport.longitude' | translate }}</th>
+                    <th style="width: 9rem;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (stop of stops.controls; track stop; let i = $index; let first = $first; let last = $last) {
+                    <tr [formGroupName]="i">
+                      <td class="text-center fw-semibold">{{ i + 1 }}</td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" formControlName="nameAr" dir="rtl" maxlength="200"
+                               [class.is-invalid]="stopInvalid(i, 'nameAr')" />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control form-control-sm" formControlName="nameEn" dir="ltr" maxlength="200"
+                               [class.is-invalid]="stopInvalid(i, 'nameEn')" />
+                      </td>
+                      <td>
+                        <input type="number" step="0.000001" class="form-control form-control-sm" formControlName="latitude" dir="ltr"
+                               [class.is-invalid]="stopInvalid(i, 'latitude')" [title]="'transport.errors.LatitudeInvalid' | translate" />
+                      </td>
+                      <td>
+                        <input type="number" step="0.000001" class="form-control form-control-sm" formControlName="longitude" dir="ltr"
+                               [class.is-invalid]="stopInvalid(i, 'longitude')" [title]="'transport.errors.LongitudeInvalid' | translate" />
+                      </td>
+                      <td class="text-end text-nowrap">
+                        <div class="btn-group btn-group-sm" role="group">
+                          <button type="button" class="btn btn-outline-secondary" (click)="moveStop(i, -1)" [disabled]="first"
+                                  title="{{ 'transport.moveUp' | translate }}">
+                            <i class="pe-7s-angle-up"></i>
+                          </button>
+                          <button type="button" class="btn btn-outline-secondary" (click)="moveStop(i, 1)" [disabled]="last"
+                                  title="{{ 'transport.moveDown' | translate }}">
+                            <i class="pe-7s-angle-down"></i>
+                          </button>
+                          <button type="button" class="btn btn-outline-danger" (click)="removeStop(i)"
+                                  title="{{ 'common.delete' | translate }}">
+                            <i class="pe-7s-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="d-flex gap-2 mb-4">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          }
+          {{ 'common.save' | translate }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isSaving()">
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

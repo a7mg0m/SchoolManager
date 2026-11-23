@@ -22,5 +22,9 @@ namespace SchoolManager.Management.Application
         public string SectionNameEn { get; set; } = string.Empty;
 
         public Guid AcademicYearId { get; set; }
+
+        /// <summary>Home location (map pin); null when not set</summary>
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }

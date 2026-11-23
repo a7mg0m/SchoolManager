@@ -40,6 +40,15 @@ import { SchoolInfoService } from '../../../core/services/school-info.service';
       transform: rotate(360deg) !important;  /* Point down */
     }
 
+    /* Arabic (RTL): a closed group points left (the reading direction), an open one down */
+    :host-context([dir="rtl"]) .vsm-item.has-sub .vsm-arrow {
+      transform: rotate(90deg) !important;
+    }
+
+    :host-context([dir="rtl"]) .vsm-item.has-sub.vsm-open .vsm-arrow {
+      transform: rotate(0deg) !important;
+    }
+
     /* Logo + app name at the top of the sidebar */
     .sidebar-logo {
       width: auto !important;

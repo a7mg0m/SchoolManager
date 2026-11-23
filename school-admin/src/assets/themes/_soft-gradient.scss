@@ -1,0 +1,725 @@
+// =============================================================================
+// Soft gradient theme
+// Light, warm pages; emerald lime (emerald -> green -> lime) gradients with a plum accent on the header, page titles and primary buttons;
+// floating rounded cards with soft shadows; frosted sidebar with pill menu items; pill badges.
+// Loaded last (base.scss), so it sits on top of the ArchitectUI / Bootstrap styles without changing pages.
+// =============================================================================
+
+:root {
+  // RGB triplets so every tint below follows the palette: rgba(var(--sg-primary-rgb), .2)
+  --sg-primary-rgb: 5, 150, 105;     // emerald
+  --sg-secondary-rgb: 101, 163, 13;  // lime
+  --sg-accent-rgb: 124, 58, 237;     // plum
+  --sg-rose-rgb: 16, 185, 129;      // green
+  --sg-ink-rgb: 19, 38, 31;
+
+  // Old names kept so the rules below keep working (indigo = primary (emerald), violet = secondary (lime), pink = rose (green))
+  --sg-indigo: rgb(var(--sg-primary-rgb));
+  --sg-violet: rgb(var(--sg-secondary-rgb));
+  --sg-pink: rgb(var(--sg-rose-rgb));
+  --sg-accent: rgb(var(--sg-accent-rgb));
+  --sg-gradient: linear-gradient(135deg, #047857 0%, #0f9f6e 50%, #65a30d 100%);
+  --sg-gradient-soft: linear-gradient(135deg, rgba(var(--sg-rose-rgb), .10) 0%, rgba(var(--sg-secondary-rgb), .10) 100%);
+  --sg-ink: rgb(var(--sg-ink-rgb));
+  --sg-muted: #5f7268;
+  --sg-line: #dcefe4;
+  --sg-surface: #ffffff;
+  --sg-bg: #f4fbf6;
+  --sg-radius: 18px;
+  --sg-radius-sm: 12px;
+  --sg-shadow: 0 1px 2px rgba(var(--sg-ink-rgb), .04), 0 8px 24px rgba(var(--sg-primary-rgb), .08);
+  --sg-shadow-hover: 0 2px 4px rgba(var(--sg-ink-rgb), .05), 0 14px 34px rgba(var(--sg-primary-rgb), .14);
+  --sg-ring: 0 0 0 .22rem rgba(var(--sg-accent-rgb), .25);
+}
+
+// -----------------------------------------------------------------------------
+// Page
+// -----------------------------------------------------------------------------
+
+html,
+body {
+  background: var(--sg-bg);
+}
+
+body {
+  color: var(--sg-ink);
+  font-family: 'Plus Jakarta Sans', 'Cairo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+[dir="rtl"] body,
+[dir="rtl"] {
+  font-family: 'Cairo', 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+// Soft colour glows behind the content
+.app-main {
+  background:
+    radial-gradient(900px 420px at 100% 0%, rgba(var(--sg-secondary-rgb), .10), transparent 60%),
+    radial-gradient(700px 380px at 0% 100%, rgba(var(--sg-primary-rgb), .08), transparent 60%),
+    var(--sg-bg);
+}
+
+.app-main__outer,
+.app-main__inner {
+  background: transparent;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--sg-ink);
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+// Page heading of the list / form pages (h2 at the top of .container-fluid)
+.app-main__inner > * > .container-fluid > .row:first-child h2,
+.app-main__inner > * > .container-fluid > .row:first-child h3 {
+  font-size: 1.55rem;
+  background: var(--sg-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+a {
+  color: var(--sg-indigo);
+}
+
+// Content fades in on navigation
+@media (prefers-reduced-motion: no-preference) {
+  .app-main__inner > * > .container-fluid {
+    animation: sg-rise .35s ease-out both;
+  }
+}
+
+@keyframes sg-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+// Thin scrollbars
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--sg-primary-rgb), .35) transparent;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(var(--sg-primary-rgb), .30); border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+// -----------------------------------------------------------------------------
+// Header: indigo -> violet gradient
+// -----------------------------------------------------------------------------
+
+.app-header {
+  background: var(--sg-gradient) !important;
+  box-shadow: 0 6px 24px rgba(var(--sg-primary-rgb), .25) !important;
+  border: 0;
+  color: #fff;
+
+  .app-header__content,
+  .app-header__logo,
+  .app-header__mobile-menu,
+  .app-header__menu {
+    background: transparent !important;
+  }
+
+  .header-btn-lg,
+  .widget-heading,
+  .widget-subheading,
+  .header-user-info,
+  .btn-link,
+  .nav-link,
+  span,
+  i {
+    color: #fff;
+  }
+
+  .widget-subheading {
+    opacity: .8;
+  }
+
+  .hamburger-inner,
+  .hamburger-inner::before,
+  .hamburger-inner::after {
+    background-color: #fff !important;
+  }
+
+  // Search, academic year / semester selects: frosted on the gradient
+  .form-control,
+  .form-select,
+  .search-wrapper .input-holder {
+    background-color: rgba(255, 255, 255, .16) !important;
+    border: 1px solid rgba(255, 255, 255, .28) !important;
+    color: #fff !important;
+    border-radius: 999px !important;
+
+    &::placeholder { color: rgba(255, 255, 255, .75); }
+  }
+
+  .form-select option {
+    color: var(--sg-ink);
+  }
+
+  // Search: white magnifier, white text and a white close icon on the gradient
+  .search-wrapper {
+    .search-icon {
+      background: rgba(255, 255, 255, .16);
+
+      span::before { background: #fff; }
+      span::after { border-color: #fff; }
+    }
+
+    .search-input {
+      color: #fff;
+
+      &::placeholder { color: rgba(255, 255, 255, .75); }
+    }
+
+    &.active .input-holder {
+      background: rgba(255, 255, 255, .16);
+    }
+
+    .btn-close {
+      filter: invert(1) grayscale(100%) brightness(200%);
+    }
+  }
+
+  .dropdown-menu,
+  .dropdown-menu span,
+  .dropdown-menu i {
+    color: var(--sg-ink);
+  }
+}
+
+// Language switcher (AR / EN) on the gradient: a frosted pill, the current language in white
+.app-header,
+.bg-plum-plate {
+  .language-switcher {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .16);
+    border: 1px solid rgba(255, 255, 255, .28);
+
+    .lang-btn {
+      color: rgba(255, 255, 255, .85) !important;
+      background: transparent !important;
+      border-radius: 999px !important;
+      padding: 3px 12px !important;
+      font-weight: 700;
+      font-size: .78rem;
+      letter-spacing: .04em;
+
+      &:hover { background: rgba(255, 255, 255, .14) !important; color: #fff !important; }
+
+      &.active {
+        background: #fff !important;
+        color: var(--sg-indigo) !important;
+        box-shadow: 0 4px 12px rgba(var(--sg-ink-rgb), .18);
+      }
+    }
+
+    .divider { display: none; }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Sidebar: frosted white with pill items
+// -----------------------------------------------------------------------------
+
+.app-sidebar {
+  background: rgba(255, 255, 255, .86) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-inline-end: 1px solid var(--sg-line);
+  box-shadow: 6px 0 30px rgba(var(--sg-primary-rgb), .06) !important;
+
+  .app-header__logo {
+    background: transparent !important;
+    border-bottom: 1px solid var(--sg-line);
+  }
+
+  .logo-full {
+    font-weight: 800;
+    background: var(--sg-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+.v-sidebar-menu {
+  .vsm-link {
+    border-radius: 14px !important;
+    margin: 2px 0;
+    color: #3f5a4c !important;
+    font-weight: 600;
+
+    &:hover {
+      background: var(--sg-gradient-soft) !important;
+      color: var(--sg-indigo) !important;
+    }
+
+    &.active-item {
+      background: var(--sg-gradient) !important;
+      color: #fff !important;
+      box-shadow: 0 8px 18px rgba(var(--sg-primary-rgb), .30);
+
+      .vsm-icon,
+      .vsm-arrow { color: #fff !important; opacity: 1 !important; }
+    }
+  }
+
+  // An open group / the group of the current page
+  .vsm-item.vsm-active > .vsm-link,
+  .vsm-item.vsm-open > .vsm-link {
+    background: var(--sg-gradient-soft);
+    color: var(--sg-indigo) !important;
+  }
+
+  // The current page's item stays white on the gradient, even when its group is open/active or hovered
+  // (the rule above is more specific than .vsm-link.active-item, so repeat it here)
+  .vsm-item > .vsm-link.active-item,
+  .vsm-item > .vsm-link.active-item:hover {
+    background: var(--sg-gradient) !important;
+    color: #fff !important;
+
+    .vsm-title,
+    .vsm-icon,
+    .vsm-arrow { color: #fff !important; opacity: 1 !important; }
+  }
+
+  .vsm-icon {
+    color: var(--sg-violet);
+    opacity: .85;
+  }
+
+  // Sub items: the guide line in the theme colour (it follows the page direction)
+  .vsm-dropdown::before {
+    background: rgba(var(--sg-secondary-rgb), .20) !important;
+  }
+
+  .vsm-dropdown .vsm-link {
+    font-weight: 500;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Page title (pages that use the shared page title)
+// -----------------------------------------------------------------------------
+
+.app-page-title {
+  background: transparent !important;
+  margin-bottom: 1rem;
+
+  .page-title-icon {
+    background: var(--sg-gradient) !important;
+    color: #fff !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 22px rgba(var(--sg-primary-rgb), .30) !important;
+
+    i { color: #fff !important; }
+  }
+
+  .page-title-heading {
+    font-weight: 800;
+    color: var(--sg-ink);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Cards
+// -----------------------------------------------------------------------------
+
+.card {
+  border: 1px solid rgba(231, 232, 245, .8) !important;
+  border-radius: var(--sg-radius) !important;
+  box-shadow: var(--sg-shadow) !important;
+  background: var(--sg-surface);
+  transition: box-shadow .25s ease, transform .25s ease;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: var(--sg-shadow-hover) !important;
+  }
+
+  .card-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--sg-line) !important;
+    font-weight: 700;
+    color: var(--sg-ink);
+    text-transform: none;
+    padding: 1rem 1.25rem;
+  }
+
+  .card-footer {
+    background: #fbfefc;
+    border-top: 1px solid var(--sg-line);
+  }
+}
+
+// Stat / dashboard widgets
+.widget-content,
+.card.widget-chart {
+  border-radius: var(--sg-radius) !important;
+}
+
+.widget-numbers {
+  font-weight: 800 !important;
+}
+
+// -----------------------------------------------------------------------------
+// Buttons
+// -----------------------------------------------------------------------------
+
+.btn {
+  border-radius: var(--sg-radius-sm);
+  font-weight: 600;
+  letter-spacing: .01em;
+  transition: transform .15s ease, box-shadow .2s ease, background-color .2s ease, color .2s ease;
+
+  &:active { transform: translateY(1px); }
+}
+
+.btn-primary {
+  background: var(--sg-gradient) !important;
+  border: 0 !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(var(--sg-primary-rgb), .28);
+
+  &:hover,
+  &:focus {
+    box-shadow: 0 12px 24px rgba(var(--sg-primary-rgb), .38);
+    transform: translateY(-1px);
+    filter: saturate(1.08);
+  }
+
+  &:disabled { box-shadow: none; opacity: .55; }
+}
+
+.btn-success { box-shadow: 0 8px 18px rgba(22, 163, 74, .22); }
+.btn-danger { box-shadow: 0 8px 18px rgba(239, 69, 101, .22); }
+
+.btn-outline-primary {
+  border-color: rgba(var(--sg-primary-rgb), .45);
+  color: var(--sg-indigo);
+
+  &:hover { background: var(--sg-gradient) !important; border-color: transparent; color: #fff; }
+}
+
+.btn-secondary {
+  background: #eaf7ef;
+  border-color: #eaf7ef;
+  color: #3f5a4c;
+
+  &:hover { background: #d6efe0; border-color: #d6efe0; color: var(--sg-ink); }
+}
+
+// Row action buttons in tables: soft square icon buttons
+.btn-group-sm > .btn,
+.btn-sm {
+  border-radius: 10px !important;
+}
+
+.btn-group > .btn + .btn {
+  margin-inline-start: 4px;
+}
+
+// -----------------------------------------------------------------------------
+// Tables
+// -----------------------------------------------------------------------------
+
+.table {
+  --bs-table-bg: transparent;
+  margin-bottom: 0;
+
+  > thead,
+  > thead.table-light {
+    --bs-table-bg: #f3fbf6;
+
+    th {
+      background: #f3fbf6 !important;
+      color: var(--sg-muted);
+      font-size: .74rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      border-bottom: 0 !important;
+      padding-top: .8rem;
+      padding-bottom: .8rem;
+      white-space: nowrap;
+    }
+
+    th:first-child { border-start-start-radius: 12px; border-end-start-radius: 12px; }
+    th:last-child { border-start-end-radius: 12px; border-end-end-radius: 12px; }
+  }
+
+  > tbody > tr {
+    transition: background-color .15s ease;
+
+    > td {
+      border-color: var(--sg-line);
+      padding-top: .85rem;
+      padding-bottom: .85rem;
+    }
+  }
+}
+
+.table-hover > tbody > tr:hover > * {
+  --bs-table-accent-bg: rgba(var(--sg-secondary-rgb), .05);
+  --bs-table-bg-state: rgba(var(--sg-secondary-rgb), .05);
+}
+
+// -----------------------------------------------------------------------------
+// Forms
+// -----------------------------------------------------------------------------
+
+.form-control,
+.form-select {
+  border-radius: var(--sg-radius-sm);
+  border: 1px solid var(--sg-line);
+  background-color: #fbfefc;
+  min-height: 42px;
+  transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+
+  &:focus {
+    border-color: var(--sg-violet);
+    background-color: #fff;
+    box-shadow: var(--sg-ring);
+  }
+}
+
+.form-control-sm,
+.form-select-sm {
+  min-height: 34px;
+  border-radius: 10px;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #30483c;
+  font-size: .85rem;
+}
+
+.form-check-input:checked {
+  background-color: var(--sg-violet);
+  border-color: var(--sg-violet);
+}
+
+.form-check-input:focus {
+  box-shadow: var(--sg-ring);
+}
+
+// Checkboxes, radios and switches: the control and its label side by side in the reading direction
+// (Bootstrap floats the input left with a negative left margin, which splits them apart in Arabic)
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  padding-inline-start: 0;
+  min-height: 1.5rem;
+
+  .form-check-input {
+    float: none;
+    margin: 0;
+    flex-shrink: 0;
+  }
+
+  .form-check-label {
+    margin: 0;
+    cursor: pointer;
+  }
+}
+
+.form-check-inline {
+  display: inline-flex;
+  margin-inline-end: 1rem;
+  margin-right: 0;
+}
+
+.form-switch {
+  padding-inline-start: 0;
+
+  .form-check-input {
+    width: 2.4em;
+    height: 1.3em;
+    margin: 0;
+    cursor: pointer;
+  }
+}
+
+// Arabic: the switch knob starts on the right and moves left when on
+[dir="rtl"] .form-switch .form-check-input {
+  background-position: right center;
+
+  &:checked {
+    background-position: left center;
+  }
+}
+
+.input-group-text {
+  border-radius: var(--sg-radius-sm);
+  background: #eaf6ee;
+  border-color: var(--sg-line);
+}
+
+// -----------------------------------------------------------------------------
+// Badges, alerts, lists
+// -----------------------------------------------------------------------------
+
+.badge {
+  border-radius: 999px;
+  font-weight: 600;
+  padding: .38em .75em;
+  letter-spacing: .01em;
+}
+
+.alert {
+  border: 0;
+  border-radius: var(--sg-radius-sm);
+  border-inline-start: 4px solid currentColor;
+  box-shadow: var(--sg-shadow);
+}
+
+.alert-info { background: #eef6ff; color: #075985; }
+.alert-success { background: #ecfdf3; color: #166534; }
+.alert-warning { background: #fff8eb; color: #92400e; }
+.alert-danger { background: #fff1f3; color: #9f1239; }
+
+.list-group-item {
+  border-color: var(--sg-line);
+}
+
+.list-group {
+  border-radius: var(--sg-radius-sm);
+}
+
+// -----------------------------------------------------------------------------
+// Tabs, pagination, progress
+// -----------------------------------------------------------------------------
+
+.nav-tabs {
+  border-bottom: 0;
+  gap: 6px;
+  background: #eaf6ee;
+  padding: 5px;
+  border-radius: 14px;
+  display: inline-flex;
+
+  .nav-link {
+    border: 0 !important;
+    border-radius: 10px;
+    color: var(--sg-muted);
+    font-weight: 600;
+
+    &.active {
+      background: #fff;
+      color: var(--sg-indigo);
+      box-shadow: 0 4px 12px rgba(var(--sg-primary-rgb), .14);
+    }
+  }
+}
+
+.pagination .page-link {
+  border-radius: 10px !important;
+  margin: 0 2px;
+  border-color: var(--sg-line);
+  color: var(--sg-indigo);
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--sg-gradient);
+  border-color: transparent;
+}
+
+.progress {
+  border-radius: 999px;
+  background: #eceefb;
+}
+
+.progress-bar {
+  border-radius: 999px;
+}
+
+// -----------------------------------------------------------------------------
+// Modals, dropdowns, tooltips
+// -----------------------------------------------------------------------------
+
+.modal-content {
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 30px 70px rgba(var(--sg-ink-rgb), .25);
+  overflow: hidden;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--sg-line);
+  background: var(--sg-gradient-soft);
+
+  .modal-title { font-weight: 800; color: var(--sg-ink); }
+}
+
+.modal-footer {
+  border-top: 1px solid var(--sg-line);
+  background: #fbfefc;
+}
+
+.modal-backdrop.show {
+  opacity: .35;
+  backdrop-filter: blur(2px);
+}
+
+.dropdown-menu {
+  border: 1px solid var(--sg-line);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(var(--sg-ink-rgb), .14);
+  padding: .4rem;
+
+  .dropdown-item {
+    border-radius: 10px;
+
+    &:hover,
+    &:focus { background: var(--sg-gradient-soft); color: var(--sg-indigo); }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Footer
+// -----------------------------------------------------------------------------
+
+.app-footer,
+.app-footer .app-footer__inner {
+  background: transparent !important;
+  border-top: 1px solid var(--sg-line);
+  color: var(--sg-muted);
+}
+
+// -----------------------------------------------------------------------------
+// Login: gradient mesh with a frosted card
+// -----------------------------------------------------------------------------
+
+.bg-plum-plate {
+  background:
+    radial-gradient(800px 500px at 10% 10%, rgba(var(--sg-rose-rgb), .35), transparent 60%),
+    radial-gradient(900px 600px at 90% 90%, rgba(var(--sg-accent-rgb), .30), transparent 60%),
+    var(--sg-gradient) !important;
+}
+
+.app-login-box {
+  .card {
+    background: rgba(255, 255, 255, .92);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, .6) !important;
+    border-radius: 26px !important;
+    box-shadow: 0 30px 80px rgba(var(--sg-ink-rgb), .30) !important;
+  }
+
+  .login-logo,
+  img {
+    filter: drop-shadow(0 10px 24px rgba(var(--sg-ink-rgb), .25));
+  }
+}

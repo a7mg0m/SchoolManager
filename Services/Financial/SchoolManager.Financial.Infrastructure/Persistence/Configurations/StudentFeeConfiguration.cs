@@ -18,6 +18,9 @@ namespace SchoolManager.Financial.Infrastructure
             builder.Property(x => x.WaivedAmount).HasColumnType("decimal(18,2)");
             builder.Property(x => x.WaiveReason).HasMaxLength(StudentFee.MaxWaiveReasonLength);
 
+            // Bus fee: one student fee per bus assignment (the Kafka handler relies on it to stay idempotent)
+            builder.HasIndex(x => x.BusAssignmentId).IsUnique().HasFilter("[BusAssignmentId] IS NOT NULL");
+
             builder.Ignore(x => x.NetAmount);
             builder.Ignore(x => x.Balance);
 
