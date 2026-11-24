@@ -20,7 +20,7 @@
           }
         </div>
       }
-      <button class="btn btn-outline-secondary btn-sm" (click)="loadData()" [disabled]="isLoading()">
+      <button class="btn btn-outline-secondary btn-sm" (click)="refresh()" [disabled]="isLoading()">
         <i class="pe-7s-refresh-2"></i> {{ 'students.refresh' | translate }}
       </button>
     </div>
@@ -212,6 +212,238 @@
             } @else {
               <div class="chart-box">
                 <canvas baseChart type="line" [data]="financeChartData()" [options]="financeChartOptions()"></canvas>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <!-- Today's attendance -->
+      <div class="col-xl-5">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'dashboard.todayAttendance' | translate }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0" (click)="go('/attendance/daily')">{{ 'dashboard.viewAll' | translate }}</button>
+          </div>
+          <div class="card-body">
+            @if (summaryLoading()) {
+              <div class="text-center py-4"><div class="spinner-border spinner-border-sm" role="status"></div></div>
+            } @else if (summaryFailed()) {
+              <div class="empty-widget">
+                <i class="pe-7s-attention"></i>
+                <p>{{ 'dashboard.summaryFailed' | translate }}</p>
+                <button class="btn btn-outline-secondary btn-sm" (click)="loadSummary()">{{ 'students.retry' | translate }}</button>
+              </div>
+            } @else if (attendanceOverview(); as att) {
+              @if (att.recorded === 0) {
+                <div class="empty-widget">
+                  <i class="pe-7s-note2"></i>
+                  <p>{{ 'dashboard.noAttendanceToday' | translate }}</p>
+                  <button class="btn btn-primary btn-sm" (click)="go('/attendance/daily')">{{ 'dashboard.recordAttendance' | translate }}</button>
+                </div>
+              } @else {
+                <div class="d-flex align-items-end justify-content-between gap-3 mb-3">
+                  <div>
+                    <div class="hero-label">{{ 'dashboard.attendanceRate' | translate }}</div>
+                    <div class="hero-value" [ngClass]="rateClass(att.rate)">{{ att.rate }}%</div>
+                  </div>
+                  <div class="text-end">
+                    <div class="hero-label">{{ 'dashboard.recorded' | translate }}</div>
+                    <div class="hero-secondary">{{ att.recorded }}</div>
+                    <div class="small text-muted">{{ 'dashboard.studentsUnit' | translate }}</div>
+                  </div>
+                </div>
+
+                <div class="segment-bar" role="img" [attr.aria-label]="'dashboard.todayAttendance' | translate">
+                  @for (s of att.segments; track s.key) {
+                    @if (s.percent > 0) {
+                      <div class="segment" [style.flex-grow]="s.percent" [style.background-color]="s.color"
+                           [title]="(('dashboard.attendanceStates.' + s.key) | translate) + ': ' + s.count"></div>
+                    }
+                  }
+                </div>
+                <ul class="segment-legend">
+                  @for (s of att.segments; track s.key) {
+                    <li [class.dimmed]="s.count === 0">
+                      <span class="swatch" [style.background-color]="s.color"></span>
+                      <i [class]="s.icon"></i>
+                      <span class="legend-label">{{ 'dashboard.attendanceStates.' + s.key | translate }}</span>
+                      <span class="legend-value">{{ s.count }}</span>
+                      <span class="legend-pct">{{ s.percent | number: '1.0-0' }}%</span>
+                    </li>
+                  }
+                </ul>
+              }
+              @if (att.sectionsMissing > 0) {
+                <button type="button" class="overdue-callout" (click)="go('/attendance/daily')">
+                  <i class="pe-7s-attention"></i>
+                  {{ 'dashboard.sectionsNotRecorded' | translate: { count: att.sectionsMissing, total: att.sectionsTotal } }}
+                  <i class="pe-7s-angle-right ms-auto"></i>
+                </button>
+              }
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Transport -->
+      <div class="col-xl-7">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'dashboard.transport' | translate }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0" (click)="go('/transport/buses')">{{ 'dashboard.viewAll' | translate }}</button>
+          </div>
+          <div class="card-body">
+            @if (summaryLoading()) {
+              <div class="text-center py-4"><div class="spinner-border spinner-border-sm" role="status"></div></div>
+            } @else if (summaryFailed()) {
+              <div class="empty-widget">
+                <i class="pe-7s-attention"></i>
+                <p>{{ 'dashboard.summaryFailed' | translate }}</p>
+              </div>
+            } @else if (transport(); as tr) {
+              @if (tr.buses === 0) {
+                <div class="empty-widget">
+                  <i class="pe-7s-car"></i>
+                  <p>{{ 'dashboard.noBuses' | translate }}</p>
+                  <button class="btn btn-primary btn-sm" (click)="go('/transport/buses/save')">{{ 'transport.newBus' | translate }}</button>
+                </div>
+              } @else {
+                <div class="mini-stats mb-3">
+                  <button type="button" class="mini-stat" (click)="go('/transport/buses')">
+                    <span class="mini-value">{{ tr.activeBuses }}<small>/{{ tr.buses }}</small></span>
+                    <span class="mini-label">{{ 'dashboard.activeBuses' | translate }}</span>
+                  </button>
+                  <button type="button" class="mini-stat" (click)="go('/transport/assignments')">
+                    <span class="mini-value">{{ tr.riders }}<small>/{{ tr.seats }}</small></span>
+                    <span class="mini-label">{{ 'dashboard.ridersSeats' | translate: { percent: tr.occupancy } }}</span>
+                  </button>
+                  <button type="button" class="mini-stat" (click)="go('/transport/trips')">
+                    <span class="mini-value">{{ tr.tripsTotal }}</span>
+                    <span class="mini-label">{{ 'dashboard.tripsToday' | translate }}</span>
+                  </button>
+                </div>
+
+                @if (tr.tripsTotal > 0) {
+                  <div class="trip-chips mb-3">
+                    @if (tr.tripsInProgress > 0) { <span class="trip-chip running"><i class="pe-7s-car"></i> {{ 'dashboard.tripStates.inProgress' | translate }} · {{ tr.tripsInProgress }}</span> }
+                    @if (tr.tripsPlanned > 0) { <span class="trip-chip planned"><i class="pe-7s-clock"></i> {{ 'dashboard.tripStates.planned' | translate }} · {{ tr.tripsPlanned }}</span> }
+                    @if (tr.tripsCompleted > 0) { <span class="trip-chip done"><i class="pe-7s-check"></i> {{ 'dashboard.tripStates.completed' | translate }} · {{ tr.tripsCompleted }}</span> }
+                    @if (tr.tripsCancelled > 0) { <span class="trip-chip cancelled"><i class="pe-7s-close-circle"></i> {{ 'dashboard.tripStates.cancelled' | translate }} · {{ tr.tripsCancelled }}</span> }
+                  </div>
+                }
+
+                <div class="hero-label mb-2">{{ 'dashboard.busOccupancy' | translate }}</div>
+                @for (b of tr.topBuses; track b.busId) {
+                  <div class="bus-row">
+                    <span class="bus-number">{{ b.number }}</span>
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="d-flex justify-content-between small">
+                        <span class="text-truncate">
+                          {{ b.driverName }}
+                          @if (!b.hasDriverLogin) { <span class="badge bg-warning text-dark ms-1">{{ 'transport.driverNoLoginShort' | translate }}</span> }
+                        </span>
+                        <span class="text-muted text-nowrap">{{ b.riders }}/{{ b.capacity }}</span>
+                      </div>
+                      <div class="progress bus-progress">
+                        <div class="progress-bar" [ngClass]="busPercent(b.riders, b.capacity) >= 90 ? 'bg-danger' : 'bg-success'"
+                             [style.width.%]="busPercent(b.riders, b.capacity)"></div>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                @if (tr.driversWithoutLogin > 0) {
+                  <button type="button" class="overdue-callout mt-2" (click)="go('/transport/buses')">
+                    <i class="pe-7s-key"></i>
+                    {{ 'dashboard.driversWithoutLogin' | translate: { count: tr.driversWithoutLogin } }}
+                    <i class="pe-7s-angle-right ms-auto"></i>
+                  </button>
+                }
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <!-- Upcoming exams -->
+      <div class="col-xl-6">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'dashboard.upcomingExams' | translate: { days: 14 } }}</span>
+            <button type="button" class="btn btn-link btn-sm p-0" (click)="go('/exam/exams')">{{ 'dashboard.viewAll' | translate }}</button>
+          </div>
+          <div class="list-group list-group-flush">
+            @for (e of nextExams(); track e.id) {
+              @let type = examType(e);
+              <div class="list-group-item d-flex gap-3 align-items-center">
+                <div class="date-block" [class.date-today]="isToday(e.examDate)">
+                  <span class="date-day">{{ dayOfMonth(e.examDate) }}</span>
+                  <span class="date-month">{{ monthShort(e.examDate) }}</span>
+                </div>
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-semibold text-truncate">{{ subjectName(e.subjectId) }}</span>
+                    <span class="badge" [ngClass]="type.badge">{{ type.key | translate }}</span>
+                  </div>
+                  <small class="text-muted">
+                    {{ gradeName(e.gradeId) }} ·
+                    @if (isToday(e.examDate)) { <span class="text-primary fw-semibold">{{ 'schoolEvents.today' | translate }}</span> · }
+                    {{ formatTime(e.startTime) }}
+                  </small>
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-widget">
+                <i class="pe-7s-note"></i>
+                <p>{{ 'dashboard.noUpcomingExams' | translate }}</p>
+                <button class="btn btn-primary btn-sm" (click)="go('/exam/exams/save')">{{ 'dashboard.newExam' | translate }}</button>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Exam results -->
+      <div class="col-xl-6">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>{{ 'dashboard.examResults' | translate }}</span>
+            @if (examTotals().count > 0) {
+              <span class="small text-muted">
+                {{ 'dashboard.overallPassRate' | translate }}:
+                <strong [ngClass]="rateClass(examTotals().passRate)">{{ examTotals().passRate }}%</strong>
+              </span>
+            }
+          </div>
+          <div class="list-group list-group-flush">
+            @for (row of latestExamResults(); track row.exam.id) {
+              <button type="button" class="list-group-item list-group-item-action d-flex gap-3 align-items-center"
+                      (click)="go('/exam/exams/' + row.exam.id + '/results')">
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex justify-content-between gap-2">
+                    <span class="fw-semibold text-truncate">{{ subjectName(row.exam.subjectId) }} <small class="text-muted fw-normal">· {{ gradeName(row.exam.gradeId) }}</small></span>
+                    <span class="fw-semibold" [ngClass]="rateClass(row.passRate)">{{ row.passRate }}%</span>
+                  </div>
+                  <div class="progress bus-progress my-1">
+                    <div class="progress-bar" [ngClass]="row.passRate >= 75 ? 'bg-success' : row.passRate >= 50 ? 'bg-warning' : 'bg-danger'"
+                         [style.width.%]="row.passRate"></div>
+                  </div>
+                  <small class="text-muted">
+                    {{ formatDate(row.exam.examDate) }} ·
+                    {{ 'dashboard.passedOf' | translate: { passed: row.passed, count: row.count } }} ·
+                    {{ 'dashboard.averageScore' | translate: { percent: row.averagePercent } }}
+                  </small>
+                </div>
+              </button>
+            } @empty {
+              <div class="empty-widget">
+                <i class="pe-7s-medal"></i>
+                <p>{{ 'dashboard.noExamResults' | translate }}</p>
               </div>
             }
           </div>

@@ -94,6 +94,11 @@
                   <td>
                     {{ bus.driverName }}
                     <small class="d-block text-muted" dir="ltr">{{ bus.driverPhone }}</small>
+                    @if (bus.driverLoginName) {
+                      <small class="d-block text-muted" dir="ltr"><i class="pe-7s-user"></i> {{ bus.driverLoginName }}</small>
+                    } @else {
+                      <span class="badge bg-warning text-dark">{{ 'transport.driverNoLoginShort' | translate }}</span>
+                    }
                   </td>
                   <td>
                     <a href="javascript:void(0)" (click)="navigateToAssignments(bus.id)">

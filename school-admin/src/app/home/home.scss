@@ -16,6 +16,35 @@
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
 }
 
+// Cards side by side: each fills its row (same height), and every row has the same minimum height on
+// wide screens, so the whole page lines up. The body grows; an empty message is centered in it.
+.row > [class*='col-'] > .card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  > .card-body,
+  > .list-group {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty-widget {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 1200px) {
+  .row > [class*='col-'] > .card {
+    min-height: 420px;
+  }
+}
+
 .card-header {
   font-weight: 600;
   background-color: transparent;
@@ -271,4 +300,95 @@
   p {
     margin: 0.5rem 0 0.75rem;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Attendance / transport / exams
+// ---------------------------------------------------------------------------
+.rate-good { color: #0a7d0a; }
+.rate-warning { color: #a86b00; }
+.rate-critical { color: #c0392b; }
+
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.mini-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--sg-line, #e1e0d9);
+  background: rgba(var(--sg-primary-rgb, 42, 120, 214), 0.04);
+  text-align: start;
+  transition: background 0.15s ease;
+
+  &:hover { background: rgba(var(--sg-primary-rgb, 42, 120, 214), 0.09); }
+
+  .mini-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+
+    small { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+  }
+
+  .mini-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+}
+
+.trip-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.trip-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+
+  &.running { background: rgba(42, 120, 214, 0.12); color: #1c5cab; }
+  &.planned { background: rgba(250, 178, 25, 0.16); color: #8a5a00; }
+  &.done { background: rgba(12, 163, 12, 0.12); color: #0a7d0a; }
+  &.cancelled { background: rgba(137, 135, 129, 0.15); color: #52514e; }
+}
+
+.bus-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+
+  .bus-number {
+    flex: 0 0 auto;
+    min-width: 3.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    background: rgba(var(--sg-primary-rgb, 42, 120, 214), 0.08);
+    color: var(--sg-indigo, #1c5cab);
+  }
+}
+
+.bus-progress {
+  height: 6px;
+  border-radius: 999px;
+}
+
+@media (max-width: 575.98px) {
+  .mini-stats { grid-template-columns: 1fr; }
 }

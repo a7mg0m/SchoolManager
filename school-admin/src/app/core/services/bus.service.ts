@@ -16,6 +16,18 @@ export class BusService {
 
   constructor(private apiService: ApiService) {}
 
+  /**
+   * Is the login name free? (Identity service: no employee, teacher, parent or other driver uses it)
+   * @param busId - The bus being edited (its driver's own login name is allowed; the driver's user id is the bus id)
+   */
+  isLoginNameAvailable(loginName: string, busId?: string | null): Observable<ApiResponse<boolean>> {
+    const params = new URLSearchParams({ loginName });
+    if (busId) {
+      params.set('userId', busId);
+    }
+    return this.apiService.get<ApiResponse<boolean>>(`/api/user/login-name-available?${params.toString()}`);
+  }
+
   /** GET /api/bus/get-all */
   getAll(): Observable<BusListResponse> {
     return this.apiService.get<BusListResponse>(`${this.endpoint}/get-all`);

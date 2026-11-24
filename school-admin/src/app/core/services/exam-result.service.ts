@@ -19,6 +19,11 @@ export class ExamResultService {
 
   constructor(private apiService: ApiService) {}
 
+  /** Every result of every exam (home page pass rates) */
+  getAll(): Observable<ExamResultListResponse> {
+    return this.apiService.get<ExamResultListResponse>(`${this.endpoint}/get-all`);
+  }
+
   getByExam(examId: string): Observable<ExamResultListResponse> {
     return this.apiService.get<ExamResultListResponse>(`${this.endpoint}/get-by-exam/${examId}`);
   }

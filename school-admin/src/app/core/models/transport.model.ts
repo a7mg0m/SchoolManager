@@ -89,6 +89,8 @@ export interface Bus {
   capacity: number;
   driverName: string;
   driverPhone: string;
+  /** Login name of the driver's account; null for buses saved before driver logins */
+  driverLoginName?: string | null;
   busRouteId: string;
   isActive: boolean;
 }
@@ -101,6 +103,10 @@ export interface CreateBusRequest {
   driverName: string;
   driverPhone: string;
   busRouteId: string;
+  /** Driver's login name (required) */
+  driverLoginName: string;
+  /** Driver's password: required for a new bus or a bus without a login yet; null keeps the current one */
+  driverPassword: string | null;
 }
 
 /** Body for PUT /api/bus/update */

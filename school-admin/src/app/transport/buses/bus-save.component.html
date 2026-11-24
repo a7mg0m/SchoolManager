@@ -107,6 +107,62 @@
               }
             </div>
           </div>
+
+          <!-- Driver's login (account in the Identity service) -->
+          <h6 class="mt-2 mb-1">{{ 'transport.driverLogin' | translate }}</h6>
+          @if (isEditMode() && !hasDriverLogin()) {
+            <div class="alert alert-warning py-2 small">{{ 'transport.driverNoLogin' | translate }}</div>
+          } @else {
+            <p class="text-muted small mb-2">{{ 'transport.driverLoginHint' | translate }}</p>
+          }
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label for="driverLoginName" class="form-label">{{ 'transport.loginName' | translate }} <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="driverLoginName" formControlName="driverLoginName" dir="ltr" autocomplete="off"
+                     [maxlength]="loginNameMaxLength"
+                     [class.is-invalid]="hasError('driverLoginName', 'required') || hasError('driverLoginName', 'minlength') || hasError('driverLoginName', 'taken')" />
+              @if (hasError('driverLoginName', 'required')) {
+                <div class="invalid-feedback">{{ 'transport.errors.LoginNameRequired' | translate }}</div>
+              }
+              @if (hasError('driverLoginName', 'minlength')) {
+                <div class="invalid-feedback">{{ 'transport.errors.LoginNameTooShort' | translate }}</div>
+              }
+              @if (hasError('driverLoginName', 'taken')) {
+                <div class="invalid-feedback">{{ 'transport.errors.LoginNameExists' | translate }}</div>
+              }
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="driverPassword" class="form-label">
+                {{ (hasDriverLogin() ? 'transport.newPassword' : 'transport.password') | translate }}
+                @if (!hasDriverLogin()) { <span class="text-danger">*</span> }
+              </label>
+              <div class="input-group has-validation">
+                <input [type]="showPassword() ? 'text' : 'password'" class="form-control" id="driverPassword" dir="ltr"
+                       autocomplete="new-password" formControlName="driverPassword"
+                       [placeholder]="hasDriverLogin() ? ('transport.keepPassword' | translate) : ''"
+                       [class.is-invalid]="hasError('driverPassword', 'required') || hasError('driverPassword', 'minlength')" />
+                <button type="button" class="btn btn-outline-secondary" (click)="showPassword.set(!showPassword())"
+                        [title]="(showPassword() ? 'transport.hidePassword' : 'transport.showPassword') | translate">
+                  <i [class]="showPassword() ? 'pe-7s-close-circle' : 'pe-7s-look'"></i>
+                </button>
+                @if (hasError('driverPassword', 'required')) {
+                  <div class="invalid-feedback">{{ 'transport.errors.PasswordRequired' | translate }}</div>
+                }
+                @if (hasError('driverPassword', 'minlength')) {
+                  <div class="invalid-feedback">{{ 'transport.errors.PasswordTooShort' | translate }}</div>
+                }
+              </div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label for="confirmPassword" class="form-label">{{ 'transport.confirmPassword' | translate }}</label>
+              <input [type]="showPassword() ? 'text' : 'password'" class="form-control" id="confirmPassword" dir="ltr"
+                     autocomplete="new-password" formControlName="confirmPassword"
+                     [class.is-invalid]="passwordMismatch" />
+              @if (passwordMismatch) {
+                <div class="invalid-feedback">{{ 'transport.passwordMismatch' | translate }}</div>
+              }
+            </div>
+          </div>
         </div>
       </div>
 

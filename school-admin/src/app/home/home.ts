@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, signal, untracked } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ChartData, ChartOptions } from 'chart.js';
@@ -30,6 +30,14 @@ import { Revenue } from '../core/models/revenue.model';
 import { Expense } from '../core/models/expense.model';
 import { SchoolEvent } from '../core/models/school-event.model';
 import { AppNotification, NOTIFICATION_TYPES } from '../core/models/notification.model';
+import { AttendanceDashboardService } from '../core/services/attendance-dashboard.service';
+import { ExamService } from '../core/services/exam.service';
+import { ExamResultService } from '../core/services/exam-result.service';
+import { SubjectService } from '../core/services/subject.service';
+import { DashboardSummary } from '../core/models/dashboard.model';
+import { Exam, EXAM_TYPES } from '../core/models/exam.model';
+import { ExamResult } from '../core/models/exam-result.model';
+import { Subject as SchoolSubject } from '../core/models/subject.model';
 
 /**
  * Chart tokens – the dataviz reference palette (validated: categorical slots 1–2 pass all
@@ -79,6 +87,18 @@ interface MonthRow {
 
 const MONTHS_SHOWN = 6;
 
+/** Upcoming exams: the next days shown on the home page */
+const EXAM_DAYS_AHEAD = 14;
+
+/** One segment of the attendance bar */
+export interface AttendanceSegment {
+  key: 'present' | 'partiallyPresent' | 'absent' | 'excused';
+  count: number;
+  color: string;
+  icon: string;
+  percent: number;
+}
+
 @Component({
   selector: 'app-home',
   standalone: false,
@@ -104,6 +124,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   private allExpenses = signal<Expense[]>([]);
   private allEvents = signal<SchoolEvent[]>([]);
   private allNotifications = signal<AppNotification[]>([]);
+  private allExams = signal<Exam[]>([]);
+  private examResults = signal<ExamResult[]>([]);
+  private subjects = signal<SchoolSubject[]>([]);
+
+  /** Today's attendance and the transport (Attendance service), for the header's academic year */
+  summary = signal<DashboardSummary | null>(null);
+  summaryLoading = signal(false);
+  summaryFailed = signal(false);
 
   /** Records of the academic year chosen in the header (all of them while no year is chosen) */
   private ofYear<T extends { academicYearId?: string | null }>(items: T[]): T[] {
@@ -119,6 +147,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private expenses = computed(() => this.ofYear(this.allExpenses()));
   private events = computed(() => this.ofYear(this.allEvents()));
   private notifications = computed(() => this.ofYear(this.allNotifications()));
+  private exams = computed(() => this.ofYear(this.allExams()));
 
   /** Per-chart "show as table" toggles */
   showTable = signal<Record<string, boolean>>({});
@@ -387,6 +416,116 @@ export class HomeComponent implements OnInit, OnDestroy {
   }));
 
   // ---------------------------------------------------------------------------
+  // Today's attendance
+  // ---------------------------------------------------------------------------
+
+  attendanceOverview = computed(() => {
+    const a = this.summary()?.attendance;
+    if (!a) return null;
+    const pct = (v: number) => (a.recorded > 0 ? (v / a.recorded) * 100 : 0);
+    const segments: AttendanceSegment[] = [
+      { key: 'present', count: a.present, color: VIZ.good, icon: 'pe-7s-check', percent: pct(a.present) },
+      { key: 'partiallyPresent', count: a.partiallyPresent, color: VIZ.warning, icon: 'pe-7s-clock', percent: pct(a.partiallyPresent) },
+      { key: 'absent', count: a.absent, color: VIZ.critical, icon: 'pe-7s-close-circle', percent: pct(a.absent) },
+      { key: 'excused', count: a.excused, color: VIZ.neutral, icon: 'pe-7s-note2', percent: pct(a.excused) }
+    ];
+    const sections = this.sections().length;
+    return {
+      ...a,
+      // Present (whole or part of the day) out of everyone recorded
+      rate: a.recorded > 0 ? Math.round(((a.present + a.partiallyPresent) / a.recorded) * 100) : 0,
+      segments,
+      sectionsTotal: sections,
+      sectionsMissing: Math.max(sections - a.sectionsRecorded, 0)
+    };
+  });
+
+  // ---------------------------------------------------------------------------
+  // Transport
+  // ---------------------------------------------------------------------------
+
+  transport = computed(() => {
+    const t = this.summary()?.transport;
+    if (!t) return null;
+    const tripsTotal = t.tripsPlanned + t.tripsInProgress + t.tripsCompleted + t.tripsCancelled;
+    return {
+      ...t,
+      occupancy: t.seats > 0 ? Math.round((t.riders / t.seats) * 100) : 0,
+      tripsTotal,
+      topBuses: t.busOccupancy.slice(0, 5)
+    };
+  });
+
+  busPercent(riders: number, capacity: number): number {
+    return capacity > 0 ? Math.min(Math.round((riders / capacity) * 100), 100) : 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Exams
+  // ---------------------------------------------------------------------------
+
+  upcomingExams = computed(() => {
+    const today = this.todayIso();
+    const until = this.isoPlusDays(EXAM_DAYS_AHEAD);
+    return this.exams()
+      .filter(e => (e.examDate || '').substring(0, 10) >= today && (e.examDate || '').substring(0, 10) <= until)
+      .sort((a, b) => (a.examDate + a.startTime).localeCompare(b.examDate + b.startTime));
+  });
+
+  nextExams = computed(() => this.upcomingExams().slice(0, 5));
+
+  /** Exams of the year that have results, newest first, with their pass rate */
+  examResultRows = computed(() => {
+    const byExam = new Map<string, ExamResult[]>();
+    for (const r of this.examResults()) {
+      const list = byExam.get(r.examId);
+      list ? list.push(r) : byExam.set(r.examId, [r]);
+    }
+    return this.exams()
+      .filter(e => byExam.has(e.id))
+      .sort((a, b) => b.examDate.localeCompare(a.examDate))
+      .map(e => {
+        const results = byExam.get(e.id)!;
+        const passed = results.filter(r => r.isPassed).length;
+        const average = results.reduce((s, r) => s + (r.score || 0), 0) / results.length;
+        return {
+          exam: e,
+          count: results.length,
+          passed,
+          passRate: Math.round((passed / results.length) * 100),
+          averagePercent: e.weight > 0 ? Math.round((average / e.weight) * 100) : 0
+        };
+      });
+  });
+
+  latestExamResults = computed(() => this.examResultRows().slice(0, 5));
+
+  /** All results of the year's exams: overall pass rate */
+  examTotals = computed(() => {
+    const rows = this.examResultRows();
+    const count = rows.reduce((s, r) => s + r.count, 0);
+    const passed = rows.reduce((s, r) => s + r.passed, 0);
+    return { exams: rows.length, count, passed, passRate: count > 0 ? Math.round((passed / count) * 100) : 0 };
+  });
+
+  examType(exam: Exam) {
+    return EXAM_TYPES.find(t => t.value === exam.examType) ?? EXAM_TYPES[0];
+  }
+
+  subjectName(id: string): string {
+    return this.localized(this.subjects().find(s => s.id === id), this.currentLanguage());
+  }
+
+  gradeName(id: string): string {
+    return this.localized(this.grades().find(g => g.id === id), this.currentLanguage());
+  }
+
+  /** Green from 75%, amber from 50%, red below */
+  rateClass(rate: number): string {
+    return rate >= 75 ? 'rate-good' : rate >= 50 ? 'rate-warning' : 'rate-critical';
+  }
+
+  // ---------------------------------------------------------------------------
   // Lists
   // ---------------------------------------------------------------------------
 
@@ -421,12 +560,22 @@ export class HomeComponent implements OnInit, OnDestroy {
     private expenseService: ExpenseService,
     private schoolEventService: SchoolEventService,
     private notificationService: NotificationService,
+    private attendanceDashboardService: AttendanceDashboardService,
+    private examService: ExamService,
+    private examResultService: ExamResultService,
+    private subjectService: SubjectService,
     private languageService: LanguageService,
     private translate: TranslateService,
     private router: Router,
     public academic: AcademicContextService
   ) {
     this.academic.load();
+
+    // Attendance and transport are counted per academic year on the server: reload when the header's year changes
+    effect(() => {
+      const yearId = this.academic.yearId();
+      untracked(() => this.loadSummary(yearId));
+    });
   }
 
   ngOnInit(): void {
@@ -468,7 +617,10 @@ export class HomeComponent implements OnInit, OnDestroy {
       revenues: safe('financial', this.revenueService.getAll()),
       expenses: safe('financial', this.expenseService.getAll()),
       events: safe('notification', this.schoolEventService.getAll()),
-      notifications: safe('notification', this.notificationService.getAll())
+      notifications: safe('notification', this.notificationService.getAll()),
+      exams: safe('exams', this.examService.getAll()),
+      examResults: safe('exams', this.examResultService.getAll()),
+      subjects: safe('management', this.subjectService.getAll())
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe(r => {
@@ -484,9 +636,38 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.allExpenses.set(list(r.expenses));
         this.allEvents.set(list(r.events));
         this.allNotifications.set(list(r.notifications));
+        this.allExams.set(list(r.exams));
+        this.examResults.set(list(r.examResults));
+        this.subjects.set(list(r.subjects));
         this.failedSources.set([...new Set(failed)]);
         this.isLoading.set(false);
       });
+  }
+
+  /** Today's attendance and the transport of an academic year (all years while none is chosen) */
+  loadSummary(yearId: string = this.academic.yearId()): void {
+    this.summaryLoading.set(true);
+    this.summaryFailed.set(false);
+    this.attendanceDashboardService
+      .getSummary(this.todayIso(), yearId || null)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: r => {
+          this.summary.set(r.status === 200 ? r.data : null);
+          this.summaryFailed.set(r.status !== 200);
+          this.summaryLoading.set(false);
+        },
+        error: () => {
+          this.summary.set(null);
+          this.summaryFailed.set(true);
+          this.summaryLoading.set(false);
+        }
+      });
+  }
+
+  refresh(): void {
+    this.loadData();
+    this.loadSummary();
   }
 
   // ---------------------------------------------------------------------------
@@ -562,6 +743,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   private localized(item: { nameAr?: string; nameEn?: string } | undefined, lang: string): string {
     if (!item) return '-';
     return (lang === 'ar' ? item.nameAr || item.nameEn : item.nameEn || item.nameAr) || '-';
+  }
+
+  private isoPlusDays(days: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
   private todayIso(): string {

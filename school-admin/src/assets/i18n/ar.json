@@ -120,7 +120,9 @@
     "services": {
       "management": "إدارة المدرسة",
       "financial": "المالية",
-      "notification": "الإشعارات"
+      "notification": "الإشعارات",
+      "attendance": "الحضور والنقل",
+      "exams": "الامتحانات"
     },
     "feeCollection": "تحصيل الرسوم",
     "viewAll": "عرض الكل",
@@ -154,7 +156,41 @@
     "classes": "الفصول",
     "totalStudents": "إجمالي الطلاب",
     "totalTeachers": "إجمالي المعلمين",
-    "totalClasses": "إجمالي الفصول"
+    "totalClasses": "إجمالي الفصول",
+    "todayAttendance": "حضور اليوم",
+    "attendanceRate": "نسبة الحضور",
+    "recorded": "المسجَّلون",
+    "attendanceStates": {
+      "present": "حاضر",
+      "partiallyPresent": "جزء من اليوم",
+      "absent": "غائب",
+      "excused": "بعذر"
+    },
+    "noAttendanceToday": "لم يُسجَّل حضور اليوم بعد.",
+    "recordAttendance": "تسجيل الحضور",
+    "sectionsNotRecorded": "{{count}} من {{total}} فصول لم يُسجَّل حضورها اليوم",
+    "summaryFailed": "تعذر تحميل الحضور والنقل.",
+    "transport": "النقل المدرسي",
+    "noBuses": "لم تتم إضافة حافلات بعد.",
+    "activeBuses": "الحافلات النشطة",
+    "ridersSeats": "الركاب / المقاعد (ممتلئة {{percent}}%)",
+    "tripsToday": "رحلات اليوم",
+    "tripStates": {
+      "planned": "مخططة",
+      "inProgress": "في الطريق",
+      "completed": "مكتملة",
+      "cancelled": "ملغاة"
+    },
+    "busOccupancy": "إشغال الحافلات",
+    "driversWithoutLogin": "{{count}} سائق بدون حساب دخول",
+    "upcomingExams": "الامتحانات القادمة (خلال {{days}} يوماً)",
+    "noUpcomingExams": "لا توجد امتحانات خلال الأسبوعين القادمين.",
+    "newExam": "امتحان جديد",
+    "examResults": "أحدث نتائج الامتحانات",
+    "overallPassRate": "نسبة النجاح الكلية",
+    "passedOf": "نجح {{passed}} من {{count}}",
+    "averageScore": "المتوسط {{percent}}%",
+    "noExamResults": "لم تُدخل نتائج امتحانات بعد."
   },
   "management": {
     "title": "الإدارة",
@@ -1847,7 +1883,26 @@
       "StudentNotOnTrip": "الطالب ليس في هذه الرحلة.",
       "NotAParent": "هذا الإجراء متاح لحساب ولي الأمر فقط (من تطبيق ولي الأمر).",
       "StudentNotFound": "الطالب غير موجود.",
-      "ManagementUnavailable": "تعذر التحقق من بيانات الطالب الآن. حاول مرة أخرى لاحقًا."
-    }
+      "ManagementUnavailable": "تعذر التحقق من بيانات الطالب الآن. حاول مرة أخرى لاحقًا.",
+      "LoginNameRequired": "اسم الدخول مطلوب.",
+      "LoginNameTooShort": "اسم الدخول يجب ألا يقل عن 3 أحرف.",
+      "LoginNameTooLong": "اسم الدخول يجب ألا يزيد عن 100 حرف.",
+      "LoginNameExists": "اسم الدخول مستخدم بالفعل لمستخدم آخر.",
+      "PasswordRequired": "كلمة المرور مطلوبة.",
+      "PasswordTooShort": "كلمة المرور يجب ألا تقل عن 6 أحرف."
+    },
+    "driverLogin": "حساب دخول السائق",
+    "driverLoginHint": "يسجل السائق الدخول باسم الدخول وكلمة المرور هذين.",
+    "driverNoLogin": "هذا السائق ليس له حساب دخول بعد. أدخل اسم دخول وكلمة مرور لإنشائه.",
+    "driverNoLoginShort": "بدون حساب",
+    "loginName": "اسم الدخول",
+    "password": "كلمة المرور",
+    "newPassword": "كلمة مرور جديدة",
+    "keepPassword": "اتركها فارغة للإبقاء على كلمة المرور الحالية",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "loginNameCheckFailed": "تعذر التحقق من اسم الدخول، حاول مرة أخرى."
   }
 }

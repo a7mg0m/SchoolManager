@@ -26,7 +26,7 @@
       "examshomework-route": {
         "ClusterId": "examshomework-cluster",
         "Match": { "Path": "/api/{resource:regex(^(exam|exam-result|homework|homework-question|homework-publish)$)}/{**catch-all}" },
-        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:58055" } ]
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5180" } ]
       },
       "notification-route": {
         "ClusterId": "notification-cluster",
@@ -40,8 +40,8 @@
       },
       "attendance-route": {
         "ClusterId": "attendance-cluster",
-        "Match": { "Path": "/api/{resource:regex(^(daily-attendance|student-evaluation|evaluation-request|bus-route|bus|bus-assignment|trip)$)}/{**catch-all}" },
-        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:59273" } ]
+        "Match": { "Path": "/api/{resource:regex(^(daily-attendance|student-evaluation|evaluation-request|bus-route|bus|bus-assignment|trip|attendance-dashboard)$)}/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5170" } ]
       }
     },
     "Clusters": {
@@ -57,22 +57,22 @@
       },
       "examshomework-cluster": {
         "Destinations": {
-          "examshomework-api": { "Address": "http://localhost:58055/" }
+          "examshomework-api": { "Address": "http://localhost:5180/" }
         }
       },
       "notification-cluster": {
         "Destinations": {
-          "notification-api": { "Address": "http://localhost:58295/" }
+          "notification-api": { "Address": "http://localhost:5160/" }
         }
       },
       "financial-cluster": {
         "Destinations": {
-          "financial-api": { "Address": "http://localhost:5100/" }
+          "financial-api": { "Address": "http://localhost:5110/" }
         }
       },
       "attendance-cluster": {
         "Destinations": {
-          "attendance-api": { "Address": "http://localhost:59273/" }
+          "attendance-api": { "Address": "http://localhost:5170/" }
         }
       }
     }

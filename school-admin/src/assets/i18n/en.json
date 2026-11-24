@@ -120,7 +120,9 @@
     "services": {
       "management": "School management",
       "financial": "Financial",
-      "notification": "Notifications"
+      "notification": "Notifications",
+      "attendance": "Attendance & transport",
+      "exams": "Exams"
     },
     "feeCollection": "Fee collection",
     "viewAll": "View all",
@@ -154,7 +156,41 @@
     "classes": "Classes",
     "totalStudents": "Total Students",
     "totalTeachers": "Total Teachers",
-    "totalClasses": "Total Classes"
+    "totalClasses": "Total Classes",
+    "todayAttendance": "Today's attendance",
+    "attendanceRate": "Attendance rate",
+    "recorded": "Recorded",
+    "attendanceStates": {
+      "present": "Present",
+      "partiallyPresent": "Part of the day",
+      "absent": "Absent",
+      "excused": "Excused"
+    },
+    "noAttendanceToday": "No attendance has been recorded today yet.",
+    "recordAttendance": "Record attendance",
+    "sectionsNotRecorded": "{{count}} of {{total}} classes have no attendance today",
+    "summaryFailed": "Attendance and transport could not be loaded.",
+    "transport": "Transport",
+    "noBuses": "No buses have been added yet.",
+    "activeBuses": "Active buses",
+    "ridersSeats": "Riders / seats ({{percent}}% full)",
+    "tripsToday": "Today's trips",
+    "tripStates": {
+      "planned": "Planned",
+      "inProgress": "On the road",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "busOccupancy": "Bus occupancy",
+    "driversWithoutLogin": "{{count}} driver(s) have no login yet",
+    "upcomingExams": "Upcoming exams (next {{days}} days)",
+    "noUpcomingExams": "No exams in the next two weeks.",
+    "newExam": "New exam",
+    "examResults": "Latest exam results",
+    "overallPassRate": "Overall pass rate",
+    "passedOf": "{{passed}} of {{count}} passed",
+    "averageScore": "average {{percent}}%",
+    "noExamResults": "No exam results have been entered yet."
   },
   "management": {
     "title": "Management",
@@ -1847,7 +1883,26 @@
       "StudentNotOnTrip": "The student is not on this trip.",
       "NotAParent": "Only a parent account can do this (from the parent app).",
       "StudentNotFound": "The student was not found.",
-      "ManagementUnavailable": "The student data could not be checked right now. Please try again later."
-    }
+      "ManagementUnavailable": "The student data could not be checked right now. Please try again later.",
+      "LoginNameRequired": "The login name is required.",
+      "LoginNameTooShort": "The login name must be at least 3 characters.",
+      "LoginNameTooLong": "The login name must be at most 100 characters.",
+      "LoginNameExists": "This login name is already used by another user.",
+      "PasswordRequired": "The password is required.",
+      "PasswordTooShort": "The password must be at least 6 characters."
+    },
+    "driverLogin": "Driver's login",
+    "driverLoginHint": "The driver signs in with this login name and password.",
+    "driverNoLogin": "This driver has no login yet. Enter a login name and a password to create it.",
+    "driverNoLoginShort": "No login",
+    "loginName": "Login name",
+    "password": "Password",
+    "newPassword": "New password",
+    "keepPassword": "Leave empty to keep the current password",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "The passwords do not match",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "loginNameCheckFailed": "Could not check the login name. Please try again."
   }
 }

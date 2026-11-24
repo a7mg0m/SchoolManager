@@ -1,4 +1,4 @@
-@SchoolManager.Attendance.API_HostAddress = http://localhost:59273
+@SchoolManager.Attendance.API_HostAddress = http://localhost:5170
 @token = paste-a-login-token-here
 
 ### Daily attendance: a teacher records one lesson for the section
