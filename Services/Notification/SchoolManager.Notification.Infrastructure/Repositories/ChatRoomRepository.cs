@@ -21,9 +21,12 @@ namespace SchoolManager.Notification.Infrastructure
         public Task<ChatRoom?> GetSectionGroupRoomAsync(Guid sectionId, CancellationToken cancellationToken = default) =>
             _dbSet.Include(r => r.Participants).FirstOrDefaultAsync(r => r.SectionId == sectionId, cancellationToken);
 
-        public Task<List<ChatRoom>> GetUserRoomsAsync(Guid userId, CancellationToken cancellationToken = default) =>
-            _dbSet.Include(r => r.Participants)
+        public Task<List<ChatRoom>> GetUserRoomsAsync(Guid userId, Guid? academicYearId = null, CancellationToken cancellationToken = default) =>
+            _dbSet.AsNoTracking()
+                .Include(r => r.Participants)
                 .Where(r => r.Participants.Any(p => p.UserId == userId && p.IsActive))
+                .Where(r => academicYearId == null || r.AcademicYearId == academicYearId)
+                .AsSplitQuery()
                 .ToListAsync(cancellationToken);
     }
 }

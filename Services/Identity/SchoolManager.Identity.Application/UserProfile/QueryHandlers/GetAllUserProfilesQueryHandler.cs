@@ -28,7 +28,8 @@ namespace SchoolManager.Identity.Application
                 ProfileImage = p.ProfileImage,
                 EmployeeId = p.EmployeeId,
                 TeacherId = p.TeacherId,
-                ParentId = p.ParentId
+                ParentId = p.ParentId,
+                BusId = p.BusId
             }).ToList();
         }
     }

@@ -39,6 +39,23 @@ namespace SchoolManager.Identity.API.Controllers
             return File(photo.Bytes, photo.ContentType);
         }
 
+        /// <summary>
+        /// Display names of users (chat, called by the Notification service with the user's token):
+        /// GET api/user-profile/names?ids={id}&amp;ids={id} → [{ id, fullName }]. At most 200 ids.
+        /// </summary>
+        [Authorize]
+        [HttpGet("names")]
+        public async Task<IActionResult> GetNames([FromQuery] List<Guid> ids, CancellationToken cancellationToken)
+        {
+            if (ids is null || ids.Count == 0)
+                return Ok(Array.Empty<UserDisplayNameDto>());
+            if (ids.Count > 200)
+                return BadRequest(new ApiResponse(400, "TooManyIds"));
+
+            // A plain list (not wrapped in ApiResponse): the Notification client reads it as is
+            return Ok(await _mediator.Send(new GetUserDisplayNamesQuery(ids), cancellationToken));
+        }
+
         /// <summary>Profile of the logged-in user (user id is taken from the JWT).</summary>
         [Authorize]
         [HttpGet("my-profile")]

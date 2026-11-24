@@ -32,7 +32,8 @@ namespace SchoolManager.Notification.API.Controllers
             if (error is not null) return error;
 
             var byId = contacts!.ToDictionary(c => c.UserId);
-            var chats = (await mediator.Send(new GetChatListQuery(CurrentUserId, academicYearId), cancellationToken))
+            // Names come from the contacts: Identity is not asked
+            var chats = (await mediator.Send(new GetChatListQuery(CurrentUserId, academicYearId, ResolveNames: false), cancellationToken))
                 .Where(c => c.Type == ChatRoomType.Private && c.OtherUserId is not null)
                 .Select(c =>
                 {

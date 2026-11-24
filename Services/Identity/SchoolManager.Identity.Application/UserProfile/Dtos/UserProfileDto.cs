@@ -15,5 +15,6 @@ namespace SchoolManager.Identity.Application
         public Guid? EmployeeId { get; set; }
         public Guid? TeacherId { get; set; }
         public Guid? ParentId { get; set; }
+        public Guid? BusId { get; set; }
     }
 }

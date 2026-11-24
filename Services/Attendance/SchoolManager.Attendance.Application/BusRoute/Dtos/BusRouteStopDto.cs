@@ -10,7 +10,5 @@ namespace SchoolManager.Attendance.Application
 
         /// <summary>Position on the route (1, 2, 3 …), unique within the route</summary>
         public int Order { get; set; }
-        public double? Latitude { get; set; }
-        public double? Longitude { get; set; }
     }
 }

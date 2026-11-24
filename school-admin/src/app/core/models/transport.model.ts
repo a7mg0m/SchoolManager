@@ -54,8 +54,6 @@ export interface BusRouteStop {
   nameAr: string;
   nameEn: string;
   order: number;
-  latitude: number | null;
-  longitude: number | null;
 }
 
 /** A bus route with its stops */

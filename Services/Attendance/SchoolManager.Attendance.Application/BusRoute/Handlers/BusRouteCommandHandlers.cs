@@ -122,7 +122,7 @@ namespace SchoolManager.Attendance.Application
     /// <summary>The stops of a create / update request, in the shape BusRoute.SetStops takes</summary>
     internal static class BusRouteStops
     {
-        public static IEnumerable<(NameLocalized Name, int Order, double? Latitude, double? Longitude)> From(List<BusRouteStopDto>? stops)
-            => (stops ?? new()).Select(s => (new NameLocalized(s.NameAr ?? string.Empty, s.NameEn ?? string.Empty), s.Order, s.Latitude, s.Longitude));
+        public static IEnumerable<(NameLocalized Name, int Order)> From(List<BusRouteStopDto>? stops)
+            => (stops ?? new()).Select(s => (new NameLocalized(s.NameAr ?? string.Empty, s.NameEn ?? string.Empty), s.Order));
     }
 }

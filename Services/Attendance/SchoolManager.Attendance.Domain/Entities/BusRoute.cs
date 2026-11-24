@@ -41,15 +41,15 @@ public sealed class BusRoute : BaseEntity
     /// <summary>
     /// Replaces the route's stops. Each stop's order must be unique (1, 2, 3 … the order the bus passes them).
     /// </summary>
-    public void SetStops(IEnumerable<(NameLocalized Name, int Order, double? Latitude, double? Longitude)> stops)
+    public void SetStops(IEnumerable<(NameLocalized Name, int Order)> stops)
     {
         var list = stops.ToList();
         if (list.GroupBy(s => s.Order).Any(g => g.Count() > 1))
             throw new DomainException("Stop order must be unique.");
 
         _stops.Clear();
-        foreach (var (name, order, latitude, longitude) in list.OrderBy(s => s.Order))
-            _stops.Add(BusRouteStop.Create(Id, name, order, latitude, longitude));
+        foreach (var (name, order) in list.OrderBy(s => s.Order))
+            _stops.Add(BusRouteStop.Create(Id, name, order));
     }
 
     public void Activate(AuditInfo auditInfo)

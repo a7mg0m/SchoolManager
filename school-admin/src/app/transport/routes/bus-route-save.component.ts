@@ -69,9 +69,7 @@ export class BusRouteSaveComponent implements OnInit, OnDestroy {
     this.stops.push(this.formBuilder.group({
       id: [stop?.id ?? NEW_ID],
       nameAr: [stop?.nameAr ?? '', [Validators.required, Validators.maxLength(200)]],
-      nameEn: [stop?.nameEn ?? '', [Validators.required, Validators.maxLength(200)]],
-      latitude: [stop?.latitude ?? null, [Validators.min(-90), Validators.max(90)]],
-      longitude: [stop?.longitude ?? null, [Validators.min(-180), Validators.max(180)]]
+      nameEn: [stop?.nameEn ?? '', [Validators.required, Validators.maxLength(200)]]
     }));
   }
 
@@ -140,21 +138,12 @@ export class BusRouteSaveComponent implements OnInit, OnDestroy {
     }
 
     const v = this.form.getRawValue();
-    const number = (value: any): number | null => value === null || value === '' || value === undefined ? null : Number(value);
     const stops: BusRouteStop[] = (v.stops || []).map((s: any, index: number) => ({
       id: s.id || NEW_ID,
       nameAr: String(s.nameAr).trim(),
       nameEn: String(s.nameEn).trim(),
-      order: index + 1,
-      latitude: number(s.latitude),
-      longitude: number(s.longitude)
+      order: index + 1
     }));
-
-    // Latitude and longitude go together
-    if (stops.some(s => (s.latitude === null) !== (s.longitude === null))) {
-      this.errorMessage.set(this.translate.instant('transport.errors.CoordinatesIncomplete'));
-      return;
-    }
 
     this.isSaving.set(true);
     this.errorMessage.set(null);

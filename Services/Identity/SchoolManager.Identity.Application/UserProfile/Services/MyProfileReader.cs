@@ -58,6 +58,7 @@ namespace SchoolManager.Identity.Application
                 EmployeeId = profile?.EmployeeId,
                 TeacherId = profile?.TeacherId,
                 ParentId = profile?.ParentId,
+                BusId = profile?.BusId,
                 FirstName = profile?.FirstName ?? string.Empty,
                 LastName = profile?.LastName ?? string.Empty,
                 // A user without a profile still has the email of the account

@@ -11,9 +11,7 @@ namespace SchoolManager.Notification.Application
     {
         public async Task<IReadOnlyList<ChatListItemDto>> Handle(GetChatListQuery query, CancellationToken cancellationToken)
         {
-            var userRooms = (await rooms.GetUserRoomsAsync(query.UserId, cancellationToken))
-                .Where(r => query.AcademicYearId == null || r.AcademicYearId == query.AcademicYearId)
-                .ToList();
+            var userRooms = await rooms.GetUserRoomsAsync(query.UserId, query.AcademicYearId, cancellationToken);
             if (userRooms.Count == 0) return Array.Empty<ChatListItemDto>();
 
             var roomIds = userRooms.Select(r => r.Id).ToList();
@@ -27,7 +25,9 @@ namespace SchoolManager.Notification.Application
                 .Where(id => id != query.UserId)
                 .Distinct()
                 .ToList();
-            var names = await userProfiles.GetDisplayNamesAsync(otherUserIds, cancellationToken);
+            IReadOnlyDictionary<Guid, string> names = query.ResolveNames
+                ? await userProfiles.GetDisplayNamesAsync(otherUserIds, cancellationToken)
+                : new Dictionary<Guid, string>();
 
             return userRooms
                 .Select(room =>

@@ -16,6 +16,11 @@ namespace SchoolManager.Management.Domain
         /// Active students of a parent, with their Stage, Grade and Section loaded (read-only).
         /// </summary>
         Task<List<Student>> GetByParentWithAcademicInfoAsync(Guid parentId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// The given students with their Grade, Section and Parent loaded (read-only); unknown ids are skipped.
+        /// </summary>
+        Task<List<Student>> GetByIdsWithParentAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default);
     }
 
 }

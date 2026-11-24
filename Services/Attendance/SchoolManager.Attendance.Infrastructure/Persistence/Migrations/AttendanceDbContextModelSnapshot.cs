@@ -146,12 +146,6 @@ namespace SchoolManager.Attendance.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("BusRouteId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<double?>("Latitude")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("Longitude")
-                        .HasColumnType("float");
-
                     b.Property<int>("Order")
                         .HasColumnType("int");
 

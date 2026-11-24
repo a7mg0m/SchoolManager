@@ -52,6 +52,25 @@ namespace SchoolManager.Management.API.Controllers
 		}
 
 		/// <summary>
+		/// Driver app (called by the Attendance service with the driver's token): name, class, parent's phone and
+		/// home location of the students on a trip of the driver's bus. Bus drivers only (bus_id claim); at most 200 ids.
+		/// </summary>
+		[Authorize]
+		[HttpPost("bus-riders")]
+		public async Task<IActionResult> GetBusRiders([FromBody] List<Guid> studentIds, CancellationToken cancellationToken)
+		{
+			if (_currentUser.BusId is null)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotADriver"));
+			if (studentIds is null || studentIds.Count == 0)
+				return Ok(new ApiResponse { data = new List<BusRiderDto>() });
+			if (studentIds.Count > 200)
+				return Ok(new ApiResponse { status = 400, message = "TooManyStudents" });
+
+			var result = await _mediator.Send(new GetBusRidersQuery(studentIds), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
 		/// Teachers of the logged-in parent's children, with the subjects they teach them (parent app: chat).
 		/// </summary>
 		[Authorize]

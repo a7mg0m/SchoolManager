@@ -3,7 +3,8 @@ using BuildingBlocks.CQRS;
 namespace SchoolManager.Notification.Application
 {
     /// <param name="AcademicYearId">Only the chats of this academic year (null: all)</param>
-    public record GetChatListQuery(Guid UserId, Guid? AcademicYearId = null) : IQuery<IReadOnlyList<ChatListItemDto>>;
+    /// <param name="ResolveNames">False when the caller has the names already (the apps' contacts): Identity is not asked</param>
+    public record GetChatListQuery(Guid UserId, Guid? AcademicYearId = null, bool ResolveNames = true) : IQuery<IReadOnlyList<ChatListItemDto>>;
 
     public record GetChatHistoryQuery(Guid RoomId, Guid UserId, int Page = 1, int PageSize = 50) : IQuery<ChatHistoryDto>;
 }

@@ -1,5 +1,8 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.Extensions.Caching.Memory;
 using SchoolManager.Notification.Application;
 
 namespace SchoolManager.Notification.Infrastructure
@@ -8,7 +11,7 @@ namespace SchoolManager.Notification.Infrastructure
     /// Calls the Management service through the gateway, forwarding the logged-in user's token,
     /// so Management decides who the parent is from the token; this service never trusts ids sent by the app.
     /// </summary>
-    public class ManagementClient(HttpClient httpClient) : IManagementClient
+    public class ManagementClient(HttpClient httpClient, IMemoryCache cache) : IManagementClient
     {
         private sealed record ChildItem(Guid Id, Guid StageId, Guid GradeId, Guid SectionId, Guid AcademicYearId);
         private sealed record ApiResponse<T>(T? Data);
@@ -16,7 +19,30 @@ namespace SchoolManager.Notification.Infrastructure
         private sealed record ParentItem(Guid Id, string? NameAr, string? NameEn, List<NamedItem>? Children);
         private sealed record TeacherItem(Guid TeacherId, string? NameAr, string? NameEn, List<NamedItem>? Subjects);
 
+        /// <summary>
+        /// Contacts change rarely (a new class or child), while the chat list is polled every few seconds:
+        /// the answer is kept for this long per user (the key is a hash of the user's token)
+        /// </summary>
+        private static readonly TimeSpan ContactsLifetime = TimeSpan.FromMinutes(2);
+
         public async Task<IReadOnlyList<ChatContact>?> GetChatContactsAsync(string authorization, bool asTeacher, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(authorization))
+                return Array.Empty<ChatContact>();
+
+            var key = "chat-contacts:" + (asTeacher ? "t:" : "p:")
+                + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(authorization)));
+            if (cache.TryGetValue(key, out IReadOnlyList<ChatContact>? cached) && cached is not null)
+                return cached;
+
+            var contacts = await LoadChatContactsAsync(authorization, asTeacher, cancellationToken);
+            // Only real answers are kept (null = Management unavailable: asked again next time)
+            if (contacts is not null)
+                cache.Set(key, contacts, ContactsLifetime);
+            return contacts;
+        }
+
+        private async Task<IReadOnlyList<ChatContact>?> LoadChatContactsAsync(string authorization, bool asTeacher, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authorization) || !AuthenticationHeaderValue.TryParse(authorization, out var header))
                 return Array.Empty<ChatContact>();

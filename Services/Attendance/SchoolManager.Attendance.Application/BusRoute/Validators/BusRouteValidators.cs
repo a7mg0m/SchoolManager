@@ -34,9 +34,6 @@ namespace SchoolManager.Attendance.Application
             RuleFor(x => x.NameAr).NotEmpty().WithMessage("StopNameArRequired");
             RuleFor(x => x.NameEn).NotEmpty().WithMessage("StopNameEnRequired");
             RuleFor(x => x.Order).GreaterThan(0).WithMessage("StopOrderInvalid");
-            RuleFor(x => x.Latitude).InclusiveBetween(-90, 90).WithMessage("LatitudeInvalid");
-            RuleFor(x => x.Longitude).InclusiveBetween(-180, 180).WithMessage("LongitudeInvalid");
-            RuleFor(x => x).Must(s => s.Latitude.HasValue == s.Longitude.HasValue).WithMessage("CoordinatesIncomplete");
         }
 
         public static bool HaveUniqueOrders(List<BusRouteStopDto>? stops)

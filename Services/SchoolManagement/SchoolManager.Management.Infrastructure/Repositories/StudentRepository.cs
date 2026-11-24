@@ -36,5 +36,19 @@ namespace SchoolManager.Management.Infrastructure
 				.Where(s => s.ParentId == parentId && s.IsActive)
 				.ToListAsync(cancellationToken);
 		}
+
+		public async Task<List<Student>> GetByIdsWithParentAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
+		{
+			if (ids.Count == 0)
+				return new List<Student>();
+
+			return await _dbSet
+				.AsNoTracking()
+				.Include(s => s.Grade)
+				.Include(s => s.Section)
+				.Include(s => s.Parent)
+				.Where(s => ids.Contains(s.Id))
+				.ToListAsync(cancellationToken);
+		}
 	}
 }

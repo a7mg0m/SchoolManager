@@ -15,8 +15,6 @@ namespace SchoolManager.Attendance.Infrastructure
 
             builder.ConfigureLocalized(x => x.Name, "Name");
             builder.Property(x => x.Order).IsRequired();
-            builder.Property(x => x.Latitude);
-            builder.Property(x => x.Longitude);
 
             // The order of a stop is unique within its route
             builder.HasIndex(x => new { x.BusRouteId, x.Order }).IsUnique();

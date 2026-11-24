@@ -8,6 +8,7 @@ namespace SchoolManager.Notification.Domain
         /// <summary>The private room of two users (of an academic year when given)</summary>
         Task<ChatRoom?> GetPrivateRoomAsync(Guid userA, Guid userB, Guid? academicYearId = null, CancellationToken cancellationToken = default);
         Task<ChatRoom?> GetSectionGroupRoomAsync(Guid sectionId, CancellationToken cancellationToken = default);
-        Task<List<ChatRoom>> GetUserRoomsAsync(Guid userId, CancellationToken cancellationToken = default);
+        /// <summary>The user's rooms (read-only, with participants), of one academic year when given</summary>
+        Task<List<ChatRoom>> GetUserRoomsAsync(Guid userId, Guid? academicYearId = null, CancellationToken cancellationToken = default);
     }
 }

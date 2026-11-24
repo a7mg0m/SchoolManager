@@ -180,7 +180,7 @@ class ChatListScreen extends StatefulWidget {
   State<ChatListScreen> createState() => _ChatListScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYear {
+class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYear, WidgetsBindingObserver {
   /// Another year: its own chats
   @override
   Future<void> reloadForAcademicYear() {
@@ -200,16 +200,33 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
-    if (widget.refreshEvery != null) {
-      _timer = Timer.periodic(widget.refreshEvery!, (_) => _load(quiet: true));
-    }
+    _startPolling();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
+  }
+
+  /// Polling only while the app is on screen: stopped in the background, a fresh load on return
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _load(quiet: true);
+      _startPolling();
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _startPolling() {
+    if (widget.refreshEvery == null || _timer != null) return;
+    _timer = Timer.periodic(widget.refreshEvery!, (_) => _load(quiet: true));
   }
 
   Future<void> _load({bool quiet = false}) async {
@@ -555,7 +572,7 @@ class ChatScreen extends StatefulWidget {
   State<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   final _text = TextEditingController();
 
   /// Oldest first
@@ -574,17 +591,34 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _text.addListener(() => setState(() {}));
+    WidgetsBinding.instance.addObserver(this);
     _load();
-    if (widget.refreshEvery != null) {
-      _timer = Timer.periodic(widget.refreshEvery!, (_) => _load(quiet: true));
-    }
+    _startPolling();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _text.dispose();
     super.dispose();
+  }
+
+  /// Polling only while the app is on screen: stopped in the background, a fresh load on return
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _load(quiet: true);
+      _startPolling();
+    } else if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _startPolling() {
+    if (widget.refreshEvery == null || _timer != null) return;
+    _timer = Timer.periodic(widget.refreshEvery!, (_) => _load(quiet: true));
   }
 
   Future<void> _load({bool quiet = false}) async {
