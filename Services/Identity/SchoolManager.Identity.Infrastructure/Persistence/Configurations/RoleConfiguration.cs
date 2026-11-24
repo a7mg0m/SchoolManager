@@ -11,6 +11,7 @@ namespace SchoolManager.Identity.Infrastructure
         public static readonly Guid TeacherId = RoleIds.Teacher;
         public static readonly Guid StudentId = RoleIds.Student;
         public static readonly Guid ParentId = RoleIds.Parent;
+        public static readonly Guid DriverId = RoleIds.Driver;
 
         public void Configure(EntityTypeBuilder<Role> builder)
         {
@@ -30,7 +31,8 @@ namespace SchoolManager.Identity.Infrastructure
                     new { RoleId = AdminId, Arabic = "مدير", English = "Admin" },
                     new { RoleId = TeacherId, Arabic = "معلم", English = "Teacher" },
                     new { RoleId = StudentId, Arabic = "طالب", English = "Student" },
-                    new { RoleId = ParentId, Arabic = "ولي أمر", English = "Parent" });
+                    new { RoleId = ParentId, Arabic = "ولي أمر", English = "Parent" },
+                    new { RoleId = DriverId, Arabic = "سائق", English = "Driver" });
             });
 
             builder.HasData(
@@ -38,7 +40,8 @@ namespace SchoolManager.Identity.Infrastructure
                 new { Id = AdminId, Description = "Administrator" },
                 new { Id = TeacherId, Description = "Teacher" },
                 new { Id = StudentId, Description = "Student" },
-                new { Id = ParentId, Description = "Parent" });
+                new { Id = ParentId, Description = "Parent" },
+                new { Id = DriverId, Description = "Bus driver" });
         }
     }
 }

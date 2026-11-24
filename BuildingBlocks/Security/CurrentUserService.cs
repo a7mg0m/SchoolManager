@@ -37,6 +37,8 @@ namespace BuildingBlocks
 
         public Guid? ParentId => FindGuidClaim(AppClaimTypes.ParentId);
 
+        public Guid? BusId => FindGuidClaim(AppClaimTypes.BusId);
+
         /// <summary>Id from a custom claim, only for an authenticated user; null when missing or not a Guid.</summary>
         private Guid? FindGuidClaim(string type) =>
             IsAuthenticated && Guid.TryParse(FindClaim(type), out var id) && id != Guid.Empty

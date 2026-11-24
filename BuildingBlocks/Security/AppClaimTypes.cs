@@ -14,5 +14,8 @@ namespace BuildingBlocks
 
         /// <summary>Id of the Parent (Management service) the user belongs to.</summary>
         public const string ParentId = "parent_id";
+
+        /// <summary>Id of the Bus (Attendance service) whose driver the user is.</summary>
+        public const string BusId = "bus_id";
     }
 }

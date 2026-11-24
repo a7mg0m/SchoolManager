@@ -41,6 +41,10 @@ namespace SchoolManager.Identity.Infrastructure
             services.AddKafkaConsumer<ParentIntegrationEvent, ParentIntegrationEventHandler>(
                 configuration, Topics.ManagementParents);
 
+            // Kafka: bus created / updated / deleted in Attendance -> driver's User (role Driver) + UserProfile (BusId)
+            services.AddKafkaConsumer<BusDriverIntegrationEvent, BusDriverIntegrationEventHandler>(
+                configuration, Topics.AttendanceBusDrivers);
+
             return services;
         }
     }

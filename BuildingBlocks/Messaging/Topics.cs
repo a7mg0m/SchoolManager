@@ -10,5 +10,8 @@ namespace BuildingBlocks.Messaging
         public const string ManagementParents = "management.parents";
         /// <summary>Bus fee of a student assigned / changed / ended in the Attendance service (key = bus assignment id).</summary>
         public const string AttendanceBusFees = "attendance.bus-fees";
+
+        /// <summary>Bus (and its driver's login) created / updated / deleted in the Attendance service (key = bus id).</summary>
+        public const string AttendanceBusDrivers = "attendance.bus-drivers";
     }
 }

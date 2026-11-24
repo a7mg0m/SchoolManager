@@ -12,6 +12,15 @@ namespace SchoolManager.Attendance.Application
             RuleFor(x => x.DriverName).NotEmpty().WithMessage("DriverNameRequired").MaximumLength(200).WithMessage("DriverNameTooLong");
             RuleFor(x => x.DriverPhone).NotEmpty().WithMessage("DriverPhoneRequired").MaximumLength(50).WithMessage("DriverPhoneTooLong");
             RuleFor(x => x.BusRouteId).NotEmpty().WithMessage("BusRouteIdRequired");
+
+            // Driver's login: both required for a new bus
+            RuleFor(x => x.DriverLoginName)
+                .NotEmpty().WithMessage("LoginNameRequired")
+                .MinimumLength(BusDriverAccount.LoginNameMinLength).WithMessage("LoginNameTooShort")
+                .MaximumLength(BusDriverAccount.LoginNameMaxLength).WithMessage("LoginNameTooLong");
+            RuleFor(x => x.DriverPassword)
+                .NotEmpty().WithMessage("PasswordRequired")
+                .MinimumLength(BusDriverAccount.PasswordMinLength).WithMessage("PasswordTooShort");
         }
     }
 
@@ -26,6 +35,15 @@ namespace SchoolManager.Attendance.Application
             RuleFor(x => x.DriverName).NotEmpty().WithMessage("DriverNameRequired").MaximumLength(200).WithMessage("DriverNameTooLong");
             RuleFor(x => x.DriverPhone).NotEmpty().WithMessage("DriverPhoneRequired").MaximumLength(50).WithMessage("DriverPhoneTooLong");
             RuleFor(x => x.BusRouteId).NotEmpty().WithMessage("BusRouteIdRequired");
+
+            // Driver's login: empty password keeps the current one (the handler requires it for a bus without a login yet)
+            RuleFor(x => x.DriverLoginName)
+                .NotEmpty().WithMessage("LoginNameRequired")
+                .MinimumLength(BusDriverAccount.LoginNameMinLength).WithMessage("LoginNameTooShort")
+                .MaximumLength(BusDriverAccount.LoginNameMaxLength).WithMessage("LoginNameTooLong");
+            RuleFor(x => x.DriverPassword)
+                .MinimumLength(BusDriverAccount.PasswordMinLength).WithMessage("PasswordTooShort")
+                .When(x => !string.IsNullOrEmpty(x.DriverPassword));
         }
     }
 

@@ -8,5 +8,6 @@ namespace SchoolManager.Identity.Domain
         public static readonly Guid Teacher = new("00000000-0000-0000-0000-000000000003");
         public static readonly Guid Student = new("00000000-0000-0000-0000-000000000004");
         public static readonly Guid Parent = new("00000000-0000-0000-0000-000000000005");
+        public static readonly Guid Driver = new("00000000-0000-0000-0000-000000000006");
     }
 }

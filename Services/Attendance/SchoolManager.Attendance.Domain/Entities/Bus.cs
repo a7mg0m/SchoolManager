@@ -14,6 +14,9 @@ public sealed class Bus : BaseEntity
     public int Capacity { get; private set; }
     public string DriverName { get; private set; } = default!;
     public string DriverPhone { get; private set; } = default!;
+
+    /// <summary>Login name of the driver's account (Identity service); null for buses saved before driver logins</summary>
+    public string? DriverLoginName { get; private set; }
     public Guid BusRouteId { get; private set; }
     public bool IsActive { get; private set; }
     public AuditInfo AuditInfo { get; private set; } = default!;
@@ -51,6 +54,11 @@ public sealed class Bus : BaseEntity
         DriverPhone = driverPhone.Trim();
         BusRouteId = busRouteId;
         AuditInfo = auditInfo;
+    }
+
+    public void SetDriverLoginName(string? loginName)
+    {
+        DriverLoginName = string.IsNullOrWhiteSpace(loginName) ? null : loginName.Trim();
     }
 
     public void Activate(AuditInfo auditInfo)

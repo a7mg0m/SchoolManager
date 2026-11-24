@@ -35,6 +35,8 @@ namespace SchoolManager.Identity.Infrastructure
                 claims.Add(new Claim(AppClaimTypes.TeacherId, teacherId.ToString()));
             if (profile?.ParentId is Guid parentId)
                 claims.Add(new Claim(AppClaimTypes.ParentId, parentId.ToString()));
+            if (profile?.BusId is Guid busId)
+                claims.Add(new Claim(AppClaimTypes.BusId, busId.ToString()));
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Key));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

@@ -521,6 +521,11 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000005"),
                             Description = "Parent"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000006"),
+                            Description = "Bus driver"
                         });
                 });
 
@@ -580,6 +585,9 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<Guid?>("BusId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -617,6 +625,10 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BusId")
+                        .IsUnique()
+                        .HasFilter("[BusId] IS NOT NULL");
 
                     b.HasIndex("EmployeeId")
                         .IsUnique()
@@ -1450,6 +1462,12 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                     RoleId = new Guid("00000000-0000-0000-0000-000000000005"),
                                     Arabic = "ولي أمر",
                                     English = "Parent"
+                                },
+                                new
+                                {
+                                    RoleId = new Guid("00000000-0000-0000-0000-000000000006"),
+                                    Arabic = "سائق",
+                                    English = "Driver"
                                 });
                         });
 

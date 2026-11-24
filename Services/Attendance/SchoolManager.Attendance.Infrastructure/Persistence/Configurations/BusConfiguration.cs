@@ -17,8 +17,13 @@ namespace SchoolManager.Attendance.Infrastructure
             builder.Property(x => x.DriverName).IsRequired().HasMaxLength(200);
             builder.Property(x => x.DriverPhone).IsRequired().HasMaxLength(20);
 
+            builder.Property(x => x.DriverLoginName).HasMaxLength(100);
+
             // One bus per plate number
             builder.HasIndex(x => x.PlateNumber).IsUnique();
+
+            // One driver login per name
+            builder.HasIndex(x => x.DriverLoginName).IsUnique().HasFilter("[DriverLoginName] IS NOT NULL");
 
             builder.HasOne<BusRoute>().WithMany().HasForeignKey(x => x.BusRouteId).OnDelete(DeleteBehavior.Restrict);
 

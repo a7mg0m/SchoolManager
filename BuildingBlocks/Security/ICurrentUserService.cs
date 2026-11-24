@@ -26,5 +26,8 @@ namespace BuildingBlocks
 
         /// <summary>Parent id of the logged-in user, or null when the user is not a parent.</summary>
         Guid? ParentId { get; }
+
+        /// <summary>Bus id of the logged-in bus driver, or null when the user is not a driver.</summary>
+        Guid? BusId { get; }
     }
 }

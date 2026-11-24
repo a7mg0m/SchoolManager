@@ -34,6 +34,10 @@ namespace SchoolManager.Attendance.Infrastructure.Persistence.Migrations
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
+                    b.Property<string>("DriverLoginName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("DriverName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -60,6 +64,10 @@ namespace SchoolManager.Attendance.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BusRouteId");
+
+                    b.HasIndex("DriverLoginName")
+                        .IsUnique()
+                        .HasFilter("[DriverLoginName] IS NOT NULL");
 
                     b.HasIndex("PlateNumber")
                         .IsUnique();

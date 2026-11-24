@@ -10,6 +10,9 @@ namespace SchoolManager.Attendance.Application
         public int Capacity { get; set; }
         public string DriverName { get; set; } = string.Empty;
         public string DriverPhone { get; set; } = string.Empty;
+
+        /// <summary>Login name of the driver's account; null for buses saved before driver logins</summary>
+        public string? DriverLoginName { get; set; }
         public Guid BusRouteId { get; set; }
         public bool IsActive { get; set; }
     }

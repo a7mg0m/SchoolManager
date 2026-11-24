@@ -26,6 +26,9 @@ namespace SchoolManager.Identity.Domain
         /// <summary>Parent (Management service) the user belongs to, or null.</summary>
         public Guid? ParentId { get; private set; }
 
+        /// <summary>Bus (Attendance service) whose driver the user is, or null. For drivers it equals the user id.</summary>
+        public Guid? BusId { get; private set; }
+
         private UserProfile()
         {
         }
@@ -59,6 +62,9 @@ namespace SchoolManager.Identity.Domain
 
         /// <summary>Links (or with null unlinks) the parent this user belongs to.</summary>
         public void LinkParent(Guid? parentId) => ParentId = Normalize(parentId);
+
+        /// <summary>Links (or with null unlinks) the bus whose driver this user is.</summary>
+        public void LinkBus(Guid? busId) => BusId = Normalize(busId);
 
         private static Guid? Normalize(Guid? id) => id is Guid value && value != Guid.Empty ? value : null;
     }
