@@ -13,13 +13,13 @@ import { GradeService } from '../../core/services/grade.service';
 import { SectionService } from '../../core/services/section.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { StudentService } from '../../core/services/student.service';
+import { BusService } from '../../core/services/bus.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
 import {
   AppNotification,
   CreateNotificationRequest,
   NOTIFICATION_TYPES,
-  NotificationType
-} from '../../core/models/notification.model';
+  NotificationType, NOTIFICATION_AUDIENCE_OPTIONS } from '../../core/models/notification.model';
 import { EventFor } from '../../core/models/school-event.model';
 import {
   AudienceLookups,
@@ -60,6 +60,8 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
 
   // Audience (bound two-way to <app-audience-picker>); notifications store targets only
   audience = signal<EventFor>(EventFor.All);
+  /** School event audiences + bus drivers */
+  readonly audienceOptions = NOTIFICATION_AUDIENCE_OPTIONS;
   selectedIds = signal<Set<string>>(new Set());
   submitted = signal(false);
 
@@ -86,6 +88,7 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
     private sectionService: SectionService,
     private teacherService: TeacherService,
     private studentService: StudentService,
+    private busService: BusService,
     private languageService: LanguageService,
     private translate: TranslateService,
     private activatedRoute: ActivatedRoute,
@@ -146,7 +149,8 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
         gradeService: this.gradeService,
         sectionService: this.sectionService,
         teacherService: this.teacherService,
-        studentService: this.studentService
+        studentService: this.studentService,
+        busService: this.busService
       }),
       notification: id ? this.notificationService.getById(id) : of(null)
     })

@@ -1,3 +1,4 @@
+import { EVENT_FOR_OPTIONS, EventFor } from './school-event.model';
 import { ApiResponse } from './stage.model';
 import { EventTargetInput } from './school-event.model';
 
@@ -28,6 +29,8 @@ export interface NotificationTarget {
   sectionId: string | null;
   teacherId: string | null;
   studentId: string | null;
+  /** A bus: the notification is for its driver */
+  busId?: string | null;
 }
 
 /** Notification (backend NotificationDto). No targets = the whole school. */
@@ -69,3 +72,9 @@ export type NotificationListResponse = ApiResponse<AppNotification[]>;
 export type NotificationSingleResponse = ApiResponse<AppNotification>;
 export type NotificationTargetListResponse = ApiResponse<NotificationTarget[]>;
 export type NotificationTargetSingleResponse = ApiResponse<NotificationTarget>;
+
+/** Audiences of a notification: the school event ones plus bus drivers */
+export const NOTIFICATION_AUDIENCE_OPTIONS: { value: EventFor; key: string; icon: string }[] = [
+  ...EVENT_FOR_OPTIONS,
+  { value: EventFor.Driver, key: 'schoolEvents.eventFor.driver', icon: 'pe-7s-car' }
+];

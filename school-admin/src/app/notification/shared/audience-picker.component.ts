@@ -35,11 +35,12 @@ export class AudiencePickerComponent {
   showError = input(false);
   /** Hint shown for "All" (differs between events and notifications) */
   allHintKey = input('schoolEvents.allHint');
+  /** Audience types offered (notifications add bus drivers) */
+  options = input(EVENT_FOR_OPTIONS);
 
   search = signal('');
   gradeFilter = signal('');
 
-  readonly options = EVENT_FOR_OPTIONS;
   readonly EventFor = EventFor;
 
   grades = computed(() => this.lookups().grades);
@@ -66,6 +67,14 @@ export class AudiencePickerComponent {
         return l.teachers
           .filter(t => t.isActive !== false || this.selectedIds().has(t.id))
           .map(t => ({ id: t.id, label: localizedFullName(t, lang), sub: t.phoneNumber }));
+      case EventFor.Driver:
+        return l.buses
+          .filter(b => b.isActive || this.selectedIds().has(b.id))
+          .map(b => ({
+            id: b.id,
+            label: b.driverName,
+            sub: this.translate.instant('notifications.busDetail', { number: b.number, plate: b.plateNumber })
+          }));
       case EventFor.Student:
         return l.students.map(s => ({
           id: s.id,

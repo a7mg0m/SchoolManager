@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_school_driver/core/auth/auth_service.dart';
 import 'package:smart_school_driver/core/i18n/app_language.dart';
 import 'package:smart_school_driver/features/home/home_screen.dart';
+import 'package:smart_school_driver/features/notifications/notifications_service.dart';
 import 'package:smart_school_driver/features/profile/profile_service.dart';
 import 'dart:async';
 
@@ -519,6 +520,34 @@ void main() {
       expect(find.text('خريطة الرحلة'), findsOneWidget);
       expect(find.byKey(const ValueKey('student-pin-s1')), findsOneWidget);
     });
+  });
+
+  testWidgets('Notifications tab: the school\'s and my bus\'s notifications', (tester) async {
+    _phoneSize(tester);
+    var loads = 0;
+    await tester.pumpWidget(_app(HomeScreen(
+      tracker: _tracker(),
+      loadBus: () async => _bus,
+      loadTrips: () async => const [],
+      loadProfile: () async => null,
+      loadNotifications: () async {
+        loads++;
+        return [
+          AppNotice(id: 'n1', title: 'تغيير خط السير', description: 'تفاصيل', sentOn: DateTime.now(), type: NoticeType.values.last),
+          AppNotice(id: 'n2', title: 'إجازة رسمية', description: 'للجميع', sentOn: DateTime.now(), type: NoticeType.values.last, forEveryone: true),
+        ];
+      },
+    )));
+    await tester.pumpAndSettle();
+    // Not loaded until the tab is opened
+    expect(loads, 0);
+
+    await tester.tap(find.text('الإشعارات'));
+    await tester.pumpAndSettle();
+    expect(loads, 1);
+    expect(find.text('تغيير خط السير'), findsOneWidget);
+    expect(find.text('إجازة رسمية'), findsOneWidget);
+    expect(find.text('لحافلتك'), findsOneWidget);
   });
 
   testWidgets('Trips tab lists past trips; More tab shows the route and English switches to LTR', (tester) async {

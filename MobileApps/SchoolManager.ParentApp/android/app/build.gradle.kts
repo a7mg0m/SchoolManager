@@ -4,12 +4,21 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase (push notifications): only once android/app/google-services.json is there (see PUSH_NOTIFICATIONS.md),
+// so the app still builds without Firebase
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 android {
     namespace = "com.schoolmanager.smart_school_parent"
-    compileSdk = flutter.compileSdkVersion
+    // At least 37: flutter_local_notifications / androidx.core need it (targetSdk is unchanged)
+    compileSdk = maxOf(flutter.compileSdkVersion, 37)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // flutter_local_notifications (push notifications while the app is open) needs desugaring
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -46,4 +55,8 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

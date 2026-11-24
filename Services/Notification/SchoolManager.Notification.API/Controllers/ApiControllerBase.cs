@@ -18,6 +18,9 @@ namespace SchoolManager.Notification.API.Controllers
         /// <summary>Parent id of the logged-in user, or null when the user is not a parent.</summary>
         protected Guid? CurrentParentId => CurrentUser.ParentId;
 
+        /// <summary>Bus id of the logged-in driver, or null when the user is not a driver.</summary>
+        protected Guid? CurrentBusId => CurrentUser.BusId;
+
         private ICurrentUserService CurrentUser =>
             HttpContext.RequestServices.GetRequiredService<ICurrentUserService>();
     }

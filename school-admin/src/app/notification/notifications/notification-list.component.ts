@@ -12,8 +12,9 @@ import { GradeService } from '../../core/services/grade.service';
 import { SectionService } from '../../core/services/section.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { StudentService } from '../../core/services/student.service';
+import { BusService } from '../../core/services/bus.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
-import { AppNotification, NOTIFICATION_TYPES } from '../../core/models/notification.model';
+import { AppNotification, NOTIFICATION_TYPES, NOTIFICATION_AUDIENCE_OPTIONS } from '../../core/models/notification.model';
 import { EVENT_FOR_OPTIONS, EventFor } from '../../core/models/school-event.model';
 import {
   AudienceLookups,
@@ -108,6 +109,7 @@ export class NotificationListComponent implements OnInit, OnDestroy {
     private sectionService: SectionService,
     private teacherService: TeacherService,
     private studentService: StudentService,
+    private busService: BusService,
     private languageService: LanguageService,
     private translate: TranslateService,
     private router: Router,
@@ -148,7 +150,8 @@ export class NotificationListComponent implements OnInit, OnDestroy {
         gradeService: this.gradeService,
         sectionService: this.sectionService,
         teacherService: this.teacherService,
-        studentService: this.studentService
+        studentService: this.studentService,
+        busService: this.busService
       })
     })
       .pipe(takeUntil(this.destroy$))
@@ -295,7 +298,7 @@ export class NotificationListComponent implements OnInit, OnDestroy {
 
   audienceOption(n: AppNotification) {
     const type = this.audienceType(n);
-    return EVENT_FOR_OPTIONS.find(o => o.value === type) ?? EVENT_FOR_OPTIONS[0];
+    return NOTIFICATION_AUDIENCE_OPTIONS.find(o => o.value === type) ?? NOTIFICATION_AUDIENCE_OPTIONS[0];
   }
 
   audience(n: AppNotification): string[] {

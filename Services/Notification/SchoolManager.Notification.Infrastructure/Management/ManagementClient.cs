@@ -11,7 +11,7 @@ namespace SchoolManager.Notification.Infrastructure
     /// Calls the Management service through the gateway, forwarding the logged-in user's token,
     /// so Management decides who the parent is from the token; this service never trusts ids sent by the app.
     /// </summary>
-    public class ManagementClient(HttpClient httpClient, IMemoryCache cache) : IManagementClient
+    public class ManagementClient(HttpClient httpClient, IMemoryCache cache, ServiceTokenProvider serviceToken) : IManagementClient
     {
         private sealed record ChildItem(Guid Id, Guid StageId, Guid GradeId, Guid SectionId, Guid AcademicYearId);
         private sealed record ApiResponse<T>(T? Data);
@@ -24,6 +24,38 @@ namespace SchoolManager.Notification.Infrastructure
         /// the answer is kept for this long per user (the key is a hash of the user's token)
         /// </summary>
         private static readonly TimeSpan ContactsLifetime = TimeSpan.FromMinutes(2);
+
+        public async Task<IReadOnlyList<Guid>?> GetParentIdsAsync(
+            Guid? academicYearId,
+            IReadOnlyCollection<Guid> gradeIds,
+            IReadOnlyCollection<Guid> sectionIds,
+            IReadOnlyCollection<Guid> studentIds,
+            CancellationToken cancellationToken = default)
+        {
+            if (gradeIds.Count + sectionIds.Count + studentIds.Count == 0)
+                return Array.Empty<Guid>();
+
+            try
+            {
+                using var request = new HttpRequestMessage(HttpMethod.Post, "api/student/notification-parents")
+                {
+                    Content = JsonContent.Create(new { academicYearId, gradeIds, sectionIds, studentIds })
+                };
+                // Our own token: also works from the background push job (no user request)
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", serviceToken.GetToken());
+
+                using var response = await httpClient.SendAsync(request, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var body = await response.Content.ReadFromJsonAsync<ApiResponse<List<Guid>>>(cancellationToken);
+                return body?.Data ?? new List<Guid>();
+            }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException)
+            {
+                return null;
+            }
+        }
 
         public async Task<IReadOnlyList<ChatContact>?> GetChatContactsAsync(string authorization, bool asTeacher, CancellationToken cancellationToken = default)
         {

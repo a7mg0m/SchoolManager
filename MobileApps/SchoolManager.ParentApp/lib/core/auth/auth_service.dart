@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../config.dart';
 import '../../core/i18n/app_language.dart';
+import '../push/push_service.dart';
 
 /// Signed-in user, saved on the device so the next launch opens Home directly
 class AuthSession {
@@ -157,7 +158,10 @@ class AuthService {
         final session = AuthSession.fromLoginResult(data);
         if (session.token.isNotEmpty) {
           await _save(session);
-          return _session = session;
+          _session = session;
+          // Push: this device now receives the user's notifications
+          unawaited(PushService.instance.registerCurrentUser());
+          return session;
         }
       }
       throw AuthException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
@@ -189,6 +193,8 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    // While the session is still there: the server forgets this device for the user
+    await PushService.instance.unregisterCurrentUser();
     _session = null;
     try {
       final prefs = await SharedPreferences.getInstance();

@@ -196,6 +196,9 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                     b.Property<int>("NotificationType")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("PushSentAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateOnly>("SentOn")
                         .HasColumnType("date");
 
@@ -208,12 +211,17 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AcademicYearId");
 
+                    b.HasIndex("PushSentAt", "SentOn");
+
                     b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("SchoolManager.Notification.Domain.NotificationTarget", b =>
                 {
                     b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BusId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("GradeId")
@@ -232,6 +240,8 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BusId");
 
                     b.HasIndex("NotificationId");
 
@@ -279,6 +289,46 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SchoolEvents", (string)null);
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.UserDeviceToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AppName")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Platform")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("nvarchar(512)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("UserType")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserType");
+
+                    b.ToTable("UserDeviceTokens", (string)null);
                 });
 
             modelBuilder.Entity("SchoolManager.Notification.Domain.ChatMessage", b =>
@@ -626,6 +676,41 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("SchoolEventId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.UserDeviceToken", b =>
+                {
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("UserDeviceTokenId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("UserDeviceTokenId");
+
+                            b1.ToTable("UserDeviceTokens");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserDeviceTokenId");
                         });
 
                     b.Navigation("AuditInfo")

@@ -10,8 +10,9 @@ import { GradeService } from '../../core/services/grade.service';
 import { SectionService } from '../../core/services/section.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { StudentService } from '../../core/services/student.service';
+import { BusService } from '../../core/services/bus.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
-import { AppNotification, NOTIFICATION_TYPES, NotificationTarget } from '../../core/models/notification.model';
+import { AppNotification, NOTIFICATION_AUDIENCE_OPTIONS, NOTIFICATION_TYPES, NotificationTarget } from '../../core/models/notification.model';
 import { EVENT_FOR_OPTIONS, EventFor } from '../../core/models/school-event.model';
 import {
   AudienceLookups,
@@ -23,7 +24,7 @@ import {
   localizedName
 } from '../shared/audience';
 
-type RecipientKind = 'grade' | 'section' | 'teacher' | 'student';
+type RecipientKind = 'grade' | 'section' | 'teacher' | 'student' | 'driver';
 
 /** One target row resolved to display names */
 interface RecipientRow {
@@ -37,7 +38,8 @@ const KIND_ICONS: Record<RecipientKind, string> = {
   grade: 'pe-7s-study',
   section: 'pe-7s-albums',
   teacher: 'pe-7s-id',
-  student: 'pe-7s-user'
+  student: 'pe-7s-user',
+  driver: 'pe-7s-car'
 };
 
 /**
@@ -62,12 +64,13 @@ export class NotificationTargetsComponent implements OnInit, OnDestroy {
   searchTerm = signal('');
   kindFilter = signal<RecipientKind | ''>('');
 
-  readonly kinds: RecipientKind[] = ['grade', 'section', 'teacher', 'student'];
+  readonly kinds: RecipientKind[] = ['grade', 'section', 'teacher', 'student', 'driver'];
   readonly kindIcons = KIND_ICONS;
   readonly EventFor = EventFor;
 
   audienceType = computed(() => inferAudience(this.targets(), this.lookups()));
-  audienceOption = computed(() => EVENT_FOR_OPTIONS.find(o => o.value === this.audienceType()) ?? EVENT_FOR_OPTIONS[0]);
+  audienceOption = computed(() =>
+    NOTIFICATION_AUDIENCE_OPTIONS.find(o => o.value === this.audienceType()) ?? NOTIFICATION_AUDIENCE_OPTIONS[0]);
 
   rows = computed<RecipientRow[]>(() => {
     const l = this.lookups();
@@ -79,7 +82,18 @@ export class NotificationTargetsComponent implements OnInit, OnDestroy {
     const students = new Map(l.students.map(s => [s.id, s]));
     const unknown = this.translate.instant('notifications.unknownRecipient');
 
+    const buses = new Map(l.buses.map(b => [b.id, b]));
+
     return this.targets().map<RecipientRow>(t => {
+      if (t.busId) {
+        const bus = buses.get(t.busId);
+        return {
+          id: t.id,
+          kind: 'driver',
+          name: bus ? bus.driverName : unknown,
+          detail: bus ? this.translate.instant('notifications.busDetail', { number: bus.number, plate: bus.plateNumber }) : ''
+        };
+      }
       if (t.studentId) {
         const s = students.get(t.studentId);
         return {
@@ -161,6 +175,7 @@ export class NotificationTargetsComponent implements OnInit, OnDestroy {
     private sectionService: SectionService,
     private teacherService: TeacherService,
     private studentService: StudentService,
+    private busService: BusService,
     private languageService: LanguageService,
     private translate: TranslateService,
     private activatedRoute: ActivatedRoute,
@@ -193,7 +208,8 @@ export class NotificationTargetsComponent implements OnInit, OnDestroy {
         gradeService: this.gradeService,
         sectionService: this.sectionService,
         teacherService: this.teacherService,
-        studentService: this.studentService
+        studentService: this.studentService,
+        busService: this.busService
       })
     })
       .pipe(takeUntil(this.destroy$))

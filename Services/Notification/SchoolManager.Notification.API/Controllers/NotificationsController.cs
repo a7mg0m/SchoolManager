@@ -53,6 +53,18 @@ namespace SchoolManager.Notification.API.Controllers
             return Ok(new ApiResponse { data = result });
         }
 
+        /// <summary>Notifications already sent for the whole school or for the logged-in driver's bus (driver app).</summary>
+        [Authorize]
+        [HttpGet("my-driver")]
+        public async Task<IActionResult> GetMyDriverNotifications([FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
+        {
+            if (CurrentBusId is not Guid busId)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotADriver"));
+
+            var result = await _mediator.Send(new GetDriverNotificationsQuery(busId, academicYearId), cancellationToken);
+            return Ok(new ApiResponse { data = result });
+        }
+
         /// <summary>Notifications of the academic year chosen in the admin header (null: all), newest first.</summary>
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAll([FromQuery] Guid? academicYearId, CancellationToken cancellationToken)

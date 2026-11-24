@@ -15,6 +15,6 @@ namespace SchoolManager.Notification.Application
         }
 
         private static bool HaveAnyTarget(TargetInputDto t)
-            => t.GradeId.HasValue || t.SectionId.HasValue || t.TeacherId.HasValue || t.StudentId.HasValue;
+            => t.GradeId.HasValue || t.SectionId.HasValue || t.TeacherId.HasValue || t.StudentId.HasValue || t.BusId.HasValue;
     }
 }

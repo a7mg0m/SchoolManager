@@ -12,13 +12,15 @@ import { Section } from '../../core/models/section.model';
 import { Teacher } from '../../core/models/teacher.model';
 import { Student } from '../../core/models/student.model';
 import { AcademicYear } from '../../core/models/academic-year.model';
+import { Bus } from '../../core/models/transport.model';
+import { BusService } from '../../core/services/bus.service';
 import { EventFor, EventTargetInput } from '../../core/models/school-event.model';
 
 /**
  * Shared audience helpers for the Notification service screens (school events, notifications).
  * Both store recipients as rows with one of grade/section/teacher/student ids set.
  */
-export type TargetIds = Pick<EventTargetInput, 'gradeId' | 'sectionId' | 'teacherId' | 'studentId'>;
+export type TargetIds = Pick<EventTargetInput, 'gradeId' | 'sectionId' | 'teacherId' | 'studentId' | 'busId'>;
 
 /** Reference data needed to pick and describe an audience */
 export interface AudienceLookups {
@@ -28,6 +30,8 @@ export interface AudienceLookups {
   sections: Section[];
   teachers: Teacher[];
   students: Student[];
+  /** Buses (their drivers): notifications only, empty for school events */
+  buses: Bus[];
 }
 
 export const EMPTY_LOOKUPS: AudienceLookups = {
@@ -36,7 +40,8 @@ export const EMPTY_LOOKUPS: AudienceLookups = {
   grades: [],
   sections: [],
   teachers: [],
-  students: []
+  students: [],
+  buses: []
 };
 
 /** Loads all lookups; any failing call yields an empty list instead of failing the page */
@@ -47,6 +52,8 @@ export function loadAudienceLookups(services: {
   sectionService: SectionService;
   teacherService: TeacherService;
   studentService: StudentService;
+  /** Only the notification screens pass it (bus drivers as an audience) */
+  busService?: BusService;
 }): Observable<AudienceLookups> {
   const list = <T>(obs: Observable<{ status: number; data: T[] }>) =>
     obs.pipe(
@@ -60,7 +67,8 @@ export function loadAudienceLookups(services: {
     grades: list(services.gradeService.getAllGrades()),
     sections: list(services.sectionService.getAll()),
     teachers: list(services.teacherService.getAll()),
-    students: list(services.studentService.getAll())
+    students: list(services.studentService.getAll()),
+    buses: services.busService ? list(services.busService.getAll()) : of([] as Bus[])
   });
 }
 
@@ -87,6 +95,8 @@ export function buildTargets(eventFor: EventFor, selectedIds: Set<string>, looku
       return ids.map(id => ({ ...empty, teacherId: id }));
     case EventFor.Student:
       return ids.map(id => ({ ...empty, studentId: id }));
+    case EventFor.Driver:
+      return ids.map(id => ({ ...empty, busId: id }));
     default:
       return [];
   }
@@ -109,6 +119,8 @@ export function selectedIdsFromTargets(eventFor: EventFor, targets: TargetIds[],
       return new Set(targets.map(t => t.teacherId).filter((id): id is string => !!id));
     case EventFor.Student:
       return new Set(targets.map(t => t.studentId).filter((id): id is string => !!id));
+    case EventFor.Driver:
+      return new Set(targets.map(t => t.busId).filter((id): id is string => !!id));
     default:
       return new Set();
   }
@@ -131,6 +143,7 @@ export function localizedFullName(item: { fullNameAr: string; fullNameEn: string
  */
 export function inferAudience(targets: TargetIds[], lookups: AudienceLookups): EventFor {
   if (!targets?.length) return EventFor.All;
+  if (targets.some(t => t.busId)) return EventFor.Driver;
   if (targets.some(t => t.studentId)) return EventFor.Student;
   if (targets.some(t => t.teacherId)) return EventFor.Teacher;
   if (targets.some(t => t.sectionId)) return EventFor.Section;
@@ -162,6 +175,8 @@ export function audienceNames(eventFor: EventFor, targets: TargetIds[], lookups:
       return pick(lookups.teachers, t => localizedFullName(t, lang));
     case EventFor.Student:
       return pick(lookups.students, s => localizedFullName(s, lang));
+    case EventFor.Driver:
+      return pick(lookups.buses, b => `${b.driverName} (${b.number})`);
     default:
       return [];
   }

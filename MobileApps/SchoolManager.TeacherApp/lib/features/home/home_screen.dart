@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/academic_year/academic_year_controller.dart';
 import '../../core/academic_year/academic_year_picker.dart';
 import '../../core/auth/auth_service.dart';
+import '../../core/push/push_service.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/i18n/language_switch.dart';
 import '../../core/routes.dart';
@@ -118,10 +119,14 @@ class _HomeScreenState extends State<HomeScreen> {
     AcademicYearController.instance.ensureLoaded(fetch: widget.loadAcademicYears);
     // Another year: its events
     AcademicYearController.instance.addListener(_loadEvents);
+    // A tapped push notification (now, or the one that opened the app)
+    PushService.instance.openRoute.addListener(_onPushRoute);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onPushRoute());
   }
 
   @override
   void dispose() {
+    PushService.instance.openRoute.removeListener(_onPushRoute);
     AcademicYearController.instance.removeListener(_loadEvents);
     super.dispose();
   }
@@ -770,6 +775,18 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ));
     if (mounted && selectedTab == 1) setState(() => selectedTab = 0);
+  }
+
+  /// Opens what a tapped push notification points to: /chat/... → chats, /notifications/... → notifications
+  void _onPushRoute() {
+    final route = PushService.instance.openRoute.value;
+    if (route == null || !mounted) return;
+    PushService.instance.openRoute.value = null;
+    if (route.startsWith('/chat')) {
+      _openChats();
+    } else if (route.startsWith('/notifications')) {
+      _openNotifications();
+    }
   }
 
   /// Chats (teachers <-> parents of their students), above the home page; the bar stays

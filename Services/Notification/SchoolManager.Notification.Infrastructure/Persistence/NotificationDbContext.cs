@@ -19,6 +19,8 @@ namespace SchoolManager.Notification.Infrastructure
         public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
         public DbSet<MessageStatus> MessageStatuses => Set<MessageStatus>();
 
+        public DbSet<UserDeviceToken> UserDeviceTokens => Set<UserDeviceToken>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(NotificationDbContext).Assembly);

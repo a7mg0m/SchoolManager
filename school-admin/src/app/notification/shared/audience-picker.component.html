@@ -1,5 +1,5 @@
 <div class="audience-options mb-3" role="radiogroup">
-  @for (o of options; track o.value) {
+  @for (o of options(); track o.value) {
     <button
       type="button"
       class="audience-option"

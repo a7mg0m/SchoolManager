@@ -8,5 +8,8 @@
 		public Guid? SectionId { get; set; }
 		public Guid? TeacherId { get; set; }
 		public Guid? StudentId { get; set; }
+
+		/// <summary>A bus: for its driver</summary>
+		public Guid? BusId { get; set; }
 	}
 }

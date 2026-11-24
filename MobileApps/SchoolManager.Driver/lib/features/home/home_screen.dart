@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import '../../core/auth/auth_service.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/i18n/language_switch.dart';
+import '../../core/push/push_service.dart';
 import '../../core/routes.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_controller.dart';
+import '../notifications/notifications_screen.dart';
+import '../notifications/notifications_service.dart';
 import '../profile/edit_profile_screen.dart';
 import '../profile/profile_service.dart';
 import '../trips/location_tracker.dart';
@@ -28,6 +31,7 @@ class HomeScreen extends StatefulWidget {
     this.loadStudents,
     this.markStudent,
     this.tracker,
+    this.loadNotifications,
   });
 
   /// Default to the API (tests pass their own)
@@ -45,6 +49,9 @@ class HomeScreen extends StatefulWidget {
   /// Shares the bus's position while a trip runs (tests pass their own)
   final LocationTracker? tracker;
 
+  /// School notifications for everyone / for my bus (tests pass their own)
+  final Future<List<AppNotice>> Function()? loadNotifications;
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -60,19 +67,51 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Trip whose start / finish is being sent
   String? _busyTripId;
 
+  /// Tabs: today, trips, notifications, more
+  static const _notificationsTab = 2;
+
+  /// The notifications tab is built the first time it is opened (then kept); a new key reloads it
+  bool _notificationsOpened = false;
+  int _notificationsVersion = 0;
+
   LocationTracker get _tracker => widget.tracker ?? LocationTracker.instance;
 
   @override
   void initState() {
     super.initState();
     _tracker.addListener(_onTracker);
+    // A tapped push notification (now, or the one that opened the app)
+    PushService.instance.openRoute.addListener(_onPushRoute);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onPushRoute());
     _refresh();
   }
 
   @override
   void dispose() {
     _tracker.removeListener(_onTracker);
+    PushService.instance.openRoute.removeListener(_onPushRoute);
     super.dispose();
+  }
+
+  /// A school notification push opens the notifications tab (fresh); other pushes just open the app
+  void _onPushRoute() {
+    final route = PushService.instance.openRoute.value;
+    if (route == null || !mounted) return;
+    PushService.instance.openRoute.value = null;
+    if (route.startsWith('/notifications')) {
+      Navigator.of(context).popUntil((r) => r.isFirst);
+      _selectTab(_notificationsTab, reload: true);
+    }
+  }
+
+  void _selectTab(int index, {bool reload = false}) {
+    setState(() {
+      if (index == _notificationsTab) {
+        if (_notificationsOpened && reload) _notificationsVersion++;
+        _notificationsOpened = true;
+      }
+      _tab = index;
+    });
   }
 
   void _onTracker() {
@@ -223,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [_todayTab(), _tripsTab(), _moreTab()];
+    final pages = [_todayTab(), _tripsTab(), _notificationsPage(), _moreTab()];
     return Scaffold(
       body: SafeArea(
         top: _tab != 0,
@@ -245,10 +284,15 @@ class _HomeScreenState extends State<HomeScreen> {
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
+        onDestinationSelected: _selectTab,
         destinations: [
           NavigationDestination(icon: const Icon(Icons.today_outlined), selectedIcon: const Icon(Icons.today_rounded), label: tr('اليوم', 'Today')),
           NavigationDestination(icon: const Icon(Icons.route_outlined), selectedIcon: const Icon(Icons.route_rounded), label: tr('الرحلات', 'Trips')),
+          NavigationDestination(
+            icon: const Icon(Icons.notifications_none_rounded),
+            selectedIcon: const Icon(Icons.notifications_rounded),
+            label: tr('الإشعارات', 'Notifications'),
+          ),
           NavigationDestination(icon: const Icon(Icons.menu_rounded), label: tr('المزيد', 'More')),
         ],
       ),
@@ -484,6 +528,18 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
   // ---- More
+
+  // ---- Notifications
+
+  Widget _notificationsPage() {
+    if (!_notificationsOpened) return const SizedBox.shrink();
+    return NotificationsScreen(
+      key: ValueKey('notifications-$_notificationsVersion'),
+      loadNotices: widget.loadNotifications ?? NotificationsService.instance.getMine,
+      targetedLabel: tr('لحافلتك', 'For your bus'),
+      onSessionExpired: _logout,
+    );
+  }
 
   Widget _moreTab() {
     final palette = context.palette;

@@ -981,7 +981,8 @@
       "grade": "صف",
       "section": "فصل",
       "teacher": "المعلمون",
-      "student": "الطلاب"
+      "student": "الطلاب",
+      "driver": "السائقون"
     },
     "errors": {
       "TitleRequired": "العنوان مطلوب",
@@ -1044,12 +1045,14 @@
       "grade": "صف",
       "section": "فصل",
       "teacher": "معلم",
-      "student": "طالب"
+      "student": "طالب",
+      "driver": "سائق"
     },
     "errors": {
       "NotificationTypeInvalid": "اختر نوع إشعار صحيح",
       "IdRequired": "معرّف الإشعار مفقود"
-    }
+    },
+    "busDetail": "حافلة {{number}} · {{plate}}"
   },
   "employeeGroups": {
     "title": "مجموعات الموظفين",

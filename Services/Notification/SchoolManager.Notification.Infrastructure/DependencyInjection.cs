@@ -23,6 +23,15 @@ namespace SchoolManager.Notification.Infrastructure
             services.AddScoped<IMessageStatusRepository, MessageStatusRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+            // Push notifications (Firebase Cloud Messaging)
+            services.AddScoped<IUserDeviceTokenRepository, UserDeviceTokenRepository>();
+            services.AddSingleton<IPushNotificationSender, FcmPushNotificationSender>();
+            services.AddScoped<INotificationRecipientResolver, NotificationRecipientResolver>();
+            services.AddScoped<INotificationPushService, NotificationPushService>();
+            services.AddSingleton<ServiceTokenProvider>();
+            // Notifications created for a later day are pushed on that day
+            services.AddHostedService<DuePushNotificationsService>();
+
             // Chat: names (Identity service, through the gateway, with the user's token), cached in memory.
             // A short timeout: the chat must not wait for Identity.
             services.AddMemoryCache();

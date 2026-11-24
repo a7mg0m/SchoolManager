@@ -30,7 +30,7 @@
       },
       "notification-route": {
         "ClusterId": "notification-cluster",
-        "Match": { "Path": "/api/{resource:regex(^(notification|notification-target|school-event|event-target|chat)$)}/{**catch-all}" },
+        "Match": { "Path": "/api/{resource:regex(^(notification|notification-target|school-event|event-target|chat|devices)$)}/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5233" } ]
       },
       "financial-route": {

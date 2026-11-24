@@ -52,6 +52,29 @@ namespace SchoolManager.Management.API.Controllers
 		}
 
 		/// <summary>
+		/// Push notifications (called by the Notification service with its service token, or an employee's token):
+		/// parent ids (= Identity user ids) of the active students in grades / classes and of students.
+		/// Parents, teachers and drivers may not call it.
+		/// </summary>
+		[Authorize]
+		[HttpPost("notification-parents")]
+		public async Task<IActionResult> GetNotificationParents([FromBody] NotificationParentsRequest request, CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not null || _currentUser.TeacherId is not null || _currentUser.BusId is not null)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "Forbidden"));
+
+			var result = await _mediator.Send(new GetNotificationParentIdsQuery(
+				request?.AcademicYearId,
+				request?.GradeIds ?? new List<Guid>(),
+				request?.SectionIds ?? new List<Guid>(),
+				request?.StudentIds ?? new List<Guid>()), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>Body of POST api/student/notification-parents</summary>
+		public record NotificationParentsRequest(Guid? AcademicYearId, List<Guid>? GradeIds, List<Guid>? SectionIds, List<Guid>? StudentIds);
+
+		/// <summary>
 		/// Driver app (called by the Attendance service with the driver's token): name, class, parent's phone and
 		/// home location of the students on a trip of the driver's bus. Bus drivers only (bus_id claim); at most 200 ids.
 		/// </summary>

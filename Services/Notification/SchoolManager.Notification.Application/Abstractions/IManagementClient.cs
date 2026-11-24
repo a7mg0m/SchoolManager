@@ -14,5 +14,17 @@ namespace SchoolManager.Notification.Application
         /// children (<paramref name="asTeacher"/>). Null when the Management service could not answer.
         /// </summary>
         Task<IReadOnlyList<ChatContact>?> GetChatContactsAsync(string authorization, bool asTeacher, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Parents (ids = their Identity user ids) of the active students in these grades / classes and of these students,
+        /// for push notifications. Called with a service token (works in background jobs too). Null when Management
+        /// could not answer.
+        /// </summary>
+        Task<IReadOnlyList<Guid>?> GetParentIdsAsync(
+            Guid? academicYearId,
+            IReadOnlyCollection<Guid> gradeIds,
+            IReadOnlyCollection<Guid> sectionIds,
+            IReadOnlyCollection<Guid> studentIds,
+            CancellationToken cancellationToken = default);
     }
 }

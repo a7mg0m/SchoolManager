@@ -20,7 +20,12 @@ namespace SchoolManager.Notification.Domain
         public string? ImageUrl { get; private set; } // ØµÙˆØ±Ø© Ø§Ù„Ø­Ø¯Ø«
         public AuditInfo AuditInfo { get; private set; }
 
+        /// <summary>When the push notification went to the recipients' phones (UTC); null = not pushed yet (e.g. SentOn in the future)</summary>
+        public DateTime? PushSentAt { get; private set; }
+
         public List<NotificationTarget> Targets { get; private set; } = new();
+
+        public void MarkPushSent(DateTime at) => PushSentAt = at;
 
         private Notification() { }
 
@@ -61,9 +66,9 @@ namespace SchoolManager.Notification.Domain
             AuditInfo = auditInfo;
         }
 
-        public void AddTarget(Guid? gradeId, Guid? sectionId, Guid? teacherId, Guid? studentId, AuditInfo auditInfo)
+        public void AddTarget(Guid? gradeId, Guid? sectionId, Guid? teacherId, Guid? studentId, AuditInfo auditInfo, Guid? busId = null)
         {
-            Targets.Add(new NotificationTarget(Id, gradeId, sectionId, teacherId, studentId, auditInfo));
+            Targets.Add(new NotificationTarget(Id, gradeId, sectionId, teacherId, studentId, auditInfo, busId));
         }
 
         public void ClearTargets()

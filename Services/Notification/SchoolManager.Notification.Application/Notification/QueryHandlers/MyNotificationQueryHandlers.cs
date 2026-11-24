@@ -26,6 +26,17 @@ namespace SchoolManager.Notification.Application
         }
     }
 
+    public class GetDriverNotificationsQueryHandler(INotificationRepository repository)
+        : IQueryHandler<GetDriverNotificationsQuery, List<MyNotificationDto>>
+    {
+        public async Task<List<MyNotificationDto>> Handle(GetDriverNotificationsQuery query, CancellationToken cancellationToken)
+        {
+            var items = await repository.GetForDriverAsync(query.AcademicYearId, query.BusId,
+                DateOnly.FromDateTime(DateTime.Today), cancellationToken);
+            return MyNotifications.ToDtos(items);
+        }
+    }
+
     internal static class MyNotifications
     {
         /// <summary>Newest first</summary>

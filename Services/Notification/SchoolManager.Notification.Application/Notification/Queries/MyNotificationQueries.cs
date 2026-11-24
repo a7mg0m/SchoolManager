@@ -8,4 +8,7 @@ namespace SchoolManager.Notification.Application
 
     /// <summary>Notifications for a teacher (the controller passes the teacher id from the login token).</summary>
     public record GetTeacherNotificationsQuery(Guid TeacherId, Guid? AcademicYearId = null) : IQuery<List<MyNotificationDto>>;
+
+    /// <summary>Driver app: notifications already sent for the whole school or for the driver's bus</summary>
+    public record GetDriverNotificationsQuery(Guid BusId, Guid? AcademicYearId = null) : IQuery<List<MyNotificationDto>>;
 }

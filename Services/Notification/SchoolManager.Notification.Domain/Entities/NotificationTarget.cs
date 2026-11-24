@@ -13,12 +13,16 @@ namespace SchoolManager.Notification.Domain
         public Guid? TeacherId { get; private set; }
         public Guid? StudentId { get; private set; }
 
+        /// <summary>A bus: the notification is for its driver (driver user id = bus id)</summary>
+        public Guid? BusId { get; private set; }
+
         public AuditInfo AuditInfo { get; private set; }
 
         private NotificationTarget() { }
 
-        public NotificationTarget(Guid notificationId, Guid? gradeId, Guid? sectionId, Guid? teacherId, Guid? studentId, AuditInfo auditInfo)
+        public NotificationTarget(Guid notificationId, Guid? gradeId, Guid? sectionId, Guid? teacherId, Guid? studentId, AuditInfo auditInfo, Guid? busId = null)
         {
+            BusId = busId;
             NotificationId = notificationId;
             GradeId = gradeId;
             SectionId = sectionId;

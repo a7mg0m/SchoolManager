@@ -18,6 +18,12 @@ namespace SchoolManager.Notification.Domain
 
         /// <summary>Notifications already sent for the whole school or for this teacher; of one academic year when given. Read-only, with targets.</summary>
         Task<List<Notification>> GetForTeacherAsync(Guid? academicYearId, Guid teacherId, DateOnly today, CancellationToken cancellationToken = default);
+
+        /// <summary>Notifications already sent for the whole school or for this bus's driver; of one academic year when given. Read-only, with targets.</summary>
+        Task<List<Notification>> GetForDriverAsync(Guid? academicYearId, Guid busId, DateOnly today, CancellationToken cancellationToken = default);
+
+        /// <summary>Notifications due (SentOn on or before <paramref name="today"/>) and not pushed yet, with targets (tracked)</summary>
+        Task<List<Notification>> GetDueForPushAsync(DateOnly today, CancellationToken cancellationToken = default);
     }
    
 }

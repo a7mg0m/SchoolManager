@@ -9,7 +9,9 @@ export enum EventFor {
   Grade = 3,
   Section = 4,
   Teacher = 5,
-  Student = 6
+  Student = 6,
+  /** Notifications only (not a school event option): bus drivers, saved as bus targets */
+  Driver = 7
 }
 
 export const EVENT_FOR_OPTIONS: { value: EventFor; key: string; icon: string }[] = [
@@ -37,6 +39,8 @@ export interface EventTargetInput {
   sectionId: string | null;
   teacherId: string | null;
   studentId: string | null;
+  /** Notifications only: a bus, for its driver */
+  busId?: string | null;
 }
 
 /** School event (backend SchoolEventDto) */

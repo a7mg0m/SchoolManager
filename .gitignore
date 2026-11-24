@@ -368,3 +368,9 @@ FodyWeavers.xsd
 Services/**/wwwroot/upload/**
 !Services/**/wwwroot/upload/**/
 !Services/**/wwwroot/upload/**/.gitkeep
+
+# Firebase secrets (push notifications): never commit
+**/firebase-service-account*.json
+**/*-firebase-adminsdk-*.json
+**/google-services.json
+**/GoogleService-Info.plist

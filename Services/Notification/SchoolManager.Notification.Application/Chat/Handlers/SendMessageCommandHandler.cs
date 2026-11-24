@@ -8,7 +8,8 @@ namespace SchoolManager.Notification.Application
         IChatRoomRepository rooms,
         IChatMessageRepository messages,
         IUserProfileService userProfiles,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        INotificationPushService push)
         : ICommandHandler<SendMessageCommand, ChatMessageDto>
     {
         public async Task<ChatMessageDto> Handle(SendMessageCommand command, CancellationToken cancellationToken)
@@ -31,6 +32,10 @@ namespace SchoolManager.Notification.Application
             await unitOfWork.SaveChangesAsync(cancellationToken);
 
             var names = await userProfiles.GetDisplayNamesAsync(new[] { command.SenderId }, cancellationToken);
+
+            // Push to the other participants (never fails the send; errors are logged)
+            await push.PushChatMessageAsync(room, message, names.GetValueOrDefault(command.SenderId) ?? string.Empty, cancellationToken);
+
             return message.ToDto(command.SenderId, names);
         }
     }

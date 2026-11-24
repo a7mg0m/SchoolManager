@@ -981,7 +981,8 @@
       "grade": "Grade",
       "section": "Section",
       "teacher": "Teachers",
-      "student": "Students"
+      "student": "Students",
+      "driver": "Drivers"
     },
     "errors": {
       "TitleRequired": "Title is required",
@@ -1044,12 +1045,14 @@
       "grade": "Grade",
       "section": "Section",
       "teacher": "Teacher",
-      "student": "Student"
+      "student": "Student",
+      "driver": "Driver"
     },
     "errors": {
       "NotificationTypeInvalid": "Choose a valid notification type",
       "IdRequired": "Notification id is missing"
-    }
+    },
+    "busDetail": "Bus {{number}} · {{plate}}"
   },
   "employeeGroups": {
     "title": "Employee Groups",

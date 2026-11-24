@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/auth/auth_service.dart';
+import 'core/push/push_service.dart';
 import 'core/i18n/app_language.dart';
 import 'core/routes.dart';
 import 'core/theme/app_theme.dart';
@@ -11,11 +14,15 @@ import 'features/intro/intro_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Push notifications (does nothing until Firebase is configured, see PUSH_NOTIFICATIONS.md)
+  await PushService.instance.init(appName: 'driver');
   // Light / dark / auto and Arabic / English chosen in the menu
   await ThemeController.instance.load();
   await AppLanguage.instance.load();
   // Signed in before as a driver (and the token is still valid)? Open Home directly.
   final session = await AuthService.instance.restoreSession();
+  // Already signed in: this device keeps receiving the user's notifications
+  if (session != null) unawaited(PushService.instance.registerCurrentUser());
   runApp(SmartSchoolDriverApp(
       initialRoute: session != null ? AppRoutes.home : AppRoutes.intro));
 }

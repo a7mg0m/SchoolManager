@@ -1,11 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Calls the school API -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Push notifications (Android 13+ asks the user) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:usesCleartextTraffic="true"
         android:label="Smart School Teacher"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Push notifications: Firebase uses the app's channel and icon when the app is closed -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="school_notifications" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

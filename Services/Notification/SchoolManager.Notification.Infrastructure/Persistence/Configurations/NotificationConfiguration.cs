@@ -15,6 +15,9 @@ namespace SchoolManager.Notification.Infrastructure
             builder.Property(x => x.Description).IsRequired().HasMaxLength(2000);
             builder.Property(x => x.ImageUrl).HasMaxLength(500);
 
+            // The push job looks for due notifications not pushed yet
+            builder.HasIndex(x => new { x.PushSentAt, x.SentOn });
+
             builder.HasMany(x => x.Targets)
                 .WithOne()
                 .HasForeignKey(t => t.NotificationId)

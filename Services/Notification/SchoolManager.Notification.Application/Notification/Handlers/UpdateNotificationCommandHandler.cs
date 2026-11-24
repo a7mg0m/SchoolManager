@@ -39,7 +39,7 @@ namespace SchoolManager.Notification.Application
                 foreach (var target in command.Targets)
                 {
                     entity.AddTarget(target.GradeId, target.SectionId, target.TeacherId, target.StudentId,
-                        new AuditInfo(DateTime.Now, _currentUser.UserId));
+                        new AuditInfo(DateTime.Now, _currentUser.UserId), target.BusId);
                 }
             }
 
