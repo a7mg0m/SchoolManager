@@ -119,7 +119,7 @@
     <div class="card">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover align-middle">
+          <table appDataTable [dtSearch]="false" class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
                 <th class="row-number">#</th>
@@ -132,9 +132,9 @@
               </tr>
             </thead>
             <tbody>
-              @for (subject of pagedSubjects(); track subject.id; let i = $index) {
+              @for (subject of filteredSubjects(); track subject.id; let i = $index) {
                 <tr>
-                  <td class="row-number text-muted">{{ rowNumber(i) }}</td>
+                  <td class="row-number text-muted">{{ i + 1 }}</td>
                   <td dir="rtl"><strong>{{ subject.nameAr }}</strong></td>
                   <td dir="ltr"><strong>{{ subject.nameEn }}</strong></td>
                   <td class="d-none d-lg-table-cell">{{ getStageNameForGrade(subject.gradeId) }}</td>
@@ -179,21 +179,6 @@
           </table>
         </div>
 
-        <!-- Pagination -->
-        @if (filteredSubjects().length > pageSize) {
-          <div class="d-flex justify-content-center mt-3">
-            <ngb-pagination
-              [collectionSize]="filteredSubjects().length"
-              [page]="page()"
-              (pageChange)="page.set($event)"
-              [pageSize]="pageSize"
-              [maxSize]="5"
-              [rotate]="true"
-              [boundaryLinks]="true"
-              size="sm"
-            ></ngb-pagination>
-          </div>
-        }
       </div>
     </div>
   }

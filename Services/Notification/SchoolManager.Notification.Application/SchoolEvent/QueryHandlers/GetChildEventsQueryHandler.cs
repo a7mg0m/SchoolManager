@@ -21,7 +21,7 @@ namespace SchoolManager.Notification.Application
                     EventDate = e.EventDate,
                     StartTime = e.StartTime,
                     EndTime = e.EndTime,
-                    ImageUrl = e.ImageUrl,
+                    ImageUrl = string.IsNullOrWhiteSpace(e.ImageUrl) ? DefaultImages.Event : e.ImageUrl,
                     EventFor = e.EventFor
                 })
                 .ToList();

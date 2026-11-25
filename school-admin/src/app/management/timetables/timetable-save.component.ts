@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, TemplateRef, ViewChild, effect, signal } from '@angular/core';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AcademicContextService } from '../../core/services/academic-context.service';
 import { FormBuilder, FormGroup, FormArray, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -11,7 +12,8 @@ import { SectionService } from '../../core/services/section.service';
 import { SubjectService } from '../../core/services/subject.service';
 import { TeacherService } from '../../core/services/teacher.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
-import { Timetable, TimetableSlot, CreateTimetableRequest, UpdateTimetableRequest } from '../../core/models/timetable.model';
+import { TranslateService } from '@ngx-translate/core';
+import { Timetable, TimetableSlot, TimetableWorkDay, CreateTimetableRequest, UpdateTimetableRequest } from '../../core/models/timetable.model';
 import { Stage } from '../../core/models/stage.model';
 import { Grade } from '../../core/models/grade.model';
 import { AcademicYear, AcademicYearSemester, AcademicYearSemesters } from '../../core/models/academic-year.model';
@@ -31,6 +33,31 @@ export const WEEK_DAYS: { value: number; key: string }[] = [
 ];
 
 /** Slot-level validator: end time must be after start time */
+/** A work day column: break start / end together and in order */
+function validBreak(group: AbstractControl): ValidationErrors | null {
+  const start = group.get('breakStart')?.value;
+  const end = group.get('breakEnd')?.value;
+  if (!start && !end) return null;
+  if (!start || !end) return { breakIncomplete: true };
+  return end <= start ? { breakEndBeforeStart: true } : null;
+}
+
+/** "HH:mm" → minutes since midnight */
+function toMinutes(value: string): number {
+  const [h, m] = (value || '').split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+}
+
+/** minutes since midnight → "HH:mm" */
+function fromMinutes(total: number): string {
+  const h = Math.floor(total / 60) % 24;
+  const m = total % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+/** Defaults of a new timetable: Sunday → Thursday, 7 periods of 45 minutes */
+const DEFAULT_WORK_DAYS = [0, 1, 2, 3, 4];
+
 function endTimeAfterStartTime(group: AbstractControl): ValidationErrors | null {
   const start = group.get('startTime')?.value;
   const end = group.get('endTime')?.value;
@@ -90,6 +117,17 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
 
   readonly weekDays = WEEK_DAYS;
 
+  /** "Generate periods" for one class of the grade, or '' = every class */
+  generateSectionId = signal<string>('');
+
+  /** What "Generate periods" is about to do (shown in the confirmation modal) */
+  generatePlan = signal<{ replaced: number; created: number; days: string[]; sections: string[] } | null>(null);
+
+  @ViewChild('generateModal') private generateModal?: TemplateRef<unknown>;
+
+  /** Sections whose periods are folded (all open by default) */
+  collapsedSections = signal<Set<string>>(new Set());
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -101,6 +139,8 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
     private subjectService: SubjectService,
     private teacherService: TeacherService,
     private languageService: LanguageService,
+    private translate: TranslateService,
+    private modalService: NgbModal,
     private activatedRoute: ActivatedRoute,
     private router: Router,
     public academic: AcademicContextService
@@ -161,8 +201,145 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
       gradeId: ['', Validators.required],
       academicYearId: ['', Validators.required],
       semesterId: ['', Validators.required],
+      // The week: one start time for every day, then one column per day
+      dayStartTime: ['07:30'],
+      workDays: this.formBuilder.array(WEEK_DAYS.map(d => this.createWorkDayGroup({
+        day: d.value,
+        isWorkDay: DEFAULT_WORK_DAYS.includes(d.value),
+        breakStart: null,
+        breakEnd: null,
+        slotDuration: 45,
+        slotCount: 7
+      }))),
       slots: this.formBuilder.array([], { validators: noOverlappingSlots })
     });
+  }
+
+  get workDays(): FormArray {
+    return this.form.get('workDays') as FormArray;
+  }
+
+  private createWorkDayGroup(day: TimetableWorkDay): FormGroup {
+    const group = this.formBuilder.group(
+      {
+        day: [day.day],
+        isWorkDay: [day.isWorkDay],
+        breakStart: [this.toInputTime(day.breakStart)],
+        breakEnd: [this.toInputTime(day.breakEnd)],
+        slotDuration: [day.slotDuration || 45, [Validators.required, Validators.min(5), Validators.max(240)]],
+        slotCount: [day.slotCount || 7, [Validators.required, Validators.min(1), Validators.max(20)]]
+      },
+      { validators: validBreak }
+    );
+
+    // A day off: its settings are kept but not checked
+    const apply = (on: boolean) => {
+      for (const name of ['breakStart', 'breakEnd', 'slotDuration', 'slotCount']) {
+        const c = group.get(name)!;
+        on ? c.enable({ emitEvent: false }) : c.disable({ emitEvent: false });
+      }
+    };
+    apply(day.isWorkDay);
+    group.get('isWorkDay')!.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(on => apply(!!on));
+    return group;
+  }
+
+  workDayControl(index: number, name: string): AbstractControl {
+    return this.workDays.at(index).get(name)!;
+  }
+
+  isWorkDay(index: number): boolean {
+    return !!this.workDayControl(index, 'isWorkDay').value;
+  }
+
+  hasWorkDayError(index: number, error: string): boolean {
+    const group = this.workDays.at(index);
+    return group.hasError(error) && (group.dirty || group.touched);
+  }
+
+  /** The periods of one work day: [start, end] "HH:mm", one after another, jumping over the break */
+  dayPeriods(index: number): [string, string][] {
+    const v = this.workDays.at(index).getRawValue();
+    const start = this.form.get('dayStartTime')!.value;
+    const duration = Number(v.slotDuration);
+    const count = Number(v.slotCount);
+    if (!v.isWorkDay || !start || !(duration >= 5) || !(count >= 1) || count > 20) return [];
+
+    const breakStart = v.breakStart && v.breakEnd ? toMinutes(v.breakStart) : null;
+    const breakEnd = v.breakStart && v.breakEnd ? toMinutes(v.breakEnd) : null;
+    const periods: [string, string][] = [];
+    let t = toMinutes(start);
+    for (let i = 0; i < count; i++) {
+      // A period that would run into the break starts after it
+      if (breakStart !== null && breakEnd !== null && t < breakEnd && t + duration > breakStart) t = Math.max(t, breakEnd);
+      periods.push([fromMinutes(t), fromMinutes(t + duration)]);
+      t += duration;
+    }
+    return periods;
+  }
+
+  /** When the last period of a work day ends ("" for a day off) */
+  dayEnd(index: number): string {
+    const periods = this.dayPeriods(index);
+    return periods.length ? periods[periods.length - 1][1] : '';
+  }
+
+  /** Periods of every work day: the grade's classes (or the chosen one), with times; subject / teacher are chosen after */
+  generatePeriods(): void {
+    const sections = this.generateSectionId()
+      ? this.gradeSections().filter(s => s.id === this.generateSectionId())
+      : this.gradeSections();
+    if (!sections.length || !this.form.get('dayStartTime')!.value) return;
+
+    const workDays = this.workDays.controls.map((_, i) => i).filter(i => this.isWorkDay(i));
+    const days = new Set(workDays.map(i => this.workDays.at(i).get('day')!.value));
+    const sectionIds = new Set(sections.map(s => s.id));
+    const replaced = this.slots.controls.filter(c => days.has(c.value.day) && sectionIds.has(c.value.sectionId));
+
+    // Existing periods would be replaced: ask first (modal), otherwise generate right away
+    if (replaced.length && this.generateModal) {
+      this.generatePlan.set({
+        replaced: replaced.length,
+        created: sections.length * workDays.reduce((sum, i) => sum + this.dayPeriods(i).length, 0),
+        days: workDays.map(i => this.translate.instant(WEEK_DAYS[i].key)),
+        sections: sections.map(s => this.getName(s))
+      });
+      this.modalService
+        .open(this.generateModal, { centered: true, backdrop: 'static', windowClass: 'generate-modal' })
+        .result.then(
+          ok => { if (ok) this.applyGenerate(sections, workDays, replaced); },
+          () => undefined
+        );
+      return;
+    }
+    this.applyGenerate(sections, workDays, replaced);
+  }
+
+  /** Replaces the periods of the work days of these sections with freshly timed ones */
+  private applyGenerate(sections: Section[], workDays: number[], replaced: AbstractControl[]): void {
+
+    // Remove the periods being replaced (from the end, so indexes stay right)
+    for (let i = this.slots.length - 1; i >= 0; i--) {
+      if (replaced.includes(this.slots.at(i))) this.slots.removeAt(i);
+    }
+
+    for (const section of sections) {
+      for (const i of workDays) {
+        const day = this.workDays.at(i).get('day')!.value;
+        this.dayPeriods(i).forEach(([start, end], n) => {
+          this.slots.push(this.createSlotGroup({
+            day,
+            nameAr: `الحصة ${n + 1}`,
+            nameEn: `Period ${n + 1}`,
+            startTime: this.fromInputTime(start),
+            endTime: this.fromInputTime(end),
+            sectionId: section.id
+          }));
+        });
+      }
+    }
+    this.sortSlots();
+    this.successMessage.set(this.translate.instant('timetables.generated'));
   }
 
   get slots(): FormArray {
@@ -196,6 +373,70 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
       });
 
     return group;
+  }
+
+  /**
+   * Periods grouped by section, in the grade's section order (periods without a section last).
+   * indexes point into the slots FormArray.
+   */
+  slotGroups(): { sectionId: string; name: string; indexes: number[]; incomplete: number; invalid: boolean }[] {
+    const bySection = new Map<string, number[]>();
+    this.slots.controls.forEach((c, i) => {
+      const id = c.get('sectionId')!.value || '';
+      bySection.set(id, [...(bySection.get(id) ?? []), i]);
+    });
+
+    const order = this.gradeSections().map(s => s.id);
+    const ids = [...bySection.keys()].sort((a, b) => {
+      const ia = a ? order.indexOf(a) : Number.MAX_SAFE_INTEGER;
+      const ib = b ? order.indexOf(b) : Number.MAX_SAFE_INTEGER;
+      return (ia < 0 ? order.length : ia) - (ib < 0 ? order.length : ib);
+    });
+
+    return ids.map(id => {
+      const indexes = bySection.get(id)!;
+      const section = this.gradeSections().find(s => s.id === id) ?? this.sections().find(s => s.id === id);
+      return {
+        sectionId: id,
+        name: id ? (section ? this.getName(section) : '-') : this.translate.instant('timetables.noSection'),
+        indexes,
+        // Periods still without a subject or a teacher (e.g. just generated)
+        incomplete: indexes.filter(i => !this.slots.at(i).get('subjectId')!.value || !this.slots.at(i).get('teacherId')!.value).length,
+        invalid: indexes.some(i => this.slots.at(i).invalid && this.slots.at(i).touched)
+      };
+    });
+  }
+
+  isSectionCollapsed(sectionId: string): boolean {
+    return this.collapsedSections().has(sectionId);
+  }
+
+  toggleSection(sectionId: string): void {
+    const next = new Set(this.collapsedSections());
+    next.has(sectionId) ? next.delete(sectionId) : next.add(sectionId);
+    this.collapsedSections.set(next);
+  }
+
+  expandAllSections(): void {
+    this.collapsedSections.set(new Set());
+  }
+
+  collapseAllSections(): void {
+    this.collapsedSections.set(new Set(this.slotGroups().map(g => g.sectionId)));
+  }
+
+  /** A new period in one section (after its last period; the section opens) */
+  addSlotToSection(sectionId: string): void {
+    const own = this.slots.controls.filter(c => c.get('sectionId')!.value === sectionId);
+    const last = own.length ? own[own.length - 1].value : null;
+    this.slots.push(this.createSlotGroup({
+      day: last?.day ?? null,
+      sectionId,
+      startTime: last?.endTime ? this.fromInputTime(last.endTime) : undefined
+    }));
+    const next = new Set(this.collapsedSections());
+    next.delete(sectionId);
+    this.collapsedSections.set(next);
   }
 
   addSlot(): void {
@@ -311,6 +552,18 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
     }, { emitEvent: false });
     this.applyGradeFilter(timetable.gradeId);
 
+    // The saved week (timetables saved before it keep the defaults)
+    if (timetable.workDays?.length) {
+      this.form.get('dayStartTime')!.setValue(this.toInputTime(timetable.dayStartTime) || '07:30', { emitEvent: false });
+      this.workDays.clear();
+      WEEK_DAYS.forEach(d => {
+        const saved = timetable.workDays!.find(w => w.day === d.value);
+        this.workDays.push(this.createWorkDayGroup(saved ?? {
+          day: d.value, isWorkDay: false, breakStart: null, breakEnd: null, slotDuration: 45, slotCount: 7
+        }));
+      });
+    }
+
     this.slots.clear();
     [...(timetable.slots || [])]
       .sort((a, b) => a.day - b.day || a.startTime.localeCompare(b.startTime))
@@ -425,6 +678,16 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
       gradeId: value.gradeId
     }));
 
+    const dayStartTime = value.dayStartTime ? this.fromInputTime(value.dayStartTime) : null;
+    const workDays: TimetableWorkDay[] = value.workDays.map((d: any) => ({
+      day: Number(d.day),
+      isWorkDay: !!d.isWorkDay,
+      breakStart: d.breakStart ? this.fromInputTime(d.breakStart) : null,
+      breakEnd: d.breakEnd ? this.fromInputTime(d.breakEnd) : null,
+      slotDuration: Number(d.slotDuration) || 0,
+      slotCount: Number(d.slotCount) || 0
+    }));
+
     const request$ = this.isEditMode()
       ? this.timetableService.update({
           id: this.timetableId!,
@@ -432,14 +695,18 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
           gradeId: value.gradeId,
           academicYearId: value.academicYearId,
           semesterId: value.semesterId,
-          slots
+          slots,
+          dayStartTime,
+          workDays
         } as UpdateTimetableRequest)
       : this.timetableService.create({
           stageId: value.stageId,
           gradeId: value.gradeId,
           academicYearId: value.academicYearId,
           semesterId: value.semesterId,
-          slots: slots.map(({ id, ...rest }) => rest)
+          slots: slots.map(({ id, ...rest }) => rest),
+          dayStartTime,
+          workDays
         } as CreateTimetableRequest);
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({

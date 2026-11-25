@@ -70,7 +70,7 @@
     <div class="card">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover">
+          <table appDataTable class="table table-hover">
             <thead class="table-light">
               <tr>
                 <th>{{ 'common.name' | translate }}</th>
@@ -125,7 +125,7 @@
                 </tr>
                 <!-- Semesters Sub-row -->
                 @if (academicYear.semesters && academicYear.semesters.length > 0) {
-                  <tr class="table-secondary">
+                  <tr class="table-secondary dt-child">
                     <td colspan="5">
                       <small class="d-block mb-2">
                         <strong>{{ 'management.semesters' | translate }}:</strong>

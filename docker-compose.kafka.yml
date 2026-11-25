@@ -9,6 +9,8 @@ services:
   kafka:
     image: apache/kafka:3.9.0
     container_name: schoolmanager-kafka
+    # Starts again with Docker Desktop (after a reboot), so events between the services keep flowing
+    restart: unless-stopped
     ports:
       - "9092:9092"
     environment:
@@ -32,6 +34,7 @@ services:
   kafka-ui:
     image: provectuslabs/kafka-ui:v0.7.2
     container_name: schoolmanager-kafka-ui
+    restart: unless-stopped
     depends_on:
       - kafka
     ports:

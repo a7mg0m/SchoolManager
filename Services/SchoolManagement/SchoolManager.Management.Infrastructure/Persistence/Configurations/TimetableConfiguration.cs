@@ -16,6 +16,9 @@ namespace SchoolManager.Management.Infrastructure
             builder.HasOne(x => x.AcademicYear).WithMany().HasForeignKey(x => x.AcademicYearId).OnDelete(DeleteBehavior.Restrict);
             builder.HasOne(x => x.Semester).WithMany().HasForeignKey(x => x.SemesterId).OnDelete(DeleteBehavior.Restrict);
             builder.HasMany(x => x.Slots).WithOne().HasForeignKey("TimetableId").OnDelete(DeleteBehavior.Cascade);
+
+            // The week settings: one JSON column (a few small rows, always read and saved with the timetable)
+            builder.OwnsMany(x => x.WorkDays, d => d.ToJson("WorkDays"));
             builder.ConfigureAudit(x => x.AuditInfo);
 		}
 	}

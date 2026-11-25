@@ -10,3 +10,73 @@
     min-width: 100px;
   }
 }
+
+.workdays-table {
+  min-width: 900px;
+
+  th:first-child {
+    white-space: nowrap;
+    width: 1%;
+  }
+
+  input[type='time'],
+  input[type='number'] {
+    min-width: 96px;
+    text-align: center;
+  }
+
+  // A day off: greyed out (its settings are kept)
+  .day-off {
+    background-color: rgba(0, 0, 0, 0.03);
+    opacity: 0.55;
+  }
+}
+
+.day-start {
+  width: 120px;
+}
+
+// Periods grouped by section
+.section-group {
+  border: 1px solid var(--sg-line, #dee2e6);
+  border-radius: 12px;
+  overflow: hidden;
+
+  .section-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(var(--sg-primary-rgb, 13, 110, 253), 0.05);
+  }
+
+  .section-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    text-align: start;
+    color: inherit;
+  }
+
+  .chevron {
+    font-size: 1.3rem;
+    transition: transform 0.15s ease;
+  }
+
+  &.collapsed .chevron {
+    transform: rotate(-90deg);
+  }
+
+  .table {
+    margin: 0;
+  }
+}
+
+[dir='rtl'] .section-group.collapsed .chevron {
+  transform: rotate(90deg);
+}

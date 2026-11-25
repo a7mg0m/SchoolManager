@@ -10,7 +10,9 @@ export enum NotificationType {
   Exam = 2,
   ExamResult = 3,
   Event = 4,
-  Message = 5
+  Message = 5,
+  /** A bus trip started (system notification) */
+  Bus = 6
 }
 
 export const NOTIFICATION_TYPES: { value: NotificationType; key: string; icon: string; badge: string }[] = [
@@ -18,7 +20,8 @@ export const NOTIFICATION_TYPES: { value: NotificationType; key: string; icon: s
   { value: NotificationType.Exam, key: 'notifications.types.exam', icon: 'pe-7s-note2', badge: 'bg-warning text-dark' },
   { value: NotificationType.ExamResult, key: 'notifications.types.examResult', icon: 'pe-7s-medal', badge: 'bg-success' },
   { value: NotificationType.Event, key: 'notifications.types.event', icon: 'pe-7s-date', badge: 'bg-primary' },
-  { value: NotificationType.Message, key: 'notifications.types.message', icon: 'pe-7s-chat', badge: 'bg-secondary' }
+  { value: NotificationType.Message, key: 'notifications.types.message', icon: 'pe-7s-chat', badge: 'bg-secondary' },
+  { value: NotificationType.Bus, key: 'notifications.types.bus', icon: 'pe-7s-car', badge: 'bg-dark' }
 ];
 
 /** Recipient row (backend NotificationTargetDto); one of the ids is set */

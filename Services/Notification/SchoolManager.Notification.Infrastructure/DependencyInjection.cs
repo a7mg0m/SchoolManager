@@ -1,3 +1,5 @@
+using BuildingBlocks.Messaging.Events;
+using BuildingBlocks.Messaging;
 using BuildingBlocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -25,10 +27,25 @@ namespace SchoolManager.Notification.Infrastructure
 
             // Push notifications (Firebase Cloud Messaging)
             services.AddScoped<IUserDeviceTokenRepository, UserDeviceTokenRepository>();
+
+            // Pictures of notifications / events (wwwroot)
+            services.AddScoped<IImageFileStore, ImageFileStore>();
             services.AddSingleton<IPushNotificationSender, FcmPushNotificationSender>();
             services.AddScoped<INotificationRecipientResolver, NotificationRecipientResolver>();
             services.AddScoped<INotificationPushService, NotificationPushService>();
             services.AddSingleton<ServiceTokenProvider>();
+            // Kafka: a homework published by a teacher → a notification for the parents of its classes
+            services.AddKafkaConsumer<HomeworkPublishedIntegrationEvent, HomeworkPublishedIntegrationEventHandler>(
+                configuration, Topics.ExamsHomeworkPublished);
+
+            // Kafka: a new exam (admin page or teacher app) → a notification for the parents of its class / grade
+            services.AddKafkaConsumer<ExamCreatedIntegrationEvent, ExamCreatedIntegrationEventHandler>(
+                configuration, Topics.ExamsExamCreated);
+
+            // Kafka: a bus trip started → a notification for the parents of its students
+            services.AddKafkaConsumer<TripStartedIntegrationEvent, TripStartedIntegrationEventHandler>(
+                configuration, Topics.AttendanceTripStarted);
+
             // Notifications created for a later day are pushed on that day
             services.AddHostedService<DuePushNotificationsService>();
 

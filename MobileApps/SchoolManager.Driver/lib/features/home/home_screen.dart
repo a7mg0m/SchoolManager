@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (route == null || !mounted) return;
     PushService.instance.openRoute.value = null;
     if (route.startsWith('/notifications')) {
-      Navigator.of(context).popUntil((r) => r.isFirst);
+      _navKey.currentState?.popUntil((r) => r.isFirst);
       _selectTab(_notificationsTab, reload: true);
     }
   }
@@ -213,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
       confirm: tr('هل وصلت؟ سيتم إنهاء الرحلة.', 'Have you arrived? The trip will be finished.'));
 
   Future<void> _openTrip(Trip trip) async {
-    final changed = await Navigator.of(context).push<bool>(MaterialPageRoute(
+    final changed = await _nav.push<bool>(MaterialPageRoute(
       builder: (_) => TripDetailsScreen(
         tripId: trip.id,
         loadTrip: widget.loadTrip,
@@ -247,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _snack(tr('تعذر تحميل الملف الشخصي، حاول مرة أخرى.', 'Could not load your profile. Please try again.'));
       return;
     }
-    final saved = await Navigator.of(context).push<bool>(MaterialPageRoute(builder: (_) => EditProfileScreen(profile: current!)));
+    final saved = await _nav.push<bool>(MaterialPageRoute(builder: (_) => EditProfileScreen(profile: current!)));
     if (!mounted) return;
     if (AuthService.instance.session?.isExpired ?? true) {
       await _logout();
@@ -260,8 +260,48 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ---------------------------------------------------------------- UI
 
+  /// Pages opened from the tabs (trip details, map, profile, …) open in this navigator,
+  /// so the bottom bar (Today / Trips / Notifications / More) stays under every page
+  final _navKey = GlobalKey<NavigatorState>();
+
+  NavigatorState get _nav => _navKey.currentState!;
+
+  /// A tab: close the pages opened above the tabs, then show it
+  void _onTab(int index) {
+    _navKey.currentState?.popUntil((r) => r.isFirst);
+    _selectTab(index);
+  }
+
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: NavigatorPopHandler<Object?>(
+        // Phone back button: close the open page first
+        onPopWithResult: (_) => _nav.maybePop(),
+        child: Navigator(
+          key: _navKey,
+          onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => _tabsPage()),
+        ),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _tab,
+        onDestinationSelected: _onTab,
+        destinations: [
+          NavigationDestination(icon: const Icon(Icons.today_outlined), selectedIcon: const Icon(Icons.today_rounded), label: tr('اليوم', 'Today')),
+          NavigationDestination(icon: const Icon(Icons.route_outlined), selectedIcon: const Icon(Icons.route_rounded), label: tr('الرحلات', 'Trips')),
+          NavigationDestination(
+            icon: const Icon(Icons.notifications_none_rounded),
+            selectedIcon: const Icon(Icons.notifications_rounded),
+            label: tr('الإشعارات', 'Notifications'),
+          ),
+          NavigationDestination(icon: const Icon(Icons.menu_rounded), label: tr('المزيد', 'More')),
+        ],
+      ),
+    );
+  }
+
+  /// The tabs themselves (first page of the inner navigator; rebuilt with this state)
+  Widget _tabsPage() {
     final pages = [_todayTab(), _tripsTab(), _notificationsPage(), _moreTab()];
     return Scaffold(
       body: SafeArea(
@@ -282,20 +322,6 @@ class _HomeScreenState extends State<HomeScreen> {
               label: Text(tr('رحلة جديدة', 'New trip')),
             )
           : null,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: _selectTab,
-        destinations: [
-          NavigationDestination(icon: const Icon(Icons.today_outlined), selectedIcon: const Icon(Icons.today_rounded), label: tr('اليوم', 'Today')),
-          NavigationDestination(icon: const Icon(Icons.route_outlined), selectedIcon: const Icon(Icons.route_rounded), label: tr('الرحلات', 'Trips')),
-          NavigationDestination(
-            icon: const Icon(Icons.notifications_none_rounded),
-            selectedIcon: const Icon(Icons.notifications_rounded),
-            label: tr('الإشعارات', 'Notifications'),
-          ),
-          NavigationDestination(icon: const Icon(Icons.menu_rounded), label: tr('المزيد', 'More')),
-        ],
-      ),
     );
   }
 

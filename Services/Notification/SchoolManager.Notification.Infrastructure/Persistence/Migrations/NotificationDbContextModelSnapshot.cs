@@ -202,6 +202,14 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly>("SentOn")
                         .HasColumnType("date");
 
+                    b.Property<int>("Source")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid?>("SourceEventId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -210,6 +218,10 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AcademicYearId");
+
+                    b.HasIndex("SourceEventId")
+                        .IsUnique()
+                        .HasFilter("[SourceEventId] IS NOT NULL");
 
                     b.HasIndex("PushSentAt", "SentOn");
 

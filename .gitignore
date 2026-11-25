@@ -374,3 +374,9 @@ Services/**/wwwroot/upload/**
 **/*-firebase-adminsdk-*.json
 **/google-services.json
 **/GoogleService-Info.plist
+
+# Pictures uploaded for notifications / events (the folders stay, see .gitkeep)
+Services/Notification/SchoolManager.Notification.API/wwwroot/notifications/*
+!Services/Notification/SchoolManager.Notification.API/wwwroot/notifications/.gitkeep
+Services/Notification/SchoolManager.Notification.API/wwwroot/events/*
+!Services/Notification/SchoolManager.Notification.API/wwwroot/events/.gitkeep

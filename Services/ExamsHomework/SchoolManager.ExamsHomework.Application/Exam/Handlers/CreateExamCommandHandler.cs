@@ -1,5 +1,7 @@
 using BuildingBlocks;
 using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging;
+using BuildingBlocks.Messaging.Events;
 using SchoolManager.ExamsHomework.Domain;
 
 namespace SchoolManager.ExamsHomework.Application
@@ -8,14 +10,16 @@ namespace SchoolManager.ExamsHomework.Application
     {
         private readonly IExamRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IIntegrationEventOutbox _outbox;
 
         private readonly ICurrentUserService _currentUser;
 
-        public CreateExamCommandHandler(ICurrentUserService currentUser, IExamRepository repository, IUnitOfWork unitOfWork)
+        public CreateExamCommandHandler(ICurrentUserService currentUser, IExamRepository repository, IUnitOfWork unitOfWork, IIntegrationEventOutbox outbox)
         {
             _currentUser = currentUser;
             _repository = repository;
             _unitOfWork = unitOfWork;
+            _outbox = outbox;
         }
 
         public async Task<Guid> Handle(CreateExamCommand command, CancellationToken cancellationToken)
@@ -42,6 +46,25 @@ namespace SchoolManager.ExamsHomework.Application
                 entity.AssignTeacher(teacherId);
 
             await _repository.AddAsync(entity);
+
+            // The parents of the exam's class (or grade) get a notification (Notification service, through Kafka)
+            _outbox.Enqueue(Topics.ExamsExamCreated, entity.Id.ToString(), new ExamCreatedIntegrationEvent
+            {
+                ExamId = entity.Id,
+                ExamType = (int)entity.ExamType,
+                SubjectId = entity.SubjectId,
+                GradeId = entity.GradeId,
+                SectionId = entity.SectionId,
+                AcademicYearId = entity.AcademicYearId,
+                SemesterId = entity.SemesterId,
+                ExamDate = entity.ExamDate,
+                StartTime = entity.StartTime,
+                EndTime = entity.EndTime,
+                Weight = entity.Weight,
+                SuccessScore = entity.SuccessScore,
+                CreatedBy = _currentUser.UserId
+            });
+
             await _unitOfWork.SaveChangesAsync();
 
             return entity.Id;

@@ -61,6 +61,10 @@ namespace SchoolManager.Management.Application
 				request.SemesterId,
 				Updated(entity.AuditInfo));
 
+			// Week settings (an older client without them keeps the current ones)
+			if (request.WorkDays is not null)
+				entity.SetSchedule(request.DayStartTime, TimetableWorkDayDtoValidator.ToDomain(request.WorkDays));
+
 			var incoming = request.Slots ?? new();
 			var incomingIds = incoming.Where(s => s.Id.HasValue).Select(s => s.Id!.Value).ToHashSet();
 

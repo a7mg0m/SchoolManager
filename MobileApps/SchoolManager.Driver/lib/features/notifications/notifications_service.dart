@@ -14,7 +14,8 @@ enum NoticeType {
   exam(2, 'امتحان', 'Exam', Icons.edit_note_rounded, Color(0xFFF08C00)),
   examResult(3, 'نتيجة امتحان', 'Exam result', Icons.emoji_events_rounded, Color(0xFF13864B)),
   event(4, 'فعالية', 'Event', Icons.celebration_rounded, Color(0xFFE0457B)),
-  message(5, 'رسالة', 'Message', Icons.campaign_rounded, Color(0xFF1677E8));
+  message(5, 'رسالة', 'Message', Icons.campaign_rounded, Color(0xFF1677E8)),
+  bus(6, 'الحافلة', 'Bus', Icons.directions_bus_rounded, Color(0xFF0F766E));
 
   const NoticeType(this.value, this._ar, this._en, this.icon, this.color);
 
@@ -69,7 +70,7 @@ class AppNotice {
       description: (json['description'] as String?)?.trim() ?? '',
       sentOn: DateTime(d.year, d.month, d.day),
       type: NoticeType.from(json['notificationType']),
-      imageUrl: image == null || image.isEmpty ? null : image,
+      imageUrl: image == null || image.isEmpty ? null : pictureUrl(image),
       forEveryone: json['forEveryone'] == true,
     );
   }
@@ -131,3 +132,8 @@ class NotificationsService {
 
   static String get _sessionEnded => tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.');
 }
+
+/// Uploaded pictures (and the default ones) come as "/notification-files/…": loaded through the gateway.
+/// A full URL (older records) is kept as it is.
+String pictureUrl(String url) =>
+    url.startsWith('http://') || url.startsWith('https://') ? url : '${AppConfig.apiBaseUrl}${url.startsWith('/') ? '' : '/'}$url';

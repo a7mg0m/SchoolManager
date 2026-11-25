@@ -13,7 +13,9 @@ namespace SchoolManager.Management.Application
 					src.GradeId,
                     src.AcademicYearId,
                     src.SemesterId,
-                    src.Slots));
+                    src.Slots,
+                    src.DayStartTime,
+                    src.WorkDays));
 
             CreateMap<UpdateTimetableDto, UpdateTimetableCommand>()
                 .ConstructUsing(src => new UpdateTimetableCommand(
@@ -22,7 +24,11 @@ namespace SchoolManager.Management.Application
                     src.GradeId,
                     src.AcademicYearId,
                     src.SemesterId,
-                    src.Slots));
+                    src.Slots,
+                    src.DayStartTime,
+                    src.WorkDays));
+
+            CreateMap<TimetableWorkDay, TimetableWorkDayDto>();
 
 			CreateMap<Timetable, TimetableDto>()
 ;

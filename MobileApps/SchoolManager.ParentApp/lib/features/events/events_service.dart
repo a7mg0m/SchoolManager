@@ -83,7 +83,7 @@ class ChildEvent {
       start: _minutes(json['startTime']),
       end: _minutes(json['endTime']),
       audience: EventAudience.from(json['eventFor']),
-      imageUrl: image == null || image.isEmpty ? null : image,
+      imageUrl: image == null || image.isEmpty ? null : pictureUrl(image),
     );
   }
 }
@@ -149,3 +149,8 @@ int _minutes(Object? value) {
   if (parts.length < 2) return 0;
   return (int.tryParse(parts[0]) ?? 0) * 60 + (int.tryParse(parts[1]) ?? 0);
 }
+
+/// Uploaded pictures (and the default ones) come as "/notification-files/…": loaded through the gateway.
+/// A full URL (older records) is kept as it is.
+String pictureUrl(String url) =>
+    url.startsWith('http://') || url.startsWith('https://') ? url : '${AppConfig.apiBaseUrl}${url.startsWith('/') ? '' : '/'}$url';

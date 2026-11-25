@@ -143,23 +143,10 @@
                 </div>
               </div>
 
+              <!-- Picture: uploaded to wwwroot/events (none = the default picture in the apps) -->
               <div class="mt-3">
-                <label for="imageUrl" class="form-label">{{ 'schoolEvents.imageUrl' | translate }}</label>
-                <input
-                  id="imageUrl"
-                  type="url"
-                  class="form-control"
-                  formControlName="imageUrl"
-                  placeholder="https://..."
-                  dir="ltr"
-                  [class.is-invalid]="form.get('imageUrl')?.invalid && form.get('imageUrl')?.touched"
-                />
-                @if (hasError('imageUrl', 'pattern')) {
-                  <div class="invalid-feedback">{{ 'schoolEvents.imageUrlInvalid' | translate }}</div>
-                }
-                @if (imageUrl() && !form.get('imageUrl')?.invalid) {
-                  <img class="image-preview mt-2" [src]="imageUrl()" alt="" (error)="$any($event.target).style.display = 'none'" (load)="$any($event.target).style.display = ''" />
-                }
+                <label class="form-label">{{ 'imageUpload.label' | translate }}</label>
+                <app-image-upload uploadUrl="/api/school-event/upload-image" [value]="imageUrl()" (valueChange)="setImage($event)" />
               </div>
             </div>
           </div>

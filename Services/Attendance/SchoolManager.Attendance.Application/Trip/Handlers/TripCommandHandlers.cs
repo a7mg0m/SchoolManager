@@ -1,3 +1,5 @@
+using BuildingBlocks.Messaging.Events;
+using BuildingBlocks.Messaging;
 using BuildingBlocks;
 using BuildingBlocks.CQRS;
 using SchoolManager.Attendance.Domain;
@@ -58,15 +60,33 @@ namespace SchoolManager.Attendance.Application
         }
     }
 
+    /// <summary>
+    /// The bus leaves; the parents of the trip's students are told (Notification service, through Kafka — the event is
+    /// saved in the same transaction).
+    /// </summary>
     public class StartTripCommandHandler : ICommandHandler<StartTripCommand, bool>
     {
         private readonly ITripRepository _repository;
+        private readonly IBusRepository _buses;
+        private readonly IBusAssignmentRepository _assignments;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IIntegrationEventOutbox _outbox;
+        private readonly ICurrentUserService _currentUser;
 
-        public StartTripCommandHandler(ITripRepository repository, IUnitOfWork unitOfWork)
+        public StartTripCommandHandler(
+            ITripRepository repository,
+            IBusRepository buses,
+            IBusAssignmentRepository assignments,
+            IUnitOfWork unitOfWork,
+            IIntegrationEventOutbox outbox,
+            ICurrentUserService currentUser)
         {
             _repository = repository;
+            _buses = buses;
+            _assignments = assignments;
             _unitOfWork = unitOfWork;
+            _outbox = outbox;
+            _currentUser = currentUser;
         }
 
         public async Task<bool> Handle(StartTripCommand command, CancellationToken cancellationToken)
@@ -74,9 +94,37 @@ namespace SchoolManager.Attendance.Application
             var entity = await _repository.GetByIdAsync(command.Id);
             if (entity is null) return false;
 
-            entity.Start(DateTime.UtcNow);
-
+            var startedAt = DateTime.UtcNow;
+            entity.Start(startedAt);
             await _repository.UpdateAsync(entity);
+
+            var bus = await _buses.GetByIdAsync(entity.BusId);
+
+            // The academic year of the bus's assignments that day: the notification belongs to it
+            var busId = entity.BusId;
+            var date = entity.Date;
+            var yearId = (await _assignments.SearchAsync(a =>
+                    a.BusId == busId && a.StartDate <= date && (a.EndDate == null || a.EndDate >= date)))
+                .GroupBy(a => a.AcademicYearId)
+                .OrderByDescending(g => g.Count())
+                .Select(g => (Guid?)g.Key)
+                .FirstOrDefault();
+
+            _outbox.Enqueue(Topics.AttendanceTripStarted, entity.Id.ToString(), new TripStartedIntegrationEvent
+            {
+                TripId = entity.Id,
+                BusId = entity.BusId,
+                BusNumber = bus?.Number ?? string.Empty,
+                PlateNumber = bus?.PlateNumber ?? string.Empty,
+                DriverName = bus?.DriverName ?? string.Empty,
+                TripType = (int)entity.Type,
+                Date = entity.Date,
+                AcademicYearId = yearId,
+                StartedAt = startedAt,
+                StudentIds = entity.Students.Select(s => s.StudentId).Distinct().ToList(),
+                StartedBy = _currentUser.UserId
+            });
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             return true;
         }

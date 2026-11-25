@@ -25,6 +25,7 @@ import {
   loadAudienceLookups,
   todayIso
 } from '../shared/audience';
+import { notificationFileUrl } from '../shared/image-upload.component';
 
 type StatusFilter = '' | 'scheduled' | 'sent';
 
@@ -35,6 +36,9 @@ type StatusFilter = '' | 'scheduled' | 'sent';
   templateUrl: './notification-list.component.html',
 })
 export class NotificationListComponent implements OnInit, OnDestroy {
+  /** Picture address (uploaded pictures are relative to the gateway) */
+  readonly fileUrl = notificationFileUrl;
+
   /** Everything loaded; the page shows only the header's academic year */
   private allNotifications = signal<AppNotification[]>([]);
 

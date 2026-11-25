@@ -68,6 +68,13 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
   // Mirrors of form values for the template
   notificationType = signal<NotificationType>(NotificationType.Message);
   imageUrl = signal('');
+
+  /** A picture was uploaded / removed */
+  setImage(url: string): void {
+    const control = this.form.get('imageUrl')!;
+    control.setValue(url || '');
+    control.markAsDirty();
+  }
   sentOn = signal(todayIso());
 
   readonly types = NOTIFICATION_TYPES;
@@ -120,7 +127,8 @@ export class NotificationSaveComponent implements OnInit, OnDestroy {
       description: ['', [Validators.required, Validators.maxLength(DESCRIPTION_MAX), this.notBlank]],
       notificationType: [NotificationType.Message, Validators.required],
       sentOn: [todayIso(), Validators.required],
-      imageUrl: ['', [Validators.maxLength(IMAGE_URL_MAX), Validators.pattern(/^https?:\/\/\S+$/i)]]
+      // Set by the picture upload ("/notification-files/notifications/…")
+      imageUrl: ['', [Validators.maxLength(IMAGE_URL_MAX)]]
     });
 
     this.form.get('notificationType')!.valueChanges

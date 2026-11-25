@@ -185,7 +185,7 @@
   <div class="modal-body">
     @if (viewed(); as n) {
       @if (n.imageUrl) {
-        <img class="view-image mb-3" [src]="n.imageUrl" [alt]="n.title" (error)="$any($event.target).style.display = 'none'" />
+        <img class="view-image mb-3" [src]="fileUrl(n.imageUrl)" [alt]="n.title" (error)="$any($event.target).style.display = 'none'" />
       }
       <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
         <h4 class="mb-0">{{ n.title }}</h4>

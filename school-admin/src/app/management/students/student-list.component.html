@@ -135,7 +135,7 @@
     <div class="card">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover align-middle">
+          <table appDataTable [dtSearch]="false" class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
                 <th class="row-number">#</th>
@@ -148,10 +148,10 @@
               </tr>
             </thead>
             <tbody>
-              @for (s of pagedStudents(); track s.id; let i = $index) {
+              @for (s of filteredStudents(); track s.id; let i = $index) {
                 @let fees = feeOverviewOf(s);
                 <tr class="clickable-row" (click)="viewProfile(s)">
-                  <td class="row-number text-muted">{{ rowNumber(i) }}</td>
+                  <td class="row-number text-muted">{{ i + 1 }}</td>
                   <td>
                     <div class="d-flex align-items-center gap-2">
                       <span class="avatar" [class.avatar-female]="s.gender === 'Female'">{{ initials(s) }}</span>
@@ -199,20 +199,6 @@
           </table>
         </div>
 
-        @if (filteredStudents().length > pageSize) {
-          <div class="d-flex justify-content-center mt-3">
-            <ngb-pagination
-              [collectionSize]="filteredStudents().length"
-              [page]="page()"
-              (pageChange)="page.set($event)"
-              [pageSize]="pageSize"
-              [maxSize]="5"
-              [rotate]="true"
-              [boundaryLinks]="true"
-              size="sm"
-            ></ngb-pagination>
-          </div>
-        }
       </div>
     </div>
   }

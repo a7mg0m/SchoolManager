@@ -19,6 +19,17 @@ namespace SchoolManager.Notification.API.Controllers
         }
 
         /// <summary>
+        /// Uploads the picture of a notification (JPG / PNG / WEBP / GIF, up to 5 MB); answers its URL for ImageUrl.
+        /// Saved under wwwroot/notifications.
+        /// </summary>
+        [Authorize]
+        [HttpPost("upload-image")]
+        [RequestSizeLimit(ImageUpload.MaxRequestBytes)]
+        [RequestFormLimits(MultipartBodyLengthLimit = ImageUpload.MaxRequestBytes)]
+        public Task<IActionResult> UploadImage(IFormFile? file, [FromServices] IImageFileStore store, CancellationToken cancellationToken)
+            => ImageUpload.SaveAsync(file, ImageFolder.Notifications, store, cancellationToken);
+
+        /// <summary>
         /// Notifications already sent that concern one of the logged-in parent's children (parent app): for the whole
         /// school, its grade or class, or the child itself. The child must be the parent's (checked with Management).
         /// </summary>

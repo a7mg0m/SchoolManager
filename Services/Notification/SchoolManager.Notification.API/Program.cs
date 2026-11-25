@@ -39,6 +39,18 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+// Pictures of notifications / events: wwwroot/{notifications,events,default} served at /notification-files/…
+// (the gateway forwards /notification-files to this service)
+var webRoot = ImageFileStore.WebRoot(app.Environment);
+foreach (var folder in ImageFileStore.Folders)
+    Directory.CreateDirectory(Path.Combine(webRoot, folder));
+app.UseStaticFiles(new StaticFileOptions
+{
+    RequestPath = ImageFileStore.UrlPrefix,
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(webRoot),
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "public, max-age=86400"
+});
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

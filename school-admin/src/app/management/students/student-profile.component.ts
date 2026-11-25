@@ -48,6 +48,9 @@ export class StudentProfileComponent implements OnInit, OnDestroy {
   fees = signal<StudentFee[]>([]);
   currentLanguage = signal<string>('en');
 
+  /** Academic years (with semesters) for the weekly attendance card */
+  academicYearList = computed(() => [...this.academicYearMap().values()]);
+
   isLoading = signal(false);
   errorMessage = signal<string | null>(null);
   notFound = signal(false);

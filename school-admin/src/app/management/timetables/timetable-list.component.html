@@ -59,7 +59,7 @@
           <div class="text-center text-muted py-4">{{ 'timetables.noTimetablesForFilter' | translate }}</div>
         } @else {
         <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0">
+          <table appDataTable class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
                 <th style="width: 40px;"></th>
@@ -121,7 +121,7 @@
 
                 <!-- Weekly view of slots -->
                 @if (expandedId() === timetable.id) {
-                  <tr class="table-light">
+                  <tr class="table-light dt-child">
                     <td colspan="8">
                       <div class="week-grid">
                         @for (day of usedDays(timetable); track day.value) {

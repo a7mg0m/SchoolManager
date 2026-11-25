@@ -49,7 +49,8 @@ namespace SchoolManager.Notification.Application
                 Description = n.Description,
                 SentOn = n.SentOn,
                 NotificationType = n.NotificationType,
-                ImageUrl = n.ImageUrl,
+                // No picture: the default one (wwwroot/default)
+                ImageUrl = string.IsNullOrWhiteSpace(n.ImageUrl) ? DefaultImages.Notification : n.ImageUrl,
                 ForEveryone = n.Targets.Count == 0
             })
             .ToList();

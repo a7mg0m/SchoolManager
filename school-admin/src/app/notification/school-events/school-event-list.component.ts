@@ -23,6 +23,7 @@ import {
   loadAudienceLookups,
   todayIso
 } from '../shared/audience';
+import { notificationFileUrl } from '../shared/image-upload.component';
 
 type EventTab = 'upcoming' | 'past';
 
@@ -33,6 +34,9 @@ type EventTab = 'upcoming' | 'past';
   templateUrl: './school-event-list.component.html',
 })
 export class SchoolEventListComponent implements OnInit, OnDestroy {
+  /** Picture address (uploaded pictures are relative to the gateway) */
+  readonly fileUrl = notificationFileUrl;
+
   events = signal<SchoolEvent[]>([]);
   private lookups = signal<AudienceLookups>(EMPTY_LOOKUPS);
   currentLanguage = signal<string>('en');

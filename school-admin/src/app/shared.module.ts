@@ -13,6 +13,8 @@ import { AcademicContextNoteComponent } from './Layout/Components/academic-conte
 
 // Permission directives (*appCan / [appCanDisable])
 import { CanDirective, CanDisableDirective } from './core/directives/can.directive';
+// Search + rows per page + paging for any table (<table appDataTable>)
+import { DataTableDirective } from './core/directives/data-table.directive';
 
 @NgModule({
   declarations: [
@@ -20,7 +22,8 @@ import { CanDirective, CanDisableDirective } from './core/directives/can.directi
     LanguageSwitcherComponent,
     AcademicContextNoteComponent,
     CanDirective,
-    CanDisableDirective
+    CanDisableDirective,
+    DataTableDirective
   ],
   imports: [
     CommonModule,
@@ -37,6 +40,7 @@ import { CanDirective, CanDisableDirective } from './core/directives/can.directi
     AcademicContextNoteComponent,
     CanDirective,
     CanDisableDirective,
+    DataTableDirective,
     // Re-export commonly used modules for convenience
     CommonModule,
     FormsModule,

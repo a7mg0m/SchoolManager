@@ -13,5 +13,14 @@ namespace BuildingBlocks.Messaging
 
         /// <summary>Bus (and its driver's login) created / updated / deleted in the Attendance service (key = bus id).</summary>
         public const string AttendanceBusDrivers = "attendance.bus-drivers";
+
+        /// <summary>A bus trip started in the Attendance service (key = trip id).</summary>
+        public const string AttendanceTripStarted = "attendance.trip-started";
+
+        /// <summary>A homework published to classes in the ExamsHomework service (key = homework id).</summary>
+        public const string ExamsHomeworkPublished = "examshomework.homework-published";
+
+        /// <summary>A new exam saved in the ExamsHomework service (key = exam id).</summary>
+        public const string ExamsExamCreated = "examshomework.exam-created";
     }
 }

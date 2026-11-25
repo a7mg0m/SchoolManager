@@ -1,3 +1,4 @@
+using BuildingBlocks.Messaging;
 using BuildingBlocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +28,17 @@ namespace SchoolManager.ExamsHomework.Infrastructure
                 client.BaseAddress = new Uri(configuration["ManagementService:BaseUrl"] ?? "http://localhost:53607/");
                 client.Timeout = TimeSpan.FromSeconds(15);
             });
+
+            // Kafka: events (homework published → Notification service) are stored in the outbox with the business change,
+
+            // then published in the background
+
+            services.AddKafkaPublisher(configuration);
+
+            services.AddScoped<IIntegrationEventOutbox, IntegrationEventOutbox>();
+
+            services.AddHostedService<OutboxPublisherService>();
+
 
             return services;
         }

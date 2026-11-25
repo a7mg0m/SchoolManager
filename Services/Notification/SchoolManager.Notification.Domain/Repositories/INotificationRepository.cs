@@ -7,7 +7,10 @@ namespace SchoolManager.Notification.Domain
 {
     public interface INotificationRepository : IRepository<Notification>
     {
-        /// <summary>Notifications with their targets, of one academic year (null: all)</summary>
+        /// <summary>A notification was already created from this integration event</summary>
+        Task<bool> ExistsForSourceEventAsync(Guid eventId, CancellationToken cancellationToken = default);
+
+        /// <summary>Admin notifications (not the system ones) with their targets, of one academic year (null: all)</summary>
         Task<List<Notification>> GetForYearAsync(Guid? academicYearId, CancellationToken cancellationToken = default);
 
         /// <summary>

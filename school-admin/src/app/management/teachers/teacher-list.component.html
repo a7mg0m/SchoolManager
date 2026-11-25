@@ -106,7 +106,7 @@
     <div class="card">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover align-middle">
+          <table appDataTable [dtSearch]="false" class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
                 <th>{{ 'teachers.fullName' | translate }}</th>
@@ -119,7 +119,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (teacher of pagedTeachers(); track teacher.id) {
+              @for (teacher of filteredTeachers(); track teacher.id) {
                 <tr>
                   <td><strong>{{ getTeacherName(teacher) }}</strong></td>
                   <td class="d-none d-md-table-cell" dir="ltr">{{ teacher.nationalId }}</td>
@@ -166,21 +166,6 @@
           </table>
         </div>
 
-        <!-- Pagination -->
-        @if (filteredTeachers().length > pageSize) {
-          <div class="d-flex justify-content-center mt-3">
-            <ngb-pagination
-              [collectionSize]="filteredTeachers().length"
-              [page]="page()"
-              (pageChange)="page.set($event)"
-              [pageSize]="pageSize"
-              [maxSize]="5"
-              [rotate]="true"
-              [boundaryLinks]="true"
-              size="sm"
-            ></ngb-pagination>
-          </div>
-        }
       </div>
     </div>
   }

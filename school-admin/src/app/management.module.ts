@@ -21,6 +21,8 @@ import { TimetableListComponent } from './management/timetables/timetable-list.c
 import { TimetableSaveComponent } from './management/timetables/timetable-save.component';
 import { StudentListComponent } from './management/students/student-list.component';
 import { StudentProfileComponent } from './management/students/student-profile.component';
+import { StudentWeekComponent } from './management/students/student-week.component';
+import { StudentExamsComponent } from './management/students/student-exams.component';
 
 @NgModule({
   declarations: [
@@ -42,7 +44,9 @@ import { StudentProfileComponent } from './management/students/student-profile.c
     TimetableListComponent,
     TimetableSaveComponent,
     StudentListComponent,
-    StudentProfileComponent
+    StudentProfileComponent,
+    StudentWeekComponent,
+    StudentExamsComponent
   ],
   imports: [
     SharedModule

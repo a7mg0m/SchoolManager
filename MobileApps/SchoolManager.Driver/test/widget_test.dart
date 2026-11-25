@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smart_school_driver/core/auth/auth_service.dart';
 import 'package:smart_school_driver/core/i18n/app_language.dart';
 import 'package:smart_school_driver/features/home/home_screen.dart';
+import 'package:smart_school_driver/features/notifications/notifications_screen.dart';
 import 'package:smart_school_driver/features/notifications/notifications_service.dart';
 import 'package:smart_school_driver/features/profile/profile_service.dart';
 import 'dart:async';
@@ -424,6 +425,46 @@ void main() {
       await positions.close();
     });
 
+    test('battery: the GPS stops in the background and starts again when the app is opened', () async {
+      final positions = StreamController<(double, double)>.broadcast();
+      final sent = <String>[];
+      final tracker = LocationTracker(
+        positions: () => positions.stream,
+        ensurePermission: () async {},
+        send: (tripId, lat, lng) async => sent.add('$tripId:$lat,$lng'),
+        minInterval: Duration.zero,
+        heartbeat: null,
+      );
+
+      await tracker.start('t1');
+      positions.add((24.7, 46.6));
+      await Future<void>.delayed(Duration.zero);
+      expect(sent, ['t1:24.7,46.6']);
+
+      // In the background: nothing is listened to or sent, the trip is kept
+      tracker.didChangeAppLifecycleState(AppLifecycleState.paused);
+      expect(tracker.isTracking, isFalse);
+      expect(tracker.paused, isTrue);
+      expect(tracker.tripId, 't1');
+      expect(positions.hasListener, isFalse);
+      positions.add((24.8, 46.7));
+      await Future<void>.delayed(Duration.zero);
+      expect(sent.length, 1);
+
+      // Opened again: sharing resumes for the same trip
+      tracker.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await Future<void>.delayed(Duration.zero);
+      expect(tracker.isTracking, isTrue);
+      expect(tracker.paused, isFalse);
+      expect(tracker.tripId, 't1');
+      positions.add((24.9, 46.8));
+      await Future<void>.delayed(Duration.zero);
+      expect(sent.last, 't1:24.9,46.8');
+
+      tracker.stop();
+      await positions.close();
+    });
+
     test('follow() shares the running trip; a refused permission is shown', () async {
       final tracker = LocationTracker(
         positions: () => const Stream.empty(),
@@ -520,6 +561,65 @@ void main() {
       expect(find.text('خريطة الرحلة'), findsOneWidget);
       expect(find.byKey(const ValueKey('student-pin-s1')), findsOneWidget);
     });
+  });
+
+  testWidgets('The bottom bar stays on pages opened from the tabs; a tab closes them', (tester) async {
+    _phoneSize(tester);
+    final trip = _trip('t1', TripType.toSchool, TripStatus.completed);
+    await tester.pumpWidget(_app(HomeScreen(
+      tracker: _tracker(),
+      loadBus: () async => _bus,
+      loadTrips: () async => [trip],
+      loadProfile: () async => null,
+      loadTrip: (_) async => trip,
+      loadStudents: (_) async => const [],
+    )));
+    await tester.pumpAndSettle();
+
+    // Open the trip: its page shows with the bar under it
+    await tester.tap(find.text('رحلة الذهاب إلى المدرسة'));
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل الرحلة'), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('الإشعارات'), findsOneWidget);
+
+    // A tab closes the page and opens the tab
+    await tester.tap(find.text('الرحلات').last);
+    await tester.pumpAndSettle();
+    expect(find.text('تفاصيل الرحلة'), findsNothing);
+    expect(find.text('آخر 14 يوماً والأسبوع القادم'), findsOneWidget);
+  });
+
+  testWidgets('Notification details: the picture is the header and opens full screen', (tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(_app(NotificationDetailsScreen(
+      notice: AppNotice(
+        id: 'n1',
+        title: 'رحلة مدرسية',
+        description: 'تفاصيل',
+        sentOn: DateTime.now(),
+        type: NoticeType.values.last,
+        imageUrl: 'http://localhost:53607/notification-files/default/notification.png',
+      ),
+    )));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('notice-image')), findsOneWidget);
+    expect(find.text('رحلة مدرسية'), findsWidgets);
+
+    await tester.tap(find.byKey(const ValueKey('notice-image')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('notice-image-full')), findsOneWidget);
+  });
+
+  testWidgets('Notification details without a picture keeps the coloured header', (tester) async {
+    _phoneSize(tester);
+    await tester.pumpWidget(_app(NotificationDetailsScreen(
+      notice: AppNotice(id: 'n1', title: 'إجازة', description: 'تفاصيل', sentOn: DateTime.now(), type: NoticeType.values.last),
+    )));
+    await tester.pump();
+    expect(find.byKey(const ValueKey('notice-image')), findsNothing);
+    expect(find.text('إجازة'), findsOneWidget);
   });
 
   testWidgets('Notifications tab: the school\'s and my bus\'s notifications', (tester) async {

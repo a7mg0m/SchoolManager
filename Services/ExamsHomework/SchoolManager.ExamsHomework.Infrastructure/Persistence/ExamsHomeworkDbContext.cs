@@ -15,6 +15,9 @@ namespace SchoolManager.ExamsHomework.Infrastructure
         public DbSet<HomeworkPublish> HomeworkPublishes => Set<HomeworkPublish>();
         public DbSet<HomeworkQuestion> HomeworkQuestions => Set<HomeworkQuestion>();
 
+        // Transactional outbox (Kafka): events saved with the business change, published in the background
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ExamsHomeworkDbContext).Assembly);

@@ -37,7 +37,15 @@
     "fromHeader": "From the academic year / semester in the header — change it there.",
     "keptFromRecord": "Saved with this record.",
     "chooseYearInHeader": "Choose the academic year and semester in the header first.",
-    "chooseYearOnlyInHeader": "Choose the academic year in the header first."
+    "chooseYearOnlyInHeader": "Choose the academic year in the header first.",
+    "dataTable": {
+      "search": "Search the table…",
+      "rowsPerPage": "Rows per page",
+      "showing": "Showing {{from}}–{{to}} of {{total}}",
+      "noMatches": "No rows match your search.",
+      "first": "First page",
+      "last": "Last page"
+    }
   },
   "header": {
     "dashboard": "Dashboard",
@@ -502,7 +510,55 @@
     "allSettled": "All settled",
     "overdueCount": "{{count}} overdue",
     "age": "Age",
-    "overdue": "Overdue"
+    "overdue": "Overdue",
+    "week": {
+      "title": "Weekly attendance & reviews",
+      "previous": "Previous week",
+      "next": "Next week",
+      "thisWeek": "This week",
+      "attendanceRate": "Attendance",
+      "absentLessons": "Absent lessons",
+      "recordedLessons": "Lessons recorded",
+      "averageReview": "Average review ({{count}})",
+      "period": "Period {{n}}",
+      "notRecorded": "Not recorded",
+      "noLessons": "No lessons in this week.",
+      "loadFailed": "Attendance or reviews could not be loaded.",
+      "focus": "Focus",
+      "interaction": "Interaction",
+      "behavior": "Behavior",
+      "focusShort": "F",
+      "interactionShort": "I",
+      "behaviorShort": "B"
+    },
+    "exams": {
+      "title": "Exams & results",
+      "allSemesters": "All semesters",
+      "all": "All",
+      "upcoming": "Upcoming",
+      "done": "Done",
+      "total": "Exams",
+      "passRate": "Pass rate ({{count}} graded)",
+      "average": "Average score",
+      "date": "Date",
+      "subject": "Subject",
+      "type": "Type",
+      "marks": "Full mark",
+      "score": "Score",
+      "passMark": "Pass",
+      "passed": "Passed",
+      "failed": "Failed",
+      "upcomingBadge": "Upcoming",
+      "noResult": "No result yet",
+      "wholeGrade": "Whole grade",
+      "noExams": "No exams.",
+      "loadFailed": "Exams or results could not be loaded.",
+      "allTypes": "All types",
+      "showing": "Showing {{from}}–{{to}} of {{total}}",
+      "rowsPerPage": "Rows per page",
+      "searchPlaceholder": "Search subject, type, date, score…",
+      "noMatches": "No exams match your search."
+    }
   },
   "schoolInfo": {
     "album": {
@@ -683,7 +739,32 @@
     "currentSemester": "current",
     "allYears": "All years",
     "allSemesters": "All semesters",
-    "noTimetablesForFilter": "No timetables for this academic year / semester."
+    "noTimetablesForFilter": "No timetables for this academic year / semester.",
+    "workDays": "Work days",
+    "dayStartTime": "School day starts at",
+    "isWorkDay": "Work day",
+    "breakStart": "Break starts at",
+    "breakEnd": "Break ends at",
+    "slotDuration": "Slot duration (min)",
+    "slotCount": "Number of slots",
+    "dayEnd": "Last period ends at",
+    "breakIncomplete": "Enter both break times",
+    "breakEndBeforeStart": "The break must end after it starts",
+    "allSections": "All sections of the grade",
+    "generatePeriods": "Generate periods",
+    "generateHint": "Creates the periods of each work day (times only); then choose the subject and teacher of each period.",
+    "generateConfirm": "{{count}} existing period(s) of these days and sections will be replaced by new ones.",
+    "generated": "The periods were generated. Choose the subject and teacher of each period, then save.",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "periodsCount": "{{count}} periods",
+    "incompleteCount": "{{count}} without subject / teacher",
+    "hasErrors": "Has errors",
+    "noSection": "Without a section",
+    "generateTitle": "Replace the periods?",
+    "periodsReplaced": "replaced",
+    "periodsCreated": "new periods",
+    "replaceAndGenerate": "Replace and generate"
   },
   "expenseCategories": {
     "title": "Expense Categories",
@@ -1039,7 +1120,8 @@
       "exam": "Exam",
       "examResult": "Exam result",
       "event": "Event",
-      "message": "Message"
+      "message": "Message",
+      "bus": "Bus"
     },
     "kinds": {
       "grade": "Grade",
@@ -1907,5 +1989,19 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "loginNameCheckFailed": "Could not check the login name. Please try again."
+  },
+  "imageUpload": {
+    "label": "Picture",
+    "choose": "Choose a picture or drop it here",
+    "hint": "JPG, PNG, WEBP or GIF · up to 5 MB",
+    "uploading": "Uploading…",
+    "replace": "Replace",
+    "remove": "Remove",
+    "errors": {
+      "ImageRequired": "Choose a picture.",
+      "ImageTooLarge": "The picture is larger than 5 MB.",
+      "ImageTypeNotAllowed": "Only JPG, PNG, WEBP or GIF pictures.",
+      "UploadFailed": "The picture could not be uploaded. Please try again."
+    }
   }
 }

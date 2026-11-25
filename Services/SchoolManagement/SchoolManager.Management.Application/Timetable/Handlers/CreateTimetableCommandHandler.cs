@@ -56,6 +56,8 @@ namespace SchoolManager.Management.Application
 					new AuditInfo(DateTime.Now, _currentUser.UserId)));
 			}
 
+			entity.SetSchedule(command.DayStartTime, TimetableWorkDayDtoValidator.ToDomain(command.WorkDays ?? new()));
+
 			await _repository.AddAsync(entity);
 			await _unitOfWork.SaveChangesAsync();
 

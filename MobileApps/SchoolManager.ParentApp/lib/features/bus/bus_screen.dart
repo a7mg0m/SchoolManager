@@ -104,7 +104,7 @@ class BusScreen extends StatefulWidget {
   State<BusScreen> createState() => _BusScreenState();
 }
 
-class _BusScreenState extends State<BusScreen> {
+class _BusScreenState extends State<BusScreen> with WidgetsBindingObserver {
   late Child _child = widget.child;
 
   CurrentTrip? _trip;
@@ -130,14 +130,27 @@ class _BusScreenState extends State<BusScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadTrip();
     _loadTrips();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     super.dispose();
+  }
+
+  /// Battery: no bus refresh while the app is in the background; a fresh position on return
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      _timer?.cancel();
+      _timer = null;
+    } else if (state == AppLifecycleState.resumed && _timer == null && mounted) {
+      _loadTrip(silent: true);
+    }
   }
 
   void _expired() => widget.onSessionExpired?.call();

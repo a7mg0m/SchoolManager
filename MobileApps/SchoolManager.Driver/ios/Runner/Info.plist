@@ -5,12 +5,9 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
-		<string>location</string>
 	</array>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>The bus's position is shared with the school and the parents while a trip is on the road, also when the app is in the background.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>The bus's position is shared with the school and the parents while a trip is on the road.</string>
+	<string>The bus's position is shared with the school and the parents while a trip is on the road and the app is open.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose a profile picture.</string>
 	<key>NSCameraUsageDescription</key>

@@ -1,0 +1,136 @@
+<div class="card info-card week-card">
+  <div class="week-header">
+    <div class="d-flex align-items-center gap-2">
+      <span class="title-icon"><i class="pe-7s-date"></i></span>
+      <span class="fw-bold">{{ 'students.week.title' | translate }}</span>
+    </div>
+    <div class="week-nav">
+      <button type="button" class="btn btn-sm btn-light nav-btn" (click)="previousWeek()" [title]="'students.week.previous' | translate">
+        <i class="pe-7s-angle-left"></i>
+      </button>
+      <span class="range">{{ rangeLabel() }}</span>
+      <button type="button" class="btn btn-sm btn-light nav-btn" (click)="nextWeek()" [title]="'students.week.next' | translate">
+        <i class="pe-7s-angle-right"></i>
+      </button>
+      @if (!isThisWeek()) {
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="thisWeek()">{{ 'students.week.thisWeek' | translate }}</button>
+      }
+    </div>
+  </div>
+
+  <div class="card-body pt-2">
+    <!-- Summary -->
+    @let s = summary();
+    <div class="week-stats">
+      <div class="stat">
+        <span class="stat-value">{{ s.rate === null ? '-' : s.rate + '%' }}</span>
+        <span class="stat-label">{{ 'students.week.attendanceRate' | translate }}</span>
+      </div>
+      <div class="stat" [class.stat-danger]="s.absent > 0">
+        <span class="stat-value">{{ s.absent }}</span>
+        <span class="stat-label">{{ 'students.week.absentLessons' | translate }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ s.recorded }}<small>/{{ s.lessons }}</small></span>
+        <span class="stat-label">{{ 'students.week.recordedLessons' | translate }}</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ s.average === null ? '-' : s.average }}<small>/5</small></span>
+        <span class="stat-label">{{ 'students.week.averageReview' | translate: { count: s.reviews } }}</span>
+      </div>
+    </div>
+
+    @if (failed()) {
+      <div class="alert alert-warning py-2 small mb-2">{{ 'students.week.loadFailed' | translate }}</div>
+    }
+
+    @if (isLoading()) {
+      <div class="text-center py-4"><div class="spinner-border spinner-border-sm" role="status"></div></div>
+    } @else {
+      <div class="table-responsive">
+        <table appDataTable class="table week-table align-top mb-0">
+          <thead>
+            <tr>
+              <th class="day-col">{{ 'timetables.day' | translate }}</th>
+              @for (p of periodColumns(); track p) {
+                <th class="text-center">{{ 'students.week.period' | translate: { n: p + 1 } }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (d of days(); track d.date) {
+              <tr [class.today]="isToday(d.date)">
+                <th class="day-col">
+                  <div class="day-name">{{ dayKeys[d.weekday] | translate }}</div>
+                  <div class="day-date">{{ dayDate(d.date) }}</div>
+                  @if (dailyStatus(d); as ds) {
+                    <span class="badge mt-1" [ngClass]="ds.badge">{{ ds.key | translate }}</span>
+                  } @else if (!isFuture(d.date)) {
+                    <span class="badge mt-1 bg-light text-muted border">{{ 'students.week.notRecorded' | translate }}</span>
+                  }
+                  @if (d.daily?.checkInTime) {
+                    <div class="day-meta" dir="ltr">⏱ {{ time(d.daily?.checkInTime) }}{{ d.daily?.checkOutTime ? ' – ' + time(d.daily?.checkOutTime) : '' }}</div>
+                  }
+                </th>
+
+                @for (p of periodColumns(); track p) {
+                  <td>
+                    @if (d.cells[p]; as c) {
+                      @let st = periodStatus(c);
+                      <div class="lesson"
+                           [class.lesson-absent]="c.attendance?.status === 1"
+                           [class.lesson-late]="c.attendance?.status === 2"
+                           [class.lesson-present]="c.attendance?.status === 0"
+                           [class.lesson-excused]="c.attendance?.status === 3">
+                        <div class="lesson-head">
+                          <span class="subject" [title]="subjectName(c.subjectId)">{{ subjectName(c.subjectId) }}</span>
+                          @if (c.startTime) { <span class="time" dir="ltr">{{ time(c.startTime) }}</span> }
+                        </div>
+                        @if (teacherName(c.teacherId); as tn) {
+                          <div class="teacher" [title]="tn">{{ tn }}</div>
+                        }
+
+                        <!-- Attendance of the lesson -->
+                        @if (st) {
+                          <span class="badge" [ngClass]="st.badge">{{ st.key | translate }}</span>
+                          @if (c.attendance?.absenceReason) {
+                            <i class="pe-7s-info reason" [ngbTooltip]="c.attendance?.absenceReason"></i>
+                          }
+                        } @else if (!isFuture(d.date)) {
+                          <span class="badge bg-light text-muted border">{{ 'students.week.notRecorded' | translate }}</span>
+                        }
+
+                        <!-- The teacher's review -->
+                        @if (c.evaluation; as e) {
+                          <div class="review">
+                            <span class="rating" [ngClass]="ratingInfo(e.focus).badge" [ngbTooltip]="('students.week.focus' | translate) + ': ' + (ratingInfo(e.focus).key | translate)">
+                              {{ 'students.week.focusShort' | translate }} {{ e.focus }}
+                            </span>
+                            <span class="rating" [ngClass]="ratingInfo(e.interaction).badge" [ngbTooltip]="('students.week.interaction' | translate) + ': ' + (ratingInfo(e.interaction).key | translate)">
+                              {{ 'students.week.interactionShort' | translate }} {{ e.interaction }}
+                            </span>
+                            <span class="rating" [ngClass]="ratingInfo(e.behavior).badge" [ngbTooltip]="('students.week.behavior' | translate) + ': ' + (ratingInfo(e.behavior).key | translate)">
+                              {{ 'students.week.behaviorShort' | translate }} {{ e.behavior }}
+                            </span>
+                            @if (isUnwell(e)) {
+                              <span class="badge" [ngClass]="healthInfo(e).badge">{{ healthInfo(e).key | translate }}</span>
+                            }
+                            @if (e.comment) {
+                              <i class="pe-7s-comment comment" [ngbTooltip]="e.comment"></i>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr><td [attr.colspan]="periodColumns().length + 1" class="text-center text-muted py-4">{{ 'students.week.noLessons' | translate }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

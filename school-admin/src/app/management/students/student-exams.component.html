@@ -1,0 +1,185 @@
+<div class="card exams-card">
+  <div class="exams-header">
+    <div class="d-flex align-items-center gap-2">
+      <span class="title-icon"><i class="pe-7s-note2"></i></span>
+      <span class="fw-bold">{{ 'students.exams.title' | translate }}</span>
+    </div>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      @if (years().length > 1) {
+        <select class="form-select form-select-sm w-auto" (change)="selectYear($any($event.target).value)">
+          @for (y of years(); track y.id) {
+            <option [value]="y.id" [selected]="y.id === yearId()">{{ y.name }}</option>
+          }
+        </select>
+      } @else if (years().length === 1) {
+        <span class="badge bg-light text-dark border">{{ years()[0].name }}</span>
+      }
+      @if (semesters().length > 1) {
+        <select class="form-select form-select-sm w-auto" [value]="semesterId()" (change)="setSemester($any($event.target).value)">
+          <option value="">{{ 'students.exams.allSemesters' | translate }}</option>
+          @for (s of semesters(); track s.id) {
+            <option [value]="s.id">{{ s.name }}</option>
+          }
+        </select>
+      }
+      <div class="btn-group btn-group-sm" role="group">
+        <button type="button" class="btn" [class.btn-primary]="view() === 'all'" [class.btn-outline-secondary]="view() !== 'all'" (click)="setView('all')">
+          {{ 'students.exams.all' | translate }}
+        </button>
+        <button type="button" class="btn" [class.btn-primary]="view() === 'upcoming'" [class.btn-outline-secondary]="view() !== 'upcoming'" (click)="setView('upcoming')">
+          {{ 'students.exams.upcoming' | translate }}
+        </button>
+        <button type="button" class="btn" [class.btn-primary]="view() === 'done'" [class.btn-outline-secondary]="view() !== 'done'" (click)="setView('done')">
+          {{ 'students.exams.done' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body pt-2">
+    @if (isLoading()) {
+      <div class="text-center py-4"><div class="spinner-border spinner-border-sm" role="status"></div></div>
+    } @else {
+      @if (failed()) {
+        <div class="alert alert-warning py-2 small mb-2">{{ 'students.exams.loadFailed' | translate }}</div>
+      }
+
+      <!-- Exam types: quizzes, monthly, mid-term, final -->
+      <div class="type-chips">
+        <button type="button" class="chip" [class.active]="examType() === 0" (click)="setType(0)">
+          {{ 'students.exams.allTypes' | translate }}
+        </button>
+        @for (t of examTypes; track t.value) {
+          <button type="button" class="chip" [class.active]="examType() === t.value" (click)="setType(t.value)">
+            <span class="dot" [ngClass]="t.badge"></span>
+            {{ t.key | translate }}
+            <span class="count">{{ typeCounts().get(t.value) ?? 0 }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- Summary -->
+      @let s = summary();
+      <div class="exam-stats">
+        <div class="stat">
+          <span class="stat-value">{{ s.total }}</span>
+          <span class="stat-label">{{ 'students.exams.total' | translate }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ s.upcoming }}</span>
+          <span class="stat-label">{{ 'students.exams.upcoming' | translate }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ s.passRate === null ? '-' : s.passRate + '%' }}</span>
+          <span class="stat-label">{{ 'students.exams.passRate' | translate: { count: s.graded } }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ s.average === null ? '-' : s.average + '%' }}</span>
+          <span class="stat-label">{{ 'students.exams.average' | translate }}</span>
+        </div>
+      </div>
+
+      <!-- Search the table -->
+      <div class="exams-search">
+        <i class="pe-7s-search"></i>
+        <input
+          type="search"
+          class="form-control form-control-sm"
+          [value]="searchTerm()"
+          (input)="onSearch($any($event.target).value)"
+          [placeholder]="'students.exams.searchPlaceholder' | translate"
+          [attr.aria-label]="'students.exams.searchPlaceholder' | translate"
+        />
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0 exams-table">
+          <thead class="table-light">
+            <tr>
+              <th>{{ 'students.exams.date' | translate }}</th>
+              <th>{{ 'students.exams.subject' | translate }}</th>
+              <th>{{ 'students.exams.type' | translate }}</th>
+              <th class="text-center">{{ 'students.exams.marks' | translate }}</th>
+              <th class="score-col">{{ 'students.exams.score' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of pagedRows(); track r.exam.id) {
+              @let t = typeInfo(r.exam);
+              <tr [class.upcoming]="r.upcoming">
+                <td class="text-nowrap">
+                  <div class="fw-semibold">{{ date(r.exam.examDate) }}</div>
+                  <small class="text-muted" dir="ltr">{{ time(r.exam.startTime) }} – {{ time(r.exam.endTime) }}</small>
+                </td>
+                <td>
+                  <div class="fw-semibold">{{ subjectName(r.exam.subjectId) }}</div>
+                  @if (!r.exam.sectionId) {
+                    <small class="text-muted">{{ 'students.exams.wholeGrade' | translate }}</small>
+                  }
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="t.badge">{{ t.key | translate }}</span>
+                  @if (isMonthly(r.exam)) {
+                    <small class="text-muted d-block">{{ 'exams.months.' + r.exam.month | translate }}</small>
+                  }
+                </td>
+                <td class="text-center text-nowrap">
+                  <span class="fw-semibold">{{ mark(r.exam.weight) }}</span>
+                  <small class="text-muted d-block">{{ 'students.exams.passMark' | translate }}: {{ mark(r.exam.successScore) }}</small>
+                </td>
+                <td class="score-col">
+                  @if (r.result; as res) {
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                      <span class="score">{{ mark(res.score) }}<small>/{{ mark(r.exam.weight) }}</small></span>
+                      <span class="badge" [class.bg-success]="res.isPassed" [class.bg-danger]="!res.isPassed">
+                        {{ (res.isPassed ? 'students.exams.passed' : 'students.exams.failed') | translate }}
+                      </span>
+                    </div>
+                    <div class="progress score-bar">
+                      <div class="progress-bar" [ngClass]="barClass(r.percent ?? 0)" [style.width.%]="r.percent ?? 0"></div>
+                    </div>
+                  } @else if (r.upcoming) {
+                    <span class="badge bg-info text-dark"><i class="pe-7s-clock"></i> {{ 'students.exams.upcomingBadge' | translate }}</span>
+                  } @else {
+                    <span class="text-muted small">{{ 'students.exams.noResult' | translate }}</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="text-center text-muted py-4">{{ (searchTerm().trim() ? 'students.exams.noMatches' : 'students.exams.noExams') | translate }}</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paging: rows per page (7 by default) -->
+      @if (rows().length > 0) {
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3">
+          <div class="d-flex align-items-center gap-2">
+            <label class="small text-muted text-nowrap mb-0" for="examsPageSize">{{ 'students.exams.rowsPerPage' | translate }}</label>
+            <select id="examsPageSize" class="form-select form-select-sm w-auto" (change)="setPageSize($any($event.target).value)">
+              @for (n of pageSizes; track n) {
+                <option [value]="n" [selected]="n === pageSize()">{{ n }}</option>
+              }
+            </select>
+            <small class="text-muted text-nowrap">
+              {{ 'students.exams.showing' | translate: { from: (page() - 1) * pageSize() + 1, to: (page() - 1) * pageSize() + pagedRows().length, total: rows().length } }}
+            </small>
+          </div>
+          @if (rows().length > pageSize()) {
+            <ngb-pagination
+              [collectionSize]="rows().length"
+              [page]="page()"
+              (pageChange)="setPage($event)"
+              [pageSize]="pageSize()"
+              [maxSize]="5"
+              [rotate]="true"
+              [boundaryLinks]="true"
+              size="sm"
+            ></ngb-pagination>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

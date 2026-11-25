@@ -16,6 +16,12 @@ namespace SchoolManager.Management.Domain
 
         public AuditInfo AuditInfo { get; private set; }
 
+        /// <summary>When the first period of a work day starts (the same for every day); null when not set</summary>
+        public TimeOnly? DayStartTime { get; private set; }
+
+        /// <summary>The week: work days, breaks, slot duration and number of slots (stored as JSON with the timetable)</summary>
+        public List<TimetableWorkDay> WorkDays { get; private set; } = new();
+
         // Navigation
         public Stage? Stage { get; private set; }
         public Grade? Grade { get; private set; }
@@ -43,6 +49,13 @@ namespace SchoolManager.Management.Domain
         public void RemoveSlot(TimetableSlot slot)
         {
             Slots.Remove(slot);
+        }
+
+        /// <summary>Replaces the week settings (one row per day, ordered Sunday → Saturday)</summary>
+        public void SetSchedule(TimeOnly? dayStartTime, IEnumerable<TimetableWorkDay> workDays)
+        {
+            DayStartTime = dayStartTime;
+            WorkDays = workDays.OrderBy(d => d.Day).ToList();
         }
 
         public void Update(Guid stageId, Guid gradeId, Guid academicYearId, Guid? semesterId, AuditInfo auditInfo)

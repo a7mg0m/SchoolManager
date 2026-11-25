@@ -37,7 +37,15 @@
     "fromHeader": "من السنة / الفصل الدراسي في أعلى الصفحة — غيّرها من هناك.",
     "keptFromRecord": "محفوظة مع هذا السجل.",
     "chooseYearInHeader": "اختر السنة والفصل الدراسي من أعلى الصفحة أولاً.",
-    "chooseYearOnlyInHeader": "اختر السنة الدراسية من أعلى الصفحة أولاً."
+    "chooseYearOnlyInHeader": "اختر السنة الدراسية من أعلى الصفحة أولاً.",
+    "dataTable": {
+      "search": "ابحث في الجدول…",
+      "rowsPerPage": "عدد الصفوف",
+      "showing": "عرض {{from}}–{{to}} من {{total}}",
+      "noMatches": "لا توجد صفوف مطابقة للبحث.",
+      "first": "الصفحة الأولى",
+      "last": "الصفحة الأخيرة"
+    }
   },
   "header": {
     "dashboard": "لوحة التحكم",
@@ -502,7 +510,55 @@
     "allSettled": "تم السداد بالكامل",
     "overdueCount": "{{count}} متأخرة",
     "age": "العمر",
-    "overdue": "متأخرة"
+    "overdue": "متأخرة",
+    "week": {
+      "title": "الحضور والتقييم الأسبوعي",
+      "previous": "الأسبوع السابق",
+      "next": "الأسبوع التالي",
+      "thisWeek": "هذا الأسبوع",
+      "attendanceRate": "نسبة الحضور",
+      "absentLessons": "حصص الغياب",
+      "recordedLessons": "حصص مسجلة",
+      "averageReview": "متوسط التقييم ({{count}})",
+      "period": "الحصة {{n}}",
+      "notRecorded": "لم يُسجل",
+      "noLessons": "لا توجد حصص في هذا الأسبوع.",
+      "loadFailed": "تعذر تحميل الحضور أو التقييمات.",
+      "focus": "التركيز",
+      "interaction": "التفاعل",
+      "behavior": "السلوك",
+      "focusShort": "تركيز",
+      "interactionShort": "تفاعل",
+      "behaviorShort": "سلوك"
+    },
+    "exams": {
+      "title": "الامتحانات والنتائج",
+      "allSemesters": "كل الفصول الدراسية",
+      "all": "الكل",
+      "upcoming": "القادمة",
+      "done": "المنتهية",
+      "total": "الامتحانات",
+      "passRate": "نسبة النجاح ({{count}} مُصحح)",
+      "average": "متوسط الدرجات",
+      "date": "التاريخ",
+      "subject": "المادة",
+      "type": "النوع",
+      "marks": "الدرجة الكاملة",
+      "score": "الدرجة",
+      "passMark": "النجاح",
+      "passed": "ناجح",
+      "failed": "راسب",
+      "upcomingBadge": "قادم",
+      "noResult": "لم تُرصد النتيجة",
+      "wholeGrade": "لكل الصف",
+      "noExams": "لا توجد امتحانات.",
+      "loadFailed": "تعذر تحميل الامتحانات أو النتائج.",
+      "allTypes": "كل الأنواع",
+      "showing": "عرض {{from}}–{{to}} من {{total}}",
+      "rowsPerPage": "عدد الصفوف",
+      "searchPlaceholder": "ابحث بالمادة أو النوع أو التاريخ أو الدرجة…",
+      "noMatches": "لا توجد امتحانات مطابقة للبحث."
+    }
   },
   "schoolInfo": {
     "album": {
@@ -683,7 +739,32 @@
     "currentSemester": "الحالي",
     "allYears": "كل السنوات",
     "allSemesters": "كل الفصول",
-    "noTimetablesForFilter": "لا توجد جداول لهذه السنة / الفصل الدراسي."
+    "noTimetablesForFilter": "لا توجد جداول لهذه السنة / الفصل الدراسي.",
+    "workDays": "أيام العمل",
+    "dayStartTime": "بداية اليوم الدراسي",
+    "isWorkDay": "يوم عمل",
+    "breakStart": "بداية الاستراحة",
+    "breakEnd": "نهاية الاستراحة",
+    "slotDuration": "مدة الحصة (دقيقة)",
+    "slotCount": "عدد الحصص",
+    "dayEnd": "نهاية آخر حصة",
+    "breakIncomplete": "أدخل وقتي الاستراحة معاً",
+    "breakEndBeforeStart": "يجب أن تنتهي الاستراحة بعد بدايتها",
+    "allSections": "كل فصول الصف",
+    "generatePeriods": "إنشاء الحصص",
+    "generateHint": "ينشئ حصص كل يوم عمل (الأوقات فقط)، ثم اختر المادة والمعلم لكل حصة.",
+    "generateConfirm": "سيتم استبدال {{count}} حصة موجودة في هذه الأيام والفصول بحصص جديدة.",
+    "generated": "تم إنشاء الحصص. اختر المادة والمعلم لكل حصة ثم احفظ.",
+    "expandAll": "فتح الكل",
+    "collapseAll": "طي الكل",
+    "periodsCount": "{{count}} حصة",
+    "incompleteCount": "{{count}} بدون مادة / معلم",
+    "hasErrors": "بها أخطاء",
+    "noSection": "بدون فصل",
+    "generateTitle": "استبدال الحصص؟",
+    "periodsReplaced": "سيتم استبدالها",
+    "periodsCreated": "حصة جديدة",
+    "replaceAndGenerate": "استبدال وإنشاء"
   },
   "expenseCategories": {
     "title": "فئات المصروفات",
@@ -1039,7 +1120,8 @@
       "exam": "امتحان",
       "examResult": "نتيجة امتحان",
       "event": "فعالية",
-      "message": "رسالة"
+      "message": "رسالة",
+      "bus": "الحافلة"
     },
     "kinds": {
       "grade": "صف",
@@ -1907,5 +1989,19 @@
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور",
     "loginNameCheckFailed": "تعذر التحقق من اسم الدخول، حاول مرة أخرى."
+  },
+  "imageUpload": {
+    "label": "الصورة",
+    "choose": "اختر صورة أو اسحبها هنا",
+    "hint": "JPG أو PNG أو WEBP أو GIF · حتى 5 ميجابايت",
+    "uploading": "جارٍ الرفع…",
+    "replace": "تغيير",
+    "remove": "حذف",
+    "errors": {
+      "ImageRequired": "اختر صورة.",
+      "ImageTooLarge": "حجم الصورة أكبر من 5 ميجابايت.",
+      "ImageTypeNotAllowed": "الصور المسموحة: JPG أو PNG أو WEBP أو GIF فقط.",
+      "UploadFailed": "تعذر رفع الصورة، حاول مرة أخرى."
+    }
   }
 }

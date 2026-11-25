@@ -94,7 +94,7 @@
     <div class="card">
       <div class="card-body">
         <div class="table-responsive">
-          <table class="table table-hover align-middle">
+          <table appDataTable [dtSearch]="false" class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
                 <th class="row-number">#</th>
@@ -108,9 +108,9 @@
               </tr>
             </thead>
             <tbody>
-              @for (parent of pagedParents(); track parent.id; let i = $index) {
+              @for (parent of filteredParents(); track parent.id; let i = $index) {
                 <tr>
-                  <td class="row-number text-muted">{{ rowNumber(i) }}</td>
+                  <td class="row-number text-muted">{{ i + 1 }}</td>
                   <td dir="rtl"><strong>{{ parent.fullNameAr }}</strong></td>
                   <td class="d-none d-md-table-cell" dir="ltr"><strong>{{ parent.fullNameEn }}</strong></td>
                   <td class="d-none d-sm-table-cell" dir="ltr">{{ parent.phoneNumber }}</td>
@@ -154,21 +154,6 @@
           </table>
         </div>
 
-        <!-- Pagination -->
-        @if (filteredParents().length > pageSize) {
-          <div class="d-flex justify-content-center mt-3">
-            <ngb-pagination
-              [collectionSize]="filteredParents().length"
-              [page]="page()"
-              (pageChange)="page.set($event)"
-              [pageSize]="pageSize"
-              [maxSize]="5"
-              [rotate]="true"
-              [boundaryLinks]="true"
-              size="sm"
-            ></ngb-pagination>
-          </div>
-        }
       </div>
     </div>
   }
@@ -214,7 +199,7 @@
           </div>
         }
         <div class="table-responsive">
-          <table class="table table-sm table-bordered align-middle mb-0 students-table">
+          <table appDataTable class="table table-sm table-bordered align-middle mb-0 students-table">
             <thead class="table-light">
               <tr>
                 <th>{{ 'parents.fullNameAr' | translate }}</th>

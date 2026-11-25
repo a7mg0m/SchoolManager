@@ -23,6 +23,19 @@ namespace SchoolManager.Notification.Domain
         /// <summary>When the push notification went to the recipients' phones (UTC); null = not pushed yet (e.g. SentOn in the future)</summary>
         public DateTime? PushSentAt { get; private set; }
 
+        /// <summary>Admin (the admin page) or a system notification (e.g. a homework published by a teacher)</summary>
+        public NotificationSource Source { get; private set; } = NotificationSource.Admin;
+
+        /// <summary>The integration event a system notification was created from (one notification per event)</summary>
+        public Guid? SourceEventId { get; private set; }
+
+        /// <summary>Marks a notification created by the system from an integration event</summary>
+        public void MarkSystem(NotificationSource source, Guid eventId)
+        {
+            Source = source;
+            SourceEventId = eventId;
+        }
+
         public List<NotificationTarget> Targets { get; private set; } = new();
 
         public void MarkPushSent(DateTime at) => PushSentAt = at;

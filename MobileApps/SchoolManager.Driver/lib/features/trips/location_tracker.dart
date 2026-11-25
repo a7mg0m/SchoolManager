@@ -8,9 +8,9 @@ import '../../core/i18n/app_language.dart';
 import 'trip_service.dart';
 
 /// Sends the bus's position automatically while a trip is on the road, so the school and the parents can follow
-/// the bus: on every screen of the app and in the background (Android: a foreground service with a
-/// "sharing the bus's location" notification; iOS: background location). Positions come from the phone's GPS;
-/// one is sent at most every [minInterval], and the last one is sent again every [heartbeat] when the bus stands still.
+/// the bus — only while the app is open (any screen). In the background the GPS is switched off to save the battery,
+/// and sharing resumes when the driver opens the app again. Positions come from the phone's GPS; one is sent at most
+/// every [minInterval], and the last one is sent again every [heartbeat] when the bus stands still.
 class LocationTracker extends ChangeNotifier with WidgetsBindingObserver {
   LocationTracker({
     Stream<(double, double)> Function()? positions,
@@ -47,6 +47,9 @@ class LocationTracker extends ChangeNotifier with WidgetsBindingObserver {
   /// Why sharing does not work right now (permission, GPS off, server), or null
   String? error;
 
+  /// The app is in the background: the GPS is off until it is opened again (the trip is kept)
+  bool paused = false;
+
   bool _sending = false;
 
   bool get isTracking => _subscription != null;
@@ -57,6 +60,14 @@ class LocationTracker extends ChangeNotifier with WidgetsBindingObserver {
     stop(notify: false);
     tripId = id;
     error = null;
+    _watchAppLifecycle();
+    // Started while the app is not on screen (e.g. a refresh finishing in the background): wait for it
+    final state = WidgetsBinding.instance.lifecycleState;
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      paused = true;
+      notifyListeners();
+      return;
+    }
     notifyListeners();
     try {
       await _ensurePermission();
@@ -66,7 +77,6 @@ class LocationTracker extends ChangeNotifier with WidgetsBindingObserver {
       return;
     }
     if (tripId != id) return; // stopped meanwhile
-    _watchAppLifecycle();
     // Standing still (no new GPS position): the last one is sent again so "last updated" stays fresh
     final every = heartbeat;
     if (every != null) {
@@ -113,7 +123,31 @@ class LocationTracker extends ChangeNotifier with WidgetsBindingObserver {
     last = null;
     lastSentAt = null;
     error = null;
+    paused = false;
     if (notify) notifyListeners();
+  }
+
+  /// Background: GPS and the resend timer off; the trip, its last position and when it was sent are kept
+  void _pause() {
+    if (tripId == null || paused) return;
+    _subscription?.cancel();
+    _subscription = null;
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+    paused = true;
+    notifyListeners();
+  }
+
+  /// Back on screen: the GPS starts again for the same trip (the first position is sent at once)
+  Future<void> _resume() async {
+    final id = tripId;
+    if (id == null) return;
+    paused = false;
+    final sentAt = lastSentAt;
+    stop(notify: false);
+    await start(id);
+    // Keep showing when the position was last sent until the next one goes
+    if (tripId == id && lastSentAt == null) lastSentAt = sentAt;
   }
 
   Future<void> _onPosition(String id, (double, double) position) async {
@@ -145,7 +179,7 @@ class LocationTracker extends ChangeNotifier with WidgetsBindingObserver {
     }
   }
 
-  /// Back in the app after a problem (GPS off, permission refused, stream ended): try again
+  /// Follows the app going to the background / coming back
   void _watchAppLifecycle() {
     if (_observing) return;
     final binding = WidgetsBinding.instance;
@@ -155,45 +189,44 @@ class LocationTracker extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && tripId != null && (error != null || !isTracking)) {
-      retry();
+    switch (state) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+        _pause();
+      case AppLifecycleState.resumed:
+        // Back on screen: start again (also after a problem: GPS off, permission refused, stream ended)
+        if (tripId != null && (paused || error != null || !isTracking)) _resume();
+      default:
+        break;
     }
   }
 
   static Stream<(double, double)> _gpsPositions() =>
       Geolocator.getPositionStream(locationSettings: _settings()).map((p) => (p.latitude, p.longitude));
 
-  /// Keeps the GPS on when the app is in the background or the screen is off
+  /// Foreground only, battery friendly: a new position after 25 m and at most every 15 s; no background service,
+  /// no wake lock (the GPS stops with the app)
   static LocationSettings _settings() {
-    if (kIsWeb) return const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10);
+    if (kIsWeb) return const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 25);
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return AndroidSettings(
           accuracy: LocationAccuracy.high,
-          distanceFilter: 10,
-          intervalDuration: const Duration(seconds: 10),
-          // A foreground service: Android keeps sending positions while the app is in the background
-          foregroundNotificationConfig: ForegroundNotificationConfig(
-            notificationTitle: tr('رحلة الحافلة جارية', 'Bus trip on the road'),
-            notificationText: tr('يتم مشاركة موقع الحافلة مع المدرسة وأولياء الأمور.',
-                "The bus's position is shared with the school and the parents."),
-            notificationChannelName: tr('موقع الحافلة', 'Bus location'),
-            enableWakeLock: true,
-            setOngoing: true,
-          ),
+          distanceFilter: 25,
+          intervalDuration: const Duration(seconds: 15),
         );
       case TargetPlatform.iOS:
       case TargetPlatform.macOS:
         return AppleSettings(
           accuracy: LocationAccuracy.high,
-          distanceFilter: 10,
+          distanceFilter: 25,
           activityType: ActivityType.automotiveNavigation,
-          pauseLocationUpdatesAutomatically: false,
-          allowBackgroundLocationUpdates: true,
-          showBackgroundLocationIndicator: true,
+          pauseLocationUpdatesAutomatically: true,
+          allowBackgroundLocationUpdates: false,
+          showBackgroundLocationIndicator: false,
         );
       default:
-        return const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10);
+        return const LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 25);
     }
   }
 

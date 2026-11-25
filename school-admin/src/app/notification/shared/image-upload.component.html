@@ -1,0 +1,44 @@
+<input #fileInput type="file" class="d-none" accept="image/jpeg,image/png,image/webp,image/gif" (change)="onFileInput($event)" />
+
+@if (value() && !uploading()) {
+  <!-- The picture, with replace / remove -->
+  <div class="image-preview-box">
+    <img [src]="fileUrl(value())" alt="" (error)="$any($event.target).classList.add('broken')" />
+    <div class="image-actions">
+      <button type="button" class="btn btn-sm btn-light" (click)="fileInput.click()">
+        <i class="pe-7s-refresh-2"></i> {{ 'imageUpload.replace' | translate }}
+      </button>
+      <button type="button" class="btn btn-sm btn-light text-danger" (click)="remove()">
+        <i class="pe-7s-trash"></i> {{ 'imageUpload.remove' | translate }}
+      </button>
+    </div>
+  </div>
+} @else {
+  <!-- Pick or drop a file -->
+  <button
+    type="button"
+    class="dropzone"
+    [class.drag-over]="dragOver()"
+    [disabled]="uploading()"
+    (click)="fileInput.click()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="dragOver.set(false)"
+    (drop)="onDrop($event)"
+  >
+    @if (uploading()) {
+      <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+      <span class="fw-semibold">{{ 'imageUpload.uploading' | translate }} {{ progress() }}%</span>
+      <div class="progress w-75 mt-1" style="height: 4px;">
+        <div class="progress-bar" [style.width.%]="progress()"></div>
+      </div>
+    } @else {
+      <span class="drop-icon"><i class="pe-7s-photo"></i></span>
+      <span class="fw-semibold">{{ 'imageUpload.choose' | translate }}</span>
+      <small class="text-muted">{{ 'imageUpload.hint' | translate }}</small>
+    }
+  </button>
+}
+
+@if (error()) {
+  <div class="text-danger small mt-1"><i class="pe-7s-attention"></i> {{ error()! | translate }}</div>
+}

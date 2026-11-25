@@ -59,6 +59,13 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
   academicYearId = signal('');
   imageUrl = signal('');
 
+  /** A picture was uploaded / removed */
+  setImage(url: string): void {
+    const control = this.form.get('imageUrl')!;
+    control.setValue(url || '');
+    control.markAsDirty();
+  }
+
   readonly limits = { title: TITLE_MAX, description: DESCRIPTION_MAX, imageUrl: IMAGE_URL_MAX };
 
   academicYears = computed(() => this.lookups().academicYears);
@@ -119,7 +126,8 @@ export class SchoolEventSaveComponent implements OnInit, OnDestroy {
         eventDate: [todayIso(), Validators.required],
         startTime: ['09:00', Validators.required],
         endTime: ['10:00', Validators.required],
-        imageUrl: ['', [Validators.maxLength(IMAGE_URL_MAX), Validators.pattern(/^https?:\/\/\S+$/i)]],
+        // Set by the picture upload ("/notification-files/events/…")
+        imageUrl: ['', [Validators.maxLength(IMAGE_URL_MAX)]],
         academicYearId: ['', Validators.required],
         semesterId: ['', Validators.required]
       },

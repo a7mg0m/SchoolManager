@@ -666,6 +666,9 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("AcademicYearId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<TimeOnly?>("DayStartTime")
+                        .HasColumnType("time");
+
                     b.Property<Guid>("GradeId")
                         .HasColumnType("uniqueidentifier");
 
@@ -1996,6 +1999,35 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                                 .HasForeignKey("TimetableId");
                         });
 
+                    b.OwnsMany("SchoolManager.Management.Domain.TimetableWorkDay", "WorkDays", b1 =>
+                        {
+                            b1.Property<Guid>("TimetableId");
+
+                            b1.Property<int>("__synthesizedOrdinal")
+                                .ValueGeneratedOnAddOrUpdate();
+
+                            b1.Property<TimeOnly?>("BreakEnd");
+
+                            b1.Property<TimeOnly?>("BreakStart");
+
+                            b1.Property<int>("Day");
+
+                            b1.Property<bool>("IsWorkDay");
+
+                            b1.Property<int>("SlotCount");
+
+                            b1.Property<int>("SlotDuration");
+
+                            b1.HasKey("TimetableId", "__synthesizedOrdinal");
+
+                            b1.ToTable("Timetables");
+
+                            b1.ToJson("WorkDays");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TimetableId");
+                        });
+
                     b.Navigation("AcademicYear");
 
                     b.Navigation("AuditInfo")
@@ -2006,6 +2038,8 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Navigation("Semester");
 
                     b.Navigation("Stage");
+
+                    b.Navigation("WorkDays");
                 });
 
             modelBuilder.Entity("SchoolManager.Management.Domain.TimetableSlot", b =>

@@ -484,3 +484,178 @@ body {
   min-width: 120px;
   max-width: 190px;
 }
+
+
+/* Timetable: "Generate periods" confirmation */
+.generate-modal .modal-content {
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18);
+}
+
+.generate-modal .generate-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #fff;
+  background: var(--sg-gradient, linear-gradient(135deg, #047857, #65a30d));
+  box-shadow: 0 10px 24px rgba(var(--sg-primary-rgb, 5, 150, 105), 0.3);
+}
+
+.generate-modal .generate-summary {
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: rgba(var(--sg-primary-rgb, 5, 150, 105), 0.05);
+  border: 1px solid rgba(var(--sg-primary-rgb, 5, 150, 105), 0.12);
+}
+
+.generate-modal .summary-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+}
+
+.generate-modal .summary-label {
+  flex: 0 0 auto;
+  min-width: 7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sg-muted, #6c757d);
+}
+
+.generate-modal .summary-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.generate-modal .chip {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: #fff;
+  border: 1px solid var(--sg-line, #dee2e6);
+}
+
+.generate-modal .summary-row.counts {
+  justify-content: center;
+  align-items: center;
+  margin-top: 0.25rem;
+  border-top: 1px dashed var(--sg-line, #dee2e6);
+  padding-top: 0.6rem;
+}
+
+.generate-modal .count {
+  font-size: 0.85rem;
+}
+
+.generate-modal .count strong {
+  font-size: 1.1rem;
+}
+
+.generate-modal .count.replaced strong {
+  color: #c81e3a;
+}
+
+.generate-modal .count.created strong {
+  color: var(--sg-indigo, #059669);
+}
+
+.generate-modal .arrow {
+  font-size: 1.2rem;
+  color: var(--sg-muted, #6c757d);
+}
+
+[dir='rtl'] .generate-modal .arrow {
+  transform: scaleX(-1);
+}
+
+/* ---------- Data tables (<table appDataTable>): toolbar above, info + pager below ---------- */
+.dt-toolbar,
+.dt-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dt-toolbar {
+  margin-bottom: 0.75rem;
+
+  .dt-size {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    label {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--sg-muted, #6c757d);
+      white-space: nowrap;
+    }
+
+    .form-select {
+      width: auto;
+    }
+  }
+
+  .dt-search {
+    position: relative;
+    flex: 0 1 300px;
+
+    i {
+      position: absolute;
+      top: 50%;
+      inset-inline-start: 0.65rem;
+      transform: translateY(-50%);
+      color: var(--sg-muted, #6c757d);
+      pointer-events: none;
+    }
+
+    .form-control {
+      padding-inline-start: 2rem;
+      border-radius: 999px;
+    }
+  }
+}
+
+.dt-footer {
+  margin-top: 0.75rem;
+
+  .dt-info {
+    color: var(--sg-muted, #6c757d);
+  }
+
+  .page-item.active .page-link {
+    background: var(--sg-gradient, linear-gradient(135deg, #047857, #65a30d));
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .page-link {
+    color: rgb(var(--sg-primary-rgb, 5, 150, 105));
+  }
+}
+
+/* The toolbar / footer sit next to a full-bleed table inside a card: give them the card padding */
+.card > .dt-toolbar,
+.card > .dt-footer {
+  padding: 0.75rem 1rem 0;
+}
+
+.card > .dt-footer {
+  padding: 0 1rem 0.75rem;
+}
+
+@media (max-width: 575.98px) {
+  .dt-toolbar .dt-search {
+    flex: 1 1 100%;
+  }
+}

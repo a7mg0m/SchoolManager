@@ -85,7 +85,7 @@
           } @else {
             <p class="text-muted small">{{ 'transport.stopsHint' | translate }}</p>
             <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0" formArrayName="stops">
+              <table appDataTable dtFollowNew class="table table-sm align-middle mb-0" formArrayName="stops">
                 <thead class="table-light">
                   <tr>
                     <th class="text-center" style="width: 4rem;">{{ 'transport.order' | translate }}</th>

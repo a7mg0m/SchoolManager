@@ -8,6 +8,8 @@ namespace SchoolManager.Management.Application
         Guid GradeId,
         Guid AcademicYearId,
         Guid SemesterId,
-        List<TimetableSlotItemDto> Slots
+        List<TimetableSlotItemDto> Slots,
+        TimeOnly? DayStartTime = null,
+        List<TimetableWorkDayDto>? WorkDays = null
     ) : ICommand<bool>;
 }

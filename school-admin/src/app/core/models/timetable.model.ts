@@ -19,6 +19,19 @@ export interface TimetableSlot {
 }
 
 /**
+ * One day of the timetable's week (day: 0 = Sunday ... 6 = Saturday).
+ * breakStart / breakEnd: "HH:mm:ss" or null; slotDuration in minutes.
+ */
+export interface TimetableWorkDay {
+  day: number;
+  isWorkDay: boolean;
+  breakStart: string | null;
+  breakEnd: string | null;
+  slotDuration: number;
+  slotCount: number;
+}
+
+/**
  * Timetable Model
  */
 export interface Timetable {
@@ -29,6 +42,10 @@ export interface Timetable {
   /** null: saved before semesters (used in every semester of its year) */
   semesterId?: string | null;
   slots: TimetableSlot[];
+  /** When the first period of a work day starts ("HH:mm:ss"); null when not set */
+  dayStartTime?: string | null;
+  /** The week settings (empty for timetables saved before them) */
+  workDays?: TimetableWorkDay[];
 }
 
 /**
@@ -40,6 +57,8 @@ export interface CreateTimetableRequest {
   academicYearId: string;
   semesterId: string;
   slots: TimetableSlot[];
+  dayStartTime: string | null;
+  workDays: TimetableWorkDay[];
 }
 
 /**
@@ -53,6 +72,8 @@ export interface UpdateTimetableRequest {
   academicYearId: string;
   semesterId: string;
   slots: TimetableSlot[];
+  dayStartTime: string | null;
+  workDays: TimetableWorkDay[];
 }
 
 export type TimetableListResponse = ApiResponse<Timetable[]>;

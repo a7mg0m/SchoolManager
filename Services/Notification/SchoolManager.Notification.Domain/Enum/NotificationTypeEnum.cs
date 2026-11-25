@@ -10,7 +10,8 @@ namespace SchoolManager.Notification.Domain
         Exam = 2, // الامتحان
         ExamResult = 3, // نتيجة الامتحان
         Event = 4, // الحدث
-        Message = 5 // الرسالة
+        Message = 5, // الرسالة
+        Bus = 6 // الحافلة (رحلة بدأت)
     }
 
 }

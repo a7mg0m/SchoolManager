@@ -41,7 +41,7 @@
         </div>
 
         <div class="table-responsive">
-          <table class="table table-hover align-middle">
+          <table appDataTable [dtSearch]="false" class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
                 <th>{{ 'clinic.student' | translate }}</th>
@@ -52,7 +52,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (student of paged(); track student.id) {
+              @for (student of filtered(); track student.id) {
                 <tr>
                   <td><strong>{{ name(student) }}</strong></td>
                   <td>{{ student.nationalId }}</td>
@@ -78,17 +78,6 @@
           </table>
         </div>
 
-        @if (filtered().length > pageSize) {
-          <ngb-pagination
-            class="d-flex justify-content-center"
-            [collectionSize]="filtered().length"
-            [pageSize]="pageSize"
-            [page]="page()"
-            (pageChange)="page.set($event)"
-            [maxSize]="5"
-            [rotate]="true"
-          ></ngb-pagination>
-        }
       </div>
     </div>
   }

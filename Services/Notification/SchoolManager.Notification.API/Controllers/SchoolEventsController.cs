@@ -19,6 +19,17 @@ namespace SchoolManager.Notification.API.Controllers
         }
 
         /// <summary>
+        /// Uploads the picture of a school event (JPG / PNG / WEBP / GIF, up to 5 MB); answers its URL for ImageUrl.
+        /// Saved under wwwroot/events.
+        /// </summary>
+        [Authorize]
+        [HttpPost("upload-image")]
+        [RequestSizeLimit(ImageUpload.MaxRequestBytes)]
+        [RequestFormLimits(MultipartBodyLengthLimit = ImageUpload.MaxRequestBytes)]
+        public Task<IActionResult> UploadImage(IFormFile? file, [FromServices] IImageFileStore store, CancellationToken cancellationToken)
+            => ImageUpload.SaveAsync(file, ImageFolder.Events, store, cancellationToken);
+
+        /// <summary>
         /// Events that concern one of the logged-in parent's children (parent app): for everyone, its stage,
         /// grade or section, or the child itself. The child must be the parent's (checked with Management); otherwise 404.
         /// </summary>

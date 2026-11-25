@@ -295,6 +295,78 @@ class NotificationDetailsScreen extends StatelessWidget {
   final String? targetedLabel;
   final DateTime? now;
 
+  /// Header: the picture (tap = full screen) under a dark fade for the title; the coloured header [colored]
+  /// on top of it is kept for the title / type. No picture, still loading or broken: only the coloured header.
+  static Widget _headerBackground(BuildContext context, AppNotice n, Widget colored) {
+    final url = n.imageUrl;
+    if (url == null) return colored;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        colored,
+        GestureDetector(
+          key: const ValueKey('notice-image'),
+          // The whole header is tappable (also while the picture loads)
+          behavior: HitTestBehavior.opaque,
+          onTap: () => _openImage(context, url),
+          child: Image.network(
+            url,
+            fit: BoxFit.cover,
+            // While loading / when it cannot be loaded: the coloured header shows through
+            loadingBuilder: (context, child, progress) => progress == null ? child : const SizedBox.shrink(),
+            errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+          ),
+        ),
+        // Dark fade (top for the back button, bottom for the title) so the text stays readable
+        IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: const [0, .4, 1],
+                colors: [Colors.black.withValues(alpha: .35), Colors.transparent, Colors.black.withValues(alpha: .75)],
+              ),
+            ),
+          ),
+        ),
+        // The title and type again, above the picture
+        IgnorePointer(child: _titleOnly(colored)),
+      ],
+    );
+  }
+
+  /// The coloured header without its own background (only its texts), drawn over the picture
+  static Widget _titleOnly(Widget colored) =>
+      colored is Container && colored.child != null ? colored.child! : const SizedBox.shrink();
+
+  /// The picture full screen: pinch to zoom, tap or back to close
+  static void _openImage(BuildContext context, String url) {
+    Navigator.of(context).push(PageRouteBuilder<void>(
+      opaque: false,
+      barrierColor: Colors.black87,
+      pageBuilder: (context, animation, secondaryAnimation) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(backgroundColor: Colors.transparent, foregroundColor: Colors.white, elevation: 0),
+          body: Center(
+            child: InteractiveViewer(
+              maxScale: 4,
+              child: Image.network(
+                url,
+                key: const ValueKey('notice-image-full'),
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 64),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = context.palette;
@@ -306,11 +378,12 @@ class NotificationDetailsScreen extends StatelessWidget {
         slivers: [
           SliverAppBar(
             pinned: true,
-            expandedHeight: 200,
+            // The picture is the header: a taller one when there is a picture
+            expandedHeight: n.imageUrl != null ? 300 : 200,
             foregroundColor: Colors.white,
             backgroundColor: color,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
+              background: _headerBackground(context, n, Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [color.withValues(alpha: .75), color],
@@ -351,7 +424,7 @@ class NotificationDetailsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
+              )),
             ),
           ),
           SliverPadding(
@@ -373,18 +446,6 @@ class NotificationDetailsScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (n.imageUrl != null) ...[
-                  const SizedBox(height: 16),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Image.network(
-                      n.imageUrl!,
-                      fit: BoxFit.cover,
-                      // A broken or missing picture is simply not shown
-                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-                    ),
-                  ),
-                ],
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(16),

@@ -319,7 +319,7 @@
 
               <!-- Fees table -->
               <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0 fees-table">
+                <table appDataTable class="table table-sm align-middle mb-0 fees-table">
                   <thead class="table-light">
                     <tr>
                       <th>{{ 'studentFees.dueDate' | translate }}</th>
@@ -363,6 +363,18 @@
             }
           </div>
         </div>
+
+        <!-- Week: attendance and the teachers' review of every lesson (under the fees) -->
+        <div class="mt-3">
+          <app-student-week [student]="s" [academicYears]="academicYearList()" [lang]="currentLanguage()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Exams of the student's class / grade with the student's results (full width) -->
+    <div class="row g-3 mt-0">
+      <div class="col-md-12">
+        <app-student-exams [student]="s" [academicYears]="academicYearList()" [lang]="currentLanguage()" />
       </div>
     </div>
   }
