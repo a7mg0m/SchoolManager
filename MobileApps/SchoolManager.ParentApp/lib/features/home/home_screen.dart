@@ -813,16 +813,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final nextEvent = (_events ?? const <ChildEvent>[]).where((e) => e.isUpcoming(now)).toList()
       ..sort((a, b) => a.date.compareTo(b.date));
-    final eventText = _events == null
-        ? tr('الأنشطة والرحلات', 'Activities & trips')
-        : nextEvent.isEmpty
-            ? tr('لا فعاليات قادمة', 'No upcoming events')
-            : '${nextEvent.first.title} · ${_when(nextEvent.first.date)}';
 
     const unit = 116.0;
     const gap = 12.0;
     final soon = [
-      (Icons.menu_book_rounded, tr('الواجبات', 'Homework'), const Color(0xFF20A66A)),
+      (Icons.celebration_rounded, tr('الفعاليات', 'Events'), const Color(0xFFD9427A)),
       (Icons.how_to_reg_rounded, tr('الحضور والغياب', 'Attendance'), const Color(0xFF0FA5A5)),
       (Icons.local_hospital_rounded, tr('العيادة الصحية', 'School Clinic'), const Color(0xFFD93025)),
       (Icons.directions_bus_rounded, tr('الباص', 'School Bus'), const Color(0xFFB7791F)),
@@ -883,16 +878,33 @@ class _HomeScreenState extends State<HomeScreen> {
         _Appear(
           order: 3,
           child: SizedBox(
-            height: unit - 16,
-            // Profile, the week's attendance with the teachers' reviews, exams: all in one page
-            child: _BentoTile(
-              key: const ValueKey('tile-activity'),
-              icon: Icons.insights_rounded,
-              label: tr('نشاط الطالب', 'Student activity'),
-              detail: tr('الحضور والتقييمات والاختبارات أسبوعياً', 'Weekly attendance, reviews and exams'),
-              colors: const [Color(0xFF0FA5A5), Color(0xFF0A7C7C)],
-              wide: true,
-              onTap: _openActivity,
+            height: unit,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Profile, the week's attendance with the teachers' reviews, exams: all in one page
+                Expanded(
+                  child: _BentoTile(
+                    key: const ValueKey('tile-activity'),
+                    icon: Icons.insights_rounded,
+                    label: tr('نشاط الطالب', 'Student activity'),
+                    detail: tr('الحضور والتقييمات والاختبارات', 'Attendance, reviews, exams'),
+                    colors: const [Color(0xFF0FA5A5), Color(0xFF0A7C7C)],
+                    onTap: _openActivity,
+                  ),
+                ),
+                const SizedBox(width: gap),
+                // Ask the child's teachers for an evaluation, and see their answers
+                Expanded(
+                  child: _BentoTile(
+                    icon: Icons.rate_review_rounded,
+                    label: tr('تقييم المعلمين', 'Teacher evaluations'),
+                    detail: tr('اطلب تقييم مستوى طفلك', 'Ask how your child is doing'),
+                    colors: const [Color(0xFF6D7DF2), Color(0xFF4C5FD5)],
+                    onTap: _openEvaluations,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -901,29 +913,14 @@ class _HomeScreenState extends State<HomeScreen> {
           order: 3,
           child: SizedBox(
             height: unit - 16,
+            // Homework: open, with how many are still to do
             child: _BentoTile(
-              icon: Icons.celebration_rounded,
-              label: tr('الفعاليات', 'Events'),
-              detail: eventText,
-              colors: const [Color(0xFFFF6B9A), Color(0xFFD9427A)],
+              icon: Icons.menu_book_rounded,
+              label: tr('الواجبات', 'Homework'),
+              detail: _homeworkCount() ?? tr('واجبات الفصل وتسليمها', 'Class homework to do'),
+              colors: const [Color(0xFF2BBF7E), Color(0xFF1C8F5C)],
               wide: true,
-              onTap: _openEvents,
-            ),
-          ),
-        ),
-        const SizedBox(height: gap),
-        _Appear(
-          order: 3,
-          child: SizedBox(
-            height: unit - 16,
-            // Ask the child's teachers for an evaluation, and see their answers
-            child: _BentoTile(
-              icon: Icons.rate_review_rounded,
-              label: tr('تقييم المعلمين', 'Teacher evaluations'),
-              detail: tr('اطلب من المعلم تقييم مستوى طفلك', 'Ask a teacher how your child is doing'),
-              colors: const [Color(0xFF6D7DF2), Color(0xFF4C5FD5)],
-              wide: true,
-              onTap: _openEvaluations,
+              onTap: _openHomework,
             ),
           ),
         ),
@@ -936,8 +933,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (i > 0) const SizedBox(width: 10),
                 Expanded(
                   child: switch (i) {
-                    // Homework: open, with how many are still to do
-                    0 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openHomework, detail: _homeworkCount()),
+                    // Events: the school's events and trips, with how many are coming
+                    0 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openEvents, detail: _upcomingEventsCount(nextEvent.length)),
                     // Attendance: the selected child's days in the chosen academic year
                     1 => _soonTile(soon[i].$1, soon[i].$2, soon[i].$3, onTap: _openAttendance),
                     // Clinic: the selected child's health profile
@@ -956,6 +953,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   /// A service that is not ready yet: small card with a "soon" label
+  /// "2 قادمة" / "2 coming" (null while loading or when none is coming)
+  String? _upcomingEventsCount(int count) =>
+      _events == null || count == 0 ? null : tr('$count قادمة', '$count coming');
+
   /// "3 مطلوبة" / "3 to do" (null while loading)
   String? _homeworkCount() {
     final list = _homeworks;
