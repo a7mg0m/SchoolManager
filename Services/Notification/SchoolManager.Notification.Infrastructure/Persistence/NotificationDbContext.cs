@@ -13,6 +13,7 @@ namespace SchoolManager.Notification.Infrastructure
         public DbSet<NotificationTarget> NotificationTargets => Set<NotificationTarget>();
         public DbSet<SchoolEvent> SchoolEvents => Set<SchoolEvent>();
         public DbSet<EventTarget> EventTargets => Set<EventTarget>();
+        public DbSet<EventAttendance> EventAttendances => Set<EventAttendance>();
 
         public DbSet<ChatRoom> ChatRooms => Set<ChatRoom>();
         public DbSet<ChatParticipant> ChatParticipants => Set<ChatParticipant>();

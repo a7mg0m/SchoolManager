@@ -20,7 +20,9 @@ namespace SchoolManager.Management.Application
                     src.IsActive,
                     src.LoginName,
                     src.Password,
-                    src.JobLevel));
+                    src.JobLevel,
+                    src.IsServiceEnded,
+                    src.ServiceEndDate));
 
             CreateMap<UpdateTeacherDto, UpdateTeacherCommand>()
                 .ConstructUsing(src => new UpdateTeacherCommand(
@@ -33,7 +35,9 @@ namespace SchoolManager.Management.Application
 					src.IsActive,
                     src.LoginName,
                     src.Password,
-                    src.JobLevel));
+                    src.JobLevel,
+                    src.IsServiceEnded,
+                    src.ServiceEndDate));
 
 			CreateMap<Teacher, TeacherDto>()
                 .ForMember(d => d.FullNameAr, o => o.MapFrom(s => s.FullName.Arabic))

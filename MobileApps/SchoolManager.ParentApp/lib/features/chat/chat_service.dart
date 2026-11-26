@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 
 import '../../core/academic_year/academic_year_controller.dart';
 import '../../core/auth/auth_service.dart';
@@ -42,6 +43,53 @@ class ChatContact {
       );
 }
 
+/// What a chat file is
+enum ChatMediaKind { image, video, audio, file }
+
+ChatMediaKind chatMediaKind(String? contentTypeOrKind) {
+  final v = (contentTypeOrKind ?? '').toLowerCase();
+  if (v.startsWith('image')) return ChatMediaKind.image;
+  if (v.startsWith('video')) return ChatMediaKind.video;
+  if (v.startsWith('audio')) return ChatMediaKind.audio;
+  return ChatMediaKind.file;
+}
+
+/// "📷 Photo" / "🎥 Video" / "🎤 Voice message" for a message without words
+String chatMediaLabel(ChatMediaKind kind) => switch (kind) {
+      ChatMediaKind.image => tr('📷 صورة', '📷 Photo'),
+      ChatMediaKind.video => tr('🎥 فيديو', '🎥 Video'),
+      ChatMediaKind.audio => tr('🎤 رسالة صوتية', '🎤 Voice message'),
+      ChatMediaKind.file => tr('📎 ملف', '📎 File'),
+    };
+
+/// Largest files the server takes (the same limits as the API)
+const chatMaxImageBytes = 10 * 1024 * 1024;
+const chatMaxVideoBytes = 25 * 1024 * 1024;
+const chatMaxAudioBytes = 10 * 1024 * 1024;
+
+/// A picture / video / voice note of a message (uploaded with POST /api/chat/{roomId}/attachments)
+class ChatAttachment {
+  const ChatAttachment({required this.fileName, required this.url, required this.contentType, this.sizeInBytes = 0});
+
+  final String fileName;
+
+  /// Relative to the API ("/api/chat/files/{roomId}/{name}"); see [ChatService.fileUrl]
+  final String url;
+  final String contentType;
+  final int sizeInBytes;
+
+  ChatMediaKind get kind => chatMediaKind(contentType);
+
+  factory ChatAttachment.fromJson(Map<String, dynamic> json) => ChatAttachment(
+        fileName: '${json['fileName'] ?? ''}',
+        url: '${json['url'] ?? ''}',
+        contentType: '${json['contentType'] ?? ''}',
+        sizeInBytes: (json['sizeInBytes'] as num?)?.toInt() ?? 0,
+      );
+
+  Map<String, Object?> toJson() => {'fileName': fileName, 'url': url, 'contentType': contentType, 'sizeInBytes': sizeInBytes};
+}
+
 /// One of my chats (GET /api/chat/my)
 class ChatSummary {
   const ChatSummary({
@@ -55,6 +103,7 @@ class ChatSummary {
     this.lastMessageSenderId,
     this.lastMessageOn,
     this.unreadCount = 0,
+    this.lastAttachmentKind,
   });
 
   final String roomId;
@@ -68,8 +117,19 @@ class ChatSummary {
   final DateTime? lastMessageOn;
   final int unreadCount;
 
+  /// The last message is a picture / video / voice note ("image" | "video" | "audio" | "file"; null: text)
+  final String? lastAttachmentKind;
+
   String get name => pickLang(nameAr, nameEn);
   String get detail => pickLang(detailAr, detailEn);
+
+  /// The last message as the list shows it: its words, else "🎤 Voice message"…
+  String? get lastMessagePreview {
+    final text = lastMessage?.trim() ?? '';
+    if (text.isNotEmpty) return text;
+    if (lastAttachmentKind != null) return chatMediaLabel(chatMediaKind(lastAttachmentKind));
+    return lastMessage;
+  }
 
   factory ChatSummary.fromJson(Map<String, dynamic> json) => ChatSummary(
         roomId: '${json['roomId'] ?? ''}',
@@ -82,6 +142,7 @@ class ChatSummary {
         lastMessageSenderId: json['lastMessageSenderId'] == null ? null : '${json['lastMessageSenderId']}',
         lastMessageOn: chatTime(json['lastMessageOn']),
         unreadCount: (json['unreadCount'] as num?)?.toInt() ?? 0,
+        lastAttachmentKind: json['lastAttachmentKind'] as String?,
       );
 }
 
@@ -90,7 +151,15 @@ enum ChatStatus { sending, sent, delivered, seen, failed }
 
 /// A message of a chat (history / send)
 class ChatMessage {
-  const ChatMessage({required this.id, required this.senderId, required this.content, required this.sentOn, this.status = ChatStatus.sent});
+  const ChatMessage({
+    required this.id,
+    required this.senderId,
+    required this.content,
+    required this.sentOn,
+    this.status = ChatStatus.sent,
+    this.attachments = const [],
+    this.localMedia,
+  });
 
   final String id;
   final String senderId;
@@ -100,7 +169,14 @@ class ChatMessage {
   /// For my messages: how far the other person got; for theirs: what I did with it
   final ChatStatus status;
 
-  ChatMessage withStatus(ChatStatus value) => ChatMessage(id: id, senderId: senderId, content: content, sentOn: sentOn, status: value);
+  /// Pictures / videos / voice notes
+  final List<ChatAttachment> attachments;
+
+  /// A file still being sent from this phone (shown while it uploads, sent again on retry)
+  final ChatOutgoingMedia? localMedia;
+
+  ChatMessage withStatus(ChatStatus value) => ChatMessage(
+      id: id, senderId: senderId, content: content, sentOn: sentOn, status: value, attachments: attachments, localMedia: localMedia);
 
   static ChatStatus _status(Object? value) => switch ('$value') {
         '2' || 'Delivered' => ChatStatus.delivered,
@@ -114,7 +190,32 @@ class ChatMessage {
         content: (json['content'] as String?) ?? '',
         sentOn: chatTime(json['sentOn']) ?? DateTime.now(),
         status: _status(json['status']),
+        attachments: json['attachments'] is List
+            ? (json['attachments'] as List).whereType<Map>().map((a) => ChatAttachment.fromJson(Map<String, dynamic>.from(a))).toList()
+            : const [],
       );
+}
+
+/// A picture / video / voice note picked or recorded here, before it is uploaded
+class ChatOutgoingMedia {
+  const ChatOutgoingMedia({required this.bytes, required this.fileName, required this.kind, this.duration});
+
+  final Uint8List bytes;
+
+  /// With the right extension (the server checks it): photo.jpg, clip.mp4, voice.m4a…
+  final String fileName;
+  final ChatMediaKind kind;
+
+  /// Length of a voice note (shown while it is sent)
+  final Duration? duration;
+
+  int get maxBytes => switch (kind) {
+        ChatMediaKind.video => chatMaxVideoBytes,
+        ChatMediaKind.audio => chatMaxAudioBytes,
+        _ => chatMaxImageBytes,
+      };
+
+  bool get tooLarge => bytes.length > maxBytes;
 }
 
 /// The API saves times in UTC without a zone: read them as UTC, show them local
@@ -142,8 +243,14 @@ class ChatService {
   /// The signed-in user's id (their messages are theirs)
   String get myUserId => AuthService.instance.session?.userId ?? '';
 
-  Future<List<ChatContact>> getContacts() async {
-    final data = await _send('GET', '/api/chat/my/contacts', fallback: tr('تعذر تحميل جهات الاتصال.', 'Could not load the contacts.'));
+  /// Who I may chat with, in the academic year / semester chosen in the app:
+  /// - a teacher: the parents of the classes they teach in that timetable;
+  /// - a parent with the child chosen in the app ([studentId]): the teachers of that child's section timetable.
+  Future<List<ChatContact>> getContacts({String? studentId}) async {
+    final path = studentId == null || studentId.isEmpty
+        ? _withYear('/api/chat/my/contacts')
+        : _withYear('/api/chat/my/contacts?studentId=${Uri.encodeQueryComponent(studentId)}');
+    final data = await _send('GET', path, fallback: tr('تعذر تحميل جهات الاتصال.', 'Could not load the contacts.'));
     return data is List ? data.whereType<Map<String, dynamic>>().map(ChatContact.fromJson).toList() : const [];
   }
 
@@ -172,11 +279,98 @@ class ChatService {
     return list is List ? list.whereType<Map<String, dynamic>>().map(ChatMessage.fromJson).toList() : const [];
   }
 
-  Future<ChatMessage> sendMessage(String roomId, String content) async {
+  Future<ChatMessage> sendMessage(String roomId, String content, {List<ChatAttachment> attachments = const []}) async {
     final body = await _send('POST', '/api/chat/send-message',
-        body: {'roomId': roomId, 'content': content}, fallback: tr('تعذر إرسال الرسالة.', 'Could not send the message.'), wholeBody: true);
+        body: {'roomId': roomId, 'content': content, if (attachments.isNotEmpty) 'attachments': [for (final a in attachments) a.toJson()]},
+        fallback: tr('تعذر إرسال الرسالة.', 'Could not send the message.'),
+        wholeBody: true);
     if (body is! Map<String, dynamic>) throw ChatException(tr('تعذر إرسال الرسالة.', 'Could not send the message.'));
-    return ChatMessage.fromJson(body);
+    final sent = ChatMessage.fromJson(body);
+    // The send answer has no attachments: keep the ones sent
+    return sent.attachments.isEmpty && attachments.isNotEmpty
+        ? ChatMessage(id: sent.id, senderId: sent.senderId, content: sent.content, sentOn: sent.sentOn, status: sent.status, attachments: attachments)
+        : sent;
+  }
+
+  /// Uploads a picture / video / voice note, then sends it as a message (with [caption] as its words)
+  Future<ChatMessage> sendMedia(String roomId, ChatOutgoingMedia media, {String caption = ''}) async {
+    final attachment = await uploadAttachment(roomId, media);
+    return sendMessage(roomId, caption, attachments: [attachment]);
+  }
+
+  /// POST /api/chat/{roomId}/attachments (multipart "file")
+  Future<ChatAttachment> uploadAttachment(String roomId, ChatOutgoingMedia media) async {
+    final session = AuthService.instance.session;
+    if (session == null || session.isExpired) throw ChatException(_sessionEnded, sessionExpired: true);
+    if (media.tooLarge) throw ChatException(_tooLarge(media.kind));
+
+    final request = http.MultipartRequest('POST', Uri.parse('${AppConfig.apiBaseUrl}/api/chat/${Uri.encodeComponent(roomId)}/attachments'))
+      ..headers.addAll({'Accept': 'application/json', 'Authorization': 'Bearer ${session.token}'})
+      ..files.add(http.MultipartFile.fromBytes('file', media.bytes,
+          filename: media.fileName, contentType: MediaType.parse(_contentType(media.fileName))));
+
+    final http.Response response;
+    try {
+      // Videos take longer than a normal call
+      response = await http.Response.fromStream(await request.send()).timeout(const Duration(minutes: 3));
+    } on TimeoutException {
+      throw ChatException(tr('انتهت مهلة رفع الملف.', 'The upload took too long.'));
+    } catch (_) {
+      throw ChatException(tr('تعذر الاتصال بالخادم.', 'Could not reach the server.'));
+    }
+
+    Object? decoded;
+    try {
+      decoded = jsonDecode(utf8.decode(response.bodyBytes));
+    } catch (_) {}
+    final message = decoded is Map<String, dynamic> ? '${decoded['message'] ?? ''}' : '';
+    if (response.statusCode == 401) throw ChatException(_sessionEnded, sessionExpired: true);
+    if (response.statusCode == 413 || message == 'FileTooLarge') throw ChatException(_tooLarge(media.kind));
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ChatException(switch (message) {
+        'FileTypeNotAllowed' => tr('نوع الملف غير مدعوم.', 'This type of file is not supported.'),
+        'NotAParticipant' => tr('لست مشاركاً في هذه المحادثة.', 'You are not part of this chat.'),
+        _ => tr('تعذر رفع الملف.', 'Could not upload the file.'),
+      });
+    }
+    final data = decoded is Map<String, dynamic> ? decoded['data'] : null;
+    if (data is! Map) throw ChatException(tr('تعذر رفع الملف.', 'Could not upload the file.'));
+    return ChatAttachment.fromJson(Map<String, dynamic>.from(data));
+  }
+
+  /// Full address of a chat file for pictures / players: the token goes in ?access_token= (players can't send headers everywhere)
+  String fileUrl(ChatAttachment attachment) {
+    final token = AuthService.instance.session?.token ?? '';
+    final base = attachment.url.startsWith('http') ? attachment.url : '${AppConfig.apiBaseUrl}${attachment.url}';
+    return token.isEmpty ? base : '$base${base.contains('?') ? '&' : '?'}access_token=${Uri.encodeQueryComponent(token)}';
+  }
+
+  static String _tooLarge(ChatMediaKind kind) => switch (kind) {
+        ChatMediaKind.video => tr('الفيديو كبير جداً (الحد 25 ميجابايت).', 'The video is too large (25 MB max).'),
+        ChatMediaKind.audio => tr('التسجيل طويل جداً.', 'The recording is too long.'),
+        _ => tr('الصورة كبيرة جداً (الحد 10 ميجابايت).', 'The picture is too large (10 MB max).'),
+      };
+
+  static String _contentType(String fileName) {
+    final ext = fileName.contains('.') ? fileName.split('.').last.toLowerCase() : '';
+    return switch (ext) {
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'png' => 'image/png',
+      'webp' => 'image/webp',
+      'gif' => 'image/gif',
+      'heic' => 'image/heic',
+      'mp4' => 'video/mp4',
+      'mov' => 'video/quicktime',
+      '3gp' => 'video/3gpp',
+      'webm' => 'video/webm',
+      'm4a' => 'audio/mp4',
+      'aac' => 'audio/aac',
+      'mp3' => 'audio/mpeg',
+      'wav' => 'audio/wav',
+      'ogg' || 'opus' => 'audio/ogg',
+      'weba' => 'audio/webm',
+      _ => 'application/octet-stream',
+    };
   }
 
   /// Profile picture of [userId]; null when they have none (or it could not be loaded)
@@ -200,6 +394,13 @@ class ChatService {
     if (messageIds.isEmpty) return;
     await _send('PUT', '/api/chat/history/${Uri.encodeComponent(roomId)}/status',
         body: {'messageIds': messageIds, 'status': 3}, fallback: '');
+  }
+
+  /// Tells the sender these messages reached my phone (grey double tick)
+  Future<void> markDelivered(String roomId, List<String> messageIds) async {
+    if (messageIds.isEmpty) return;
+    await _send('PUT', '/api/chat/history/${Uri.encodeComponent(roomId)}/status',
+        body: {'messageIds': messageIds, 'status': 2}, fallback: '');
   }
 
   /// [path] with ?academicYearId= of the year chosen in the app

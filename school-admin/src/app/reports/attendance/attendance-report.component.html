@@ -1,0 +1,245 @@
+<div class="container-fluid report-page">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">{{ 'reports.attendance.title' | translate }}</h2>
+      <small class="text-muted">{{ 'reports.attendance.subtitle' | translate }}</small>
+      <div class="print-only small text-muted mt-1">
+        {{ 'reports.generatedOn' | translate }}: {{ generatedOn | date: 'yyyy-MM-dd HH:mm' }} · {{ dateFrom() }} → {{ dateTo() }}
+      </div>
+    </div>
+    <div class="d-flex gap-2 no-print">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="loadDays()" [disabled]="isLoadingDays()">
+        <i class="pe-7s-refresh-2"></i> {{ 'reports.refresh' | translate }}
+      </button>
+      <button type="button" class="btn btn-outline-success btn-sm" (click)="exportCsv()" [disabled]="visibleStudents().length === 0">
+        <i class="pe-7s-download"></i> {{ 'reports.exportExcel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="print()">
+        <i class="pe-7s-print"></i> {{ 'reports.print' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-warning no-print">{{ errorMessage() }}</div>
+  }
+
+  <!-- Filters -->
+  <div class="card mb-3 no-print">
+    <div class="card-body">
+      <div class="d-flex flex-wrap gap-2 mb-2">
+        @for (r of ['thisWeek', 'thisMonth', 'lastMonth', 'thisYear']; track r) {
+          <button type="button" class="btn btn-sm" [class.btn-primary]="quickRange() === r" [class.btn-outline-secondary]="quickRange() !== r"
+                  (click)="setQuickRange($any(r))">{{ 'reports.attendance.' + r | translate }}</button>
+        }
+      </div>
+      <div class="row g-2">
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="aFrom">{{ 'reports.expenses.from' | translate }}</label>
+          <input id="aFrom" type="date" class="form-control form-control-sm" [value]="dateFrom()" (change)="setDate('from', $any($event.target).value)" />
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="aTo">{{ 'reports.expenses.to' | translate }}</label>
+          <input id="aTo" type="date" class="form-control form-control-sm" [value]="dateTo()" (change)="setDate('to', $any($event.target).value)" />
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="aYear">{{ 'parents.academicYear' | translate }}</label>
+          <select id="aYear" class="form-select form-select-sm" (change)="setYear($any($event.target).value)">
+            <option value="" [selected]="!yearFilter()">{{ 'students.all' | translate }}</option>
+            @for (y of academicYears(); track y.id) {
+              <option [value]="y.id" [selected]="y.id === yearFilter()">{{ y.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="aStage">{{ 'parents.stage' | translate }}</label>
+          <select id="aStage" class="form-select form-select-sm" (change)="setStage($any($event.target).value)">
+            <option value="" [selected]="!stageFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of stages(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === stageFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="aGrade">{{ 'parents.grade' | translate }}</label>
+          <select id="aGrade" class="form-select form-select-sm" (change)="setGrade($any($event.target).value)">
+            <option value="" [selected]="!gradeFilter()">{{ 'students.all' | translate }}</option>
+            @for (g of filterGrades(); track g.id) {
+              <option [value]="g.id" [selected]="g.id === gradeFilter()">{{ nameOf(g) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="aSection">{{ 'parents.section' | translate }}</label>
+          <select id="aSection" class="form-select form-select-sm" [disabled]="!gradeFilter()" (change)="setSection($any($event.target).value)">
+            <option value="" [selected]="!sectionFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of filterSections(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === sectionFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading() || isLoadingDays()) {
+    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+  } @else {
+    @let s = summary();
+    @if (s.days === 0) {
+      <div class="alert alert-light border text-center">{{ 'reports.attendance.noData' | translate }}</div>
+    } @else {
+      <!-- Summary -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-4 col-xl-3">
+          <div class="rate-card" [class]="'rate-card ' + rateClass(s.rate)">
+            <div class="rate-value">{{ s.rate === null ? '-' : s.rate + '%' }}</div>
+            <div class="rate-label">{{ 'reports.attendance.overallRate' | translate }}</div>
+            <small>{{ 'reports.attendance.studentsDays' | translate: { students: s.students, days: s.days } }}</small>
+          </div>
+        </div>
+        <div class="col-md-8 col-xl-9">
+          <div class="row g-2 h-100">
+            <div class="col-6 col-lg-2"><div class="mini present"><span>{{ s.present }}</span>{{ 'reports.attendance.present' | translate }}</div></div>
+            <div class="col-6 col-lg-2"><div class="mini partial"><span>{{ s.partial }}</span>{{ 'reports.attendance.partial' | translate }}</div></div>
+            <div class="col-6 col-lg-2"><div class="mini absent"><span>{{ s.absent }}</span>{{ 'reports.attendance.absent' | translate }}</div></div>
+            <div class="col-6 col-lg-2"><div class="mini excused"><span>{{ s.excused }}</span>{{ 'reports.attendance.excused' | translate }}</div></div>
+            <div class="col-6 col-lg-2"><div class="mini late"><span>{{ s.lateLessons }}</span>{{ 'reports.attendance.lateLessons' | translate }}</div></div>
+            <div class="col-6 col-lg-2"><div class="mini missed"><span>{{ s.absentLessons }}</span>{{ 'reports.attendance.absentLessons' | translate }}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <!-- Day by day -->
+        <div class="col-xl-5">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">{{ 'reports.attendance.byDay' | translate }}</div>
+            <div class="card-body day-list">
+              @for (d of byDay(); track d.date) {
+                <div class="day-row">
+                  <span class="day-name">{{ dayLabel(d.date) }}</span>
+                  <div class="stack">
+                    <span class="present" [style.width.%]="pct(d.present, d.days)"></span>
+                    <span class="partial" [style.width.%]="pct(d.partial, d.days)"></span>
+                    <span class="excused" [style.width.%]="pct(d.excused, d.days)"></span>
+                    <span class="absent" [style.width.%]="pct(d.absent, d.days)"></span>
+                  </div>
+                  <span class="day-rate" [class]="'day-rate ' + rateClass(d.rate)">{{ d.rate === null ? '-' : d.rate + '%' }}</span>
+                </div>
+              }
+              <div class="legend">
+                <span><i class="present"></i>{{ 'reports.attendance.present' | translate }}</span>
+                <span><i class="partial"></i>{{ 'reports.attendance.partial' | translate }}</span>
+                <span><i class="excused"></i>{{ 'reports.attendance.excused' | translate }}</span>
+                <span><i class="absent"></i>{{ 'reports.attendance.absent' | translate }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- By class -->
+        <div class="col-xl-7">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">{{ 'reports.attendance.byClass' | translate }}</div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>{{ 'parents.grade' | translate }} / {{ 'parents.section' | translate }}</th>
+                      <th class="text-center">{{ 'reports.attendance.students' | translate }}</th>
+                      <th class="text-center">{{ 'reports.attendance.absent' | translate }}</th>
+                      <th class="text-center">{{ 'reports.attendance.lateLessons' | translate }}</th>
+                      <th class="rate-col">{{ 'reports.attendance.rate' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (c of byClass(); track c.sectionId) {
+                      <tr>
+                        <td class="fw-semibold">{{ c.grade }} / {{ c.section }}</td>
+                        <td class="text-center">{{ c.students }}</td>
+                        <td class="text-center">{{ c.absent }}</td>
+                        <td class="text-center">{{ c.lateLessons }}</td>
+                        <td class="rate-col">
+                          <div class="d-flex align-items-center gap-2">
+                            <div class="rate-bar flex-grow-1"><span [class]="rateClass(c.rate)" [style.width.%]="c.rate ?? 0"></span></div>
+                            <small class="fw-semibold">{{ c.rate === null ? '-' : c.rate + '%' }}</small>
+                          </div>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students -->
+      <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center gap-2">
+          <span class="fw-semibold">{{ 'reports.attendance.byStudent' | translate }}</span>
+          <span class="badge bg-secondary">{{ visibleStudents().length }}</span>
+          <div class="ms-auto d-flex flex-wrap align-items-center gap-2 no-print">
+            <input type="search" class="form-control form-control-sm search-input" [value]="searchTerm()"
+                   (input)="searchTerm.set($any($event.target).value)" [placeholder]="'reports.attendance.searchPlaceholder' | translate" />
+            <label class="small text-muted mb-0" for="aThreshold">{{ 'reports.attendance.attentionBelow' | translate }}</label>
+            <select id="aThreshold" class="form-select form-select-sm w-auto" (change)="threshold.set(+$any($event.target).value)">
+              @for (t of thresholds; track t) {
+                <option [value]="t" [selected]="t === threshold()">{{ t }}%</option>
+              }
+            </select>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="aAttention" [checked]="attentionOnly()" (change)="attentionOnly.set(!attentionOnly())" />
+              <label class="form-check-label small" for="aAttention">{{ 'reports.attendance.attentionOnly' | translate: { count: attentionCount() } }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table appDataTable [dtSearch]="false" [dtPageSize]="25" class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>{{ 'reports.attendance.student' | translate }}</th>
+                  <th>{{ 'parents.grade' | translate }} / {{ 'parents.section' | translate }}</th>
+                  <th class="text-center">{{ 'reports.attendance.days' | translate }}</th>
+                  <th class="text-center">{{ 'reports.attendance.present' | translate }}</th>
+                  <th class="text-center">{{ 'reports.attendance.partial' | translate }}</th>
+                  <th class="text-center">{{ 'reports.attendance.absent' | translate }}</th>
+                  <th class="text-center">{{ 'reports.attendance.excused' | translate }}</th>
+                  <th class="text-center">{{ 'reports.attendance.lateLessons' | translate }}</th>
+                  <th class="rate-col">{{ 'reports.attendance.rate' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (st of visibleStudents(); track st.studentId; let i = $index) {
+                  <tr [class.attention]="st.rate !== null && st.rate < threshold()">
+                    <td class="text-muted">{{ i + 1 }}</td>
+                    <td><a class="fw-semibold" [routerLink]="['/management/students', st.studentId]">{{ st.name }}</a></td>
+                    <td>{{ st.grade }} / {{ st.section }}</td>
+                    <td class="text-center">{{ st.days }}</td>
+                    <td class="text-center">{{ st.present }}</td>
+                    <td class="text-center">{{ st.partial }}</td>
+                    <td class="text-center fw-semibold" [class.text-danger]="st.absent > 0">{{ st.absent }}</td>
+                    <td class="text-center">{{ st.excused }}</td>
+                    <td class="text-center">{{ st.lateLessons }}</td>
+                    <td class="rate-col">
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="rate-bar flex-grow-1"><span [class]="rateClass(st.rate)" [style.width.%]="st.rate ?? 0"></span></div>
+                        <small class="fw-semibold">{{ st.rate === null ? '-' : st.rate + '%' }}</small>
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="10" class="text-center text-muted py-4">{{ 'reports.attendance.noStudents' | translate }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

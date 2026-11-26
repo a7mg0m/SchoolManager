@@ -38,6 +38,7 @@ import { UsersModule } from './users.module';
 import { ClinicModule } from './clinic.module';
 import { AttendanceModule } from './attendance.module';
 import { TransportModule } from './transport.module';
+import { ReportsModule } from './reports.module';
 
 // LAYOUT
 import {BaseLayoutComponent} from './Layout/base-layout/base-layout.component';
@@ -115,6 +116,7 @@ import {ThemeOptions} from './theme-options';
     ClinicModule,
     AttendanceModule,
     TransportModule,
+    ReportsModule,
   ],
   providers: [
     ConfigService,

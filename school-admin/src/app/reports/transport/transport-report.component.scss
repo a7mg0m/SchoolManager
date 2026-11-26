@@ -1,0 +1,153 @@
+// Transport report. Occupancy: green (free seats), amber (85%+), red (full).
+$good: #16a34a;
+$warn: #f59e0b;
+$bad: #ef4444;
+
+.report-page {
+  .occ-card {
+    height: 100%;
+    padding: 1.1rem;
+    border-radius: 16px;
+    color: #fff;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+
+    &.warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.bad { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+    .occ-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .occ-label {
+      font-weight: 600;
+      margin: 0.35rem 0 0.15rem;
+    }
+
+    small {
+      opacity: 0.85;
+    }
+  }
+
+  .mini {
+    height: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    color: var(--sg-muted, #6c757d);
+    background: var(--sg-surface, #fff);
+    border: 1px solid var(--sg-line, #dee2e6);
+    border-top: 4px solid #2563eb;
+
+    span {
+      display: block;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--sg-ink, #13261f);
+    }
+
+    &.alert-mini {
+      border-top-color: $bad;
+    }
+  }
+
+  .fee-card {
+    height: 100%;
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--sg-surface, #fff);
+    border: 1px solid var(--sg-line, #dee2e6);
+
+    .fee-title {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--sg-ink, #13261f);
+    }
+
+    .fee-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      margin-bottom: 0.2rem;
+    }
+  }
+
+  .rate-bar {
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+
+      &.good { background: $good; }
+      &.warn { background: $warn; }
+      &.bad { background: $bad; }
+    }
+  }
+
+  .occ-col {
+    min-width: 150px;
+  }
+
+  .status-bar {
+    display: flex;
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    .completed { background: $good; }
+    .progress { background: #2563eb; }
+    .planned { background: #94a3b8; }
+    .cancelled { background: $bad; }
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    font-size: 0.75rem;
+    color: var(--sg-muted, #6c757d);
+
+    i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      margin-inline-end: 0.3rem;
+
+      &.completed { background: $good; }
+      &.progress { background: #2563eb; }
+      &.planned { background: #94a3b8; }
+      &.cancelled { background: $bad; }
+    }
+  }
+
+  .print-only {
+    display: none;
+  }
+}
+
+@media print {
+  .report-page {
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block;
+    }
+
+    .card,
+    .fee-card {
+      border: 1px solid #ddd;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+  }
+}

@@ -24,6 +24,22 @@ namespace SchoolManager.ExamsHomework.Application
 
         public async Task<Guid> Handle(CreateExamCommand command, CancellationToken cancellationToken)
         {
+            // Second final: the original Final's subject / grade / class / year / semester
+            if (command.ExamType == ExamType.SecondFinal)
+            {
+                var original = await SecondFinal.OriginalAsync(_repository, command.OriginalExamId, null, cancellationToken);
+                command = command with
+                {
+                    SubjectId = original.SubjectId,
+                    StageId = original.StageId,
+                    GradeId = original.GradeId,
+                    SectionId = original.SectionId,
+                    AcademicYearId = original.AcademicYearId,
+                    SemesterId = original.SemesterId,
+                    OriginalExamId = original.Id
+                };
+            }
+
             var entity = new Exam(
                 command.SubjectId,
                 command.StageId,
@@ -44,8 +60,16 @@ namespace SchoolManager.ExamsHomework.Application
 
             if (command.TeacherId is Guid teacherId)
                 entity.AssignTeacher(teacherId);
+            entity.LinkOriginal(command.OriginalExamId);
 
             await _repository.AddAsync(entity);
+
+            // A second final concerns only the students who failed: no notification to the whole class
+            if (entity.ExamType == ExamType.SecondFinal)
+            {
+                await _unitOfWork.SaveChangesAsync();
+                return entity.Id;
+            }
 
             // The parents of the exam's class (or grade) get a notification (Notification service, through Kafka)
             _outbox.Enqueue(Topics.ExamsExamCreated, entity.Id.ToString(), new ExamCreatedIntegrationEvent

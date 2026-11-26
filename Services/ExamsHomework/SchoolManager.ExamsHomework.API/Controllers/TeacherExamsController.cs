@@ -202,6 +202,9 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             var students = sections.Count == 0 ? null : await StudentsOfAsync(sections, cancellationToken);
             if (students is null)
                 return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiResponse(503, "ManagementUnavailable"));
+            // A second final: only the students who failed its Final
+            if (await SecondFinalStudentsAsync(exam, cancellationToken) is HashSet<Guid> eligible)
+                students = students.Where(s => eligible.Contains(s.Id)).ToList();
 
             var scores = exam.ExamResults.GroupBy(r => r.StudentId).ToDictionary(g => g.Key, g => g.First().Score);
             return Ok(new ApiResponse
@@ -252,11 +255,22 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             var inClass = students.Select(s => s.Id).ToHashSet();
             if (results.Any(r => !inClass.Contains(r.StudentId)))
                 return BadRequest(new ApiResponse(400, "StudentNotInClass"));
+            if (await SecondFinalStudentsAsync(exam, cancellationToken) is HashSet<Guid> eligible
+                && results.Any(r => r.Score is not null && !eligible.Contains(r.StudentId)))
+                return BadRequest(new ApiResponse(400, SecondFinal.NotEligible));
 
             var summary = await _mediator.Send(new SaveExamResultsCommand(id, results), cancellationToken);
             if (summary is null)
                 return NotFound(new ApiResponse(404, "ExamNotFound"));
             return Ok(new ApiResponse { message = "Saved Successfully", data = summary });
+        }
+
+        /// <summary>For a second final: the students who failed its Final; null for the other exams</summary>
+        private async Task<HashSet<Guid>?> SecondFinalStudentsAsync(Exam exam, CancellationToken cancellationToken)
+        {
+            if (exam.ExamType != ExamType.SecondFinal) return null;
+            var original = exam.OriginalExamId is Guid id ? await _exams.GetWithResultsAsync(id, cancellationToken) : null;
+            return original is null ? new HashSet<Guid>() : SecondFinal.FailedStudents(original).Keys.ToHashSet();
         }
 
         /// <summary>Type (quiz / monthly), month, times and marks</summary>

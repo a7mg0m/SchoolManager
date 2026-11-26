@@ -101,10 +101,11 @@ class ClassesService {
   ClassesService._();
   static final instance = ClassesService._();
 
-  /// The teacher's classes for the academic year / semester chosen in the app
+  /// The teacher's classes for the academic year / semester chosen in the app: only the classes and subjects of
+  /// their lessons in that timetable
   Future<List<MyClass>> getMyClasses() async {
     try {
-      return myClassesFrom(await HomeworkService.instance.getMyClasses());
+      return myClassesFrom(await HomeworkService.instance.getMyClasses(fromTimetable: true));
     } on HomeworkException catch (e) {
       throw ClassesException(e.message, sessionExpired: e.sessionExpired);
     }

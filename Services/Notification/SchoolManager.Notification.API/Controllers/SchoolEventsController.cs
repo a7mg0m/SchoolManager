@@ -104,6 +104,30 @@ namespace SchoolManager.Notification.API.Controllers
             return Ok(new ApiResponse { message = "Updated Successfully" });
         }
 
+        /// <summary>
+        /// Admin: who came to an event (check-in marks). Each mark is a student or a teacher with IsPresent;
+        /// invited people not marked yet are not listed. 404 when the event does not exist.
+        /// </summary>
+        [HttpGet("{id:guid}/attendance")]
+        public async Task<IActionResult> GetAttendance(Guid id, CancellationToken cancellationToken)
+        {
+            var marks = await _mediator.Send(new GetEventAttendanceQuery(id), cancellationToken);
+            if (marks is null) return NotFound(new ApiResponse(404, "EventNotFound"));
+            return Ok(new ApiResponse { data = marks });
+        }
+
+        /// <summary>
+        /// Admin: saves check-in marks of an event: { records: [{ attendeeType: 1 student | 2 teacher, attendeeId,
+        /// isPresent: true | false | null (clear) }] }. Only the people sent change.
+        /// </summary>
+        [HttpPut("{id:guid}/attendance")]
+        public async Task<IActionResult> SaveAttendance(Guid id, [FromBody] SaveEventAttendanceDto dto, CancellationToken cancellationToken)
+        {
+            var saved = await _mediator.Send(new SaveEventAttendanceCommand(id, dto?.Records ?? new()), cancellationToken);
+            if (!saved) return NotFound(new ApiResponse(404, "EventNotFound"));
+            return Ok(new ApiResponse { message = "Saved Successfully" });
+        }
+
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
         {

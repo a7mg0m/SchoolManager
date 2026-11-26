@@ -92,6 +92,17 @@ namespace SchoolManager.Financial.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Payments applied to student fees between two dates (?from=&to= "yyyy-MM-dd", both included, either open),
+        /// each with whether it is a bus fee (income report).
+        /// </summary>
+        [HttpGet("payments")]
+        public async Task<IActionResult> GetPayments([FromQuery] DateOnly? from, [FromQuery] DateOnly? to, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetStudentFeePaymentsQuery(from, to), cancellationToken);
+            return Ok(new ApiResponse { data = result });
+        }
+
         [HttpPut("apply-payment/{id}")]
         public async Task<IActionResult> ApplyPayment(Guid id, [FromBody] ApplyStudentFeePaymentDto dto, CancellationToken cancellationToken)
         {

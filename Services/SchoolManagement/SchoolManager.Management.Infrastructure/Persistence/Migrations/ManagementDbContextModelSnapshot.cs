@@ -451,11 +451,23 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<Guid>("SectionId")
+                    b.Property<Guid?>("SectionId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("StageId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateOnly?>("StatusDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("StatusNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
@@ -627,6 +639,9 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsServiceEnded")
+                        .HasColumnType("bit");
+
                     b.Property<string>("JobLevel")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -644,6 +659,9 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateOnly?>("ServiceEndDate")
+                        .HasColumnType("date");
 
                     b.HasKey("Id");
 
@@ -1605,8 +1623,7 @@ namespace SchoolManager.Management.Infrastructure.Persistence.Migrations
                     b.HasOne("SchoolManager.Management.Domain.Section", "Section")
                         .WithMany("Students")
                         .HasForeignKey("SectionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("SchoolManager.Management.Domain.Stage", "Stage")
                         .WithMany()

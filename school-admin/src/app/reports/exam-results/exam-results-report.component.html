@@ -1,0 +1,283 @@
+<div class="container-fluid report-page">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">{{ 'reports.examResults.title' | translate }}</h2>
+      <small class="text-muted">{{ 'reports.examResults.subtitle' | translate }}</small>
+      <div class="print-only small text-muted mt-1">{{ 'reports.generatedOn' | translate }}: {{ generatedOn | date: 'yyyy-MM-dd HH:mm' }}</div>
+    </div>
+    <div class="d-flex gap-2 no-print">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="load()" [disabled]="isLoading()">
+        <i class="pe-7s-refresh-2"></i> {{ 'reports.refresh' | translate }}
+      </button>
+      <button type="button" class="btn btn-outline-success btn-sm" (click)="exportCsv()" [disabled]="isLoading() || lines().length === 0">
+        <i class="pe-7s-download"></i> {{ 'reports.exportExcel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="print()" [disabled]="isLoading()">
+        <i class="pe-7s-print"></i> {{ 'reports.print' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-warning no-print">{{ errorMessage() }}</div>
+  }
+
+  <!-- Filters -->
+  <div class="card mb-3 no-print">
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xYear">{{ 'parents.academicYear' | translate }}</label>
+          <select id="xYear" class="form-select form-select-sm" (change)="setYear($any($event.target).value)">
+            <option value="" [selected]="!yearFilter()">{{ 'students.all' | translate }}</option>
+            @for (y of academicYears(); track y.id) {
+              <option [value]="y.id" [selected]="y.id === yearFilter()">{{ y.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xSemester">{{ 'reports.examResults.semester' | translate }}</label>
+          <select id="xSemester" class="form-select form-select-sm" [disabled]="semesters().length === 0" (change)="semesterFilter.set($any($event.target).value)">
+            <option value="" [selected]="!semesterFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of semesters(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === semesterFilter()">{{ s.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xStage">{{ 'parents.stage' | translate }}</label>
+          <select id="xStage" class="form-select form-select-sm" (change)="setStage($any($event.target).value)">
+            <option value="" [selected]="!stageFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of stages(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === stageFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xGrade">{{ 'parents.grade' | translate }}</label>
+          <select id="xGrade" class="form-select form-select-sm" (change)="setGrade($any($event.target).value)">
+            <option value="" [selected]="!gradeFilter()">{{ 'students.all' | translate }}</option>
+            @for (g of filterGrades(); track g.id) {
+              <option [value]="g.id" [selected]="g.id === gradeFilter()">{{ nameOf(g) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xSection">{{ 'parents.section' | translate }}</label>
+          <select id="xSection" class="form-select form-select-sm" [disabled]="!gradeFilter()" (change)="sectionFilter.set($any($event.target).value)">
+            <option value="" [selected]="!sectionFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of filterSections(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === sectionFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xSubject">{{ 'reports.examResults.subject' | translate }}</label>
+          <select id="xSubject" class="form-select form-select-sm" (change)="subjectFilter.set($any($event.target).value)">
+            <option value="" [selected]="!subjectFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of filterSubjects(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === subjectFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xType">{{ 'reports.examResults.type' | translate }}</label>
+          <select id="xType" class="form-select form-select-sm" (change)="typeFilter.set(+$any($event.target).value)">
+            <option [value]="0" [selected]="typeFilter() === 0">{{ 'students.all' | translate }}</option>
+            @for (t of examTypes; track t.value) {
+              <option [value]="t.value" [selected]="t.value === typeFilter()">{{ t.key | translate }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xFrom">{{ 'reports.expenses.from' | translate }}</label>
+          <input id="xFrom" type="date" class="form-control form-control-sm" [value]="dateFrom()" (input)="dateFrom.set($any($event.target).value)" />
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="xTo">{{ 'reports.expenses.to' | translate }}</label>
+          <input id="xTo" type="date" class="form-control form-control-sm" [value]="dateTo()" (input)="dateTo.set($any($event.target).value)" />
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <label class="form-label small mb-1" for="xSearch">{{ 'common.search' | translate }}</label>
+          <input id="xSearch" type="search" class="form-control form-control-sm" [value]="searchTerm()"
+                 (input)="searchTerm.set($any($event.target).value)" [placeholder]="'reports.examResults.searchPlaceholder' | translate" />
+        </div>
+        @if (hasFilters()) {
+          <div class="col-auto align-self-end">
+            <button type="button" class="btn btn-link btn-sm" (click)="clearFilters()">{{ 'students.clearFilters' | translate }}</button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+  } @else {
+    @let s = summary();
+    @if (s.count === 0) {
+      <div class="alert alert-light border text-center">{{ 'reports.examResults.noData' | translate }}</div>
+    } @else {
+      <!-- Summary -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-4 col-xl-3">
+          <div class="score-card" [class]="'score-card ' + scoreClass(s.average)">
+            <div class="score-value">{{ round(s.average) }}</div>
+            <div class="score-label">{{ 'reports.examResults.average' | translate }}</div>
+            <small>{{ 'reports.examResults.examsStudents' | translate: { exams: s.exams, results: s.count, students: s.students } }}</small>
+          </div>
+        </div>
+        <div class="col-md-8 col-xl-9">
+          <div class="row g-2 h-100">
+            <div class="col-6 col-lg-3"><div class="mini pass"><span>{{ s.passRate }}%</span>{{ 'reports.examResults.passRate' | translate }}</div></div>
+            <div class="col-6 col-lg-3"><div class="mini passed"><span>{{ s.passed }}</span>{{ 'reports.examResults.passed' | translate }}</div></div>
+            <div class="col-6 col-lg-3"><div class="mini failed"><span>{{ s.failed }}</span>{{ 'reports.examResults.failed' | translate }}</div></div>
+            <div class="col-6 col-lg-3"><div class="mini range"><span>{{ round(s.highest) }} / {{ round(s.lowest) }}</span>{{ 'reports.examResults.highLow' | translate }}</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <!-- Grade bands -->
+        <div class="col-xl-5">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">{{ 'reports.examResults.bands' | translate }}</div>
+            <div class="card-body">
+              @for (b of bands; track b.key; let i = $index) {
+                <div class="band-row">
+                  <span class="band-name">{{ 'reports.examResults.band.' + b.key | translate }} <small class="text-muted">{{ b.min }}%+</small></span>
+                  <div class="band-bar"><span [class]="b.css" [style.width.%]="pct(bandCounts()[i], s.count)"></span></div>
+                  <span class="band-count">{{ bandCounts()[i] }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <!-- By subject -->
+        <div class="col-xl-7">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">{{ 'reports.examResults.bySubject' | translate }}</div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>{{ 'reports.examResults.subject' | translate }}</th>
+                      <th class="text-center">{{ 'reports.examResults.results' | translate }}</th>
+                      <th class="text-center">{{ 'reports.examResults.highLow' | translate }}</th>
+                      <th class="text-center">{{ 'reports.examResults.passRate' | translate }}</th>
+                      <th class="text-center">{{ 'reports.examResults.averageShort' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (g of bySubject(); track g.key) {
+                      <tr>
+                        <td class="fw-semibold">{{ g.name }}</td>
+                        <td class="text-center">{{ g.count }}</td>
+                        <td class="text-center text-nowrap">{{ round(g.highest) }} / {{ round(g.lowest) }}</td>
+                        <td class="text-center">{{ g.passRate }}%</td>
+                        <td class="text-center"><span class="score-pill" [class]="'score-pill ' + scoreClass(g.average)">{{ round(g.average) }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- By exam -->
+      <div class="card mb-3">
+        <div class="card-header fw-semibold">{{ 'reports.examResults.byExam' | translate }} <span class="badge bg-secondary ms-1">{{ byExam().length }}</span></div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table appDataTable [dtSearch]="false" [dtPageSize]="10" class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'reports.examResults.subject' | translate }}</th>
+                  <th>{{ 'reports.examResults.examDetails' | translate }}</th>
+                  <th class="text-center">{{ 'reports.examResults.results' | translate }}</th>
+                  <th class="text-center">{{ 'reports.examResults.passedFailed' | translate }}</th>
+                  <th class="text-center">{{ 'reports.examResults.highLow' | translate }}</th>
+                  <th class="rate-col">{{ 'reports.examResults.passRate' | translate }}</th>
+                  <th class="text-center">{{ 'reports.examResults.averageShort' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (g of byExam(); track g.key) {
+                  <tr>
+                    <td class="fw-semibold">{{ g.name }}</td>
+                    <td class="text-muted small">{{ g.detail }}</td>
+                    <td class="text-center">{{ g.count }}</td>
+                    <td class="text-center"><span class="text-success">{{ g.passed }}</span> / <span class="text-danger">{{ g.failed }}</span></td>
+                    <td class="text-center text-nowrap">{{ round(g.highest) }} / {{ round(g.lowest) }}</td>
+                    <td class="rate-col">
+                      <div class="d-flex align-items-center gap-2">
+                        <div class="rate-bar flex-grow-1"><span [class]="scoreClass(g.passRate)" [style.width.%]="g.passRate"></span></div>
+                        <small class="fw-semibold">{{ g.passRate }}%</small>
+                      </div>
+                    </td>
+                    <td class="text-center"><span class="score-pill" [class]="'score-pill ' + scoreClass(g.average)">{{ round(g.average) }}</span></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- By student -->
+      <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center gap-2">
+          <span class="fw-semibold">{{ 'reports.examResults.byStudent' | translate }}</span>
+          <span class="badge bg-secondary">{{ visibleStudents().length }}</span>
+          <div class="ms-auto d-flex flex-wrap align-items-center gap-2 no-print">
+            <label class="small text-muted mb-0" for="xThreshold">{{ 'reports.examResults.supportBelow' | translate }}</label>
+            <select id="xThreshold" class="form-select form-select-sm w-auto" (change)="threshold.set(+$any($event.target).value)">
+              @for (t of thresholds; track t) {
+                <option [value]="t" [selected]="t === threshold()">{{ t }}%</option>
+              }
+            </select>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="xSupport" [checked]="supportOnly()" (change)="supportOnly.set(!supportOnly())" />
+              <label class="form-check-label small" for="xSupport">{{ 'reports.attendance.attentionOnly' | translate: { count: supportCount() } }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table appDataTable [dtSearch]="false" [dtPageSize]="25" class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>{{ 'reports.examResults.student' | translate }}</th>
+                  <th>{{ 'reports.examResults.class' | translate }}</th>
+                  <th class="text-center">{{ 'reports.examResults.results' | translate }}</th>
+                  <th class="text-center">{{ 'reports.examResults.passedFailed' | translate }}</th>
+                  <th class="text-center">{{ 'reports.examResults.highLow' | translate }}</th>
+                  <th class="text-center">{{ 'reports.examResults.averageShort' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (st of visibleStudents(); track st.key; let i = $index) {
+                  <tr [class.support]="st.average < threshold()">
+                    <td class="text-muted">{{ i + 1 }}</td>
+                    <td><a class="fw-semibold" [routerLink]="['/management/students', st.key]">{{ st.name }}</a></td>
+                    <td>{{ st.detail }}</td>
+                    <td class="text-center">{{ st.count }}</td>
+                    <td class="text-center"><span class="text-success">{{ st.passed }}</span> / <span class="text-danger fw-semibold">{{ st.failed }}</span></td>
+                    <td class="text-center text-nowrap">{{ round(st.highest) }} / {{ round(st.lowest) }}</td>
+                    <td class="text-center"><span class="score-pill" [class]="'score-pill ' + scoreClass(st.average)">{{ round(st.average) }}</span></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="7" class="text-center text-muted py-4">{{ 'reports.attendance.noStudents' | translate }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

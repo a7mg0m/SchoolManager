@@ -47,6 +47,14 @@ namespace SchoolManager.Notification.Application
                 .Must(x => !string.IsNullOrWhiteSpace(x.Content) || (x.Attachments?.Count ?? 0) > 0)
                 .WithMessage("MessageEmpty");
             RuleForEach(x => x.Attachments).SetValidator(new AttachmentDtoValidator());
+            RuleFor(x => x.Attachments!.Count)
+                .LessThanOrEqualTo(ChatMedia.MaxAttachmentsPerMessage)
+                .When(x => x.Attachments is not null)
+                .WithMessage("TooManyAttachments");
+            // Only files uploaded to this room (POST /api/chat/{roomId}/attachments), never an outside link
+            RuleForEach(x => x.Attachments)
+                .Must((command, a) => ChatMedia.IsRoomFileUrl(a.Url, command.RoomId))
+                .WithMessage("AttachmentNotInRoom");
         }
     }
 

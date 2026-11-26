@@ -22,6 +22,7 @@ namespace SchoolManager.Identity.Infrastructure
         public static readonly Guid Clinic = new("6d9f1c00-0000-4000-8000-000000000007");
         public static readonly Guid Attendance = new("6d9f1c00-0000-4000-8000-000000000008");
         public static readonly Guid Transport = new("6d9f1c00-0000-4000-8000-000000000009");
+        public static readonly Guid Reports = new("6d9f1c00-0000-4000-8000-000000000010");
 
         private static Guid Child(int group, int index) => new($"6d9f1c00-0000-4000-8000-0000000{group:D2}{index:D3}");
 
@@ -42,6 +43,7 @@ namespace SchoolManager.Identity.Infrastructure
             new(Child(2, 8), Management, "الطلاب", "Students", null, "/management/students", 8),
             new(Child(2, 9), Management, "أولياء الأمور", "Parents", null, "/management/parents", 9),
             new(Child(2, 10), Management, "الجداول الدراسية", "Timetables", null, "/management/timetables", 10),
+            new(Child(2, 11), Management, "تسكين الطلاب في الفصول", "Assign Sections", null, "/management/section-assignment", 11),
 
             // Financial
             new(Financial, null, "المالية", "Financial", "pe-7s-cash", null, 3),
@@ -60,6 +62,7 @@ namespace SchoolManager.Identity.Infrastructure
             // Exams & Homework
             new(Exam, null, "الامتحانات والواجبات", "Exams & Homework", "pe-7s-note2", null, 5),
             new(Child(5, 1), Exam, "الامتحانات", "Exams", null, "/exam/exams", 1),
+            new(Child(5, 2), Exam, "اعتماد النتائج والترفيع", "Results Approval & Promotion", null, "/exam/promotion", 2),
 
             // Users
             new(Users, null, "المستخدمون", "Users", "pe-7s-users", null, 6),
@@ -85,6 +88,16 @@ namespace SchoolManager.Identity.Infrastructure
             new(Child(9, 2), Transport, "الباصات", "Buses", null, "/transport/buses", 2),
             new(Child(9, 3), Transport, "توزيع الطلاب على الباصات", "Bus Assignments", null, "/transport/assignments", 3),
             new(Child(9, 4), Transport, "الرحلات", "Trips", null, "/transport/trips", 4),
+
+            // Reports
+            new(Reports, null, "التقارير", "Reports", "pe-7s-graph2", null, 10),
+            new(Child(10, 1), Reports, "الطلاب حسب الحالة", "Students by Status", null, "/reports/students-status", 1),
+            new(Child(10, 2), Reports, "تقرير المصروفات", "Expenses Report", null, "/reports/expenses", 2),
+            new(Child(10, 3), Reports, "تقرير الإيرادات", "Income Report", null, "/reports/income", 3),
+            new(Child(10, 4), Reports, "تقرير حضور الطلاب", "Attendance Report", null, "/reports/attendance", 4),
+            new(Child(10, 5), Reports, "تقرير تقييمات الطلاب", "Reviews Report", null, "/reports/reviews", 5),
+            new(Child(10, 6), Reports, "تقرير نتائج الامتحانات", "Exam Results Report", null, "/reports/exam-results", 6),
+            new(Child(10, 7), Reports, "تقرير النقل المدرسي", "Transport Report", null, "/reports/transport", 7),
         };
     }
 }

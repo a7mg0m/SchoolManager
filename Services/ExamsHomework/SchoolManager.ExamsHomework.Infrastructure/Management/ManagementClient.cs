@@ -10,7 +10,7 @@ namespace SchoolManager.ExamsHomework.Infrastructure
     /// </summary>
     public class ManagementClient(HttpClient httpClient) : IManagementClient
     {
-        private sealed record ChildItem(Guid Id, Guid GradeId, Guid SectionId, Guid AcademicYearId);
+        private sealed record ChildItem(Guid Id, Guid GradeId, Guid? SectionId, Guid AcademicYearId);
         private sealed record SubjectItem(Guid Id, string? NameAr, string? NameEn);
         private sealed record SectionItem(Guid SectionId, string? NameAr, string? NameEn);
         private sealed record TeacherSubjectItem(Guid SubjectId, string? SubjectNameAr, string? SubjectNameEn, Guid GradeId,
@@ -36,6 +36,27 @@ namespace SchoolManager.ExamsHomework.Infrastructure
             catch (Exception ex) when (IsCommunicationError(ex))
             {
                 return null;
+            }
+        }
+
+        public async Task<(ParentChild? Student, bool Unavailable)> GetTaughtStudentAsync(string authorization, Guid studentId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                using var response = await SendAsync($"api/teacher/teaches-student/{studentId}", authorization, cancellationToken);
+                if (response is null || (int)response.StatusCode is 401 or 403 or 404)
+                    return (null, false); // not taught / not a teacher
+                if (!response.IsSuccessStatusCode)
+                    return (null, true);
+
+                var body = await response.Content.ReadFromJsonAsync<ApiResponse<ChildItem>>(cancellationToken);
+                return body?.Data is ChildItem c
+                    ? (new ParentChild(c.Id, c.GradeId, c.SectionId, c.AcademicYearId), false)
+                    : (null, false);
+            }
+            catch (Exception ex) when (IsCommunicationError(ex))
+            {
+                return (null, true);
             }
         }
 

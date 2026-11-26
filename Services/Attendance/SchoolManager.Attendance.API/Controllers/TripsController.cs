@@ -143,6 +143,21 @@ namespace SchoolManager.Attendance.API.Controllers
             return Ok(new ApiResponse { data = result });
         }
 
+        /// <summary>
+        /// Admin transport report: the trips between ?from= and ?to= ("yyyy-MM-dd", both included, at most a year), of
+        /// one bus when ?busId= is given, with the students' marks. App users (parents / teachers / drivers) get 403.
+        /// </summary>
+        [Authorize]
+        [HttpGet("report")]
+        public async Task<IActionResult> GetReport([FromQuery] DateOnly from, [FromQuery] DateOnly to, [FromQuery] Guid? busId, CancellationToken cancellationToken)
+        {
+            if (_currentUser.ParentId is not null || _currentUser.TeacherId is not null || _currentUser.BusId is not null)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "Forbidden"));
+
+            var result = await _mediator.Send(new GetTripsReportQuery(from, to, busId), cancellationToken);
+            return Ok(new ApiResponse { data = result });
+        }
+
         /// <summary>The trips of a date ("yyyy-MM-dd"), of one bus when busId is given</summary>
         [HttpGet("get-by-date")]
         public async Task<IActionResult> GetByDate([FromQuery] DateOnly date, [FromQuery] Guid? busId, CancellationToken cancellationToken)

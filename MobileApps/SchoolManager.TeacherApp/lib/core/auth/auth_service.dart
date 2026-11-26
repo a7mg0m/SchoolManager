@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 import '../../core/i18n/app_language.dart';
 import '../push/push_service.dart';
+import '../realtime/chat_realtime.dart';
 
 /// Signed-in user, saved on the device so the next launch opens Home directly
 class AuthSession {
@@ -168,6 +169,8 @@ class AuthService {
           _session = session;
           // Push: this device now receives the user's notifications
           unawaited(PushService.instance.registerCurrentUser());
+          // Live chat: messages and ticks without a refresh
+          unawaited(ChatRealtime.instance.start());
           return session;
         }
       }
@@ -202,6 +205,7 @@ class AuthService {
   Future<void> logout() async {
     // While the session is still there: the server forgets this device for the user
     await PushService.instance.unregisterCurrentUser();
+    await ChatRealtime.instance.stop();
     _session = null;
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -223,6 +227,12 @@ class AuthService {
     final message = body?['message'];
     if (message is String) keys.add(message);
 
+    if (keys.contains('ServiceEnded')) {
+      return tr('انتهت خدمتك في المدرسة، لا يمكنك تسجيل الدخول.', 'Your service at the school has ended, so you cannot sign in.');
+    }
+    if (keys.contains('TeacherCheckUnavailable')) {
+      return tr('تعذر التحقق من بيانات حسابك الآن، حاول لاحقاً.', 'Your account could not be checked right now. Please try again later.');
+    }
     if (keys.contains('UserInactive')) return tr('هذا الحساب غير مفعّل، تواصل مع إدارة المدرسة.', 'This account is not active. Please contact the school office.');
     if (keys.contains('InvalidCredentials')) return tr('اسم المستخدم أو كلمة المرور غير صحيحة.', 'Wrong username or password.');
     if (keys.contains('LoginNameRequired')) return tr('من فضلك أدخل اسم المستخدم.', 'Please enter your username.');

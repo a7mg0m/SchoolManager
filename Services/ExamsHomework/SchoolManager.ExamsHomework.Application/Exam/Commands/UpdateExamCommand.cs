@@ -20,6 +20,8 @@ namespace SchoolManager.ExamsHomework.Application
         double SuccessScore,
         string? AnswerModelUrl,
         /// <summary>Month of a Monthly exam (1..12); ignored for the other types</summary>
-        int? Month = null
+        int? Month = null,
+        /// <summary>Second final: the Final exam it is the resit of</summary>
+        Guid? OriginalExamId = null
     ) : ICommand;
 }

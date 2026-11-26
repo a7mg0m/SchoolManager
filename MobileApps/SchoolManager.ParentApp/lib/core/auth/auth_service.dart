@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 import '../../core/i18n/app_language.dart';
 import '../push/push_service.dart';
+import '../realtime/chat_realtime.dart';
 
 /// Signed-in user, saved on the device so the next launch opens Home directly
 class AuthSession {
@@ -108,6 +109,43 @@ class AuthService {
   static const _sessionKey = 'auth_session';
 
   AuthSession? _session;
+
+  /// Why the app signed the user out by itself (e.g. no child at the school any more); the login screen shows it once
+  String? _signedOutReason;
+
+  /// The reason, once (then null)
+  String? takeSignedOutReason() {
+    final reason = _signedOutReason;
+    _signedOutReason = null;
+    return reason;
+  }
+
+  /// At app start: a saved session of a parent whose children have all graduated / been transferred is signed out
+  /// (the server would refuse a new sign-in too). Offline / server errors keep the session: the check runs again next time.
+  /// Returns false when the user was signed out.
+  /// [check] answers: 'ok' (has a current child), 'none' (no current child), 'expired' (token rejected) or
+  /// 'unknown' (offline / server error).
+  Future<bool> checkStillHasCurrentChildren(Future<String> Function() check) async {
+    if (_session == null) return true;
+    final String result;
+    try {
+      result = await check().timeout(const Duration(seconds: 8), onTimeout: () => 'unknown');
+    } catch (_) {
+      return true;
+    }
+    switch (result) {
+      case 'none':
+        _signedOutReason = tr('لا يوجد أبناء مسجلون حالياً في المدرسة لهذا الحساب، تم تسجيل خروجك.',
+            'This account has no children currently enrolled at the school, so you have been signed out.');
+      case 'expired':
+        _signedOutReason = tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.');
+      default:
+        // Has a child, or could not be checked (offline): keep the session
+        return true;
+    }
+    await logout();
+    return false;
+  }
   AuthSession? get session => _session;
 
   /// Load the saved session at startup; drops it when the token has expired
@@ -161,6 +199,8 @@ class AuthService {
           _session = session;
           // Push: this device now receives the user's notifications
           unawaited(PushService.instance.registerCurrentUser());
+          // Live chat: messages and ticks without a refresh
+          unawaited(ChatRealtime.instance.start());
           return session;
         }
       }
@@ -195,6 +235,7 @@ class AuthService {
   Future<void> logout() async {
     // While the session is still there: the server forgets this device for the user
     await PushService.instance.unregisterCurrentUser();
+    await ChatRealtime.instance.stop();
     _session = null;
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -217,6 +258,12 @@ class AuthService {
     if (message is String) keys.add(message);
 
     if (keys.contains('UserInactive')) return tr('هذا الحساب غير مفعّل، تواصل مع إدارة المدرسة.', 'This account is not active. Please contact the school office.');
+    if (keys.contains('NoCurrentStudents')) {
+      return tr('لا يوجد أبناء مسجلون حالياً في المدرسة لهذا الحساب.', 'This account has no children currently enrolled at the school.');
+    }
+    if (keys.contains('ParentCheckUnavailable')) {
+      return tr('تعذر التحقق من بيانات أبنائك الآن، حاول لاحقاً.', "Your children's details could not be checked right now. Please try again later.");
+    }
     if (keys.contains('InvalidCredentials')) return tr('اسم المستخدم أو كلمة المرور غير صحيحة.', 'Wrong username or password.');
     if (keys.contains('LoginNameRequired')) return tr('من فضلك أدخل اسم المستخدم.', 'Please enter your username.');
     if (keys.contains('PasswordRequired')) return tr('من فضلك أدخل كلمة المرور.', 'Please enter your password.');

@@ -88,4 +88,26 @@ export interface UpdateSchoolEventRequest extends CreateSchoolEventRequest {
 
 export type SchoolEventListResponse = ApiResponse<SchoolEvent[]>;
 
+/** Mirrors SchoolManager.Notification.Domain.EventAttendeeType */
+export enum EventAttendeeType {
+  Student = 1,
+  Teacher = 2
+}
+
+/** A check-in mark (backend EventAttendanceDto) */
+export interface EventAttendanceMark {
+  attendeeType: EventAttendeeType;
+  attendeeId: string;
+  isPresent: boolean;
+  /** ISO date-time */
+  markedOn: string;
+}
+
+/** A mark to save; isPresent null clears it */
+export interface EventAttendanceInput {
+  attendeeType: EventAttendeeType;
+  attendeeId: string;
+  isPresent: boolean | null;
+}
+
 export type SchoolEventSingleResponse = ApiResponse<SchoolEvent>;

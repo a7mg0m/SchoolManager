@@ -26,7 +26,7 @@ namespace SchoolManager.Management.Domain
         // Academic Info
         public Guid StageId { get; private set; }
         public Guid GradeId { get; private set; }
-        public Guid SectionId { get; private set; }
+        public Guid? SectionId { get; private set; }
         public Guid AcademicYearId { get; private set; }
 
         // Parent Info
@@ -34,6 +34,17 @@ namespace SchoolManager.Management.Domain
 
         // Status
         public bool IsActive { get; private set; }
+
+        /// <summary>Current / Graduated / Transferred; only a current student is active</summary>
+        public StudentStatus Status { get; private set; } = StudentStatus.Current;
+
+        /// <summary>When the student graduated / was transferred (null while current)</summary>
+        public DateOnly? StatusDate { get; private set; }
+
+        /// <summary>E.g. the school the student moved to</summary>
+        public string? StatusNote { get; private set; }
+
+        public const int MaxStatusNoteLength = 500;
 
         // Navigation Properties
         public Stage? Stage { get; private set; }
@@ -55,7 +66,7 @@ namespace SchoolManager.Management.Domain
             string address,
             Guid stageId,
             Guid gradeId,
-            Guid sectionId,
+            Guid? sectionId,
             Guid academicYearId,
             Guid parentId,
             AuditInfo auditInfo)
@@ -69,7 +80,7 @@ namespace SchoolManager.Management.Domain
             Address = address;
             StageId = stageId;
             GradeId = gradeId;
-            SectionId = sectionId;
+            SectionId = sectionId == Guid.Empty ? null : sectionId;
             AcademicYearId = academicYearId;
             ParentId = parentId;
             IsActive = true;
@@ -84,7 +95,7 @@ namespace SchoolManager.Management.Domain
             string address,
             Guid stageId,
             Guid gradeId,
-            Guid sectionId,
+            Guid? sectionId,
             Guid academicYearId,
             AuditInfo auditInfo)
         {
@@ -94,10 +105,30 @@ namespace SchoolManager.Management.Domain
             Address = address;
             StageId = stageId;
             GradeId = gradeId;
-            SectionId = sectionId;
+            SectionId = sectionId == Guid.Empty ? null : sectionId;
             AcademicYearId = academicYearId;
             AuditInfo = auditInfo;
 
+        }
+
+        /// <summary>
+        /// Promotion after passing the finals: the next grade (and its stage) of the new academic year, with no section
+        /// until the student is placed in a class.
+        /// </summary>
+        public void Promote(Guid stageId, Guid gradeId, Guid academicYearId, AuditInfo auditInfo)
+        {
+            StageId = stageId;
+            GradeId = gradeId;
+            SectionId = null;
+            AcademicYearId = academicYearId;
+            AuditInfo = auditInfo;
+        }
+
+        /// <summary>Places the student in a section of their grade (null: no section)</summary>
+        public void AssignSection(Guid? sectionId, AuditInfo auditInfo)
+        {
+            SectionId = sectionId == Guid.Empty ? null : sectionId;
+            AuditInfo = auditInfo;
         }
 
         /// <summary>The student's home location (both values, or neither to clear it)</summary>
@@ -105,6 +136,32 @@ namespace SchoolManager.Management.Domain
         {
             Latitude = latitude;
             Longitude = longitude;
+        }
+
+        /// <summary>
+        /// Graduated / Transferred: the student leaves the school (no longer active; the date defaults to today).
+        /// Current again: active again, the date and note are cleared.
+        /// </summary>
+        public void ChangeStatus(StudentStatus status, DateOnly? date, string? note, AuditInfo auditInfo)
+        {
+            if (!Enum.IsDefined(status)) throw new ArgumentOutOfRangeException(nameof(status));
+            var text = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+            if (text is not null && text.Length > MaxStatusNoteLength) throw new ArgumentException("StatusNoteTooLong", nameof(note));
+
+            Status = status;
+            if (status == StudentStatus.Current)
+            {
+                IsActive = true;
+                StatusDate = null;
+                StatusNote = null;
+            }
+            else
+            {
+                IsActive = false;
+                StatusDate = date ?? DateOnly.FromDateTime(DateTime.Today);
+                StatusNote = text;
+            }
+            AuditInfo = auditInfo;
         }
 
         // Deactivate Student

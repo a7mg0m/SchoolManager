@@ -1,6 +1,6 @@
 {
-    "name": "smart_school_parent",
-    "short_name": "smart_school_parent",
+    "name": "Smart School Parent",
+    "short_name": "Smart School Parent",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

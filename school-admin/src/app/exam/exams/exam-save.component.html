@@ -183,6 +183,29 @@
               }
             </div>
 
+            <!-- Second final: the Final exam it repeats (its class / subject / year are used) -->
+            @if (isSecondFinal()) {
+              <div class="col-12 mb-3">
+                <label for="originalExamId" class="form-label">
+                  {{ 'exams.originalFinal' | translate }} <span class="text-danger">*</span>
+                </label>
+                <select id="originalExamId" class="form-select" formControlName="originalExamId"
+                        [class.is-invalid]="hasError('originalExamId', 'required')">
+                  <option value="">{{ 'exams.chooseOriginalFinal' | translate }}</option>
+                  @for (f of finals(); track f.exam.id) {
+                    <option [value]="f.exam.id">{{ f.label }}</option>
+                  }
+                </select>
+                @if (finals().length === 0) {
+                  <small class="text-warning d-block">{{ 'exams.noFinalsToRepeat' | translate }}</small>
+                }
+                @if (hasError('originalExamId', 'required')) {
+                  <div class="invalid-feedback">{{ 'exams.originalFinalRequired' | translate }}</div>
+                }
+                <small class="text-muted">{{ 'exams.secondFinalHint' | translate }}</small>
+              </div>
+            }
+
             <!-- Month (Monthly exams only) -->
             @if (isMonthly()) {
               <div class="col-md-4 mb-3">
@@ -296,18 +319,43 @@
               }
             </div>
 
-            <!-- Answer model URL -->
+            <!-- Answer model: an uploaded PDF / picture -->
             <div class="col-md-6 mb-3">
-              <label for="answerModelUrl" class="form-label">{{ 'exams.answerModelUrl' | translate }}</label>
-              <input id="answerModelUrl" type="url" class="form-control" formControlName="answerModelUrl"
-                     placeholder="https://..."
-                     [class.is-invalid]="hasError('answerModelUrl', 'pattern') || hasError('answerModelUrl', 'maxlength')">
-              @if (hasError('answerModelUrl', 'pattern')) {
-                <div class="invalid-feedback">{{ 'exams.invalidUrl' | translate }}</div>
+              <label for="answerModelFile" class="form-label">{{ 'exams.answerModelUrl' | translate }}</label>
+              @if (answerModel) {
+                <div class="d-flex align-items-center gap-2 border rounded p-2">
+                  @if (answerModelIsImage()) {
+                    <a [href]="answerModelHref()" target="_blank" rel="noopener">
+                      <img [src]="answerModelHref()" alt="" style="width: 56px; height: 56px; object-fit: cover; border-radius: 6px;">
+                    </a>
+                  } @else {
+                    <i class="pe-7s-note2 fs-2 text-danger"></i>
+                  }
+                  <a class="flex-grow-1 text-truncate" [href]="answerModelHref()" target="_blank" rel="noopener">
+                    {{ (answerModelIsPdf() ? 'exams.answerModelPdf' : answerModelIsImage() ? 'exams.answerModelImage' : 'exams.answerModelLink') | translate }}
+                  </a>
+                  <label class="btn btn-sm btn-outline-primary mb-0" [class.disabled]="answerUploading()">
+                    {{ 'exams.replaceFile' | translate }}
+                    <input type="file" hidden accept="application/pdf,image/jpeg,image/png,image/webp,image/gif"
+                           (change)="onAnswerFile($event)" [disabled]="answerUploading()">
+                  </label>
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeAnswerModel()" [disabled]="answerUploading()">
+                    {{ 'exams.removeFile' | translate }}
+                  </button>
+                </div>
+              } @else {
+                <input id="answerModelFile" type="file" class="form-control" accept="application/pdf,image/jpeg,image/png,image/webp,image/gif"
+                       (change)="onAnswerFile($event)" [disabled]="answerUploading()">
               }
-              @if (hasError('answerModelUrl', 'maxlength')) {
-                <div class="invalid-feedback">{{ 'exams.urlTooLong' | translate }}</div>
+              @if (answerUploading()) {
+                <div class="progress mt-2" style="height: 6px;">
+                  <div class="progress-bar" [style.width.%]="answerProgress()"></div>
+                </div>
               }
+              @if (answerError()) {
+                <small class="text-danger d-block mt-1">{{ answerError()! | translate }}</small>
+              }
+              <small class="text-muted d-block mt-1">{{ 'exams.answerModelHint' | translate }}</small>
             </div>
           </div>
         </div>

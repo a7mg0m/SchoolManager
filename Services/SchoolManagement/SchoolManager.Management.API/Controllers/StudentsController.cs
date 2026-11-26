@@ -95,15 +95,18 @@ namespace SchoolManager.Management.API.Controllers
 
 		/// <summary>
 		/// Teachers of the logged-in parent's children, with the subjects they teach them (parent app: chat).
+		/// With studentId (the child chosen in the app): only the teachers of that child's section timetable in the
+		/// academic year / semester chosen in the app.
 		/// </summary>
 		[Authorize]
 		[HttpGet("my-teachers")]
-		public async Task<ActionResult<List<ParentTeacherDto>>> GetMyTeachers(CancellationToken cancellationToken)
+		public async Task<ActionResult<List<ParentTeacherDto>>> GetMyTeachers(
+			[FromQuery] Guid? studentId, [FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
 		{
 			if (_currentUser.ParentId is not Guid parentId)
 				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
 
-			var result = await _mediator.Send(new GetMyTeachersQuery(parentId), cancellationToken);
+			var result = await _mediator.Send(new GetMyTeachersQuery(parentId, studentId, academicYearId, semesterId), cancellationToken);
 			return Ok(new ApiResponse { data = result });
 		}
 
@@ -289,6 +292,58 @@ namespace SchoolManager.Management.API.Controllers
 
 			return Ok(new ApiResponse { message = "Updated Successfully" });
 		}
+		/// <summary>
+		/// Marks a student current / graduated / transferred: { id, status: 1 | 2 | 3, date?: "yyyy-MM-dd", note? }.
+		/// Graduated or transferred students are no longer active (they leave the class lists); current again: active.
+		/// </summary>
+		[HttpPut("set-status")]
+		public async Task<IActionResult> SetStatus([FromBody] SetStudentStatusDto dto, CancellationToken cancellationToken)
+		{
+			var success = await _mediator.Send(new SetStudentStatusCommand(dto.Id, dto.Status, dto.Date, dto.Note), cancellationToken);
+			if (!success)
+				return NotFound(new ApiResponse(404, "StudentNotFound"));
+			return Ok(new ApiResponse { message = "Updated Successfully" });
+		}
+
+		/// <summary>
+		/// End-of-year promotion: { studentIds, fromGradeId, targetGradeId, targetAcademicYearId, graduate }. The current
+		/// students of fromGradeId among studentIds move to the target grade / year with no section, or graduate.
+		/// Answers the number of students moved.
+		/// </summary>
+		[HttpPut("promote")]
+		public async Task<IActionResult> Promote([FromBody] PromoteStudentsDto dto, CancellationToken cancellationToken)
+		{
+			try
+			{
+				var moved = await _mediator.Send(new PromoteStudentsCommand(
+					dto.StudentIds ?? new(), dto.FromGradeId, dto.TargetGradeId, dto.TargetAcademicYearId, dto.Graduate), cancellationToken);
+				return Ok(new ApiResponse { data = moved, message = "Updated Successfully" });
+			}
+			catch (PromotionException ex)
+			{
+				return BadRequest(new ApiResponse(400, ex.Code));
+			}
+		}
+
+		/// <summary>
+		/// Places students in a section: { studentIds, gradeId, sectionId } (sectionId null: out of their section).
+		/// The current students of gradeId among studentIds move; the section must be an active one of that grade.
+		/// Answers the number of students moved.
+		/// </summary>
+		[HttpPut("assign-section")]
+		public async Task<IActionResult> AssignSection([FromBody] AssignSectionDto dto, CancellationToken cancellationToken)
+		{
+			try
+			{
+				var moved = await _mediator.Send(new AssignSectionCommand(dto.StudentIds ?? new(), dto.GradeId, dto.SectionId), cancellationToken);
+				return Ok(new ApiResponse { data = moved, message = "Updated Successfully" });
+			}
+			catch (PromotionException ex)
+			{
+				return BadRequest(new ApiResponse(400, ex.Code));
+			}
+		}
+
 		[HttpDelete("delete/{id}")]
 		public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
 		{

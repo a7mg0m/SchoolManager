@@ -17,6 +17,7 @@ namespace SchoolManager.Financial.Infrastructure
         public DbSet<RevenueCategory> RevenueCategories => Set<RevenueCategory>();
         public DbSet<Revenue> Revenues => Set<Revenue>();
         public DbSet<StudentFee> StudentFees => Set<StudentFee>();
+        public DbSet<StudentFeePayment> StudentFeePayments => Set<StudentFeePayment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -54,6 +54,12 @@ export class TripService {
   }
 
   /** GET /api/trip/get/{id} */
+  /** Transport report: the trips of a period (yyyy-MM-dd, at most a year), of one bus when given */
+  getReport(from: string, to: string, busId?: string | null): Observable<TripListResponse> {
+    const bus = busId ? `&busId=${busId}` : '';
+    return this.apiService.get<TripListResponse>(`${this.endpoint}/report?from=${from}&to=${to}${bus}`);
+  }
+
   getById(id: string): Observable<TripSingleResponse> {
     return this.apiService.get<TripSingleResponse>(`${this.endpoint}/get/${id}`);
   }

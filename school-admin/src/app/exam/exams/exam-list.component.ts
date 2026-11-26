@@ -17,6 +17,7 @@ import { Stage } from '../../core/models/stage.model';
 const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 import { AcademicYear, AcademicYearSemester } from '../../core/models/academic-year.model';
 import { Section } from '../../core/models/section.model';
+import { environment } from '../../../environments/environment';
 import { Subject as SchoolSubject } from '../../core/models/subject.model';
 
 @Component({
@@ -240,6 +241,12 @@ export class ExamListComponent implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------------
   // Display helpers
   // ---------------------------------------------------------------------------
+
+  /** Full address of an answer model (an uploaded file's path goes through the gateway) */
+  fileHref(url: string | null | undefined): string {
+    if (!url) return '';
+    return /^https?:\/\//i.test(url) ? url : `${environment.gatewayUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
 
   getName(item: { nameAr?: string; nameEn?: string } | undefined | null): string {
     if (!item) return '—';

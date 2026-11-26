@@ -9,6 +9,7 @@ namespace SchoolManager.ExamsHomework.Domain
         Quiz = 1,          // اختبار قصير
         Monthly = 2,       // امتحان شهري
         MidTerm = 3,       // منتصف الفصل
-        Final = 4          // نهائي
+        Final = 4,         // نهائي
+        SecondFinal = 5    // دور ثانٍ: resit of a Final, for the students who failed it
     }
 }

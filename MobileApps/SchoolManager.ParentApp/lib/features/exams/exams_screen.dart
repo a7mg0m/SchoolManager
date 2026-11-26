@@ -53,6 +53,7 @@ class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear {
         ExamKind.monthly => (const Color(0xFF1677E8), Icons.calendar_month_rounded),
         ExamKind.midTerm => (const Color(0xFF8957E5), Icons.event_note_rounded),
         ExamKind.finalExam => (const Color(0xFFE0457B), Icons.workspace_premium_rounded),
+        ExamKind.secondFinal => (const Color(0xFFD9822B), Icons.replay_rounded),
       };
 
   @override
@@ -88,12 +89,18 @@ class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear {
     }
   }
 
+  /// Tabs: every type, but Second final only when the child has one (only children who failed a Final do)
+  static List<ExamKind> _kindsOf(List<ChildExam> exams) => [
+        for (final kind in ExamKind.values)
+          if (kind != ExamKind.secondFinal || exams.any((e) => e.kind == kind)) kind,
+      ];
+
   /// Tab of the next upcoming exam (else the type with the latest result, else the first)
-  int _initialTab(List<ChildExam> exams) {
+  int _initialTab(List<ChildExam> exams, List<ExamKind> kinds) {
     final upcoming = exams.where((e) => e.isUpcoming(_now)).toList()..sort(_byDateTime);
-    if (upcoming.isNotEmpty) return ExamKind.values.indexOf(upcoming.first.kind);
+    if (upcoming.isNotEmpty) return kinds.indexOf(upcoming.first.kind);
     final graded = exams.where((e) => e.hasResult).toList()..sort((a, b) => _byDateTime(b, a));
-    if (graded.isNotEmpty) return ExamKind.values.indexOf(graded.first.kind);
+    if (graded.isNotEmpty) return kinds.indexOf(graded.first.kind);
     return 0;
   }
 
@@ -148,9 +155,12 @@ class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear {
     }
 
     final exams = _exams!;
+    final kinds = _kindsOf(exams);
     return DefaultTabController(
-      length: ExamKind.values.length,
-      initialIndex: _initialTab(exams),
+      // A new key when the tabs change (a second final appears), so the controller is rebuilt
+      key: ValueKey(kinds.length),
+      length: kinds.length,
+      initialIndex: _initialTab(exams, kinds),
       child: Scaffold(
         appBar: AppBar(
           title: title,
@@ -165,7 +175,7 @@ class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear {
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             tabs: [
-              for (final kind in ExamKind.values)
+              for (final kind in kinds)
                 Tab(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -186,7 +196,7 @@ class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear {
         body: SafeArea(
           child: TabBarView(
             children: [
-              for (final kind in ExamKind.values)
+              for (final kind in kinds)
                 RefreshIndicator(
                   onRefresh: _load,
                   child: _kindView(kind, exams.where((e) => e.kind == kind).toList()),

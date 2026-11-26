@@ -22,6 +22,9 @@ namespace SchoolManager.ExamsHomework.Domain
         Task<List<Exam>> GetForTeacherClassesAsync(Guid teacherId, IReadOnlyCollection<Guid> subjectIds, IReadOnlyCollection<Guid> gradeIds,
             Guid? academicYearId, Guid? semesterId, CancellationToken cancellationToken = default);
 
+        /// <summary>The Final and Second final exams of a grade in an academic year, with their results (read-only)</summary>
+        Task<List<Exam>> GetFinalsWithResultsAsync(Guid academicYearId, Guid gradeId, CancellationToken cancellationToken = default);
+
         /// <summary>One exam with all its results (read-only)</summary>
         Task<Exam?> GetWithResultsAsync(Guid id, CancellationToken cancellationToken = default);
 

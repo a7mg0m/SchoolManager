@@ -79,7 +79,15 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             if (results.Any(r => r.Score is double s && !IsValidScore(s, exam.Weight)))
                 return BadRequest(new ApiResponse(400, "ScoreInvalid"));
 
-            var summary = await _mediator.Send(new SaveExamResultsCommand(dto.ExamId, results), cancellationToken);
+            SaveExamResultsSummary? summary;
+            try
+            {
+                summary = await _mediator.Send(new SaveExamResultsCommand(dto.ExamId, results), cancellationToken);
+            }
+            catch (ExamRuleException ex)
+            {
+                return BadRequest(new ApiResponse(400, ex.Code));
+            }
             if (summary is null)
                 return NotFound(new ApiResponse(404, "ExamNotFound"));
 

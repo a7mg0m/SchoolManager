@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import '../auth/auth_service.dart';
 import '../config.dart';
 import '../i18n/app_language.dart';
+import '../realtime/chat_realtime.dart';
 
 /// Push messages that arrive while the app is closed / in the background. Firebase shows the notification itself;
 /// the tap is handled by [PushService] (onMessageOpenedApp / getInitialMessage) when the app opens.
@@ -160,10 +161,13 @@ class PushService {
           ? 2
           : 1;
 
-  /// A message while the app is open: Android shows it as a local notification (iOS shows it itself)
+  /// A message while the app is open: Android shows it as a local notification (iOS shows it itself).
+  /// Not for a chat message of the chat on screen: it already appeared there live.
   Future<void> _showForeground(RemoteMessage message) async {
     final n = message.notification;
     if (n == null || defaultTargetPlatform != TargetPlatform.android) return;
+    final active = ChatRealtime.instance.activeRoomId;
+    if (message.data['type'] == 'chat' && active != null && message.data['roomId'] == active) return;
     await _local.show(
       id: message.messageId?.hashCode ?? DateTime.now().millisecondsSinceEpoch.remainder(1 << 31),
       title: n.title,

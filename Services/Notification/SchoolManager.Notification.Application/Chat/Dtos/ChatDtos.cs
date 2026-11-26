@@ -32,7 +32,9 @@ namespace SchoolManager.Notification.Application
         DateTime? LastMessageOn,
         int UnreadCount,
         /// <summary>The other person of a private chat</summary>
-        Guid? OtherUserId = null);
+        Guid? OtherUserId = null,
+        /// <summary>What the last message carries when it has no text: "image" | "video" | "audio" | "file" (null: text)</summary>
+        string? LastAttachmentKind = null);
 
     /// <summary>A private chat of the logged-in user (teacher / parent apps), with the other person's names.</summary>
     public record MyChatDto(
@@ -45,7 +47,9 @@ namespace SchoolManager.Notification.Application
         string? LastMessage,
         Guid? LastMessageSenderId,
         DateTime? LastMessageOn,
-        int UnreadCount);
+        int UnreadCount,
+        /// <summary>"image" | "video" | "audio" | "file" when the last message is a picture / video / voice note (the app shows its own label)</summary>
+        string? LastAttachmentKind = null);
 
     public record ChatHistoryDto(
         Guid RoomId,

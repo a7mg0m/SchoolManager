@@ -1,0 +1,45 @@
+// Section assignment: section cards (click to filter) and a selectable student table
+.assign-page {
+  .sec-card {
+    display: block;
+    height: 100%;
+    padding: 0.75rem 0.9rem;
+    border-radius: 12px;
+    text-align: start;
+    color: var(--sg-muted, #6c757d);
+    background: var(--sg-surface, #fff);
+    border: 1px solid var(--sg-line, #dee2e6);
+    border-top: 4px solid #2563eb;
+
+    .sec-name {
+      font-weight: 600;
+      color: var(--sg-ink, #13261f);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sec-total {
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--sg-ink, #13261f);
+    }
+
+    small {
+      font-size: 0.72rem;
+    }
+
+    &.none { border-top-color: #f59e0b; }
+    &.active { box-shadow: 0 0 0 2px #2563eb inset; }
+  }
+
+  .target {
+    width: auto;
+    min-width: 180px;
+  }
+
+  tr.pick {
+    cursor: pointer;
+  }
+}

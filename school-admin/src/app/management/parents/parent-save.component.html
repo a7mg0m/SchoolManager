@@ -409,11 +409,11 @@
 
                     <div class="col-md-6 col-xl-3 mb-3">
                       <label class="form-label" [attr.for]="'s' + i + '-sectionId'">
-                        {{ 'parents.section' | translate }} <span class="text-danger">*</span>
+                        {{ 'parents.section' | translate }}
                       </label>
                       <select class="form-select" [id]="'s' + i + '-sectionId'" formControlName="sectionId"
                               [class.is-invalid]="studentInvalid(i, 'sectionId')">
-                        <option value="">{{ 'common.chooseOne' | translate }}</option>
+                        <option value="">{{ 'parents.noSectionYet' | translate }}</option>
                         @for (section of sectionsFor(studentCtrl.get('gradeId')?.value); track section.id) {
                           <option [value]="section.id">{{ getOptionName(section) }}</option>
                         }

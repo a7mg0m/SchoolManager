@@ -8,6 +8,7 @@ import { Grade } from '../../core/models/grade.model';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
 import { Subject, forkJoin } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { isCurrentStudent } from '../../core/models/parent.model';
 
 /** Students of the school; open one for their clinic file (medical profile, vaccinations, visits) */
 @Component({
@@ -32,6 +33,7 @@ export class StudentClinicListComponent implements OnInit, OnDestroy {
     const term = this.searchTerm().trim().toLowerCase();
     const grade = this.gradeFilter();
     return this.students()
+      .filter(isCurrentStudent)
       .filter(s => !grade || s.gradeId === grade)
       .filter(s => !term || `${s.fullNameAr} ${s.fullNameEn} ${s.nationalId}`.toLowerCase().includes(term));
   });

@@ -29,6 +29,17 @@ namespace SchoolManager.ExamsHomework.Application
             if (exam is null)
                 return null;
 
+            // A second final: scores only for the students who failed its Final
+            if (exam.ExamType == ExamType.SecondFinal)
+            {
+                var original = exam.OriginalExamId is Guid originalId
+                    ? await _examRepository.GetWithResultsAsync(originalId, cancellationToken)
+                    : null;
+                var failed = original is null ? new Dictionary<Guid, double>() : SecondFinal.FailedStudents(original);
+                if (command.Results.Any(r => r.Score is not null && !failed.ContainsKey(r.StudentId)))
+                    throw new ExamRuleException(SecondFinal.NotEligible);
+            }
+
             // Existing results of this exam, keyed by student (keep the first if duplicates exist)
             var existing = (await _repository.SearchAsync(x => x.ExamId == command.ExamId))
                 .GroupBy(x => x.StudentId)

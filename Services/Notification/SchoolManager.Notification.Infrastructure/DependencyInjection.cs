@@ -20,6 +20,7 @@ namespace SchoolManager.Notification.Infrastructure
             services.AddScoped<INotificationTargetRepository, NotificationTargetRepository>();
             services.AddScoped<ISchoolEventRepository, SchoolEventRepository>();
             services.AddScoped<IEventTargetRepository, EventTargetRepository>();
+            services.AddScoped<IEventAttendanceRepository, EventAttendanceRepository>();
             services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
             services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
             services.AddScoped<IMessageStatusRepository, MessageStatusRepository>();
@@ -30,6 +31,8 @@ namespace SchoolManager.Notification.Infrastructure
 
             // Pictures of notifications / events (wwwroot)
             services.AddScoped<IImageFileStore, ImageFileStore>();
+            // Chat pictures / videos / voice notes (private: ChatFiles/, served to participants only)
+            services.AddScoped<IChatFileStore, ChatFileStore>();
             services.AddSingleton<IPushNotificationSender, FcmPushNotificationSender>();
             services.AddScoped<INotificationRecipientResolver, NotificationRecipientResolver>();
             services.AddScoped<INotificationPushService, NotificationPushService>();

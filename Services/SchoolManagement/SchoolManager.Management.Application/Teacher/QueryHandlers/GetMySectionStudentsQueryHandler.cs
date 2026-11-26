@@ -6,7 +6,8 @@ namespace SchoolManager.Management.Application
     public class GetMySectionStudentsQueryHandler(
         ISubjectRepository subjects,
         ISectionRepository sections,
-        IStudentRepository students) : IQueryHandler<GetMySectionStudentsQuery, List<TeacherStudentDto>?>
+        IStudentRepository students,
+        ITimetableSlotRepository slots) : IQueryHandler<GetMySectionStudentsQuery, List<TeacherStudentDto>?>
     {
         public async Task<List<TeacherStudentDto>?> Handle(GetMySectionStudentsQuery query, CancellationToken cancellationToken)
         {
@@ -14,9 +15,10 @@ namespace SchoolManager.Management.Application
             if (section is null)
                 return null;
 
-            // Only classes of a grade the teacher teaches
+            // Only classes of a grade the teacher teaches, or where they have lessons in the timetable
             var teacherSubjects = await subjects.GetForTeacherAsync(query.TeacherId, cancellationToken);
-            if (!teacherSubjects.Any(s => s.IsActive && s.GradeId == section.GradeId))
+            if (!teacherSubjects.Any(s => s.IsActive && s.GradeId == section.GradeId)
+                && (await slots.SearchAsync(s => s.TeacherId == query.TeacherId && s.SectionId == query.SectionId)).Count == 0)
                 return null;
 
             return (await students.SearchAsync(s => s.SectionId == query.SectionId && s.IsActive))

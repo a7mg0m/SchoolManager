@@ -20,6 +20,7 @@ import { ParentSaveComponent } from './management/parents/parent-save.component'
 import { TimetableListComponent } from './management/timetables/timetable-list.component';
 import { TimetableSaveComponent } from './management/timetables/timetable-save.component';
 import { StudentListComponent } from './management/students/student-list.component';
+import { SectionAssignmentComponent } from './management/section-assignment/section-assignment.component';
 import { StudentProfileComponent } from './management/students/student-profile.component';
 import { StudentWeekComponent } from './management/students/student-week.component';
 import { StudentExamsComponent } from './management/students/student-exams.component';
@@ -44,6 +45,7 @@ import { StudentExamsComponent } from './management/students/student-exams.compo
     TimetableListComponent,
     TimetableSaveComponent,
     StudentListComponent,
+    SectionAssignmentComponent,
     StudentProfileComponent,
     StudentWeekComponent,
     StudentExamsComponent
@@ -68,6 +70,7 @@ import { StudentExamsComponent } from './management/students/student-exams.compo
     TimetableListComponent,
     TimetableSaveComponent,
     StudentListComponent,
+    SectionAssignmentComponent,
     StudentProfileComponent
   ]
 })

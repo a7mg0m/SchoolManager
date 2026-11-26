@@ -10,7 +10,7 @@ namespace SchoolManager.Management.Application
         string? Email,
         string Address,
         Guid GradeId,
-        Guid SectionId,
+        Guid? SectionId,
         Guid AcademicYearId,
         double? Latitude = null,
         double? Longitude = null

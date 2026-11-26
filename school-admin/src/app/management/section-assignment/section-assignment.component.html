@@ -1,0 +1,136 @@
+<div class="container-fluid assign-page">
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="mb-1">{{ 'sectionAssignment.title' | translate }}</h2>
+      <p class="text-muted mb-0">{{ 'sectionAssignment.subtitle' | translate }}</p>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status"><span class="visually-hidden">{{ 'common.loading' | translate }}</span></div>
+    </div>
+  } @else {
+    <div class="card mb-3">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6 col-xl-4">
+            <label class="form-label" for="aGrade">{{ 'sectionAssignment.grade' | translate }}</label>
+            <select id="aGrade" class="form-select" (change)="onGradeChange($any($event.target).value)">
+              <option value="" [selected]="!gradeId()">{{ 'common.chooseOne' | translate }}</option>
+              @for (o of gradeOptions(); track o.grade.id) {
+                <option [value]="o.grade.id" [selected]="o.grade.id === gradeId()">
+                  {{ o.label }}@if (o.unplaced > 0) { — {{ 'sectionAssignment.unplacedCount' | translate: { count: o.unplaced } }} }
+                </option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6 col-xl-4">
+            <label class="form-label" for="aSearch">{{ 'common.search' | translate }}</label>
+            <input id="aSearch" type="search" class="form-control" [value]="search()" (input)="search.set($any($event.target).value)"
+                   [placeholder]="'sectionAssignment.searchPlaceholder' | translate">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (gradeId()) {
+      <!-- Sections of the grade: click to list their students -->
+      <div class="row g-3 mb-3">
+        @for (c of cards(); track c.id) {
+          <div class="col-6 col-md-4 col-xl-2">
+            <button type="button" class="sec-card w-100" [class.none]="c.id === NO_SECTION" [class.active]="listFilter() === c.id"
+                    (click)="setFilter(c.id)">
+              <div class="sec-name">{{ c.name }}</div>
+              <div class="sec-total">{{ c.total }}</div>
+              <small>{{ 'sectionAssignment.boysGirls' | translate: { boys: c.boys, girls: c.girls } }}</small>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (gradeSections().length === 0) {
+        <div class="alert alert-warning">{{ 'sectionAssignment.noSections' | translate }}</div>
+      }
+
+      <div class="card">
+        <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+          <span>
+            {{ (listFilter() === '' ? 'sectionAssignment.allStudents' : listFilter() === NO_SECTION ? 'sectionAssignment.withoutSection' : 'sectionAssignment.inSection') | translate: { section: sectionName(listFilter()) } }}
+            ({{ visibleStudents().length }})
+          </span>
+          <div class="d-flex flex-wrap gap-2 align-items-center" *appCan="'edit'">
+            <select class="form-select form-select-sm target" [value]="targetSectionId()" (change)="targetSectionId.set($any($event.target).value)"
+                    [attr.aria-label]="'sectionAssignment.moveTo' | translate">
+              <option value="" [selected]="!targetSectionId()">{{ 'sectionAssignment.moveTo' | translate }}</option>
+              @for (s of gradeSections(); track s.id) {
+                <option [value]="s.id" [selected]="s.id === targetSectionId()">{{ getName(s) }}</option>
+              }
+              <option [value]="NO_SECTION" [selected]="targetSectionId() === NO_SECTION">{{ 'sectionAssignment.removeFromSection' | translate }}</option>
+            </select>
+            <button class="btn btn-primary btn-sm" [disabled]="!canAssign()" (click)="assign()">
+              @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              {{ 'sectionAssignment.assign' | translate: { count: selectedVisible().length } }}
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 44px;">
+                  <input type="checkbox" class="form-check-input" [checked]="allVisibleSelected()"
+                         [disabled]="visibleStudents().length === 0" (change)="toggleAll()"
+                         [attr.aria-label]="'sectionAssignment.selectAll' | translate">
+                </th>
+                <th>{{ 'sectionAssignment.student' | translate }}</th>
+                <th>{{ 'sectionAssignment.gender' | translate }}</th>
+                <th>{{ 'sectionAssignment.nationalId' | translate }}</th>
+                <th>{{ 'sectionAssignment.currentSection' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of visibleStudents(); track s.id) {
+                <tr [class.table-primary]="selected().has(s.id)" (click)="toggle(s.id)" class="pick">
+                  <td (click)="$event.stopPropagation()">
+                    <input type="checkbox" class="form-check-input" [checked]="selected().has(s.id)" (change)="toggle(s.id)"
+                           [attr.aria-label]="studentName(s)">
+                  </td>
+                  <td><strong>{{ studentName(s) }}</strong></td>
+                  <td>{{ genderKey(s.gender) | translate }}</td>
+                  <td class="text-muted">{{ s.nationalId }}</td>
+                  <td>
+                    @if (s.sectionId) {
+                      <span class="badge bg-info text-dark">{{ sectionName(s.sectionId) }}</span>
+                    } @else {
+                      <span class="badge bg-warning text-dark">{{ 'sectionAssignment.withoutSection' | translate }}</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-center text-muted py-4">
+                  {{ (listFilter() === NO_SECTION ? 'sectionAssignment.allPlaced' : 'sectionAssignment.noStudents') | translate }}
+                </td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    } @else {
+      <div class="card text-center"><div class="card-body py-5 text-muted">{{ 'sectionAssignment.chooseGrade' | translate }}</div></div>
+    }
+  }
+</div>

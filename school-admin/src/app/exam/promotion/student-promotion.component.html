@@ -1,0 +1,185 @@
+<div class="container-fluid promotion-page">
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="mb-1">{{ 'promotion.title' | translate }}</h2>
+      <p class="text-muted mb-0">{{ 'promotion.subtitle' | translate }}</p>
+    </div>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>{{ 'common.error' | translate }}:</strong> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border" role="status"><span class="visually-hidden">{{ 'common.loading' | translate }}</span></div>
+    </div>
+  } @else {
+    <!-- Which grade / year, and where the passed students go -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="pYear">{{ 'promotion.year' | translate }}</label>
+            <select id="pYear" class="form-select" [value]="yearId()" (change)="onYearChange($any($event.target).value)">
+              @for (y of orderedYears(); track y.id) {
+                <option [value]="y.id" [selected]="y.id === yearId()">{{ y.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="pGrade">{{ 'promotion.grade' | translate }}</label>
+            <select id="pGrade" class="form-select" (change)="onGradeChange($any($event.target).value)">
+              <option value="" [selected]="!gradeId()">{{ 'common.chooseOne' | translate }}</option>
+              @for (g of orderedGrades(); track g.id) {
+                <option [value]="g.id" [selected]="g.id === gradeId()">{{ stageName(g.stageId) }} · {{ getName(g) }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="pTarget">{{ 'promotion.moveTo' | translate }}</label>
+            <select id="pTarget" class="form-select" [disabled]="!gradeId()" (change)="targetGradeId.set($any($event.target).value)">
+              <option value="" [selected]="!targetGradeId()">{{ 'common.chooseOne' | translate }}</option>
+              @for (g of orderedGrades(); track g.id) {
+                @if (g.id !== gradeId()) {
+                  <option [value]="g.id" [selected]="g.id === targetGradeId()">{{ stageName(g.stageId) }} · {{ getName(g) }}</option>
+                }
+              }
+              <option [value]="GRADUATE" [selected]="isGraduate()">🎓 {{ 'promotion.graduate' | translate }}</option>
+            </select>
+          </div>
+          <div class="col-md-6 col-xl-3">
+            <label class="form-label" for="pTargetYear">{{ 'promotion.targetYear' | translate }}</label>
+            <select id="pTargetYear" class="form-select" [disabled]="!gradeId() || isGraduate()"
+                    (change)="targetYearId.set($any($event.target).value)">
+              <option value="" [selected]="!targetYearId()">{{ 'common.chooseOne' | translate }}</option>
+              @for (y of orderedYears(); track y.id) {
+                <option [value]="y.id" [selected]="y.id === targetYearId()">{{ y.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        @if (gradeId()) {
+          <small class="text-muted d-block mt-2">
+            <i class="pe-7s-info"></i>
+            {{ (isGraduate() ? 'promotion.graduateHint' : 'promotion.moveHint') | translate }}
+          </small>
+        }
+      </div>
+    </div>
+
+    @if (!gradeId()) {
+      <div class="card text-center"><div class="card-body py-5 text-muted">{{ 'promotion.chooseGrade' | translate }}</div></div>
+    } @else if (isLoadingFinals()) {
+      <div class="text-center py-5"><div class="spinner-border" role="status"></div></div>
+    } @else {
+      <!-- Summary (click to filter) -->
+      <div class="row g-3 mb-3">
+        @for (v of ['passed', 'failed', 'pending', 'noFinals']; track v) {
+          <div class="col-6 col-lg-3">
+            <button type="button" class="summary w-100" [class]="'summary w-100 ' + v" [class.active]="verdictFilter() === v"
+                    (click)="verdictFilter.set(verdictFilter() === v ? '' : $any(v))">
+              <span>{{ $any(counts())[v] }}</span>
+              {{ 'promotion.verdicts.' + v | translate }}
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (finals().length === 0) {
+        <div class="alert alert-warning">{{ 'promotion.noFinals' | translate }}</div>
+      }
+
+      <div class="card">
+        <div class="card-header d-flex flex-wrap gap-2 justify-content-between align-items-center">
+          <span>{{ 'promotion.studentsCount' | translate: { count: rows().length } }}</span>
+          <button class="btn btn-success" *appCan="'edit'" [disabled]="!canApprove()" (click)="approve(confirmModal)">
+            @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            <i class="pe-7s-check"></i>
+            {{ (isGraduate() ? 'promotion.approveGraduate' : 'promotion.approve') | translate: { count: selectedCount() } }}
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table appDataTable [dtSearch]="true" [dtPageSize]="25" class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 44px;">
+                  <input type="checkbox" class="form-check-input" [checked]="allPassedSelected()"
+                         [disabled]="passedIds().length === 0" (change)="toggleAll()"
+                         [attr.aria-label]="'promotion.selectAll' | translate">
+                </th>
+                <th>{{ 'promotion.student' | translate }}</th>
+                <th>{{ 'exams.section' | translate }}</th>
+                <th>{{ 'promotion.finalResults' | translate }}</th>
+                <th>{{ 'promotion.verdict' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of visibleRows(); track row.student.id) {
+                <tr [class.table-success]="selected().has(row.student.id) && row.verdict === 'passed'">
+                  <td>
+                    <input type="checkbox" class="form-check-input" [checked]="selected().has(row.student.id)"
+                           [disabled]="row.verdict !== 'passed'" (change)="toggle(row.student.id)"
+                           [attr.aria-label]="studentName(row.student)">
+                  </td>
+                  <td><strong>{{ studentName(row.student) }}</strong></td>
+                  <td class="text-nowrap">{{ sectionName(row.student.sectionId) }}</td>
+                  <td>
+                    <div class="d-flex flex-wrap gap-1">
+                      @for (o of row.outcomes; track o.final.examId) {
+                        <span class="chip" [class]="'chip ' + outcomeClass(o.outcome)"
+                              [title]="('promotion.outcomes.' + o.outcome) | translate">
+                          {{ o.subjectName }}:
+                          {{ o.score ?? '—' }}/{{ o.final.weight }}
+                          @if (o.final.secondFinal && o.score !== null && o.score < o.final.successScore) {
+                            → {{ o.secondScore ?? '—' }}/{{ o.final.secondFinal.weight }}
+                            <small>({{ 'exams.types.secondFinal' | translate }})</small>
+                          }
+                        </span>
+                      }
+                      @if (row.outcomes.length === 0) {
+                        <span class="text-muted small">{{ 'promotion.noFinalsForStudent' | translate }}</span>
+                      }
+                    </div>
+                  </td>
+                  <td><span class="badge" [class]="'badge ' + verdictBadge(row.verdict)">{{ 'promotion.verdicts.' + row.verdict | translate }}</span></td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="text-center text-muted py-4">{{ 'promotion.noStudents' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">{{ 'promotion.rule' | translate }}</small>
+    }
+  }
+</div>
+
+<ng-template #confirmModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">{{ 'promotion.confirmTitle' | translate }}</h5>
+    <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <p class="mb-2">
+      {{ (isGraduate() ? 'promotion.confirmGraduate' : 'promotion.confirmMove') | translate: { count: selectedCount(), target: targetLabel() } }}
+    </p>
+    @if (!isGraduate()) {
+      <p class="text-muted small mb-0">{{ 'promotion.confirmSectionNote' | translate }}</p>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-light" (click)="modal.close(false)">{{ 'common.cancel' | translate }}</button>
+    <button type="button" class="btn btn-success" (click)="modal.close(true)">{{ 'promotion.confirm' | translate }}</button>
+  </div>
+</ng-template>

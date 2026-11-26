@@ -2,6 +2,8 @@ import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
 import { AcademicContextService } from '../../core/services/academic-context.service';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient, HttpEventType } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { Subject, forkJoin, timer } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ExamService } from '../../core/services/exam.service';
@@ -67,12 +69,25 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
   gradeSubjects = signal<SchoolSubject[]>([]);
   yearSemesters = signal<AcademicYearSemester[]>([]);
 
+  /** Answer model upload (PDF or picture, same limits as the server) */
+  answerUploading = signal(false);
+  answerProgress = signal(0);
+  answerError = signal<string | null>(null);
+  private static readonly ANSWER_MAX_BYTES = 10 * 1024 * 1024;
+  private static readonly ANSWER_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+  /** Final exams a second final can repeat (with whether they already have one) */
+  finals = signal<{ exam: Exam; label: string }[]>([]);
+  private allFinals: { exam: Exam; label: string; taken: boolean; stageId: string }[] = [];
+  private allExams: Exam[] = [];
+
   readonly examTypes = EXAM_TYPES;
   readonly months = EXAM_MONTHS;
 
   private destroy$ = new Subject<void>();
 
   constructor(
+    private http: HttpClient,
     private formBuilder: FormBuilder,
     private examService: ExamService,
     private gradeService: GradeService,
@@ -157,15 +172,30 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
         duration: [null, [Validators.required, Validators.min(1), Validators.max(1440)]],
         weight: [100, [Validators.required, Validators.min(0.01), Validators.max(10000)]],
         successScore: [50, [Validators.required, Validators.min(0)]],
-        answerModelUrl: ['', [Validators.maxLength(500), Validators.pattern(/^https?:\/\/\S+$/i)]]
+        // Uploaded file (/exam-files/answer-models/…) or, for older exams, a link
+        answerModelUrl: ['', [Validators.maxLength(500)]],
+        // Second final only: the Final exam it repeats
+        originalExamId: ['']
       },
       { validators: [endTimeAfterStartTime, successScoreWithinWeight] }
     );
+
+    // Second final: choosing the Final fills its grade / class / subject
+    this.form.get('originalExamId')!.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(id => this.applyOriginal(id));
+
+    // The Finals offered follow the selected stage / year / grade / class / subject
+    ['stageId', 'gradeId', 'sectionId', 'subjectId', 'academicYearId'].forEach(name =>
+      this.form.get(name)!.valueChanges
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => this.filterFinals()));
 
     // Monthly exams need a month: make it required and suggest the exam date's (or this) month
     this.form.get('examType')!.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((type) => {
+        this.updateSecondFinal(type);
         this.updateMonthValidators(type);
         const month = this.form.get('month')!;
         if (this.isMonthly(type) && !month.value) {
@@ -173,6 +203,163 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
           month.setValue(date ? Number(String(date).substring(5, 7)) : new Date().getMonth() + 1);
         }
       });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Answer model file
+  // ---------------------------------------------------------------------------
+
+  get answerModel(): string {
+    return this.form?.get('answerModelUrl')?.value || '';
+  }
+
+  /** Full address of the answer model (a stored path goes through the gateway) */
+  answerModelHref(): string {
+    const url = this.answerModel;
+    if (!url) return '';
+    return /^https?:\/\//i.test(url) ? url : `${environment.gatewayUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+  }
+
+  answerModelIsPdf(): boolean {
+    return /\.pdf($|\?)/i.test(this.answerModel);
+  }
+
+  answerModelIsImage(): boolean {
+    return /\.(jpe?g|png|webp|gif)($|\?)/i.test(this.answerModel);
+  }
+
+  onAnswerFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = ''; // the same file can be picked again
+    if (!file) return;
+
+    this.answerError.set(null);
+    if (!ExamSaveComponent.ANSWER_TYPES.includes(file.type)) {
+      this.answerError.set('exams.answerModelErrors.FileTypeNotAllowed');
+      return;
+    }
+    if (file.size > ExamSaveComponent.ANSWER_MAX_BYTES) {
+      this.answerError.set('exams.answerModelErrors.FileTooLarge');
+      return;
+    }
+
+    const body = new FormData();
+    body.append('file', file, file.name);
+    this.answerUploading.set(true);
+    this.answerProgress.set(0);
+    this.http
+      .post<{ data?: string }>(`${environment.gatewayUrl}/api/exam/upload-answer-model`, body, { reportProgress: true, observe: 'events' })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: e => {
+          if (e.type === HttpEventType.UploadProgress && e.total) {
+            this.answerProgress.set(Math.round((e.loaded / e.total) * 100));
+          } else if (e.type === HttpEventType.Response) {
+            const url = e.body?.data;
+            if (url) {
+              this.form.get('answerModelUrl')!.setValue(url);
+              this.form.get('answerModelUrl')!.markAsDirty();
+            } else {
+              this.answerError.set('exams.answerModelErrors.UploadFailed');
+            }
+            this.answerUploading.set(false);
+          }
+        },
+        error: err => {
+          const key = err?.error?.message;
+          this.answerError.set(['FileRequired', 'FileTooLarge', 'FileTypeNotAllowed'].includes(key)
+            ? `exams.answerModelErrors.${key}`
+            : err?.status === 413 ? 'exams.answerModelErrors.FileTooLarge' : 'exams.answerModelErrors.UploadFailed');
+          this.answerUploading.set(false);
+        }
+      });
+  }
+
+  removeAnswerModel(): void {
+    this.form.get('answerModelUrl')!.setValue('');
+    this.form.get('answerModelUrl')!.markAsDirty();
+    this.answerError.set(null);
+  }
+
+  /** The selected type is Second final */
+  isSecondFinal(type: unknown = this.form?.get('examType')?.value): boolean {
+    return Number(type) === ExamType.SecondFinal;
+  }
+
+  /** Second final: the Final it repeats is required (the class / subject fields stay editable) */
+  private updateSecondFinal(type: unknown): void {
+    const original = this.form.get('originalExamId')!;
+    if (this.isSecondFinal(type)) {
+      original.setValidators([Validators.required]);
+      this.filterFinals();
+    } else {
+      original.clearValidators();
+      original.setValue('', { emitEvent: false });
+    }
+    original.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /**
+   * The Finals of the selected stage and academic year (and grade / class / subject once chosen) that have no
+   * second final yet. A chosen Final no longer offered is cleared.
+   */
+  private filterFinals(): void {
+    if (!this.form) return;
+    const v = this.form.getRawValue();
+    const list = v.stageId && v.academicYearId
+      ? this.allFinals.filter(f =>
+          !f.taken &&
+          f.stageId === v.stageId &&
+          f.exam.academicYearId === v.academicYearId &&
+          (!v.gradeId || f.exam.gradeId === v.gradeId) &&
+          (!v.sectionId || !f.exam.sectionId || f.exam.sectionId === v.sectionId) &&
+          (!v.subjectId || f.exam.subjectId === v.subjectId))
+      : [];
+    this.finals.set(list.map(f => ({ exam: f.exam, label: f.label })));
+
+    const original = this.form.get('originalExamId')!;
+    if (original.value && !list.some(f => f.exam.id === original.value)) {
+      original.setValue('', { emitEvent: false });
+    }
+  }
+
+  /** Fills the chosen Final's grade / class / subject and semester (its stage and year are the selected ones) */
+  private applyOriginal(id: string): void {
+    if (!this.isSecondFinal()) return;
+    const original = this.allExams.find(e => e.id === id);
+    if (!original) return;
+    this.applyGradeFilter(original.gradeId);
+    this.form.patchValue({
+      gradeId: original.gradeId,
+      sectionId: original.sectionId || '',
+      subjectId: original.subjectId,
+      semesterId: original.semesterId
+    }, { emitEvent: false });
+    this.filterFinals();
+  }
+
+  /** Finals of the exams list, newest first, labelled "subject · grade / class · date" */
+  private buildFinals(exams: Exam[]): void {
+    this.allExams = exams;
+    const taken = new Set(exams.filter(e => e.examType === ExamType.SecondFinal && e.id !== this.examId).map(e => e.originalExamId));
+    this.allFinals = exams
+      .filter(e => e.examType === ExamType.Final)
+      .sort((a, b) => (b.examDate || '').localeCompare(a.examDate || ''))
+      .map(e => {
+        const grade = this.grades().find(g => g.id === e.gradeId);
+        const section = this.sections.find(s => s.id === e.sectionId);
+        const subject = this.subjects.find(s => s.id === e.subjectId);
+        const year = this.academicYears().find(y => y.id === e.academicYearId);
+        return {
+          exam: e,
+          taken: taken.has(e.id),
+          stageId: (e.stageId && e.stageId !== EMPTY_GUID) ? e.stageId : grade?.stageId || '',
+          label: [this.getName(subject), [this.getName(grade), this.getName(section)].filter(Boolean).join(' / '),
+            (e.examDate || '').substring(0, 10), year?.name].filter(Boolean).join(' · ')
+        };
+      });
+    this.filterFinals();
   }
 
   /** The selected type is Monthly (the select gives a string, the API a number) */
@@ -263,7 +450,8 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
       grades: this.gradeService.getActiveGrades(),
       academicYears: this.academicYearService.getAll(),
       sections: this.sectionService.getAll(),
-      subjects: this.subjectService.getAll()
+      subjects: this.subjectService.getAll(),
+      exams: this.examService.getAll()
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -273,6 +461,7 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
           this.academicYears.set(res.academicYears.data || []);
           this.sections = res.sections.data || [];
           this.subjects = res.subjects.data || [];
+          this.buildFinals(res.exams.data || []);
 
           if (this.examId) {
             this.loadExam(this.examId);
@@ -340,8 +529,10 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
       duration: exam.duration,
       weight: exam.weight,
       successScore: exam.successScore,
-      answerModelUrl: exam.answerModelUrl || ''
+      answerModelUrl: exam.answerModelUrl || '',
+      originalExamId: exam.originalExamId || ''
     }, { emitEvent: false });
+    this.updateSecondFinal(exam.examType);
     // patchValue above does not emit: apply the Monthly rule for the loaded type
     this.updateMonthValidators(exam.examType);
   }
@@ -382,7 +573,8 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
       duration: Number(value.duration),
       weight: Number(value.weight),
       successScore: Number(value.successScore),
-      answerModelUrl: value.answerModelUrl?.trim() || null
+      answerModelUrl: value.answerModelUrl?.trim() || null,
+      originalExamId: this.isSecondFinal(value.examType) ? value.originalExamId || null : null
     };
 
     const request$ = this.isEditMode()
@@ -437,6 +629,15 @@ export class ExamSaveComponent implements OnInit, OnDestroy {
 
   /** Map backend error codes to friendly messages */
   private saveErrorMessage(error: any): string {
+    const code = error?.error?.message;
+    const secondFinal: Record<string, string> = {
+      OriginalFinalRequired: 'Choose the final exam this second final repeats.',
+      OriginalMustBeFinal: 'A second final can only repeat a Final exam.',
+      SecondFinalExists: 'This final exam already has a second final.',
+      HasSecondFinal: 'This final has a second final: it must stay a Final exam.'
+    };
+    if (code && secondFinal[code]) return secondFinal[code];
+
     switch (error?.error?.message) {
       case 'WeightBelowExistingScores':
         return 'The full mark is lower than scores already entered for this exam. Fix those results first or use a higher full mark.';

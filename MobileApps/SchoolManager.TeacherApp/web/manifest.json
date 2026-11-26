@@ -1,6 +1,6 @@
 {
     "name": "Smart School Teacher",
-    "short_name": "Teacher",
+    "short_name": "Smart School Teacher",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

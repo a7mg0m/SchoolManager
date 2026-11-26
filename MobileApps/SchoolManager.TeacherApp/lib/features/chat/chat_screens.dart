@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart' show ImageSource;
 
 import '../../core/academic_year/academic_year_controller.dart';
 import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/i18n/app_language.dart';
+import '../../core/realtime/chat_realtime.dart';
 import '../../core/theme/app_theme.dart';
+import 'chat_media.dart';
 import 'chat_service.dart';
 
 const _red = Color(0xFFD93025);
@@ -23,6 +26,7 @@ class ChatApi {
     this.seen,
     this.userId,
     this.loadPhoto,
+    this.sendMedia,
   });
 
   final Future<List<ChatContact>> Function()? loadContacts;
@@ -33,15 +37,22 @@ class ChatApi {
   final Future<void> Function(String roomId, List<String> messageIds)? seen;
   final Future<Uint8List?> Function(String userId)? loadPhoto;
 
+  /// Uploads a picture / video / voice note and sends it
+  final Future<ChatMessage> Function(String roomId, ChatOutgoingMedia media)? sendMedia;
+
   /// The signed-in user's id
   final String? userId;
 
   String get myUserId => userId ?? ChatService.instance.myUserId;
-  Future<List<ChatContact>> contacts() => (loadContacts ?? ChatService.instance.getContacts)();
+  Future<List<ChatContact>> contacts({String? studentId}) =>
+      loadContacts != null ? loadContacts!() : ChatService.instance.getContacts(studentId: studentId);
   Future<List<ChatSummary>> chats() => (loadChats ?? ChatService.instance.getChats)();
   Future<String> startChat(String otherUserId) => (start ?? ChatService.instance.startChat)(otherUserId);
   Future<List<ChatMessage>> messages(String roomId) => (loadMessages ?? ChatService.instance.getMessages)(roomId);
-  Future<ChatMessage> sendMessage(String roomId, String content) => (send ?? ChatService.instance.sendMessage)(roomId, content);
+  Future<ChatMessage> sendMessage(String roomId, String content) =>
+      send != null ? send!(roomId, content) : ChatService.instance.sendMessage(roomId, content);
+  Future<ChatMessage> sendMediaMessage(String roomId, ChatOutgoingMedia media) =>
+      sendMedia != null ? sendMedia!(roomId, media) : ChatService.instance.sendMedia(roomId, media);
   Future<void> markSeen(String roomId, List<String> ids) => (seen ?? ChatService.instance.markSeen)(roomId, ids);
   Future<Uint8List?> photo(String userId) => (loadPhoto ?? ChatService.instance.getPhoto)(userId);
 }
@@ -164,17 +175,25 @@ class ChatListScreen extends StatefulWidget {
     this.refreshEvery = const Duration(seconds: 15),
     this.now,
     this.newChatHint,
+    this.openRoomId,
+    this.contactsStudentId,
   });
 
   final ChatApi api;
   final Future<void> Function()? onSessionExpired;
 
-  /// How often the list is reloaded while open (null: never; tests)
+  /// How often the list is reloaded while open and the live connection is down (null: never; tests)
   final Duration? refreshEvery;
   final DateTime? now;
 
   /// "Message your students' parents" / "Message your children's teachers"
   final String? newChatHint;
+
+  /// A tapped chat notification: open this chat once the list is loaded
+  final String? openRoomId;
+
+  /// Parent app: the child chosen on Home — a new chat lists only the teachers of that child's section timetable
+  final String? contactsStudentId;
 
   @override
   State<ChatListScreen> createState() => _ChatListScreenState();
@@ -195,12 +214,25 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
   String _query = '';
   Timer? _timer;
 
+  /// Live updates: a message / tick anywhere reloads the list (once per burst)
+  StreamSubscription<ChatLiveMessage>? _liveMessages;
+  StreamSubscription<ChatLiveStatus>? _liveStatuses;
+  Timer? _liveDebounce;
+
+  /// The chat of a tapped notification, until it is opened
+  String? _pendingRoomId;
+
   DateTime get _now => widget.now ?? DateTime.now();
 
   @override
   void initState() {
     super.initState();
+    _pendingRoomId = widget.openRoomId;
     WidgetsBinding.instance.addObserver(this);
+    _liveMessages = ChatRealtime.instance.messages.listen((_) => _reloadSoon());
+    _liveStatuses = ChatRealtime.instance.statuses.listen((_) => _reloadSoon());
+    // Back online: catch up on what came while the connection was down
+    ChatRealtime.instance.connected.addListener(_onConnectionChanged);
     _load();
     _startPolling();
   }
@@ -208,8 +240,23 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    ChatRealtime.instance.connected.removeListener(_onConnectionChanged);
+    _liveMessages?.cancel();
+    _liveStatuses?.cancel();
+    _liveDebounce?.cancel();
     _timer?.cancel();
     super.dispose();
+  }
+
+  void _reloadSoon() {
+    _liveDebounce?.cancel();
+    _liveDebounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) _load(quiet: true);
+    });
+  }
+
+  void _onConnectionChanged() {
+    if (ChatRealtime.instance.connected.value) _reloadSoon();
   }
 
   /// Polling only while the app is on screen: stopped in the background, a fresh load on return
@@ -224,9 +271,12 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
     }
   }
 
+  /// Fallback while the live connection is down (live updates make it unnecessary)
   void _startPolling() {
     if (widget.refreshEvery == null || _timer != null) return;
-    _timer = Timer.periodic(widget.refreshEvery!, (_) => _load(quiet: true));
+    _timer = Timer.periodic(widget.refreshEvery!, (_) {
+      if (!ChatRealtime.instance.connected.value) _load(quiet: true);
+    });
   }
 
   Future<void> _load({bool quiet = false}) async {
@@ -244,6 +294,7 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
         _loading = false;
         _error = null;
       });
+      _openPendingRoom(result);
     } on ChatException catch (e) {
       if (!mounted) return;
       if (e.sessionExpired && widget.onSessionExpired != null) {
@@ -257,6 +308,21 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
         _error = e.message;
         _loading = false;
       });
+    }
+  }
+
+  /// The chat of a tapped notification: open it once it is in the list
+  void _openPendingRoom(List<ChatSummary> chats) {
+    final roomId = _pendingRoomId;
+    if (roomId == null || roomId.isEmpty) return;
+    _pendingRoomId = null;
+    for (final c in chats) {
+      if (c.roomId == roomId) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _openChat(c.roomId, c.name, c.detail, c.otherUserId);
+        });
+        return;
+      }
     }
   }
 
@@ -284,7 +350,8 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
 
   Future<void> _newChat() async {
     final contact = await Navigator.of(context).push<ChatContact>(MaterialPageRoute(
-      builder: (_) => ChatContactsScreen(api: widget.api, hint: widget.newChatHint, onSessionExpired: widget.onSessionExpired),
+      builder: (_) => ChatContactsScreen(
+          api: widget.api, hint: widget.newChatHint, onSessionExpired: widget.onSessionExpired, studentId: widget.contactsStudentId),
     ));
     if (contact == null || !mounted) return;
 
@@ -418,7 +485,7 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
                                 ),
                               Expanded(
                                 child: Text(
-                                  c.lastMessage ?? c.detail,
+                                  c.lastMessagePreview ?? c.detail,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -459,11 +526,14 @@ class _ChatListScreenState extends State<ChatListScreen> with ReloadOnAcademicYe
 
 /// Pick who to message; pops with the chosen contact
 class ChatContactsScreen extends StatefulWidget {
-  const ChatContactsScreen({super.key, this.api = const ChatApi(), this.hint, this.onSessionExpired});
+  const ChatContactsScreen({super.key, this.api = const ChatApi(), this.hint, this.onSessionExpired, this.studentId});
 
   final ChatApi api;
   final String? hint;
   final Future<void> Function()? onSessionExpired;
+
+  /// Parent app: only the teachers of this child's section timetable
+  final String? studentId;
 
   @override
   State<ChatContactsScreen> createState() => _ChatContactsScreenState();
@@ -483,7 +553,7 @@ class _ChatContactsScreenState extends State<ChatContactsScreen> {
   Future<void> _load() async {
     setState(() => _error = null);
     try {
-      final result = await widget.api.contacts();
+      final result = await widget.api.contacts(studentId: widget.studentId);
       if (mounted) setState(() => _contacts = result);
     } on ChatException catch (e) {
       if (!mounted) return;
@@ -524,7 +594,10 @@ class _ChatContactsScreenState extends State<ChatContactsScreen> {
                     if (contacts.isEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 60),
-                        child: _centerMessage(context, Icons.person_search_rounded, tr('لا توجد جهات اتصال متاحة.', 'No contacts available.')),
+                        child: _centerMessage(context, Icons.person_search_rounded, widget.studentId != null
+                            ? tr('لا يوجد معلمون في جدول فصل الطالب لهذا الفصل الدراسي.',
+                                "No teachers in the student's class timetable for this semester.")
+                            : tr('لا توجد جهات اتصال متاحة.', 'No contacts available.')),
                       )
                     else
                       for (final c in shown)
@@ -584,6 +657,14 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   Timer? _timer;
   int _localId = 0;
 
+  /// Voice note being recorded (the bar replaces the text box), ticking every second
+  final _recorder = ChatVoiceRecorder();
+  Timer? _recordTicker;
+
+  /// Live: new messages of this chat and the other person's ticks
+  StreamSubscription<ChatLiveMessage>? _liveMessages;
+  StreamSubscription<ChatLiveStatus>? _liveStatuses;
+
   String get _me => widget.api.myUserId;
   DateTime get _now => widget.now ?? DateTime.now();
 
@@ -592,6 +673,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     super.initState();
     _text.addListener(() => setState(() {}));
     WidgetsBinding.instance.addObserver(this);
+    // This chat is on screen: its push notifications are not shown, its messages are seen right away
+    ChatRealtime.instance.activeRoomId = widget.roomId;
+    _liveMessages = ChatRealtime.instance.messages.listen(_onLiveMessage);
+    _liveStatuses = ChatRealtime.instance.statuses.listen(_onLiveStatus);
+    ChatRealtime.instance.connected.addListener(_onConnectionChanged);
     _load();
     _startPolling();
   }
@@ -599,10 +685,54 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (ChatRealtime.instance.activeRoomId == widget.roomId) ChatRealtime.instance.activeRoomId = null;
+    ChatRealtime.instance.connected.removeListener(_onConnectionChanged);
+    _liveMessages?.cancel();
+    _liveStatuses?.cancel();
     _timer?.cancel();
+    _recordTicker?.cancel();
+    _recorder.dispose();
     _text.dispose();
     super.dispose();
   }
+
+  /// Back online: catch up on what came while the connection was down
+  void _onConnectionChanged() {
+    if (ChatRealtime.instance.connected.value && mounted) _load(quiet: true);
+  }
+
+  /// A message of this chat arrived live: add it (once) and, when it is theirs, tell them I have seen it
+  void _onLiveMessage(ChatLiveMessage live) {
+    if (!mounted || live.roomId != widget.roomId) return;
+    final message = live.message;
+    if (message.id.isEmpty || (_messages?.any((m) => m.id == message.id) ?? false)) return;
+    setState(() {
+      // My own message (sent from here and still "sending", or from another device)
+      if (message.senderId == _me) {
+        final i = _pending.indexWhere((p) => p.status == ChatStatus.sending && p.content == message.content);
+        if (i >= 0) _pending.removeAt(i);
+      }
+      _messages = [...?_messages, message];
+    });
+    if (message.senderId != _me) {
+      widget.api.markSeen(widget.roomId, [message.id]).catchError((_) {});
+    }
+  }
+
+  /// The other person received / saw my messages: move their ticks forward (never back)
+  void _onLiveStatus(ChatLiveStatus live) {
+    if (!mounted || live.roomId != widget.roomId || _messages == null) return;
+    bool moves(ChatMessage m) => m.senderId == _me && live.messageIds.contains(m.id) && _rank(live.status) > _rank(m.status);
+    if (!_messages!.any(moves)) return;
+    setState(() => _messages = [for (final m in _messages!) moves(m) ? m.withStatus(live.status) : m]);
+  }
+
+  static int _rank(ChatStatus s) => switch (s) {
+        ChatStatus.seen => 3,
+        ChatStatus.delivered => 2,
+        ChatStatus.sent => 1,
+        _ => 0,
+      };
 
   /// Polling only while the app is on screen: stopped in the background, a fresh load on return
   @override
@@ -616,9 +746,12 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Fallback while the live connection is down (live updates make it unnecessary)
   void _startPolling() {
     if (widget.refreshEvery == null || _timer != null) return;
-    _timer = Timer.periodic(widget.refreshEvery!, (_) => _load(quiet: true));
+    _timer = Timer.periodic(widget.refreshEvery!, (_) {
+      if (!ChatRealtime.instance.connected.value) _load(quiet: true);
+    });
   }
 
   Future<void> _load({bool quiet = false}) async {
@@ -651,6 +784,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _send([ChatMessage? retry]) async {
+    if (retry?.localMedia != null) return _sendMedia(retry!.localMedia!, retry: retry);
     final content = retry?.content ?? _text.text.trim();
     if (content.isEmpty) return;
     if (content.length > chatMaxLength) {
@@ -670,7 +804,8 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
       if (!mounted) return;
       setState(() {
         _pending.remove(pending);
-        _messages = [...?_messages, sent];
+        // The live update may have brought it already
+        if (!(_messages?.any((m) => m.id == sent.id) ?? false)) _messages = [...?_messages, sent];
       });
     } on ChatException catch (e) {
       if (!mounted) return;
@@ -683,6 +818,162 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         if (i >= 0) _pending[i] = pending.withStatus(ChatStatus.failed);
       });
     }
+  }
+
+  void _snack(String text) => ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(text)));
+
+  /// Uploads and sends a picture / video / voice note; it shows at once with a spinner, "tap to retry" if it fails
+  Future<void> _sendMedia(ChatOutgoingMedia media, {ChatMessage? retry}) async {
+    final pending = ChatMessage(
+        id: 'local-${_localId++}', senderId: _me, content: '', sentOn: DateTime.now(), status: ChatStatus.sending, localMedia: media);
+    setState(() {
+      if (retry != null) _pending.remove(retry);
+      _pending.add(pending);
+    });
+    try {
+      final sent = await widget.api.sendMediaMessage(widget.roomId, media);
+      if (!mounted) return;
+      setState(() {
+        _pending.remove(pending);
+        if (!(_messages?.any((m) => m.id == sent.id) ?? false)) _messages = [...?_messages, sent];
+      });
+    } on ChatException catch (e) {
+      if (!mounted) return;
+      if (e.sessionExpired && widget.onSessionExpired != null) {
+        await widget.onSessionExpired!();
+        return;
+      }
+      _snack(e.message);
+      setState(() {
+        final i = _pending.indexOf(pending);
+        if (i >= 0) _pending[i] = pending.withStatus(ChatStatus.failed);
+      });
+    }
+  }
+
+  /// Camera / gallery, picture / video
+  Future<void> _attach() async {
+    final choice = await showModalBottomSheet<(bool, ImageSource)>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              key: const ValueKey('attach-camera-photo'),
+              leading: const Icon(Icons.photo_camera_rounded),
+              title: Text(tr('التقاط صورة', 'Take a photo')),
+              onTap: () => Navigator.pop(context, (false, ImageSource.camera)),
+            ),
+            ListTile(
+              key: const ValueKey('attach-gallery-photo'),
+              leading: const Icon(Icons.photo_library_rounded),
+              title: Text(tr('صورة من المعرض', 'Photo from gallery')),
+              onTap: () => Navigator.pop(context, (false, ImageSource.gallery)),
+            ),
+            ListTile(
+              key: const ValueKey('attach-camera-video'),
+              leading: const Icon(Icons.videocam_rounded),
+              title: Text(tr('تصوير فيديو', 'Record a video')),
+              onTap: () => Navigator.pop(context, (true, ImageSource.camera)),
+            ),
+            ListTile(
+              key: const ValueKey('attach-gallery-video'),
+              leading: const Icon(Icons.video_library_rounded),
+              title: Text(tr('فيديو من المعرض', 'Video from gallery')),
+              subtitle: Text(tr('حتى 25 ميجابايت', 'Up to 25 MB')),
+              onTap: () => Navigator.pop(context, (true, ImageSource.gallery)),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+    final media = await pickChatMedia(video: choice.$1, source: choice.$2, onError: (m) {
+      if (mounted) _snack(m);
+    });
+    if (media != null && mounted) await _sendMedia(media);
+  }
+
+  Future<void> _startRecording() async {
+    if (!await _recorder.start()) {
+      if (mounted) {
+        _snack(tr('اسمح للتطبيق باستخدام الميكروفون لتسجيل رسالة صوتية.', 'Allow the microphone to record a voice message.'));
+      }
+      return;
+    }
+    if (!mounted) return;
+    setState(() {});
+    _recordTicker?.cancel();
+    _recordTicker = Timer.periodic(const Duration(milliseconds: 500), (_) {
+      if (!mounted) return;
+      // Longest note: it is sent by itself
+      if (_recorder.elapsed >= ChatVoiceRecorder.maxLength) {
+        _stopRecording(send: true);
+      } else {
+        setState(() {});
+      }
+    });
+  }
+
+  Future<void> _stopRecording({required bool send}) async {
+    _recordTicker?.cancel();
+    _recordTicker = null;
+    if (!send) {
+      await _recorder.cancel();
+      if (mounted) setState(() {});
+      return;
+    }
+    final note = await _recorder.stop();
+    if (!mounted) return;
+    setState(() {});
+    if (note == null) {
+      _snack(tr('التسجيل قصير جداً.', 'The recording is too short.'));
+      return;
+    }
+    await _sendMedia(note);
+  }
+
+  /// Recording: cancel, the time with a red dot, send
+  Widget _recordingBar() {
+    final palette = context.palette;
+    return Row(
+      key: const ValueKey('chat-recording'),
+      children: [
+        IconButton(
+          key: const ValueKey('record-cancel'),
+          tooltip: tr('إلغاء', 'Cancel'),
+          onPressed: () => _stopRecording(send: false),
+          icon: const Icon(Icons.delete_outline_rounded, color: _red),
+        ),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(color: palette.soft, borderRadius: BorderRadius.circular(24)),
+            child: Row(children: [
+              const Icon(Icons.fiber_manual_record_rounded, color: _red, size: 14),
+              const SizedBox(width: 8),
+              Text(chatDuration(_recorder.elapsed), style: TextStyle(fontWeight: FontWeight.w600, color: palette.ink)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(tr('جارٍ التسجيل…', 'Recording…'),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: palette.muted)),
+              ),
+            ]),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton.filled(
+          key: const ValueKey('record-send'),
+          tooltip: tr('إرسال', 'Send'),
+          onPressed: () => _stopRecording(send: true),
+          icon: const Icon(Icons.send_rounded),
+        ),
+      ],
+    );
   }
 
   @override
@@ -722,9 +1013,17 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
             child: Container(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
               decoration: BoxDecoration(color: palette.card, border: Border(top: BorderSide(color: palette.line))),
-              child: Row(
+              child: _recorder.isRecording
+                  ? _recordingBar()
+                  : Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
+                  IconButton(
+                    key: const ValueKey('chat-attach'),
+                    tooltip: tr('صورة أو فيديو', 'Photo or video'),
+                    onPressed: _attach,
+                    icon: Icon(Icons.add_photo_alternate_rounded, color: palette.muted),
+                  ),
                   Expanded(
                     child: TextField(
                       key: const ValueKey('chat-input'),
@@ -745,12 +1044,20 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton.filled(
-                    key: const ValueKey('chat-send'),
-                    tooltip: tr('إرسال', 'Send'),
-                    onPressed: _text.text.trim().isEmpty ? null : () => _send(),
-                    icon: const Icon(Icons.send_rounded),
-                  ),
+                  // Nothing typed: the mic records a voice note
+                  _text.text.trim().isEmpty
+                      ? IconButton.filled(
+                          key: const ValueKey('chat-mic'),
+                          tooltip: tr('تسجيل رسالة صوتية', 'Record a voice message'),
+                          onPressed: _startRecording,
+                          icon: const Icon(Icons.mic_rounded),
+                        )
+                      : IconButton.filled(
+                          key: const ValueKey('chat-send'),
+                          tooltip: tr('إرسال', 'Send'),
+                          onPressed: () => _send(),
+                          icon: const Icon(Icons.send_rounded),
+                        ),
                 ],
               ),
             ),
@@ -796,10 +1103,11 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
     final palette = context.palette;
     final mine = m.senderId == _me;
     final failed = m.status == ChatStatus.failed;
+    final hasMedia = m.attachments.isNotEmpty || m.localMedia != null;
     final bubble = Container(
       constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .75),
       margin: const EdgeInsets.symmetric(vertical: 3),
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+      padding: hasMedia ? const EdgeInsets.fromLTRB(5, 5, 5, 6) : const EdgeInsets.fromLTRB(12, 8, 12, 6),
       decoration: BoxDecoration(
         color: mine ? (failed ? _red.withValues(alpha: .12) : AppTheme.blue) : palette.card,
         border: mine ? null : Border.all(color: palette.line),
@@ -814,20 +1122,35 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            widthFactor: 1,
-            child: Text(m.content,
-                style: TextStyle(fontSize: 14.5, height: 1.4, color: mine && !failed ? Colors.white : palette.ink)),
-          ),
+          if (m.localMedia != null)
+            ChatMediaView(local: m.localMedia, mine: mine && !failed, sending: m.status == ChatStatus.sending)
+          else
+            for (final a in m.attachments)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: ChatMediaView(attachment: a, mine: mine),
+              ),
+          if (m.content.isNotEmpty)
+            Padding(
+              padding: hasMedia ? const EdgeInsets.fromLTRB(7, 6, 7, 0) : EdgeInsets.zero,
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                widthFactor: 1,
+                child: Text(m.content,
+                    style: TextStyle(fontSize: 14.5, height: 1.4, color: mine && !failed ? Colors.white : palette.ink)),
+              ),
+            ),
           const SizedBox(height: 3),
-          Row(
+          Padding(
+            padding: hasMedia ? const EdgeInsetsDirectional.only(end: 7) : EdgeInsets.zero,
+            child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(chatClock(m.sentOn),
                   style: TextStyle(fontSize: 10.5, color: mine && !failed ? Colors.white70 : palette.muted)),
               if (mine) ...[const SizedBox(width: 4), _tick(m.status)],
             ],
+          ),
           ),
         ],
       ),

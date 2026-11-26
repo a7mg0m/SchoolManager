@@ -151,7 +151,7 @@
                     </td>
                     <td>
                       @if (exam.answerModelUrl) {
-                        <a [href]="exam.answerModelUrl" target="_blank" rel="noopener noreferrer">
+                        <a [href]="fileHref(exam.answerModelUrl)" target="_blank" rel="noopener noreferrer">
                           <i class="pe-7s-link"></i> {{ 'exams.view' | translate }}
                         </a>
                       } @else {

@@ -14,7 +14,6 @@ namespace SchoolManager.Management.Application
             RuleFor(x => x.Email).EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.Email)).WithMessage("EmailInvalid");
             RuleFor(x => x.Address).NotEmpty().WithMessage("AddressRequired");
             RuleFor(x => x.GradeId).NotEmpty().WithMessage("GradeIdRequired");
-            RuleFor(x => x.SectionId).NotEmpty().WithMessage("SectionIdRequired");
             RuleFor(x => x.AcademicYearId).NotEmpty().WithMessage("AcademicYearIdRequired");
             RuleFor(x => x.Latitude).InclusiveBetween(-90, 90).When(x => x.Latitude.HasValue).WithMessage("LatitudeInvalid");
             RuleFor(x => x.Longitude).InclusiveBetween(-180, 180).When(x => x.Longitude.HasValue).WithMessage("LongitudeInvalid");

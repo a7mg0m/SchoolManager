@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BuildingBlocks;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManager.Management.Application;
 
@@ -12,11 +13,28 @@ namespace SchoolManager.Management.API.Controllers
 	{
 		private readonly IMediator _mediator;
 		private readonly IMapper _mapper;
+		private readonly ICurrentUserService _currentUser;
 
-		public ParentsController(IMediator mediator, IMapper mapper)
+		public ParentsController(IMediator mediator, IMapper mapper, ICurrentUserService currentUser)
 		{
 			_mediator = mediator;
 			_mapper = mapper;
+			_currentUser = currentUser;
+		}
+
+		/// <summary>
+		/// For the Identity service (its service token): does the parent still have a current child at the school?
+		/// Only such parents may sign in to the parent app. App users (parents / teachers / drivers) get 403.
+		/// </summary>
+		[Authorize]
+		[HttpGet("has-current-students/{parentId:guid}")]
+		public async Task<IActionResult> HasCurrentStudents(Guid parentId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not null || _currentUser.TeacherId is not null || _currentUser.BusId is not null)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "Forbidden"));
+
+			var result = await _mediator.Send(new HasCurrentStudentsQuery(parentId), cancellationToken);
+			return Ok(new ApiResponse { data = result });
 		}
 
 		[HttpGet("get-all")]

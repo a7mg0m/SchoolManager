@@ -16,11 +16,13 @@ enum ExamKind {
   quiz(1, 'اختبار قصير', 'اختبارات قصيرة', 'Quiz', 'Quizzes'),
   monthly(2, 'امتحان شهري', 'امتحانات شهرية', 'Monthly exam', 'Monthly exams'),
   midTerm(3, 'منتصف الفصل', 'امتحانات منتصف الفصل', 'Mid-term', 'Mid-term exams'),
-  finalExam(4, 'نهائي', 'امتحانات نهائية', 'Final', 'Final exams');
+  finalExam(4, 'نهائي', 'امتحانات نهائية', 'Final', 'Final exams'),
+  /// Resit of a Final, only for the students who failed it
+  secondFinal(5, 'دور ثانٍ', 'الدور الثاني', 'Second final', 'Second finals');
 
   const ExamKind(this.value, this._labelAr, this._pluralAr, this._labelEn, this._pluralEn);
 
-  /// Value sent by the API (Quiz = 1 … Final = 4)
+  /// Value sent by the API (Quiz = 1 … Final = 4, Second final = 5)
   final int value;
   final String _labelAr;
   final String _pluralAr;
@@ -38,6 +40,7 @@ enum ExamKind {
       'monthly' => ExamKind.monthly,
       'midterm' => ExamKind.midTerm,
       'final' => ExamKind.finalExam,
+      'secondfinal' => ExamKind.secondFinal,
       _ => ExamKind.quiz,
     };
   }

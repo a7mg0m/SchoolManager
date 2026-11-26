@@ -23,6 +23,13 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
 
   @override
+  void initState() {
+    super.initState();
+    // Signed out by the app (e.g. no child at the school any more): say why
+    _error = AuthService.instance.takeSignedOutReason();
+  }
+
+  @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();

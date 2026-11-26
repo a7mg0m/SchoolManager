@@ -7,6 +7,7 @@ namespace SchoolManager.Management.Application
         IStudentRepository students,
         ISubjectRepository subjects,
         ITimetableSlotRepository slots,
+        ITimetableRepository timetables,
         ITeacherRepository teachers) : IQueryHandler<GetMyTeachersQuery, List<ParentTeacherDto>>
     {
         public async Task<List<ParentTeacherDto>> Handle(GetMyTeachersQuery query, CancellationToken cancellationToken)
@@ -16,6 +17,9 @@ namespace SchoolManager.Management.Application
                 .ToList();
             if (children.Count == 0)
                 return new List<ParentTeacherDto>();
+
+            if (query.StudentId is Guid studentId)
+                return await TeachersOfSectionAsync(children.FirstOrDefault(c => c.Id == studentId), query, cancellationToken);
 
             var gradeIds = children.Select(c => c.GradeId).Distinct().ToList();
             // Subjects of the children's grades, with their linked teachers
@@ -57,6 +61,46 @@ namespace SchoolManager.Management.Application
                             .Select(c => new ParentTeacherChildDto { StudentId = c.Id, NameAr = c.FullName.Arabic, NameEn = c.FullName.English })
                             .ToList()
                     };
+                })
+                .OrderBy(t => t.NameAr)
+                .ToList();
+        }
+
+        /// <summary>
+        /// The teachers of the child's section timetable (year / semester chosen in the app), each with the subjects
+        /// they teach that section. Not the parent's child (null): nobody.
+        /// </summary>
+        private async Task<List<ParentTeacherDto>> TeachersOfSectionAsync(
+            Student? child, GetMyTeachersQuery query, CancellationToken cancellationToken)
+        {
+            if (child is null)
+                return new List<ParentTeacherDto>();
+
+            var yearId = query.AcademicYearId is Guid y && y != Guid.Empty ? y : child.AcademicYearId;
+            var sectionSlots = (await timetables.GetSectionSlotsAsync(yearId, query.SemesterId, child.GradeId, child.SectionId ?? Guid.Empty, cancellationToken))
+                .Where(s => s.SectionId == child.SectionId && s.TeacherId != Guid.Empty)
+                .ToList();
+            if (sectionSlots.Count == 0)
+                return new List<ParentTeacherDto>();
+
+            var teacherIds = sectionSlots.Select(s => s.TeacherId).Distinct().ToList();
+            var found = await teachers.SearchAsync(t => teacherIds.Contains(t.Id) && t.IsActive);
+            var childDto = new ParentTeacherChildDto { StudentId = child.Id, NameAr = child.FullName.Arabic, NameEn = child.FullName.English };
+
+            return found
+                .Select(t => new ParentTeacherDto
+                {
+                    TeacherId = t.Id,
+                    NameAr = t.FullName.Arabic,
+                    NameEn = t.FullName.English,
+                    Subjects = sectionSlots
+                        .Where(s => s.TeacherId == t.Id && s.Subject is not null)
+                        .Select(s => s.Subject!)
+                        .DistinctBy(s => s.Id)
+                        .OrderBy(s => s.Name.Arabic)
+                        .Select(s => new ParentTeacherSubjectDto { SubjectId = s.Id, NameAr = s.Name.Arabic, NameEn = s.Name.English })
+                        .ToList(),
+                    Children = new List<ParentTeacherChildDto> { childDto }
                 })
                 .OrderBy(t => t.NameAr)
                 .ToList();

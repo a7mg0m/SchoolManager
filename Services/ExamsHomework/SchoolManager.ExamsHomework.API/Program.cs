@@ -30,6 +30,16 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+// Answer models: wwwroot/answer-models served at /exam-files/… (the gateway forwards /exam-files to this service)
+var webRoot = SchoolManager.ExamsHomework.API.AnswerModelUpload.WebRoot(app.Environment);
+Directory.CreateDirectory(Path.Combine(webRoot, SchoolManager.ExamsHomework.API.AnswerModelUpload.Folder));
+app.UseStaticFiles(new StaticFileOptions
+{
+    RequestPath = SchoolManager.ExamsHomework.API.AnswerModelUpload.UrlPrefix,
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(webRoot),
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl = "public, max-age=86400"
+});
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

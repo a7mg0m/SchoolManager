@@ -43,6 +43,9 @@ namespace SchoolManager.Notification.Application
                         unread.GetValueOrDefault(room.Id),
                         room.Type == ChatRoomType.Private
                             ? room.Participants.FirstOrDefault(p => p.UserId != query.UserId)?.UserId
+                            : null,
+                        last is not null && last.Attachments.Count > 0
+                            ? ChatMedia.KindName(last.Attachments.First().ContentType)
                             : null);
                 })
                 .OrderByDescending(x => x.LastMessageOn)

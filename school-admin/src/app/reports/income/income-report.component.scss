@@ -1,0 +1,170 @@
+// Income report. Source colours: school fees (green), bus fees (blue), revenue (amber).
+$school: #16a34a;
+$bus: #2563eb;
+$revenue: #f59e0b;
+
+.report-page {
+  .total-card {
+    height: 100%;
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--sg-surface, #fff);
+    border: 1px solid var(--sg-line, #dee2e6);
+
+    .total-head {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+
+      > i {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #fff;
+        flex-shrink: 0;
+        background: var(--sg-gradient, linear-gradient(135deg, #047857, #65a30d));
+      }
+    }
+
+    .total-label {
+      font-size: 0.78rem;
+      color: var(--sg-muted, #6c757d);
+    }
+
+    .total-value {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--sg-ink, #13261f);
+    }
+  }
+
+  .stack-bar {
+    display: flex;
+    height: 9px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    .school { background: $school; }
+    .bus { background: $bus; }
+    .revenue { background: $revenue; }
+  }
+
+  .parts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+
+    .part {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.5rem;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.03);
+
+      i {
+        font-size: 1.15rem;
+      }
+
+      &.school i { color: $school; }
+      &.bus i { color: $bus; }
+      &.revenue i { color: $revenue; }
+    }
+
+    .part-label {
+      font-size: 0.68rem;
+      color: var(--sg-muted, #6c757d);
+    }
+
+    .part-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--sg-ink, #13261f);
+    }
+  }
+
+  .source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &.school { color: $school; background: rgba($school, 0.12); }
+    &.bus { color: $bus; background: rgba($bus, 0.12); }
+    &.revenue { color: darken($revenue, 12%); background: rgba($revenue, 0.15); }
+  }
+
+  .rate-col {
+    min-width: 140px;
+  }
+
+  .rate-bar,
+  .share-bar {
+    height: 7px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: $school;
+    }
+  }
+
+  .share-bar {
+    margin-top: 0.3rem;
+
+    span {
+      background: $revenue;
+    }
+  }
+
+  .share-row {
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .print-only {
+    display: none;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .report-page .parts {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .report-page {
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block;
+    }
+
+    .card,
+    .total-card {
+      border: 1px solid #ddd;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+  }
+}

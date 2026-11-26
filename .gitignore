@@ -380,3 +380,6 @@ Services/Notification/SchoolManager.Notification.API/wwwroot/notifications/*
 !Services/Notification/SchoolManager.Notification.API/wwwroot/notifications/.gitkeep
 Services/Notification/SchoolManager.Notification.API/wwwroot/events/*
 !Services/Notification/SchoolManager.Notification.API/wwwroot/events/.gitkeep
+
+# Chat pictures / videos / voice notes uploaded by users (Notification service)
+**/ChatFiles/

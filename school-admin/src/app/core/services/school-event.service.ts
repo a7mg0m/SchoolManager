@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
+import { ApiResponse } from '../models/stage.model';
+import { EventAttendanceInput, EventAttendanceMark } from '../models/school-event.model';
 import { Observable } from 'rxjs';
 import {
   CreateSchoolEventRequest,
@@ -42,6 +44,16 @@ export class SchoolEventService {
   }
 
   /** DELETE /api/school-event/delete/{id} */
+  /** Check-in marks of an event (people not marked yet are not listed) */
+  getAttendance(id: string): Observable<ApiResponse<EventAttendanceMark[]>> {
+    return this.apiService.get<ApiResponse<EventAttendanceMark[]>>(`${this.endpoint}/${id}/attendance`);
+  }
+
+  /** Saves changed marks (isPresent null clears one) */
+  saveAttendance(id: string, records: EventAttendanceInput[]): Observable<ApiResponse<null>> {
+    return this.apiService.put<ApiResponse<null>>(`${this.endpoint}/${id}/attendance`, { records });
+  }
+
   delete(id: string): Observable<SchoolEventSingleResponse> {
     return this.apiService.delete<SchoolEventSingleResponse>(`${this.endpoint}/delete/${id}`);
   }

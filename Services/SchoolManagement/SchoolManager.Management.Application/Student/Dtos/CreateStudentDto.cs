@@ -14,7 +14,7 @@
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public Guid GradeId { get; set; }
-        public Guid SectionId { get; set; }
+        public Guid? SectionId { get; set; }
         public Guid AcademicYearId { get; set; }
         public Guid ParentId { get; set; }
     }

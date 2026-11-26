@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/app_info.dart';
 import 'core/auth/auth_service.dart';
 import 'core/push/push_service.dart';
+import 'core/realtime/chat_realtime.dart';
 import 'core/i18n/app_language.dart';
 import 'core/routes.dart';
 import 'core/theme/app_theme.dart';
@@ -22,7 +24,11 @@ Future<void> main() async {
   // Signed in before as a teacher (and the token is still valid)? Open Home directly.
   final session = await AuthService.instance.restoreSession();
   // Already signed in: this device keeps receiving the user's notifications
-  if (session != null) unawaited(PushService.instance.registerCurrentUser());
+  if (session != null) {
+    unawaited(PushService.instance.registerCurrentUser());
+    // Live chat: messages and ticks without a refresh
+    unawaited(ChatRealtime.instance.start());
+  }
   runApp(SmartSchoolTeacherApp(
       initialRoute: session != null ? AppRoutes.home : AppRoutes.intro));
 }
@@ -40,7 +46,9 @@ class SmartSchoolTeacherApp extends StatelessWidget {
       listenable: Listenable.merge(
           [ThemeController.instance, AppLanguage.instance]),
       builder: (context, _) => MaterialApp(
-        title: 'Smart School Teacher',
+        // App name from app_setup.json, in the app's language
+        onGenerateTitle: (_) =>
+            AppInfo.name(AppLanguage.instance.value.languageCode),
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,

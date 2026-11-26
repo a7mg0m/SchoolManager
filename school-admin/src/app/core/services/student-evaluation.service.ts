@@ -38,6 +38,11 @@ export class StudentEvaluationService {
   }
 
   /** GET /api/student-evaluation/get/{id} */
+  /** Reviews report: every lesson evaluation of a period (yyyy-MM-dd, at most a year) */
+  getReport(from: string, to: string): Observable<StudentEvaluationListResponse> {
+    return this.apiService.get<StudentEvaluationListResponse>(`${this.endpoint}/report?from=${from}&to=${to}`);
+  }
+
   getById(id: string): Observable<StudentEvaluationSingleResponse> {
     return this.apiService.get<StudentEvaluationSingleResponse>(`${this.endpoint}/get/${id}`);
   }

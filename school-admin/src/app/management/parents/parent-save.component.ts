@@ -258,7 +258,8 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
       academicYearId: [{ value: student?.academicYearId ?? '', disabled: true }, Validators.required],
       stageId: [stageId, Validators.required],
       gradeId: [{ value: gradeId, disabled: !stageId }, Validators.required],
-      sectionId: [{ value: student?.sectionId ?? '', disabled: !gradeId }, Validators.required]
+      // Optional: a student can be registered before being placed in a class
+      sectionId: [{ value: student?.sectionId ?? '', disabled: !gradeId }]
     });
 
     if (student?.id) {
@@ -522,7 +523,7 @@ export class ParentSaveComponent implements OnInit, OnDestroy {
       email: this.normalizeEmail(s.email),
       address: s.address.trim(),
       gradeId: s.gradeId,
-      sectionId: s.sectionId,
+      sectionId: s.sectionId || null,
       academicYearId: s.academicYearId
     };
   }

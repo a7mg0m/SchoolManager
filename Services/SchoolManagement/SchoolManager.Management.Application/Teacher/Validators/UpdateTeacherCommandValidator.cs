@@ -17,6 +17,10 @@ namespace SchoolManager.Management.Application
                 .MaximumLength(256);
             RuleFor(x => x.Address).NotEmpty().WithMessage("AddressRequired");
             RuleFor(x => x.JobLevel).MaximumLength(100).When(x => !string.IsNullOrWhiteSpace(x.JobLevel)).WithMessage("JobLevelTooLong");
+            RuleFor(x => x.ServiceEndDate)
+                .Must(d => d is null || d.Value <= DateOnly.FromDateTime(DateTime.Today))
+                .When(x => x.IsServiceEnded)
+                .WithMessage("ServiceEndDateInFuture");
         }
     }
 }

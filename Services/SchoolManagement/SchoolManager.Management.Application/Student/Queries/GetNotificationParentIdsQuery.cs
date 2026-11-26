@@ -27,7 +27,7 @@ namespace SchoolManager.Management.Application
             // No academic-year filter: a student has one current enrolment (grade / class), and the notification's year
             // (e.g. the homework's) may differ from the students' recorded year — filtering on it left classes without parents
             var found = await students.SearchAsync(s => s.IsActive && (
-                gradeIds.Contains(s.GradeId) || sectionIds.Contains(s.SectionId) || studentIds.Contains(s.Id)));
+                gradeIds.Contains(s.GradeId) || (s.SectionId != null && sectionIds.Contains(s.SectionId.Value)) || studentIds.Contains(s.Id)));
 
             return found.Select(s => s.ParentId).Where(id => id != Guid.Empty).Distinct().ToList();
         }

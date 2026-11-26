@@ -286,6 +286,46 @@ namespace SchoolManager.Financial.Infrastructure.Persistence.Migrations
                     b.ToTable("StudentFees", (string)null);
                 });
 
+            modelBuilder.Entity("SchoolManager.Financial.Domain.StudentFeePayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("AcademicYearId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<bool>("IsBusFee")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("PaidOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RecordedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StudentFeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaidOn");
+
+                    b.HasIndex("StudentFeeId");
+
+                    b.ToTable("StudentFeePayments", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Financial.Domain.Expense", b =>
                 {
                     b.HasOne("SchoolManager.Financial.Domain.ExpenseCategory", "Category")
@@ -705,6 +745,15 @@ namespace SchoolManager.Financial.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("TotalAmount")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Financial.Domain.StudentFeePayment", b =>
+                {
+                    b.HasOne("SchoolManager.Financial.Domain.StudentFee", null)
+                        .WithMany()
+                        .HasForeignKey("StudentFeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

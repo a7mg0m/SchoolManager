@@ -1,0 +1,191 @@
+// Reviews report. Score colours: good (green, 4+), fair (amber, 3+), low (red).
+$good: #16a34a;
+$warn: #f59e0b;
+$bad: #ef4444;
+$r1: #ef4444;
+$r2: #f97316;
+$r3: #facc15;
+$r4: #84cc16;
+$r5: #16a34a;
+
+.report-page {
+  .score-card {
+    height: 100%;
+    padding: 1.1rem;
+    border-radius: 16px;
+    color: #fff;
+    background: linear-gradient(135deg, #64748b, #475569);
+
+    &.good { background: linear-gradient(135deg, #16a34a, #15803d); }
+    &.warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.bad { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+    .score-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+
+      small {
+        font-size: 1rem;
+        opacity: 0.8;
+      }
+    }
+
+    .score-label {
+      font-weight: 600;
+      margin: 0.35rem 0 0.15rem;
+    }
+
+    small {
+      opacity: 0.85;
+    }
+  }
+
+  .mini {
+    height: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    color: var(--sg-muted, #6c757d);
+    background: var(--sg-surface, #fff);
+    border: 1px solid var(--sg-line, #dee2e6);
+    border-top: 4px solid #94a3b8;
+
+    > span {
+      display: block;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--sg-ink, #13261f);
+    }
+
+    &.good { border-top-color: $good; }
+    &.warn { border-top-color: $warn; }
+    &.bad { border-top-color: $bad; }
+    &.health { border-top-color: #3b82f6; }
+
+    .stars i {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+
+      &.on {
+        color: #f59e0b;
+      }
+    }
+  }
+
+  .dist-row {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.82rem;
+  }
+
+  .stack {
+    display: flex;
+    height: 14px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    .r1 { background: $r1; }
+    .r2 { background: $r2; }
+    .r3 { background: $r3; }
+    .r4 { background: $r4; }
+    .r5 { background: $r5; }
+  }
+
+  .legend {
+    display: flex;
+    gap: 0.9rem;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--sg-muted, #6c757d);
+
+    i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      margin-inline-end: 0.3rem;
+
+      &.r1 { background: $r1; }
+      &.r2 { background: $r2; }
+      &.r3 { background: $r3; }
+      &.r4 { background: $r4; }
+      &.r5 { background: $r5; }
+    }
+  }
+
+  .score-pill {
+    display: inline-block;
+    min-width: 2.6rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-align: center;
+    color: #475569;
+    background: #e2e8f0;
+
+    &.good { color: $good; background: rgba($good, 0.12); }
+    &.warn { color: darken($warn, 12%); background: rgba($warn, 0.15); }
+    &.bad { color: $bad; background: rgba($bad, 0.12); }
+  }
+
+  .comments {
+    max-height: 360px;
+    overflow-y: auto;
+
+    .comment {
+      padding: 0.6rem 0;
+      border-bottom: 1px solid var(--sg-line, #eef0f2);
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    .comment-text {
+      margin: 0.2rem 0;
+      font-size: 0.85rem;
+      color: var(--sg-ink, #13261f);
+    }
+  }
+
+  tr.support td {
+    background: rgba($bad, 0.06);
+  }
+
+  .search-input {
+    max-width: 220px;
+  }
+
+  .print-only {
+    display: none;
+  }
+}
+
+@media print {
+  .report-page {
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block;
+    }
+
+    .comments {
+      max-height: none;
+      overflow: visible;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+  }
+}

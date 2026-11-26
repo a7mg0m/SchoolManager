@@ -9,9 +9,19 @@ namespace SchoolManager.ExamsHomework.Application
         {
             var child = query.Child;
             var exams = await repository.GetForStudentAsync(
-                child.AcademicYearId, child.GradeId, child.SectionId, child.Id, cancellationToken);
+                child.AcademicYearId, child.GradeId, child.SectionId ?? Guid.Empty, child.Id, cancellationToken);
+
+            // A second final is for the child only when they failed its Final
+            bool Concerns(Exam e)
+            {
+                if (e.ExamType != ExamType.SecondFinal) return true;
+                var original = exams.FirstOrDefault(x => x.Id == e.OriginalExamId);
+                var result = original?.ExamResults.FirstOrDefault(r => r.StudentId == child.Id);
+                return original is not null && result is not null && !original.IsPassed(result.Score);
+            }
 
             return exams
+                .Where(Concerns)
                 // Only the semester chosen in the app (all semesters when none is chosen)
                 .Where(e => query.SemesterId is not Guid semester || e.SemesterId == semester)
                 .OrderBy(e => e.ExamDate).ThenBy(e => e.StartTime)

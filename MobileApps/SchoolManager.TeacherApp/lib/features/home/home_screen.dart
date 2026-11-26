@@ -783,15 +783,21 @@ class _HomeScreenState extends State<HomeScreen> {
     if (route == null || !mounted) return;
     PushService.instance.openRoute.value = null;
     if (route.startsWith('/chat')) {
-      _openChats();
+      // /chat/{roomId}: straight into that chat
+      final roomId = route.split('/').where((s) => s.isNotEmpty).skip(1).firstOrNull;
+      _openChats(roomId: roomId);
     } else if (route.startsWith('/notifications')) {
       _openNotifications();
     }
   }
 
   /// Chats (teachers <-> parents of their students), above the home page; the bar stays
-  Future<void> _openChats() async {
-    if (selectedTab == 2) return;
+  /// Each opening of the chats; an older one that closes must not reset the tab of a newer one
+  int _chatsOpening = 0;
+
+  Future<void> _openChats({String? roomId}) async {
+    if (selectedTab == 2 && roomId == null) return;
+    final opening = ++_chatsOpening;
     _nav.popUntil((route) => route.isFirst);
     setState(() => selectedTab = 2);
     await _nav.push(MaterialPageRoute(
@@ -799,10 +805,11 @@ class _HomeScreenState extends State<HomeScreen> {
         api: widget.chatApi,
         onSessionExpired: _logout,
         refreshEvery: widget.chatRefreshEvery,
-        newChatHint: tr('راسل أولياء أمور طلابك.', 'Message the parents of your students.'),
+        newChatHint: tr('أولياء أمور طلاب الفصول التي تدرّسها في الجدول.', 'Parents of the students in the classes you teach in the timetable.'),
+        openRoomId: roomId,
       ),
     ));
-    if (mounted && selectedTab == 2) setState(() => selectedTab = 0);
+    if (mounted && opening == _chatsOpening && selectedTab == 2) setState(() => selectedTab = 0);
   }
 
   /// Floating rounded bar; the selected item becomes a coloured pill

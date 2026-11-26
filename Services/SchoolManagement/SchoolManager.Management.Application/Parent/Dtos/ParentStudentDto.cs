@@ -15,7 +15,7 @@ namespace SchoolManager.Management.Application
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public Guid GradeId { get; set; }
-        public Guid SectionId { get; set; }
+        public Guid? SectionId { get; set; }
         public Guid AcademicYearId { get; set; }
     }
 }

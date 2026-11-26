@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Component, OnInit, OnDestroy, signal, computed, TemplateRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, Subject, forkJoin, of } from 'rxjs';
@@ -11,7 +12,7 @@ import { StageService } from '../../core/services/stage.service';
 import { GradeService } from '../../core/services/grade.service';
 import { SectionService } from '../../core/services/section.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
-import { Student } from '../../core/models/student.model';
+import { Student, StudentStatus, STUDENT_STATUSES, studentStatusInfo } from '../../core/models/student.model';
 import { Parent } from '../../core/models/parent.model';
 import {
   StudentFee,
@@ -44,6 +45,14 @@ interface CurrencySummary {
 })
 export class StudentProfileComponent implements OnInit, OnDestroy {
   student = signal<Student | null>(null);
+
+  // Status: current / graduated / transferred
+  readonly studentStatuses = STUDENT_STATUSES;
+  readonly studentStatusOf = studentStatusInfo;
+  readonly today = new Date().toISOString().slice(0, 10);
+  statusForm: { status: StudentStatus; date: string; note: string } = { status: StudentStatus.Current, date: '', note: '' };
+  isSavingStatus = signal(false);
+  statusError = signal<string | null>(null);
   parent = signal<Parent | null>(null);
   fees = signal<StudentFee[]>([]);
   currentLanguage = signal<string>('en');
@@ -117,8 +126,50 @@ export class StudentProfileComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private translate: TranslateService,
     private activatedRoute: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private modalService: NgbModal
   ) {}
+
+  openStatusDialog(template: TemplateRef<unknown>): void {
+    const s = this.student();
+    if (!s) return;
+    this.statusForm = { status: s.status ?? StudentStatus.Current, date: s.statusDate ?? this.today, note: s.statusNote ?? '' };
+    this.statusError.set(null);
+    this.modalService.open(template, { centered: true });
+  }
+
+  saveStatus(modal: NgbActiveModal): void {
+    const s = this.student();
+    if (!s || this.isSavingStatus()) return;
+    const current = this.statusForm.status === StudentStatus.Current;
+    this.isSavingStatus.set(true);
+    this.statusError.set(null);
+    this.studentService
+      .setStatus({
+        id: s.id,
+        status: this.statusForm.status,
+        date: current ? null : this.statusForm.date || null,
+        note: current ? null : this.statusForm.note.trim() || null
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isSavingStatus.set(false);
+          this.student.set({
+            ...s,
+            status: this.statusForm.status,
+            isActive: current,
+            statusDate: current ? null : this.statusForm.date || this.today,
+            statusNote: current ? null : this.statusForm.note.trim() || null
+          });
+          modal.close();
+        },
+        error: () => {
+          this.isSavingStatus.set(false);
+          this.statusError.set(this.translate.instant('students.statusSaveFailed'));
+        }
+      });
+  }
 
   ngOnInit(): void {
     this.languageService.currentLanguage$

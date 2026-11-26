@@ -20,6 +20,8 @@ namespace SchoolManager.ExamsHomework.Application
         string? AnswerModelUrl,
         int? Month = null,
         /// <summary>Teacher adding the exam from the teacher app (null: added by the school)</summary>
-        Guid? TeacherId = null
+        Guid? TeacherId = null,
+        /// <summary>Second final: the Final exam it is the resit of</summary>
+        Guid? OriginalExamId = null
     ) : ICommand<Guid>;
 }

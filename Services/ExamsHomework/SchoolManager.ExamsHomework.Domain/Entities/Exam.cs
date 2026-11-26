@@ -31,6 +31,9 @@ namespace SchoolManager.ExamsHomework.Domain
 
         public string? AnswerModelUrl { get; private set; } // نموذج الإجابة (ملف)
 
+        /// <summary>Second final only: the Final exam it is the resit of</summary>
+        public Guid? OriginalExamId { get; private set; }
+
         public AuditInfo AuditInfo { get; private set; }
         public List<ExamResult> ExamResults { get; private set; } = new();
 
@@ -108,6 +111,10 @@ namespace SchoolManager.ExamsHomework.Domain
             AnswerModelUrl = answerModelUrl;
             AuditInfo = auditInfo;
         }
+
+        /// <summary>Second final: the Final it is the resit of (cleared for the other types)</summary>
+        public void LinkOriginal(Guid? originalExamId) =>
+            OriginalExamId = ExamType == ExamType.SecondFinal ? originalExamId : null;
 
         /// <summary>The exam belongs to this teacher (teacher app)</summary>
         public void AssignTeacher(Guid teacherId) => TeacherId = teacherId;

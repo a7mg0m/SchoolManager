@@ -1,0 +1,235 @@
+<div class="container-fluid report-page">
+  <!-- Title + actions (hidden when printing) -->
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">{{ 'reports.studentsStatus.title' | translate }}</h2>
+      <small class="text-muted">{{ 'reports.studentsStatus.subtitle' | translate }}</small>
+      <div class="print-only small text-muted mt-1">{{ 'reports.generatedOn' | translate }}: {{ generatedOn | date: 'yyyy-MM-dd HH:mm' }}</div>
+    </div>
+    <div class="d-flex gap-2 no-print">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="load()" [disabled]="isLoading()">
+        <i class="pe-7s-refresh-2"></i> {{ 'reports.refresh' | translate }}
+      </button>
+      <button type="button" class="btn btn-outline-success btn-sm" (click)="exportCsv()" [disabled]="isLoading() || filtered().length === 0">
+        <i class="pe-7s-download"></i> {{ 'reports.exportExcel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="print()" [disabled]="isLoading()">
+        <i class="pe-7s-print"></i> {{ 'reports.print' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-warning no-print">{{ errorMessage() }}</div>
+  }
+
+  <!-- Filters -->
+  <div class="card mb-3 no-print">
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rYear">{{ 'parents.academicYear' | translate }}</label>
+          <select id="rYear" class="form-select form-select-sm" (change)="yearFilter.set($any($event.target).value)">
+            <option value="" [selected]="!yearFilter()">{{ 'students.all' | translate }}</option>
+            @for (y of academicYears(); track y.id) {
+              <option [value]="y.id" [selected]="y.id === yearFilter()">{{ y.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rStage">{{ 'parents.stage' | translate }}</label>
+          <select id="rStage" class="form-select form-select-sm" (change)="setStage($any($event.target).value)">
+            <option value="" [selected]="!stageFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of stages(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === stageFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rGrade">{{ 'parents.grade' | translate }}</label>
+          <select id="rGrade" class="form-select form-select-sm" (change)="setGrade($any($event.target).value)">
+            <option value="" [selected]="!gradeFilter()">{{ 'students.all' | translate }}</option>
+            @for (g of filterGrades(); track g.id) {
+              <option [value]="g.id" [selected]="g.id === gradeFilter()">{{ nameOf(g) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rSection">{{ 'parents.section' | translate }}</label>
+          <select id="rSection" class="form-select form-select-sm" [disabled]="!gradeFilter()" (change)="sectionFilter.set($any($event.target).value)">
+            <option value="" [selected]="!sectionFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of filterSections(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === sectionFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rStatus">{{ 'students.status' | translate }}</label>
+          <select id="rStatus" class="form-select form-select-sm" (change)="statusFilter.set(+$any($event.target).value)">
+            <option [value]="0" [selected]="statusFilter() === 0">{{ 'students.all' | translate }}</option>
+            @for (st of statuses; track st.value) {
+              <option [value]="st.value" [selected]="st.value === statusFilter()">{{ st.key | translate }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rSearch">{{ 'common.search' | translate }}</label>
+          <input id="rSearch" type="search" class="form-control form-control-sm" [value]="searchTerm()"
+                 (input)="searchTerm.set($any($event.target).value)" [placeholder]="'reports.studentsStatus.searchPlaceholder' | translate" />
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rFrom">{{ 'reports.studentsStatus.statusFrom' | translate }}</label>
+          <input id="rFrom" type="date" class="form-control form-control-sm" [value]="dateFrom()" (input)="dateFrom.set($any($event.target).value)" />
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rTo">{{ 'reports.studentsStatus.statusTo' | translate }}</label>
+          <input id="rTo" type="date" class="form-control form-control-sm" [value]="dateTo()" (input)="dateTo.set($any($event.target).value)" />
+        </div>
+        @if (hasFilters()) {
+          <div class="col-auto align-self-end">
+            <button type="button" class="btn btn-link btn-sm" (click)="clearFilters()">{{ 'students.clearFilters' | translate }}</button>
+          </div>
+        }
+      </div>
+      @if (dateFrom() || dateTo()) {
+        <small class="text-muted d-block mt-2">{{ 'reports.studentsStatus.dateHint' | translate }}</small>
+      }
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+  } @else {
+    <!-- Summary -->
+    @let s = summary();
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-lg-3">
+        <button type="button" class="stat-card w-100" [class.selected]="statusFilter() === 0" (click)="statusFilter.set(0)">
+          <i class="pe-7s-users"></i>
+          <div>
+            <div class="stat-value">{{ s.total }}</div>
+            <div class="stat-label">{{ 'reports.studentsStatus.total' | translate }}</div>
+          </div>
+        </button>
+      </div>
+      <div class="col-6 col-lg-3">
+        <button type="button" class="stat-card current w-100" [class.selected]="statusFilter() === StudentStatus.Current" (click)="statusFilter.set(StudentStatus.Current)">
+          <i class="pe-7s-check"></i>
+          <div>
+            <div class="stat-value">{{ s.current }} <small>{{ s.currentPct }}%</small></div>
+            <div class="stat-label">{{ 'students.statuses.current' | translate }}</div>
+          </div>
+        </button>
+      </div>
+      <div class="col-6 col-lg-3">
+        <button type="button" class="stat-card graduated w-100" [class.selected]="statusFilter() === StudentStatus.Graduated" (click)="statusFilter.set(StudentStatus.Graduated)">
+          <i class="pe-7s-medal"></i>
+          <div>
+            <div class="stat-value">{{ s.graduated }} <small>{{ s.graduatedPct }}%</small></div>
+            <div class="stat-label">{{ 'students.statuses.graduated' | translate }}</div>
+          </div>
+        </button>
+      </div>
+      <div class="col-6 col-lg-3">
+        <button type="button" class="stat-card transferred w-100" [class.selected]="statusFilter() === StudentStatus.Transferred" (click)="statusFilter.set(StudentStatus.Transferred)">
+          <i class="pe-7s-next-2"></i>
+          <div>
+            <div class="stat-value">{{ s.transferred }} <small>{{ s.transferredPct }}%</small></div>
+            <div class="stat-label">{{ 'students.statuses.transferred' | translate }}</div>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Share of each status -->
+    @if (s.total > 0) {
+      <div class="status-bar mb-3" role="img" [attr.aria-label]="'reports.studentsStatus.title' | translate">
+        <span class="bar current" [style.width.%]="s.currentPct"></span>
+        <span class="bar graduated" [style.width.%]="s.graduatedPct"></span>
+        <span class="bar transferred" [style.width.%]="s.transferredPct"></span>
+      </div>
+    }
+
+    <!-- Per grade -->
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">{{ 'reports.studentsStatus.byGrade' | translate }}</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'parents.stage' | translate }}</th>
+                <th>{{ 'parents.grade' | translate }}</th>
+                <th class="text-center">{{ 'students.statuses.current' | translate }}</th>
+                <th class="text-center">{{ 'students.statuses.graduated' | translate }}</th>
+                <th class="text-center">{{ 'students.statuses.transferred' | translate }}</th>
+                <th class="text-center">{{ 'reports.studentsStatus.total' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (g of byGrade(); track g.gradeId) {
+                <tr>
+                  <td class="text-muted">{{ g.stage }}</td>
+                  <td class="fw-semibold">{{ g.name }}</td>
+                  <td class="text-center">{{ g.current }}</td>
+                  <td class="text-center">{{ g.graduated }}</td>
+                  <td class="text-center">{{ g.transferred }}</td>
+                  <td class="text-center fw-bold">{{ g.total }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="text-center text-muted py-3">{{ 'reports.noData' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students -->
+    <div class="card">
+      <div class="card-header fw-semibold">
+        {{ 'reports.studentsStatus.students' | translate }} <span class="badge bg-secondary ms-1">{{ filtered().length }}</span>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table appDataTable [dtSearch]="false" [dtPageSize]="25" class="table table-sm table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>{{ 'reports.studentsStatus.student' | translate }}</th>
+                <th>{{ 'parents.nationalId' | translate }}</th>
+                <th>{{ 'parents.grade' | translate }} / {{ 'parents.section' | translate }}</th>
+                <th>{{ 'students.status' | translate }}</th>
+                <th>{{ 'reports.studentsStatus.statusDate' | translate }}</th>
+                <th>{{ 'reports.studentsStatus.note' | translate }}</th>
+                <th>{{ 'students.parent' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of filtered(); track r.student.id; let i = $index) {
+                @let st = statusInfo(r.status);
+                <tr>
+                  <td class="text-muted">{{ i + 1 }}</td>
+                  <td><a class="fw-semibold" [routerLink]="['/management/students', r.student.id]">{{ r.name }}</a></td>
+                  <td dir="ltr">{{ r.student.nationalId }}</td>
+                  <td>{{ r.grade }} / {{ r.section }}</td>
+                  <td><span class="badge" [ngClass]="st.badge">{{ st.key | translate }}</span></td>
+                  <td class="text-nowrap">{{ r.student.statusDate || '-' }}</td>
+                  <td class="note">{{ r.student.statusNote || '-' }}</td>
+                  <td>
+                    {{ r.parent || '-' }}
+                    @if (r.parentPhone) {
+                      <small class="text-muted d-block" dir="ltr">{{ r.parentPhone }}</small>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="8" class="text-center text-muted py-4">{{ 'reports.noData' | translate }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>

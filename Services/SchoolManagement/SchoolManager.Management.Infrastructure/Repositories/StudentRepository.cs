@@ -37,6 +37,16 @@ namespace SchoolManager.Management.Infrastructure
 				.ToListAsync(cancellationToken);
 		}
 
+		public async Task<Student?> GetByIdWithAcademicInfoAsync(Guid id, CancellationToken cancellationToken = default)
+		{
+			return await _dbSet
+				.AsNoTracking()
+				.Include(s => s.Stage)
+				.Include(s => s.Grade)
+				.Include(s => s.Section)
+				.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+		}
+
 		public async Task<List<Student>> GetByIdsWithParentAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken = default)
 		{
 			if (ids.Count == 0)

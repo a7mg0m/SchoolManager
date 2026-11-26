@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../attendance/attendance_screens.dart' show AttendanceApi;
 import '../attendance/class_attendance_screen.dart';
 import '../homework/homework_screens.dart' show homeworkDate;
+import '../activity/student_activity_screen.dart';
 import 'classes_service.dart';
 
 const _teal = Color(0xFF0FA5A5);
@@ -233,7 +234,15 @@ class _MyClassesScreenState extends State<MyClassesScreen> with ReloadOnAcademic
 
 /// Students of one class: boys / girls count, search, and each student's details
 class ClassStudentsScreen extends StatefulWidget {
-  const ClassStudentsScreen({super.key, required this.myClass, this.loadStudents, this.onSessionExpired, this.now, this.attendanceApi});
+  const ClassStudentsScreen({
+    super.key,
+    required this.myClass,
+    this.loadStudents,
+    this.onSessionExpired,
+    this.now,
+    this.attendanceApi,
+    this.activityApi = const StudentActivityApi(),
+  });
 
   final MyClass myClass;
 
@@ -244,6 +253,9 @@ class ClassStudentsScreen extends StatefulWidget {
 
   /// The class attendance page's API calls; defaults to the API with [loadStudents] (tests pass their own)
   final AttendanceApi? attendanceApi;
+
+  /// A student's activity page (profile, weekly attendance and reviews, exams); tests pass their own
+  final StudentActivityApi activityApi;
 
   @override
   State<ClassStudentsScreen> createState() => _ClassStudentsScreenState();
@@ -445,11 +457,33 @@ class _ClassStudentsScreenState extends State<ClassStudentsScreen> {
                 ),
               ),
               Icon(s.isFemale ? Icons.girl_rounded : s.isMale ? Icons.boy_rounded : Icons.person_rounded, color: color),
+              // The student's attendance, reviews and exams
+              IconButton(
+                key: ValueKey('activity-${s.id}'),
+                tooltip: tr('نشاط الطالب', 'Student activity'),
+                visualDensity: VisualDensity.compact,
+                onPressed: () => _openActivity(s),
+                icon: const Icon(Icons.insights_rounded, color: AppTheme.blue),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  /// The student's activity: profile, the week's attendance with the teachers' reviews, exams
+  void _openActivity(ClassStudent s) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => StudentActivityScreen(
+        studentId: s.id,
+        studentName: s.name,
+        classLabel: widget.myClass.label,
+        api: widget.activityApi,
+        onSessionExpired: widget.onSessionExpired,
+        now: widget.now,
+      ),
+    ));
   }
 
   void _details(ClassStudent s) {
@@ -495,6 +529,19 @@ class _ClassStudentsScreenState extends State<ClassStudentsScreen> {
                       s.isFemale ? tr('أنثى', 'Female') : tr('ذكر', 'Male')),
                 if (s.dateOfBirth != null) row(Icons.cake_rounded, tr('تاريخ الميلاد', 'Date of birth'), '${homeworkDate(s.dateOfBirth!)} ${s.dateOfBirth!.year}'),
                 if (age != null) row(Icons.hourglass_bottom_rounded, tr('العمر', 'Age'), tr('$age سنة', '$age years')),
+                const SizedBox(height: 4),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    key: const ValueKey('student-activity-button'),
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      _openActivity(s);
+                    },
+                    icon: const Icon(Icons.insights_rounded),
+                    label: Text(tr('نشاط الطالب: الحضور والتقييمات والاختبارات', 'Student activity: attendance, reviews, exams')),
+                  ),
+                ),
               ],
             ),
           ),

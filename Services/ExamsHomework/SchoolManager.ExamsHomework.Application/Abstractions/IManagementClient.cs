@@ -9,6 +9,12 @@ namespace SchoolManager.ExamsHomework.Application
         /// <summary>Children of the logged-in parent; null when the Management service could not answer.</summary>
         Task<IReadOnlyList<ParentChild>?> GetMyChildrenAsync(string authorization, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// A student the logged-in teacher teaches (with grade / class / year); Student null when the teacher does not
+        /// teach them; Unavailable when the Management service could not answer.
+        /// </summary>
+        Task<(ParentChild? Student, bool Unavailable)> GetTaughtStudentAsync(string authorization, Guid studentId, CancellationToken cancellationToken = default);
+
         /// <summary>Subject names by id (Arabic, English); empty when they could not be loaded.</summary>
         Task<IReadOnlyDictionary<Guid, (string Ar, string En)>> GetSubjectNamesAsync(string authorization, CancellationToken cancellationToken = default);
 

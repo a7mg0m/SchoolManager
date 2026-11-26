@@ -7,4 +7,7 @@ namespace SchoolManager.Notification.Application
     public record GetChatListQuery(Guid UserId, Guid? AcademicYearId = null, bool ResolveNames = true) : IQuery<IReadOnlyList<ChatListItemDto>>;
 
     public record GetChatHistoryQuery(Guid RoomId, Guid UserId, int Page = 1, int PageSize = 50) : IQuery<ChatHistoryDto>;
+
+    /// <summary>True when the user is an active participant of the room (chat file upload / download)</summary>
+    public record IsChatParticipantQuery(Guid RoomId, Guid UserId) : IQuery<bool>;
 }

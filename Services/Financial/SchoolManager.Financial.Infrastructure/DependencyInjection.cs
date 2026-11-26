@@ -20,6 +20,7 @@ namespace SchoolManager.Financial.Infrastructure
             services.AddScoped<IExpenseRepository, ExpenseRepository>();
             services.AddScoped<IFeesRepository, FeesRepository>();
             services.AddScoped<IStudentFeeRepository, StudentFeeRepository>();
+            services.AddScoped<IStudentFeePaymentRepository, StudentFeePaymentRepository>();
             services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IRevenueCategoryRepository, RevenueCategoryRepository>();

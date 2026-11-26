@@ -36,6 +36,13 @@ namespace SchoolManager.Attendance.Infrastructure
                 client.Timeout = TimeSpan.FromSeconds(15);
             });
 
+            // Teacher app: does the logged-in teacher teach a student (Management service, through the gateway)
+            services.AddHttpClient<ITeacherStudentsService, ManagementTeacherStudentsService>(client =>
+            {
+                client.BaseAddress = new Uri(configuration["ManagementService:BaseUrl"] ?? "http://localhost:53607/");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
+
             // Driver app: names, classes and parents' phones of the students on a trip (Management service, through the gateway)
             services.AddHttpClient<IBusRiderDirectory, ManagementBusRiderDirectory>(client =>
             {

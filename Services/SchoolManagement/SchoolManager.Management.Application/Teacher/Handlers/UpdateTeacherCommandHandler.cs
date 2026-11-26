@@ -54,6 +54,8 @@ namespace SchoolManager.Management.Application
                 request.IsActive,
                 // Keep the original CreatedOn / CreatedBy
                 entity.AuditInfo.Updated(DateTime.Now, _currentUser.UserId));
+			// Service ended: inactive (the event below disables the teacher's login)
+			entity.SetService(request.IsServiceEnded, request.ServiceEndDate);
 
 			_outbox.Enqueue(Topics.ManagementTeachers, entity.Id.ToString(),
 				TeacherEventFactory.From(entity, TeacherChangeType.Updated, _currentUser.UserId, passwordHash));

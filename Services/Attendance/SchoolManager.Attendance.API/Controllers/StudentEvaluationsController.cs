@@ -103,6 +103,21 @@ namespace SchoolManager.Attendance.API.Controllers
             return Ok(new ApiResponse { data = result });
         }
 
+        /// <summary>
+        /// Admin reviews report: every lesson evaluation between ?from= and ?to= ("yyyy-MM-dd", both included, at most a
+        /// year). App users (parents / teachers / drivers) get 403.
+        /// </summary>
+        [Authorize]
+        [HttpGet("report")]
+        public async Task<IActionResult> GetReport([FromQuery] DateOnly from, [FromQuery] DateOnly to, CancellationToken cancellationToken)
+        {
+            if (_currentUser.ParentId is not null || _currentUser.TeacherId is not null || _currentUser.BusId is not null)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "Forbidden"));
+
+            var result = await _mediator.Send(new GetEvaluationReportQuery(from, to), cancellationToken);
+            return Ok(new ApiResponse { data = result });
+        }
+
         /// <summary>A student's evaluations between two dates ("yyyy-MM-dd", both included)</summary>
         [HttpGet("get-by-student/{studentId}")]
         public async Task<IActionResult> GetByStudent(Guid studentId, [FromQuery] DateOnly from, [FromQuery] DateOnly to, CancellationToken cancellationToken)
@@ -135,6 +150,28 @@ namespace SchoolManager.Attendance.API.Controllers
             {
                 return NotFound(new ApiResponse(404, "StudentNotFound"));
             }
+        }
+        /// <summary>
+        /// Teacher app: the lesson evaluations of a student the logged-in teacher teaches, between two dates ("yyyy-MM-dd", both
+        /// included). Checked with the Management service; a student the teacher does not teach: 404.
+        /// </summary>
+        [Authorize]
+        [HttpGet("my-student/{studentId}")]
+        public async Task<IActionResult> GetMyStudent(
+            Guid studentId, [FromQuery] DateOnly from, [FromQuery] DateOnly to,
+            [FromServices] ITeacherStudentsService teacherStudents, CancellationToken cancellationToken)
+        {
+            if (_currentUser.TeacherId is null)
+                return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+            var teaches = await teacherStudents.TeachesStudentAsync(Request.Headers.Authorization.ToString(), studentId, cancellationToken);
+            if (teaches is null)
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiResponse(503, "ManagementUnavailable"));
+            if (teaches == false)
+                return NotFound(new ApiResponse(404, "StudentNotTaught"));
+
+            var result = await _mediator.Send(new GetStudentEvaluationsQuery(studentId, from, to), cancellationToken);
+            return Ok(new ApiResponse { data = result });
         }
     }
 }

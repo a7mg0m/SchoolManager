@@ -9,7 +9,7 @@ namespace SchoolManager.Notification.Application
         public async Task<List<MyNotificationDto>> Handle(GetChildNotificationsQuery query, CancellationToken cancellationToken)
         {
             var child = query.Child;
-            var items = await repository.GetForStudentAsync(query.AcademicYearId, child.GradeId, child.SectionId, child.Id,
+            var items = await repository.GetForStudentAsync(query.AcademicYearId, child.GradeId, child.SectionId ?? Guid.Empty, child.Id,
                 DateOnly.FromDateTime(DateTime.Today), cancellationToken);
             return MyNotifications.ToDtos(items);
         }

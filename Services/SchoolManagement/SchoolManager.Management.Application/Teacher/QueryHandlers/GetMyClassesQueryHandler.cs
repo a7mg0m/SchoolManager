@@ -11,7 +11,8 @@ namespace SchoolManager.Management.Application
         ISubjectRepository subjects,
         ISectionRepository sections,
         IAcademicYearRepository academicYears,
-        ISemesterRepository semesters) : IQueryHandler<GetMyClassesQuery, TeacherClassesDto>
+        ISemesterRepository semesters,
+        ITimetableRepository timetables) : IQueryHandler<GetMyClassesQuery, TeacherClassesDto>
     {
         public async Task<TeacherClassesDto> Handle(GetMyClassesQuery query, CancellationToken cancellationToken)
         {
@@ -40,6 +41,44 @@ namespace SchoolManager.Management.Application
                     .ThenByDescending(s => s.IsActive)
                     .ThenByDescending(s => s.StartDate)
                     .FirstOrDefault());
+
+            if (query.FromTimetable)
+            {
+                // Only what the teacher teaches in the year / semester's timetable: each subject with its classes
+                var lessons = year is null
+                    ? new List<TimetableSlot>()
+                    : await timetables.GetTeacherSlotsAsync(query.TeacherId, year.Id, semester?.Id, cancellationToken);
+                return new TeacherClassesDto
+                {
+                    AcademicYearId = year?.Id,
+                    SemesterId = semester?.Id,
+                    Subjects = lessons
+                        .Where(l => l.Subject is not null && l.Section is not null && l.Section.IsActive)
+                        .GroupBy(l => (l.SubjectId, l.GradeId))
+                        .Select(g =>
+                        {
+                            var first = g.First();
+                            return new TeacherSubjectDto
+                            {
+                                SubjectId = first.SubjectId,
+                                SubjectNameAr = first.Subject!.Name.Arabic,
+                                SubjectNameEn = first.Subject!.Name.English,
+                                GradeId = first.GradeId,
+                                StageId = first.Grade?.StageId ?? Guid.Empty,
+                                GradeNameAr = first.Grade?.Name.Arabic ?? string.Empty,
+                                GradeNameEn = first.Grade?.Name.English ?? string.Empty,
+                                Sections = g
+                                    .GroupBy(l => l.SectionId)
+                                    .Select(sg => sg.First().Section!)
+                                    .OrderBy(sec => sec.Name.English)
+                                    .Select(sec => new TeacherSectionDto { SectionId = sec.Id, NameAr = sec.Name.Arabic, NameEn = sec.Name.English })
+                                    .ToList()
+                            };
+                        })
+                        .OrderBy(s => s.GradeNameEn).ThenBy(s => s.SubjectNameEn)
+                        .ToList()
+                };
+            }
 
             return new TeacherClassesDto
             {

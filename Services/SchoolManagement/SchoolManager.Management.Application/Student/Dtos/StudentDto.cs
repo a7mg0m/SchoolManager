@@ -1,4 +1,6 @@
-﻿namespace SchoolManager.Management.Application
+﻿using SchoolManager.Management.Domain;
+
+namespace SchoolManager.Management.Application
 {
     public class StudentDto
     {
@@ -16,9 +18,13 @@
         public double? Longitude { get; set; }
         public Guid StageId { get; set; }
         public Guid GradeId { get; set; }
-        public Guid SectionId { get; set; }
+        public Guid? SectionId { get; set; }
         public Guid AcademicYearId { get; set; }
         public Guid ParentId { get; set; }
         public bool IsActive { get; set; }
+        /// <summary>1 Current, 2 Graduated, 3 Transferred</summary>
+        public StudentStatus Status { get; set; }
+        public DateOnly? StatusDate { get; set; }
+        public string? StatusNote { get; set; }
     }
 }

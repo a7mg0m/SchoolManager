@@ -1,6 +1,6 @@
 {
-    "name": "smart_school_driver",
-    "short_name": "smart_school_driver",
+    "name": "Smart School Driver",
+    "short_name": "Smart School Driver",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -18,6 +18,12 @@ namespace SchoolManager.Management.Domain
 
         public bool IsActive { get; private set; }
 
+        /// <summary>The teacher no longer works at the school (inactive: no teacher app login)</summary>
+        public bool IsServiceEnded { get; private set; }
+
+        /// <summary>Last day of service (null while in service)</summary>
+        public DateOnly? ServiceEndDate { get; private set; }
+
         /// <summary>Login name of the teacher's account (the Identity service keeps the login itself)</summary>
         public string? LoginName { get; private set; }
 
@@ -69,6 +75,24 @@ namespace SchoolManager.Management.Domain
             Address = address;
 
             AuditInfo = auditInfo;
+        }
+
+        /// <summary>
+        /// Service ended: the teacher becomes inactive (the Identity service disables their login) and the end date
+        /// defaults to today. In service again: the date is cleared (active as chosen in the form).
+        /// </summary>
+        public void SetService(bool ended, DateOnly? endDate)
+        {
+            IsServiceEnded = ended;
+            if (ended)
+            {
+                IsActive = false;
+                ServiceEndDate = endDate ?? DateOnly.FromDateTime(DateTime.Today);
+            }
+            else
+            {
+                ServiceEndDate = null;
+            }
         }
 
         public void SetJobLevel(string? jobLevel)

@@ -33,6 +33,19 @@ namespace SchoolManager.Identity.Infrastructure
             services.AddScoped<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
+            // Parent sign-in: does the parent still have a current child? (Management service, through the gateway)
+            services.AddHttpClient<IParentStudentsChecker, ManagementParentStudentsChecker>(client =>
+            {
+                client.BaseAddress = new Uri(configuration["ManagementService:BaseUrl"] ?? "http://localhost:53607/");
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
+            // Teacher sign-in: is the teacher still in service? (Management service, through the gateway)
+            services.AddHttpClient<ITeacherServiceChecker, ManagementTeacherServiceChecker>(client =>
+            {
+                client.BaseAddress = new Uri(configuration["ManagementService:BaseUrl"] ?? "http://localhost:53607/");
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
+
             // Kafka: teacher created / updated / deleted in Management -> teacher's User + UserProfile
             services.AddKafkaConsumer<TeacherIntegrationEvent, TeacherIntegrationEventHandler>(
                 configuration, Topics.ManagementTeachers);

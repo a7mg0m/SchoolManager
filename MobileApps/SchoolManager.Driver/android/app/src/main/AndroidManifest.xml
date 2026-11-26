@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:usesCleartextTraffic="true"
-        android:label="Smart School Driver"
+        android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- Push notifications: Firebase uses the app's channel and icon when the app is closed -->

@@ -21,6 +21,10 @@ namespace SchoolManager.ExamsHomework.Application
             var entity = await _repository.GetByIdAsync(command.Id)
                 ?? throw new KeyNotFoundException($"Exam {command.Id} not found");
 
+            // Its second final must be deleted first
+            if ((await _repository.SearchAsync(e => e.OriginalExamId == entity.Id)).Count > 0)
+                throw new ExamRuleException(SecondFinal.HasSecondFinal);
+
             _repository.Remove(entity);
             await _unitOfWork.SaveChangesAsync();
 

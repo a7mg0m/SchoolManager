@@ -21,6 +21,7 @@ export { ParentSaveComponent } from './management/parents/parent-save.component'
 export { TimetableListComponent } from './management/timetables/timetable-list.component';
 export { TimetableSaveComponent } from './management/timetables/timetable-save.component';
 export { StudentListComponent } from './management/students/student-list.component';
+export { SectionAssignmentComponent } from './management/section-assignment/section-assignment.component';
 export { StudentProfileComponent } from './management/students/student-profile.component';
 // Financial components
 export { ExpenseCategoryListComponent } from './financial/expense-categories/expense-category-list.component';
@@ -37,6 +38,15 @@ export { StudentFeeListComponent } from './financial/student-fees/student-fee-li
 export { StudentFeeAssignComponent } from './financial/student-fees/student-fee-assign.component';
 // Notification components
 export { SchoolEventListComponent } from './notification/school-events/school-event-list.component';
+// Reports
+export { StudentsStatusReportComponent } from './reports/students-status/students-status-report.component';
+export { ExpensesReportComponent } from './reports/expenses/expenses-report.component';
+export { IncomeReportComponent } from './reports/income/income-report.component';
+export { AttendanceReportComponent } from './reports/attendance/attendance-report.component';
+export { ReviewsReportComponent } from './reports/reviews/reviews-report.component';
+export { ExamResultsReportComponent } from './reports/exam-results/exam-results-report.component';
+export { TransportReportComponent } from './reports/transport/transport-report.component';
+export { SchoolEventAttendanceComponent } from './notification/school-events/school-event-attendance.component';
 export { SchoolEventSaveComponent } from './notification/school-events/school-event-save.component';
 export { NotificationListComponent } from './notification/notifications/notification-list.component';
 export { NotificationSaveComponent } from './notification/notifications/notification-save.component';
@@ -46,6 +56,7 @@ export { NotificationTargetsComponent } from './notification/notifications/notif
 export { ExamListComponent } from './exam/exams/exam-list.component';
 export { ExamSaveComponent } from './exam/exams/exam-save.component';
 export { ExamResultsComponent } from './exam/exam-results/exam-results.component';
+export { StudentPromotionComponent } from './exam/promotion/student-promotion.component';
 
 // Users components
 export { EmployeeGroupListComponent } from './users/employee-groups/employee-group-list.component';

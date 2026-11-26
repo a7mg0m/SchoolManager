@@ -17,7 +17,7 @@ namespace SchoolManager.Management.Application
         public string GradeNameAr { get; set; } = string.Empty;
         public string GradeNameEn { get; set; } = string.Empty;
 
-        public Guid SectionId { get; set; }
+        public Guid? SectionId { get; set; }
         public string SectionNameAr { get; set; } = string.Empty;
         public string SectionNameEn { get; set; } = string.Empty;
 

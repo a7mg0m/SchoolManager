@@ -7,11 +7,19 @@ namespace SchoolManager.Financial.Application
     public class ApplyStudentFeePaymentCommandHandler : ICommandHandler<ApplyStudentFeePaymentCommand, bool>
     {
         private readonly IStudentFeeRepository _repository;
+        private readonly IStudentFeePaymentRepository _payments;
+        private readonly ICurrentUserService _currentUser;
         private readonly IUnitOfWork _unitOfWork;
 
-        public ApplyStudentFeePaymentCommandHandler(IStudentFeeRepository repository, IUnitOfWork unitOfWork)
+        public ApplyStudentFeePaymentCommandHandler(
+            IStudentFeeRepository repository,
+            IStudentFeePaymentRepository payments,
+            ICurrentUserService currentUser,
+            IUnitOfWork unitOfWork)
         {
             _repository = repository;
+            _payments = payments;
+            _currentUser = currentUser;
             _unitOfWork = unitOfWork;
         }
 
@@ -21,6 +29,8 @@ namespace SchoolManager.Financial.Application
             if (entity is null) return false;
 
             entity.ApplyPayment(new Money(command.Amount, command.Currency));
+            // Dated record of the payment (income report)
+            await _payments.AddAsync(new StudentFeePayment(entity, command.Amount, command.Currency, DateTime.Now, _currentUser.UserId));
 
             await _repository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

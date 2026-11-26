@@ -148,6 +148,9 @@
                   <button class="btn btn-outline-info" (click)="openView(e, viewModal)" title="{{ 'schoolEvents.view' | translate }}">
                     <i class="pe-7s-look"></i>
                   </button>
+                  <button class="btn btn-outline-success" (click)="navigateToAttendance(e.id)" title="{{ 'eventAttendance.title' | translate }}">
+                    <i class="pe-7s-check"></i>
+                  </button>
                   <button class="btn btn-outline-primary" *appCan="'edit'" (click)="navigateToEdit(e.id)" [disabled]="isDeleting()" title="{{ 'common.edit' | translate }}">
                     <i class="pe-7s-note"></i>
                   </button>

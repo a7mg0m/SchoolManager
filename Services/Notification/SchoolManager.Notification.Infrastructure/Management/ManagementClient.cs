@@ -13,7 +13,7 @@ namespace SchoolManager.Notification.Infrastructure
     /// </summary>
     public class ManagementClient(HttpClient httpClient, IMemoryCache cache, ServiceTokenProvider serviceToken) : IManagementClient
     {
-        private sealed record ChildItem(Guid Id, Guid StageId, Guid GradeId, Guid SectionId, Guid AcademicYearId);
+        private sealed record ChildItem(Guid Id, Guid StageId, Guid GradeId, Guid? SectionId, Guid AcademicYearId);
         private sealed record ApiResponse<T>(T? Data);
         private sealed record NamedItem(string? NameAr, string? NameEn);
         private sealed record ParentItem(Guid Id, string? NameAr, string? NameEn, List<NamedItem>? Children);
@@ -57,31 +57,46 @@ namespace SchoolManager.Notification.Infrastructure
             }
         }
 
-        public async Task<IReadOnlyList<ChatContact>?> GetChatContactsAsync(string authorization, bool asTeacher, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ChatContact>?> GetChatContactsAsync(
+            string authorization,
+            bool asTeacher,
+            CancellationToken cancellationToken = default,
+            Guid? studentId = null,
+            Guid? academicYearId = null,
+            Guid? semesterId = null)
         {
             if (string.IsNullOrWhiteSpace(authorization))
                 return Array.Empty<ChatContact>();
 
-            var key = "chat-contacts:" + (asTeacher ? "t:" : "p:")
+            // Year / semester chosen in the app
+            var period = (academicYearId is Guid y && y != Guid.Empty ? $"&academicYearId={y}" : "")
+                + (semesterId is Guid m && m != Guid.Empty ? $"&semesterId={m}" : "");
+            var filter = asTeacher
+                // A teacher: only the parents of the classes they teach in that timetable
+                ? (academicYearId is Guid ty && ty != Guid.Empty ? "?fromTimetable=true" + period : string.Empty)
+                // A parent's chosen child: that child's section teachers only
+                : (studentId is Guid s && s != Guid.Empty ? $"?studentId={s}" + period : string.Empty);
+
+            var key = "chat-contacts:" + (asTeacher ? "t:" : "p:") + filter + ":"
                 + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(authorization)));
             if (cache.TryGetValue(key, out IReadOnlyList<ChatContact>? cached) && cached is not null)
                 return cached;
 
-            var contacts = await LoadChatContactsAsync(authorization, asTeacher, cancellationToken);
+            var contacts = await LoadChatContactsAsync(authorization, asTeacher, filter, cancellationToken);
             // Only real answers are kept (null = Management unavailable: asked again next time)
             if (contacts is not null)
                 cache.Set(key, contacts, ContactsLifetime);
             return contacts;
         }
 
-        private async Task<IReadOnlyList<ChatContact>?> LoadChatContactsAsync(string authorization, bool asTeacher, CancellationToken cancellationToken)
+        private async Task<IReadOnlyList<ChatContact>?> LoadChatContactsAsync(string authorization, bool asTeacher, string filter, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(authorization) || !AuthenticationHeaderValue.TryParse(authorization, out var header))
                 return Array.Empty<ChatContact>();
 
             try
             {
-                using var request = new HttpRequestMessage(HttpMethod.Get, asTeacher ? "api/teacher/my-parents" : "api/student/my-teachers");
+                using var request = new HttpRequestMessage(HttpMethod.Get, (asTeacher ? "api/teacher/my-parents" : "api/student/my-teachers") + filter);
                 request.Headers.Authorization = header;
 
                 using var response = await httpClient.SendAsync(request, cancellationToken);

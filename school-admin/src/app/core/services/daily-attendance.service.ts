@@ -7,8 +7,7 @@ import {
   DailyAttendanceSingleResponse,
   PeriodAttendanceListResponse,
   RecordPeriodAttendanceRequest,
-  SetDailyAttendanceRequest
-} from '../models/attendance.model';
+  SetDailyAttendanceRequest, AttendanceReportRow } from '../models/attendance.model';
 
 /**
  * DailyAttendanceService
@@ -23,6 +22,19 @@ export class DailyAttendanceService {
   constructor(private apiService: ApiService) {}
 
   /** POST /api/daily-attendance/record-period (teacher accounts only) */
+  /** Attendance report: every recorded school day of a period (yyyy-MM-dd, at most a year), optionally of a year / grade / class */
+  getReport(filter: { from: string; to: string; academicYearId?: string | null; gradeId?: string | null; sectionId?: string | null })
+    : Observable<ApiResponse<AttendanceReportRow[]>> {
+    const query = [
+      `from=${filter.from}`,
+      `to=${filter.to}`,
+      filter.academicYearId ? `academicYearId=${filter.academicYearId}` : '',
+      filter.gradeId ? `gradeId=${filter.gradeId}` : '',
+      filter.sectionId ? `sectionId=${filter.sectionId}` : ''
+    ].filter(Boolean).join('&');
+    return this.apiService.get<ApiResponse<AttendanceReportRow[]>>(`${this.endpoint}/report?${query}`);
+  }
+
   recordPeriod(request: RecordPeriodAttendanceRequest): Observable<ApiResponse<null>> {
     return this.apiService.post<ApiResponse<null>>(`${this.endpoint}/record-period`, request);
   }

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:smart_school_teacher/features/attendance/attendance_screens.dart';
 import 'package:smart_school_teacher/features/attendance/attendance_service.dart';
+import 'package:smart_school_teacher/features/chat/chat_media.dart';
+import 'package:smart_school_teacher/features/activity/student_activity_screen.dart';
+import 'package:smart_school_teacher/features/activity/student_activity_service.dart';
 import 'package:smart_school_teacher/features/chat/chat_screens.dart';
 import 'package:smart_school_teacher/features/notifications/notifications_screen.dart';
 import 'package:smart_school_teacher/features/notifications/notifications_service.dart';
@@ -1828,6 +1832,63 @@ void main() {
       expect(find.text('رياضيات، علوم'), findsOneWidget);
     });
 
+    testWidgets('Media: the mic shows until something is typed; a photo message shows as a picture; the list says Photo',
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      final api = ChatApi(
+        userId: me,
+        loadChats: () async => [
+          ChatSummary(roomId: 'r1', otherUserId: 'u-1', nameAr: 'منى حسن', nameEn: 'Mona',
+              lastMessage: '', lastAttachmentKind: 'image', lastMessageSenderId: 'u-1', lastMessageOn: now),
+        ],
+        loadMessages: (roomId) async => [
+          ChatMessage(id: 'p1', senderId: 'u-1', content: '', sentOn: now, attachments: const [
+            ChatAttachment(fileName: 'photo.jpg', url: '/api/chat/files/r1/abc.jpg', contentType: 'image/jpeg', sizeInBytes: 2048),
+          ]),
+        ],
+        seen: (roomId, ids) async {},
+      );
+      await tester.pumpWidget(MaterialApp(home: ChatListScreen(api: api, refreshEvery: null, now: now)));
+      await tester.pumpAndSettle();
+      // A picture without words: the list shows what it is
+      expect(find.text('📷 صورة'), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('chat-r1')));
+      await tester.pumpAndSettle();
+      expect(find.byType(ChatMediaView), findsOneWidget);
+      expect(find.byKey(const ValueKey('chat-attach')), findsOneWidget);
+
+      // Nothing typed: the mic records a voice note; typing brings back the send button
+      expect(find.byKey(const ValueKey('chat-mic')), findsOneWidget);
+      expect(find.byKey(const ValueKey('chat-send')), findsNothing);
+      await tester.enterText(find.byKey(const ValueKey('chat-input')), 'مرحباً');
+      await tester.pump();
+      expect(find.byKey(const ValueKey('chat-send')), findsOneWidget);
+      expect(find.byKey(const ValueKey('chat-mic')), findsNothing);
+    });
+
+    test('Chat JSON: attachments, their kind and the list preview of a voice note', () {
+      final m = ChatMessage.fromJson({
+        'id': 'v',
+        'senderId': 's',
+        'content': '',
+        'sentOn': '2026-11-20T08:00:00Z',
+        'attachments': [
+          {'fileName': 'voice.m4a', 'url': '/api/chat/files/r/1.m4a', 'contentType': 'audio/mp4', 'sizeInBytes': 900},
+        ],
+      });
+      expect(m.attachments.single.kind, ChatMediaKind.audio);
+      expect(m.attachments.single.sizeInBytes, 900);
+      expect(chatMediaKind('video/mp4'), ChatMediaKind.video);
+      final c = ChatSummary.fromJson({'roomId': 'r', 'otherUserId': 'u', 'lastMessage': '', 'lastAttachmentKind': 'audio'});
+      expect(c.lastMessagePreview, '🎤 رسالة صوتية');
+      final text = ChatSummary.fromJson({'roomId': 'r', 'otherUserId': 'u', 'lastMessage': 'hi', 'lastAttachmentKind': null});
+      expect(text.lastMessagePreview, 'hi');
+      // Files that are too large are refused before the upload
+      final big = ChatOutgoingMedia(bytes: Uint8List(chatMaxImageBytes + 1), fileName: 'p.jpg', kind: ChatMediaKind.image);
+      expect(big.tooLarge, isTrue);
+    });
+
     test('Chat JSON: times without a zone are UTC, statuses', () {
       final m = ChatMessage.fromJson({'id': 'a', 'senderId': 's', 'content': 'hi', 'sentOn': '2026-11-20T08:00:00', 'status': 3});
       expect(m.sentOn, DateTime.utc(2026, 11, 20, 8).toLocal());
@@ -1840,4 +1901,84 @@ void main() {
       expect(c.lastMessageOn, isNull);
     });
   });
+
+  group('Student activity', () {
+    testWidgets("A student's profile, the week's lessons with their reviews, the review details, other weeks, exams",
+        (WidgetTester tester) async {
+      _phoneSize(tester);
+      final now = DateTime(2026, 11, 24, 10, 0); // Tuesday; the week started on Saturday the 21st
+      final asked = <DateTime>[];
+      final api = StudentActivityApi(
+        loadInfo: (_) async => const StudentActivityInfo(
+          student: ActivityStudent(id: 'st-1', nameAr: 'سارة أحمد', nameEn: 'Sara Ahmed', gender: 'Female', gradeName: 'الصف الأول', sectionName: 'فصل أ'),
+          days: [
+            ActivityTimetableDay(dayOfWeek: 0, slots: [ActivitySlot(id: 's1', start: 450, end: 495, subject: 'قرآن', teacher: 'أ. علي')]),
+            ActivityTimetableDay(dayOfWeek: 2, slots: [
+              ActivitySlot(id: 't1', start: 480, end: 525, subject: 'رياضيات', teacher: 'أ. منى'),
+              ActivitySlot(id: 't2', start: 570, end: 615, subject: 'علوم', teacher: 'أ. سامي'),
+            ]),
+          ],
+          teachers: [ActivityTeacher(id: 'tm', name: 'أ. منى', subjects: {'m': 'رياضيات'})],
+        ),
+        loadAttendance: (id, from, to) async {
+          asked.add(from);
+          if (from != DateTime(2026, 11, 21)) return const [];
+          return [
+            ActivityDay(date: DateTime(2026, 11, 22), status: ActivityDayStatus.present, lessons: const [
+              ActivityLesson(timetableSlotId: 's1', subjectId: 'q', start: 450, status: ActivityLessonStatus.present),
+            ]),
+            ActivityDay(date: DateTime(2026, 11, 24), status: ActivityDayStatus.partiallyPresent, absentLessons: 1, lessons: const [
+              ActivityLesson(timetableSlotId: 't1', subjectId: 'm', start: 480, status: ActivityLessonStatus.present),
+              ActivityLesson(timetableSlotId: 't2', subjectId: 'sc', start: 570, status: ActivityLessonStatus.absent, absenceReason: 'موعد طبيب'),
+            ]),
+          ];
+        },
+        loadReviews: (id, from, to) async => from == DateTime(2026, 11, 21)
+            ? [
+                ActivityReview(id: 'e1', teacherId: 'tm', subjectId: 'm', date: DateTime(2026, 11, 24), focus: 5, interaction: 4,
+                    behavior: 4, health: ActivityHealth.good, comment: 'مشاركة ممتازة اليوم'),
+              ]
+            : const [],
+        loadExams: (_) async => [
+          ActivityExam(id: 'x1', kind: ActivityExamKind.monthly, subject: 'رياضيات', date: DateTime(2026, 11, 10), start: 600, end: 660,
+              fullMark: 20, score: 18, isPassed: true, percentage: 90),
+          ActivityExam(id: 'x2', kind: ActivityExamKind.quiz, subject: 'علوم', date: DateTime(2026, 11, 30), start: 600, end: 630, fullMark: 10),
+        ],
+      );
+      await tester.pumpWidget(MaterialApp(home: StudentActivityScreen(studentId: 'st-1', studentName: 'سارة أحمد', api: api, now: now)));
+      await tester.pumpAndSettle();
+
+      // Profile
+      expect(find.byKey(const ValueKey('activity-profile')), findsOneWidget);
+      expect(find.text('فصل أ'), findsOneWidget);
+
+      // The week: Sunday and Tuesday, the review on Tuesday's math lesson
+      expect(find.text('21 نوفمبر – 27 نوفمبر'), findsOneWidget);
+      expect(find.text('2/2'), findsOneWidget);
+      expect(find.text('قرآن'), findsOneWidget);
+      expect(find.text('4.3'), findsNWidgets(2));
+      expect(find.text('حاضر جزئياً'), findsOneWidget);
+
+      // The review's details
+      await tester.tap(find.text('4.3').last);
+      await tester.pumpAndSettle();
+      expect(find.text('التركيز'), findsOneWidget);
+      expect(find.text('مشاركة ممتازة اليوم'), findsOneWidget);
+      Navigator.of(tester.element(find.text('التركيز'))).pop();
+      await tester.pumpAndSettle();
+
+      // Exams
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('activity-exam-average')), 300);
+      expect(find.text('90%'), findsOneWidget);
+      expect(find.text('18/20'), findsOneWidget);
+
+      // Previous week
+      await tester.scrollUntilVisible(find.byKey(const ValueKey('activity-prev-week')), -300);
+      await tester.tap(find.byKey(const ValueKey('activity-prev-week')));
+      await tester.pumpAndSettle();
+      expect(asked.last, DateTime(2026, 11, 14));
+      expect(find.text('4.3'), findsNothing);
+    });
+  });
+
 }

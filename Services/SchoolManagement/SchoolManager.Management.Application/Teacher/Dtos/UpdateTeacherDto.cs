@@ -12,6 +12,10 @@
 
         /// <summary>Job level (free text, optional)</summary>
         public string? JobLevel { get; set; }
+        /// <summary>The teacher no longer works at the school</summary>
+        public bool IsServiceEnded { get; set; }
+        /// <summary>Last day of service (yyyy-MM-dd); today when ended without a date</summary>
+        public DateOnly? ServiceEndDate { get; set; }
 
         /// <summary>Login name of the teacher's account (required).</summary>
         public string? LoginName { get; set; }

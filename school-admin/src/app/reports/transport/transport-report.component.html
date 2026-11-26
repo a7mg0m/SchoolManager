@@ -1,0 +1,297 @@
+<div class="container-fluid report-page">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">{{ 'reports.transport.title' | translate }}</h2>
+      <small class="text-muted">{{ 'reports.transport.subtitle' | translate }}</small>
+      <div class="print-only small text-muted mt-1">
+        {{ 'reports.generatedOn' | translate }}: {{ generatedOn | date: 'yyyy-MM-dd HH:mm' }} · {{ dateFrom() }} → {{ dateTo() }}
+      </div>
+    </div>
+    <div class="d-flex gap-2 no-print">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="load()" [disabled]="isLoading()">
+        <i class="pe-7s-refresh-2"></i> {{ 'reports.refresh' | translate }}
+      </button>
+      <button type="button" class="btn btn-outline-success btn-sm" (click)="exportCsv()" [disabled]="isLoading() || busRows().length === 0">
+        <i class="pe-7s-download"></i> {{ 'reports.exportExcel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="print()" [disabled]="isLoading()">
+        <i class="pe-7s-print"></i> {{ 'reports.print' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-warning no-print">{{ errorMessage() }}</div>
+  }
+
+  <!-- Filters -->
+  <div class="card mb-3 no-print">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="tYear">{{ 'parents.academicYear' | translate }}</label>
+          <select id="tYear" class="form-select form-select-sm" (change)="yearFilter.set($any($event.target).value)">
+            <option value="" [selected]="!yearFilter()">{{ 'students.all' | translate }}</option>
+            @for (y of academicYears(); track y.id) {
+              <option [value]="y.id" [selected]="y.id === yearFilter()">{{ y.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="tRoute">{{ 'reports.transport.route' | translate }}</label>
+          <select id="tRoute" class="form-select form-select-sm" (change)="setRoute($any($event.target).value)">
+            <option value="" [selected]="!routeFilter()">{{ 'students.all' | translate }}</option>
+            @for (r of routeOptions(); track r.id) {
+              <option [value]="r.id" [selected]="r.id === routeFilter()">{{ nameOf(r) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="tBus">{{ 'reports.transport.bus' | translate }}</label>
+          <select id="tBus" class="form-select form-select-sm" (change)="busFilter.set($any($event.target).value)">
+            <option value="" [selected]="!busFilter()">{{ 'students.all' | translate }}</option>
+            @for (b of busesOfRoute(); track b.id) {
+              <option [value]="b.id" [selected]="b.id === busFilter()">{{ b.number }} · {{ b.plateNumber }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <div class="form-check form-switch mb-1">
+            <input class="form-check-input" type="checkbox" id="tInactive" [checked]="showInactive()" (change)="showInactive.set(!showInactive())" />
+            <label class="form-check-label small" for="tInactive">{{ 'reports.transport.showInactive' | translate }}</label>
+          </div>
+        </div>
+      </div>
+      <hr class="my-2" />
+      <div class="d-flex flex-wrap align-items-end gap-2">
+        <span class="small text-muted me-1">{{ 'reports.transport.tripsPeriod' | translate }}</span>
+        @for (r of ['thisWeek', 'thisMonth', 'lastMonth']; track r) {
+          <button type="button" class="btn btn-sm" [class.btn-primary]="quickRange() === r" [class.btn-outline-secondary]="quickRange() !== r"
+                  (click)="setQuickRange($any(r))">{{ 'reports.attendance.' + r | translate }}</button>
+        }
+        <input type="date" class="form-control form-control-sm w-auto" [value]="dateFrom()" (change)="setDate('from', $any($event.target).value)"
+               [attr.aria-label]="'reports.expenses.from' | translate" />
+        <span>→</span>
+        <input type="date" class="form-control form-control-sm w-auto" [value]="dateTo()" (change)="setDate('to', $any($event.target).value)"
+               [attr.aria-label]="'reports.expenses.to' | translate" />
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+  } @else if (busRows().length === 0) {
+    <div class="alert alert-light border text-center">{{ 'reports.transport.noBuses' | translate }}</div>
+  } @else {
+    <!-- Fleet -->
+    @let f = fleet();
+    <div class="row g-3 mb-3">
+      <div class="col-md-4 col-xl-3">
+        <div class="occ-card" [class]="'occ-card ' + occupancyClass(f.occupancy)">
+          <div class="occ-value">{{ f.occupancy }}%</div>
+          <div class="occ-label">{{ 'reports.transport.occupancy' | translate }}</div>
+          <small>{{ 'reports.transport.studentsOfSeats' | translate: { students: f.students, seats: f.capacity } }}</small>
+        </div>
+      </div>
+      <div class="col-md-8 col-xl-9">
+        <div class="row g-2 h-100">
+          <div class="col-6 col-lg-3"><div class="mini"><span>{{ f.buses }}</span>{{ 'reports.transport.buses' | translate }}</div></div>
+          <div class="col-6 col-lg-3"><div class="mini"><span>{{ f.routes }}</span>{{ 'reports.transport.routes' | translate }}</div></div>
+          <div class="col-6 col-lg-3"><div class="mini"><span>{{ f.free }}</span>{{ 'reports.transport.freeSeats' | translate }}</div></div>
+          <div class="col-6 col-lg-3"><div class="mini" [class.alert-mini]="f.full > 0"><span>{{ f.full }}</span>{{ 'reports.transport.fullBuses' | translate }}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bus fees -->
+    @if (feeTotals().length > 0) {
+      <div class="row g-3 mb-3">
+        @for (t of feeTotals(); track t.currency) {
+          <div class="col-md-6 col-xl-4">
+            <div class="fee-card">
+              <div class="fee-title"><i class="pe-7s-cash"></i> {{ 'reports.transport.busFees' | translate }} · {{ t.currency }}</div>
+              <div class="fee-row"><span>{{ 'reports.income.billed' | translate }}</span><b>{{ amount(t.billed) }}</b></div>
+              <div class="fee-row text-success"><span>{{ 'reports.income.collected' | translate }}</span><b>{{ amount(t.collected) }}</b></div>
+              <div class="fee-row text-danger"><span>{{ 'reports.income.outstanding' | translate }}</span><b>{{ amount(t.outstanding) }}</b></div>
+              <div class="rate-bar mt-2"><span class="good" [style.width.%]="rate(t.collected, t.billed)"></span></div>
+              <small class="text-muted">{{ 'reports.income.collectionRate' | translate }}: {{ rate(t.collected, t.billed) }}%</small>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Per bus -->
+    <div class="card mb-3">
+      <div class="card-header fw-semibold">{{ 'reports.transport.byBus' | translate }}</div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table appDataTable [dtSearch]="false" [dtPageSize]="10" class="table table-sm table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>{{ 'reports.transport.bus' | translate }}</th>
+                <th>{{ 'reports.transport.route' | translate }}</th>
+                <th>{{ 'reports.transport.driver' | translate }}</th>
+                <th class="occ-col">{{ 'reports.transport.occupancy' | translate }}</th>
+                <th class="text-end">{{ 'reports.transport.busFees' | translate }}</th>
+                <th class="text-center">{{ 'reports.transport.trips' | translate }}</th>
+                <th class="text-center">{{ 'reports.transport.boardedAbsent' | translate }}</th>
+                <th class="text-center">{{ 'reports.transport.avgDuration' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of busRows(); track r.bus.id) {
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ r.bus.number }} @if (!r.bus.isActive) { <span class="badge bg-secondary">{{ 'common.inactive' | translate }}</span> }</div>
+                    <small class="text-muted" dir="ltr">{{ r.bus.plateNumber }}</small>
+                  </td>
+                  <td>{{ r.route }}</td>
+                  <td>
+                    {{ r.bus.driverName }}
+                    <small class="text-muted d-block" dir="ltr">{{ r.bus.driverPhone }}</small>
+                  </td>
+                  <td class="occ-col">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rate-bar flex-grow-1"><span [class]="occupancyClass(r.occupancy)" [style.width.%]="r.occupancy > 100 ? 100 : r.occupancy"></span></div>
+                      <small class="fw-semibold text-nowrap">{{ r.students }}/{{ r.bus.capacity }}</small>
+                    </div>
+                  </td>
+                  <td class="text-end text-nowrap">
+                    @for (m of r.fees; track m.currency) {
+                      <div>{{ amount(m.collected) }} / {{ amount(m.billed, m.currency) }}</div>
+                    } @empty {
+                      <span class="text-muted">-</span>
+                    }
+                  </td>
+                  <td class="text-center">
+                    {{ r.completed }}/{{ r.trips }}
+                    @if (r.cancelled) {
+                      <small class="text-danger d-block">{{ 'reports.transport.cancelledCount' | translate: { count: r.cancelled } }}</small>
+                    }
+                  </td>
+                  <td class="text-center"><span class="text-success">{{ r.boarded }}</span> / <span class="text-danger">{{ r.absent }}</span></td>
+                  <td class="text-center">{{ r.avgMinutes === null ? '-' : r.avgMinutes + ' ' + ('reports.transport.min' | translate) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <!-- By route -->
+      <div class="col-xl-6">
+        <div class="card h-100">
+          <div class="card-header fw-semibold">{{ 'reports.transport.byRoute' | translate }}</div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>{{ 'reports.transport.route' | translate }}</th>
+                    <th class="text-center">{{ 'reports.transport.stops' | translate }}</th>
+                    <th class="text-center">{{ 'reports.transport.buses' | translate }}</th>
+                    <th class="occ-col">{{ 'reports.transport.occupancy' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (r of routeRows(); track r.name) {
+                    <tr>
+                      <td class="fw-semibold">{{ r.name }}</td>
+                      <td class="text-center">{{ r.stops }}</td>
+                      <td class="text-center">{{ r.buses }}</td>
+                      <td class="occ-col">
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="rate-bar flex-grow-1"><span [class]="occupancyClass(r.occupancy)" [style.width.%]="r.occupancy > 100 ? 100 : r.occupancy"></span></div>
+                          <small class="fw-semibold text-nowrap">{{ r.students }}/{{ r.capacity }}</small>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trips of the period -->
+      <div class="col-xl-6">
+        <div class="card h-100">
+          <div class="card-header fw-semibold">{{ 'reports.transport.tripsTitle' | translate }} <small class="text-muted fw-normal">{{ dateFrom() }} → {{ dateTo() }}</small></div>
+          <div class="card-body">
+            @if (isLoadingTrips()) {
+              <div class="text-center py-3"><div class="spinner-border spinner-border-sm" role="status"></div></div>
+            } @else {
+              @let ts = tripSummary();
+              @if (ts.total === 0) {
+                <div class="text-muted text-center small py-3">{{ 'reports.transport.noTrips' | translate }}</div>
+              } @else {
+                <div class="row g-2 mb-3">
+                  <div class="col-4"><div class="mini"><span>{{ ts.total }}</span>{{ 'reports.transport.trips' | translate }}</div></div>
+                  <div class="col-4"><div class="mini"><span>{{ rate(ts.completed, ts.total) }}%</span>{{ 'reports.transport.completed' | translate }}</div></div>
+                  <div class="col-4"><div class="mini"><span>{{ ts.avgMinutes === null ? '-' : ts.avgMinutes }}</span>{{ 'reports.transport.avgDuration' | translate }}</div></div>
+                </div>
+                <div class="status-bar mb-1">
+                  <span class="completed" [style.width.%]="rate(ts.completed, ts.total)"></span>
+                  <span class="progress" [style.width.%]="rate(ts.inProgress, ts.total)"></span>
+                  <span class="planned" [style.width.%]="rate(ts.planned, ts.total)"></span>
+                  <span class="cancelled" [style.width.%]="rate(ts.cancelled, ts.total)"></span>
+                </div>
+                <div class="legend mb-3">
+                  <span><i class="completed"></i>{{ 'transport.tripStatus.completed' | translate }} {{ ts.completed }}</span>
+                  <span><i class="progress"></i>{{ 'transport.tripStatus.inProgress' | translate }} {{ ts.inProgress }}</span>
+                  <span><i class="planned"></i>{{ 'transport.tripStatus.planned' | translate }} {{ ts.planned }}</span>
+                  <span><i class="cancelled"></i>{{ 'transport.tripStatus.cancelled' | translate }} {{ ts.cancelled }}</span>
+                </div>
+                <div class="d-flex flex-wrap gap-3 small">
+                  <span>{{ 'transport.tripType.toSchool' | translate }}: <b>{{ ts.toSchool }}</b></span>
+                  <span>{{ 'transport.tripType.toHome' | translate }}: <b>{{ ts.toHome }}</b></span>
+                  <span class="text-success">{{ 'reports.transport.boarded' | translate }}: <b>{{ ts.boarded }}</b></span>
+                  <span class="text-danger">{{ 'reports.transport.absent' | translate }}: <b>{{ ts.absent }}</b></span>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day by day -->
+    @if (!isLoadingTrips() && byDay().length > 0) {
+      <div class="card">
+        <div class="card-header fw-semibold">{{ 'reports.attendance.byDay' | translate }}</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>{{ 'reports.income.date' | translate }}</th>
+                  <th class="text-center">{{ 'reports.transport.trips' | translate }}</th>
+                  <th class="text-center">{{ 'reports.transport.completed' | translate }}</th>
+                  <th class="text-center">{{ 'reports.transport.cancelled' | translate }}</th>
+                  <th class="text-center">{{ 'reports.transport.boarded' | translate }}</th>
+                  <th class="text-center">{{ 'reports.transport.absent' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (d of byDay(); track d.date) {
+                  <tr>
+                    <td class="fw-semibold text-nowrap">{{ dayLabel(d.date) }}</td>
+                    <td class="text-center">{{ d.trips }}</td>
+                    <td class="text-center">{{ d.completed }}</td>
+                    <td class="text-center" [class.text-danger]="d.cancelled > 0">{{ d.cancelled }}</td>
+                    <td class="text-center">{{ d.boarded }}</td>
+                    <td class="text-center" [class.text-danger]="d.absent > 0">{{ d.absent }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

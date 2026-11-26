@@ -5,12 +5,14 @@ import { SharedModule } from './shared.module';
 import { ExamListComponent } from './exam/exams/exam-list.component';
 import { ExamSaveComponent } from './exam/exams/exam-save.component';
 import { ExamResultsComponent } from './exam/exam-results/exam-results.component';
+import { StudentPromotionComponent } from './exam/promotion/student-promotion.component';
 
 @NgModule({
   declarations: [
     ExamListComponent,
     ExamSaveComponent,
-    ExamResultsComponent
+    ExamResultsComponent,
+    StudentPromotionComponent
   ],
   imports: [
     SharedModule
@@ -18,7 +20,8 @@ import { ExamResultsComponent } from './exam/exam-results/exam-results.component
   exports: [
     ExamListComponent,
     ExamSaveComponent,
-    ExamResultsComponent
+    ExamResultsComponent,
+    StudentPromotionComponent
   ]
 })
 export class ExamModule { }

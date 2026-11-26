@@ -240,3 +240,18 @@ export type StudentEvaluationSingleResponse = ApiResponse<StudentEvaluation>;
 export type EvaluationRequestListResponse = ApiResponse<EvaluationRequest[]>;
 
 export type EvaluationRequestSingleResponse = ApiResponse<EvaluationRequest>;
+
+/** One student's school day in the attendance report (GET /api/daily-attendance/report) */
+export interface AttendanceReportRow {
+  studentId: string;
+  gradeId: string;
+  sectionId: string;
+  academicYearId: string;
+  /** yyyy-MM-dd */
+  date: string;
+  status: DailyAttendanceStatus;
+  presentLessons: number;
+  lateLessons: number;
+  absentLessons: number;
+  excusedLessons: number;
+}

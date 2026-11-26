@@ -1,0 +1,112 @@
+// Expenses report. Colours follow the theme tokens (--sg-*).
+.report-page {
+  .total-card {
+    height: 100%;
+    padding: 1rem;
+    border-radius: 14px;
+    background: var(--sg-surface, #fff);
+    border: 1px solid var(--sg-line, #dee2e6);
+
+    .total-head {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+
+      > i {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: #fff;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+      }
+    }
+
+    .total-label {
+      font-size: 0.78rem;
+      color: var(--sg-muted, #6c757d);
+    }
+
+    .total-value {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--sg-ink, #13261f);
+    }
+
+    .total-facts {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+      font-size: 0.75rem;
+      color: var(--sg-muted, #6c757d);
+
+      span {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--sg-ink, #13261f);
+      }
+    }
+  }
+
+  .share-row {
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .share-bar {
+    height: 7px;
+    margin-top: 0.3rem;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: var(--sg-gradient, linear-gradient(135deg, #047857, #65a30d));
+    }
+
+    &.type span {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+  }
+
+  .desc {
+    max-width: 320px;
+    white-space: normal;
+  }
+
+  .print-only {
+    display: none;
+  }
+}
+
+@media print {
+  .report-page {
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block;
+    }
+
+    .card,
+    .total-card {
+      border: 1px solid #ddd;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+  }
+}

@@ -11,7 +11,7 @@ import { StageService } from '../../core/services/stage.service';
 import { GradeService } from '../../core/services/grade.service';
 import { SectionService } from '../../core/services/section.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
-import { Student } from '../../core/models/student.model';
+import { Student, StudentStatus, STUDENT_STATUSES, studentStatusInfo } from '../../core/models/student.model';
 import { Parent } from '../../core/models/parent.model';
 import { StudentFee, FeeStatus, effectiveFeeStatus } from '../../core/models/student-fee.model';
 import { AcademicYear } from '../../core/models/academic-year.model';
@@ -65,6 +65,10 @@ export class StudentListComponent implements OnInit, OnDestroy {
   gradeFilter = signal('');
   sectionFilter = signal('');
   feeStateFilter = signal<StudentFeeState | ''>('');
+  /** The admin area lists current students only (graduated / transferred ones are not shown) */
+  statusFilter = signal<number>(StudentStatus.Current);
+  readonly studentStatuses = STUDENT_STATUSES;
+  readonly statusInfo = studentStatusInfo;
   page = signal(1);
   readonly pageSize = 10;
 
@@ -97,14 +101,17 @@ export class StudentListComponent implements OnInit, OnDestroy {
     const gradeId = this.gradeFilter();
     const sectionId = this.sectionFilter();
     const feeState = this.feeStateFilter();
+    const status = this.statusFilter();
     const overview = this.feeOverview();
     const parents = this.parentMap();
 
     return this.students().filter(s => {
       if (stageId && this.stageIdOf(s) !== stageId) return false;
       if (gradeId && s.gradeId !== gradeId) return false;
-      if (sectionId && s.sectionId !== sectionId) return false;
+      // "none": the students not placed in a class yet
+      if (sectionId === 'none' ? !!s.sectionId : (sectionId && s.sectionId !== sectionId)) return false;
       if (feeState && overview.get(s.id)?.state !== feeState) return false;
+      if (status && (s.status ?? StudentStatus.Current) !== status) return false;
       if (term) {
         const parent = parents.get(s.parentId);
         const haystack = [s.fullNameAr, s.fullNameEn, s.nationalId, s.phoneNumber, s.email, parent?.fullNameAr, parent?.fullNameEn]
@@ -122,7 +129,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
   });
 
   hasActiveFilters = computed(() =>
-    !!(this.searchTerm() || this.stageFilter() || this.gradeFilter() || this.sectionFilter() || this.feeStateFilter())
+    !!(this.searchTerm() || this.stageFilter() || this.gradeFilter() || this.sectionFilter() || this.feeStateFilter()
+      || this.statusFilter() !== StudentStatus.Current)
   );
 
   private destroy$ = new Subject<void>();
@@ -246,6 +254,7 @@ export class StudentListComponent implements OnInit, OnDestroy {
     this.gradeFilter.set('');
     this.sectionFilter.set('');
     this.feeStateFilter.set('');
+    this.statusFilter.set(StudentStatus.Current);
     this.page.set(1);
   }
 
@@ -306,7 +315,8 @@ export class StudentListComponent implements OnInit, OnDestroy {
     return this.localized(this.gradeMap().get(id));
   }
 
-  getSectionName(id: string): string {
+  getSectionName(id: string | null): string {
+    if (!id) return this.translate.instant('students.noSection');
     return this.localized(this.sectionMap().get(id));
   }
 

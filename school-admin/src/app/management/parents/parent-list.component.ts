@@ -8,7 +8,7 @@ import { GradeService } from '../../core/services/grade.service';
 import { StageService } from '../../core/services/stage.service';
 import { SectionService } from '../../core/services/section.service';
 import { Stage } from '../../core/models/stage.model';
-import { Parent } from '../../core/models/parent.model';
+import { Parent, isCurrentStudent } from '../../core/models/parent.model';
 import { AcademicYear } from '../../core/models/academic-year.model';
 import { Grade } from '../../core/models/grade.model';
 import { Section } from '../../core/models/section.model';
@@ -47,12 +47,15 @@ export class ParentListComponent implements OnInit, OnDestroy {
   /**
    * Parents matching the search term (names, phone or email)
    */
+  /** Parents who still have a child at the school (current, not graduated / transferred) */
+  currentParents = computed(() => this.parents().filter(p => (p.students ?? []).some(isCurrentStudent)));
+
   filteredParents = computed(() => {
     const term = this.searchTerm().trim().toLowerCase();
     if (!term) {
-      return this.parents();
+      return this.currentParents();
     }
-    return this.parents().filter(p =>
+    return this.currentParents().filter(p =>
       [p.fullNameAr, p.fullNameEn, p.phoneNumber, p.email]
         .some(value => (value ?? '').toLowerCase().includes(term))
     );

@@ -62,12 +62,14 @@ namespace SchoolManager.Management.API.Controllers
 		/// </summary>
 		[Authorize]
 		[HttpGet("my-classes")]
-		public async Task<ActionResult<TeacherClassesDto>> GetMyClasses([FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
+		public async Task<ActionResult<TeacherClassesDto>> GetMyClasses(
+			[FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, [FromQuery] bool fromTimetable, CancellationToken cancellationToken)
 		{
 			if (_currentUser.TeacherId is not Guid teacherId)
 				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
 
-			var result = await _mediator.Send(new GetMyClassesQuery(teacherId, academicYearId, semesterId), cancellationToken);
+			// ?fromTimetable=true (teacher app "My classes"): only the classes / subjects of the teacher's timetable lessons
+			var result = await _mediator.Send(new GetMyClassesQuery(teacherId, academicYearId, semesterId, fromTimetable), cancellationToken);
 			return Ok(new ApiResponse { data = result });
 		}
 
@@ -105,15 +107,70 @@ namespace SchoolManager.Management.API.Controllers
 
 		/// <summary>
 		/// Parents of the students in the logged-in teacher's classes, each with those children (teacher app: parents).
+		/// ?fromTimetable=true (teacher app chat): only the classes the teacher teaches in the timetable of
+		/// ?academicYearId= / ?semesterId= (the year and semester chosen in the app).
 		/// </summary>
 		[Authorize]
 		[HttpGet("my-parents")]
-		public async Task<ActionResult<List<TeacherParentDto>>> GetMyParents(CancellationToken cancellationToken)
+		public async Task<ActionResult<List<TeacherParentDto>>> GetMyParents(
+			[FromQuery] bool fromTimetable, [FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
 		{
 			if (_currentUser.TeacherId is not Guid teacherId)
 				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
 
-			var result = await _mediator.Send(new GetMyParentsQuery(teacherId), cancellationToken);
+			var result = await _mediator.Send(new GetMyParentsQuery(teacherId, fromTimetable, academicYearId, semesterId), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// A student the logged-in teacher teaches (their class's grade has a subject of the teacher, or the teacher has
+		/// lessons in their class timetable), with grade / class / year. 404 otherwise. The Attendance and Exams services
+		/// call it with the teacher's token before showing a student's attendance, reviews or exams.
+		/// </summary>
+		/// <summary>
+		/// For the Identity service (its service token): is the teacher still in service (service not ended)? Only such
+		/// teachers may sign in to the teacher app. App users (parents / teachers / drivers) get 403.
+		/// </summary>
+		[Authorize]
+		[HttpGet("in-service/{teacherId:guid}")]
+		public async Task<IActionResult> InService(Guid teacherId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.ParentId is not null || _currentUser.TeacherId is not null || _currentUser.BusId is not null)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "Forbidden"));
+
+			var result = await _mediator.Send(new IsTeacherInServiceQuery(teacherId), cancellationToken);
+			return Ok(new ApiResponse { data = result });
+		}
+
+		[Authorize]
+		[HttpGet("teaches-student/{studentId}")]
+		public async Task<ActionResult<TaughtStudentDto>> TeachesStudent(Guid studentId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.TeacherId is not Guid teacherId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+			var result = await _mediator.Send(new GetTaughtStudentQuery(teacherId, studentId), cancellationToken);
+			if (result is null)
+				return NotFound(new ApiResponse(404, "StudentNotTaught"));
+			return Ok(new ApiResponse { data = result });
+		}
+
+		/// <summary>
+		/// Teacher app "student activity": the student's profile, class timetable (?academicYearId= / ?semesterId=: the
+		/// year and semester chosen in the app) and the teachers of their grade with their subjects. 404 when the teacher
+		/// does not teach the student.
+		/// </summary>
+		[Authorize]
+		[HttpGet("my-student/{studentId}")]
+		public async Task<ActionResult<TeacherStudentActivityDto>> GetMyStudent(
+			Guid studentId, [FromQuery] Guid? academicYearId, [FromQuery] Guid? semesterId, CancellationToken cancellationToken)
+		{
+			if (_currentUser.TeacherId is not Guid teacherId)
+				return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+			var result = await _mediator.Send(new GetTeacherStudentActivityQuery(teacherId, studentId, academicYearId, semesterId), cancellationToken);
+			if (result is null)
+				return NotFound(new ApiResponse(404, "StudentNotTaught"));
 			return Ok(new ApiResponse { data = result });
 		}
 

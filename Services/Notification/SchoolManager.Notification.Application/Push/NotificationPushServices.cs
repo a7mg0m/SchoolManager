@@ -104,7 +104,8 @@ namespace SchoolManager.Notification.Application
                 var devices = await tokens.GetByUserIdsAsync(others, cancellationToken);
                 var push = new PushMessage(
                     string.IsNullOrWhiteSpace(senderName) ? "رسالة جديدة" : senderName,
-                    Shorten(message.Content, ChatBodyMaxLength),
+                    // A picture / video / voice note without words: say what it is
+                    Shorten(ChatMedia.PreviewAr(message.Content, message.Attachments.FirstOrDefault()?.ContentType), ChatBodyMaxLength),
                     new Dictionary<string, string>
                     {
                         ["type"] = "chat",

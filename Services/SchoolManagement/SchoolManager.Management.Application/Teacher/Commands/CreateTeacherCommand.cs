@@ -14,6 +14,8 @@ namespace SchoolManager.Management.Application
         bool IsActive,
         string? LoginName = null,
         string? Password = null,
-        string? JobLevel = null
+        string? JobLevel = null,
+        bool IsServiceEnded = false,
+        DateOnly? ServiceEndDate = null
     ) : ICommand<Guid>;
 }

@@ -2,6 +2,7 @@ import { Component, computed, input, model, signal } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { EVENT_FOR_OPTIONS, EventFor } from '../../core/models/school-event.model';
 import { AudienceLookups, EMPTY_LOOKUPS, localizedFullName, localizedName } from './audience';
+import { isCurrentStudent } from '../../core/models/parent.model';
 
 /** One selectable row in the picker */
 interface PickerItem {
@@ -76,7 +77,9 @@ export class AudiencePickerComponent {
             sub: this.translate.instant('notifications.busDetail', { number: b.number, plate: b.plateNumber })
           }));
       case EventFor.Student:
-        return l.students.map(s => ({
+        return l.students
+          .filter(s => isCurrentStudent(s) || this.selectedIds().has(s.id))
+          .map(s => ({
           id: s.id,
           label: localizedFullName(s, lang),
           sub: `${localizedName(grades.get(s.gradeId), lang)} / ${localizedName(sections.get(s.sectionId), lang)}`,

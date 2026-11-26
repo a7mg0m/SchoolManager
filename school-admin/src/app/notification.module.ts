@@ -6,6 +6,7 @@ import { AudiencePickerComponent } from './notification/shared/audience-picker.c
 import { ImageUploadComponent } from './notification/shared/image-upload.component';
 import { SchoolEventListComponent } from './notification/school-events/school-event-list.component';
 import { SchoolEventSaveComponent } from './notification/school-events/school-event-save.component';
+import { SchoolEventAttendanceComponent } from './notification/school-events/school-event-attendance.component';
 import { NotificationListComponent } from './notification/notifications/notification-list.component';
 import { NotificationSaveComponent } from './notification/notifications/notification-save.component';
 import { NotificationTargetsComponent } from './notification/notifications/notification-targets.component';
@@ -16,6 +17,7 @@ import { NotificationTargetsComponent } from './notification/notifications/notif
     ImageUploadComponent,
     SchoolEventListComponent,
     SchoolEventSaveComponent,
+    SchoolEventAttendanceComponent,
     NotificationListComponent,
     NotificationSaveComponent,
     NotificationTargetsComponent

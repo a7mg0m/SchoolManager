@@ -9,7 +9,7 @@ import { GradeService } from '../../core/services/grade.service';
 import { SectionService } from '../../core/services/section.service';
 import { SubjectService } from '../../core/services/subject.service';
 import { LanguageService } from '../../ThemeOptions/store/language.service';
-import { Exam, EXAM_TYPES } from '../../core/models/exam.model';
+import { Exam, EXAM_TYPES, ExamType } from '../../core/models/exam.model';
 import { ExamResult, StudentScore } from '../../core/models/exam-result.model';
 import { Student } from '../../core/models/student.model';
 import { Grade } from '../../core/models/grade.model';
@@ -50,6 +50,10 @@ export class ExamResultsComponent implements OnInit, OnDestroy {
   private grades = new Map<string, Grade>();
   private sections = new Map<string, Section>();
   private subjects = new Map<string, SchoolSubject>();
+
+  /** Second final: the students who failed its Final, with their Final score */
+  finalScores = signal<Map<string, { score: number; weight: number }> | null>(null);
+  isSecondFinal = computed(() => this.exam()?.examType === ExamType.SecondFinal);
   private examId = '';
   private destroy$ = new Subject<void>();
 
@@ -163,8 +167,24 @@ export class ExamResultsComponent implements OnInit, OnDestroy {
 
           const exam = res.exam.data;
           this.exam.set(exam);
-          this.buildRows(exam, res.students.data || [], res.results.data || []);
-          this.isLoading.set(false);
+          if (exam.examType !== ExamType.SecondFinal) {
+            this.finalScores.set(null);
+            this.buildRows(exam, res.students.data || [], res.results.data || []);
+            this.isLoading.set(false);
+            return;
+          }
+          // A second final: only the students who failed its Final
+          this.examService.getSecondFinalStudents(exam.id).pipe(takeUntil(this.destroy$)).subscribe({
+            next: r => {
+              this.finalScores.set(new Map((r.data || []).map(s => [s.studentId, { score: s.originalScore, weight: s.originalWeight }])));
+              this.buildRows(exam, res.students.data || [], res.results.data || []);
+              this.isLoading.set(false);
+            },
+            error: () => {
+              this.errorMessage.set('Failed to load the students who failed the final exam.');
+              this.isLoading.set(false);
+            }
+          });
         },
         error: (error) => {
           console.error('Error loading exam results:', error);
@@ -181,10 +201,13 @@ export class ExamResultsComponent implements OnInit, OnDestroy {
   private buildRows(exam: Exam, students: Student[], results: ExamResult[]): void {
     const savedByStudent = new Map(results.map(r => [r.studentId, r.score]));
 
+    const eligible = this.finalScores();
     const inClass = students.filter(s =>
-      s.isActive &&
-      s.gradeId === exam.gradeId &&
-      (!exam.sectionId || s.sectionId === exam.sectionId));
+      // A second final: the students who failed its Final (wherever they are now)
+      eligible ? eligible.has(s.id) : (
+        s.isActive &&
+        s.gradeId === exam.gradeId &&
+        (!exam.sectionId || s.sectionId === exam.sectionId)));
     const inClassIds = new Set(inClass.map(s => s.id));
 
     const former = students.filter(s => !inClassIds.has(s.id) && savedByStudent.has(s.id));

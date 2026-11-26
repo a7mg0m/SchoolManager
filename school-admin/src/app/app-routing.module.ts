@@ -28,6 +28,7 @@ import {
   TimetableListComponent,
   TimetableSaveComponent,
   StudentListComponent,
+  SectionAssignmentComponent,
   StudentProfileComponent,
 
   // Financial components
@@ -47,6 +48,7 @@ import {
   // Notification components
   SchoolEventListComponent,
   SchoolEventSaveComponent,
+  SchoolEventAttendanceComponent,
   NotificationListComponent,
   NotificationSaveComponent,
   NotificationTargetsComponent,
@@ -55,6 +57,7 @@ import {
   ExamListComponent,
   ExamSaveComponent,
   ExamResultsComponent,
+  StudentPromotionComponent,
 
   // Users components
   EmployeeGroupListComponent,
@@ -72,6 +75,13 @@ import {
   ClinicVisitListComponent,
   ClinicVisitSaveComponent,
   StudentClinicListComponent,
+  StudentsStatusReportComponent,
+  ExpensesReportComponent,
+  IncomeReportComponent,
+  AttendanceReportComponent,
+  ReviewsReportComponent,
+  ExamResultsReportComponent,
+  TransportReportComponent,
   StudentClinicComponent,
 
   // Attendance components
@@ -139,6 +149,7 @@ const routes: Routes = [
       {path: 'management/subjects/save', component: SubjectSaveComponent, data: {extraParameter: 'managementMenu', permission: 'add'}},
       {path: 'management/subjects/save/:id', component: SubjectSaveComponent, data: {extraParameter: 'managementMenu', permission: 'edit'}},
       {path: 'management/students', component: StudentListComponent, data: {extraParameter: 'managementMenu'}},
+      {path: 'management/section-assignment', component: SectionAssignmentComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/students/:id', component: StudentProfileComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/parents', component: ParentListComponent, data: {extraParameter: 'managementMenu'}},
       {path: 'management/parents/save', component: ParentSaveComponent, data: {extraParameter: 'managementMenu', permission: 'add'}},
@@ -171,6 +182,7 @@ const routes: Routes = [
       {path: 'notification/school-events', component: SchoolEventListComponent, data: {extraParameter: 'notificationMenu'}},
       {path: 'notification/school-events/save', component: SchoolEventSaveComponent, data: {extraParameter: 'notificationMenu', permission: 'add'}},
       {path: 'notification/school-events/save/:id', component: SchoolEventSaveComponent, data: {extraParameter: 'notificationMenu', permission: 'edit'}},
+      {path: 'notification/school-events/:id/attendance', component: SchoolEventAttendanceComponent, data: {extraParameter: 'notificationMenu'}},
       {path: 'notification/notifications', component: NotificationListComponent, data: {extraParameter: 'notificationMenu'}},
       {path: 'notification/notifications/save', component: NotificationSaveComponent, data: {extraParameter: 'notificationMenu', permission: 'add'}},
       {path: 'notification/notifications/save/:id', component: NotificationSaveComponent, data: {extraParameter: 'notificationMenu', permission: 'edit'}},
@@ -181,6 +193,7 @@ const routes: Routes = [
       {path: 'exam/exams/save', component: ExamSaveComponent, data: {extraParameter: 'examMenu', permission: 'add'}},
       {path: 'exam/exams/save/:id', component: ExamSaveComponent, data: {extraParameter: 'examMenu', permission: 'edit'}},
       {path: 'exam/exams/:id/results', component: ExamResultsComponent, data: {extraParameter: 'examMenu'}},
+      {path: 'exam/promotion', component: StudentPromotionComponent, data: {extraParameter: 'examMenu'}},
 
       // Users
       {path: 'users/employee-groups', component: EmployeeGroupListComponent, data: {extraParameter: 'usersMenu'}},
@@ -191,6 +204,15 @@ const routes: Routes = [
       {path: 'users/employees/save/:id', component: EmployeeSaveComponent, data: {extraParameter: 'usersMenu', permission: 'edit'}},
       {path: 'users/group-permissions', component: GroupPermissionsComponent, data: {extraParameter: 'usersMenu'}},
       {path: 'users/group-permissions/:groupId', component: GroupPermissionsComponent, data: {extraParameter: 'usersMenu'}},
+
+      // Reports
+      {path: 'reports/students-status', component: StudentsStatusReportComponent, data: {extraParameter: 'reportsMenu'}},
+      {path: 'reports/expenses', component: ExpensesReportComponent, data: {extraParameter: 'reportsMenu'}},
+      {path: 'reports/income', component: IncomeReportComponent, data: {extraParameter: 'reportsMenu'}},
+      {path: 'reports/attendance', component: AttendanceReportComponent, data: {extraParameter: 'reportsMenu'}},
+      {path: 'reports/reviews', component: ReviewsReportComponent, data: {extraParameter: 'reportsMenu'}},
+      {path: 'reports/exam-results', component: ExamResultsReportComponent, data: {extraParameter: 'reportsMenu'}},
+      {path: 'reports/transport', component: TransportReportComponent, data: {extraParameter: 'reportsMenu'}},
 
       // Clinic
       {path: 'clinic/students', component: StudentClinicListComponent, data: {extraParameter: 'clinicMenu'}},

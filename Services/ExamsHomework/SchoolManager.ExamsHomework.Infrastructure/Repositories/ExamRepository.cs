@@ -30,6 +30,14 @@ namespace SchoolManager.ExamsHomework.Infrastructure
                 .OrderByDescending(e => e.ExamDate).ThenByDescending(e => e.StartTime)
                 .ToListAsync(cancellationToken);
 
+        public async Task<List<Exam>> GetFinalsWithResultsAsync(Guid academicYearId, Guid gradeId, CancellationToken cancellationToken = default)
+            => await _dbSet
+                .AsNoTracking()
+                .Include(e => e.ExamResults)
+                .Where(e => e.AcademicYearId == academicYearId && e.GradeId == gradeId
+                    && (e.ExamType == ExamType.Final || e.ExamType == ExamType.SecondFinal))
+                .ToListAsync(cancellationToken);
+
         public async Task<Exam?> GetWithResultsAsync(Guid id, CancellationToken cancellationToken = default)
             => await _dbSet
                 .AsNoTracking()

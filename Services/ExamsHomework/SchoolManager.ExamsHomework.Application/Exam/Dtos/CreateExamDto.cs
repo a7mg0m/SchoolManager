@@ -11,6 +11,8 @@ namespace SchoolManager.ExamsHomework.Application
         public Guid AcademicYearId { get; set; }
         public Guid SemesterId { get; set; }
         public ExamType ExamType { get; set; }
+        /// <summary>Second final: the Final exam it is the resit of</summary>
+        public Guid? OriginalExamId { get; set; }
         /// <summary>Month of a Monthly exam (1 = January … 12 = December); null for the other types</summary>
         public int? Month { get; set; }
         public DateOnly ExamDate { get; set; }

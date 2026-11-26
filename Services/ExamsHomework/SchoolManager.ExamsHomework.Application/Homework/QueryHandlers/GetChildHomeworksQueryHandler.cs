@@ -8,7 +8,7 @@ namespace SchoolManager.ExamsHomework.Application
         public async Task<List<ChildHomeworkDto>> Handle(GetChildHomeworksQuery query, CancellationToken cancellationToken)
         {
             var child = query.Child;
-            var published = await homeworks.GetPublishedForSectionAsync(child.AcademicYearId, child.SectionId, cancellationToken);
+            var published = await homeworks.GetPublishedForSectionAsync(child.AcademicYearId, child.SectionId ?? Guid.Empty, cancellationToken);
 
             return published
                 // Only the semester chosen in the app (all semesters when none is chosen)

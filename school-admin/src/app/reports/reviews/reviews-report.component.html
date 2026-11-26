@@ -1,0 +1,304 @@
+<div class="container-fluid report-page">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div>
+      <h2 class="mb-0">{{ 'reports.reviews.title' | translate }}</h2>
+      <small class="text-muted">{{ 'reports.reviews.subtitle' | translate }}</small>
+      <div class="print-only small text-muted mt-1">
+        {{ 'reports.generatedOn' | translate }}: {{ generatedOn | date: 'yyyy-MM-dd HH:mm' }} · {{ dateFrom() }} → {{ dateTo() }}
+      </div>
+    </div>
+    <div class="d-flex gap-2 no-print">
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="loadReviews()" [disabled]="isLoadingReviews()">
+        <i class="pe-7s-refresh-2"></i> {{ 'reports.refresh' | translate }}
+      </button>
+      <button type="button" class="btn btn-outline-success btn-sm" (click)="exportCsv()" [disabled]="filtered().length === 0">
+        <i class="pe-7s-download"></i> {{ 'reports.exportExcel' | translate }}
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="print()">
+        <i class="pe-7s-print"></i> {{ 'reports.print' | translate }}
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-warning no-print">{{ errorMessage() }}</div>
+  }
+
+  <!-- Filters -->
+  <div class="card mb-3 no-print">
+    <div class="card-body">
+      <div class="d-flex flex-wrap gap-2 mb-2">
+        @for (r of ['thisWeek', 'thisMonth', 'lastMonth', 'thisYear']; track r) {
+          <button type="button" class="btn btn-sm" [class.btn-primary]="quickRange() === r" [class.btn-outline-secondary]="quickRange() !== r"
+                  (click)="setQuickRange($any(r))">{{ 'reports.attendance.' + r | translate }}</button>
+        }
+      </div>
+      <div class="row g-2">
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rvFrom">{{ 'reports.expenses.from' | translate }}</label>
+          <input id="rvFrom" type="date" class="form-control form-control-sm" [value]="dateFrom()" (change)="setDate('from', $any($event.target).value)" />
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rvTo">{{ 'reports.expenses.to' | translate }}</label>
+          <input id="rvTo" type="date" class="form-control form-control-sm" [value]="dateTo()" (change)="setDate('to', $any($event.target).value)" />
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rvStage">{{ 'parents.stage' | translate }}</label>
+          <select id="rvStage" class="form-select form-select-sm" (change)="setStage($any($event.target).value)">
+            <option value="" [selected]="!stageFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of stages(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === stageFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rvGrade">{{ 'parents.grade' | translate }}</label>
+          <select id="rvGrade" class="form-select form-select-sm" (change)="setGrade($any($event.target).value)">
+            <option value="" [selected]="!gradeFilter()">{{ 'students.all' | translate }}</option>
+            @for (g of filterGrades(); track g.id) {
+              <option [value]="g.id" [selected]="g.id === gradeFilter()">{{ nameOf(g) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rvSection">{{ 'parents.section' | translate }}</label>
+          <select id="rvSection" class="form-select form-select-sm" [disabled]="!gradeFilter()" (change)="sectionFilter.set($any($event.target).value)">
+            <option value="" [selected]="!sectionFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of filterSections(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === sectionFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rvTeacher">{{ 'reports.reviews.teacher' | translate }}</label>
+          <select id="rvTeacher" class="form-select form-select-sm" (change)="teacherFilter.set($any($event.target).value)">
+            <option value="" [selected]="!teacherFilter()">{{ 'students.all' | translate }}</option>
+            @for (t of teachers(); track t.id) {
+              <option [value]="t.id" [selected]="t.id === teacherFilter()">{{ teacherName(t.id) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-lg-2 col-md-4 col-6">
+          <label class="form-label small mb-1" for="rvSubject">{{ 'reports.reviews.subject' | translate }}</label>
+          <select id="rvSubject" class="form-select form-select-sm" (change)="subjectFilter.set($any($event.target).value)">
+            <option value="" [selected]="!subjectFilter()">{{ 'students.all' | translate }}</option>
+            @for (s of subjects(); track s.id) {
+              <option [value]="s.id" [selected]="s.id === subjectFilter()">{{ nameOf(s) }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading() || isLoadingReviews()) {
+    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+  } @else {
+    @let s = summary();
+    @if (s.count === 0) {
+      <div class="alert alert-light border text-center">{{ 'reports.reviews.noData' | translate }}</div>
+    } @else {
+      <!-- Summary -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-4 col-xl-3">
+          <div class="score-card" [class]="'score-card ' + scoreClass(s.overall)">
+            <div class="score-value">{{ fixed(s.overall) }} <small>/ 5</small></div>
+            <div class="score-label">{{ 'reports.reviews.overall' | translate }}</div>
+            <small>{{ 'reports.reviews.countStudents' | translate: { count: s.count, students: s.students } }}</small>
+          </div>
+        </div>
+        <div class="col-md-8 col-xl-9">
+          <div class="row g-2 h-100">
+            @for (c of [{ k: 'focus', v: s.focus }, { k: 'interaction', v: s.interaction }, { k: 'behavior', v: s.behavior }]; track c.k) {
+              <div class="col-6 col-lg-3">
+                <div class="mini" [class]="'mini ' + scoreClass(c.v)">
+                  <span>{{ fixed(c.v) }}</span>{{ 'reports.reviews.' + c.k | translate }}
+                  <div class="stars">
+                    @for (r of ratings; track r) {
+                      <i [class.on]="r <= c.v + 0.25" class="pe-7s-star"></i>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+            <div class="col-6 col-lg-3">
+              <div class="mini health">
+                <span>{{ s.tired + s.sick }}</span>{{ 'reports.reviews.healthNotes' | translate }}
+                <small class="d-block">{{ 'reports.reviews.tiredSick' | translate: { tired: s.tired, sick: s.sick } }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <!-- Spread of ratings -->
+        <div class="col-xl-5">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">{{ 'reports.reviews.distribution' | translate }}</div>
+            <div class="card-body">
+              @for (d of distribution(); track d.key) {
+                <div class="dist-row">
+                  <span class="dist-name">{{ 'reports.reviews.' + d.key | translate }}</span>
+                  <div class="stack">
+                    @for (c of d.counts; track $index) {
+                      <span [class]="'r' + ($index + 1)" [style.width.%]="pct(c, s.count)" [title]="($index + 1) + ': ' + c"></span>
+                    }
+                  </div>
+                </div>
+              }
+              <div class="legend">
+                @for (r of ratings; track r) {
+                  <span><i [class]="'r' + r"></i>{{ r }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- By subject -->
+        <div class="col-xl-7">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">{{ 'reports.reviews.bySubject' | translate }}</div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>{{ 'reports.reviews.subject' | translate }}</th>
+                      <th class="text-center">{{ 'reports.reviews.count' | translate }}</th>
+                      <th class="text-center">{{ 'reports.reviews.focus' | translate }}</th>
+                      <th class="text-center">{{ 'reports.reviews.interaction' | translate }}</th>
+                      <th class="text-center">{{ 'reports.reviews.behavior' | translate }}</th>
+                      <th class="text-center">{{ 'reports.reviews.average' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (g of bySubject(); track g.key) {
+                      <tr>
+                        <td class="fw-semibold">{{ g.name }}</td>
+                        <td class="text-center">{{ g.count }}</td>
+                        <td class="text-center">{{ fixed(g.focus) }}</td>
+                        <td class="text-center">{{ fixed(g.interaction) }}</td>
+                        <td class="text-center">{{ fixed(g.behavior) }}</td>
+                        <td class="text-center"><span class="score-pill" [class]="'score-pill ' + scoreClass(g.overall)">{{ fixed(g.overall) }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <!-- By teacher -->
+        <div class="col-xl-6">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">{{ 'reports.reviews.byTeacher' | translate }}</div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>{{ 'reports.reviews.teacher' | translate }}</th>
+                      <th class="text-center">{{ 'reports.reviews.count' | translate }}</th>
+                      <th class="text-center">{{ 'reports.reviews.average' | translate }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (g of byTeacher(); track g.key) {
+                      <tr>
+                        <td class="fw-semibold">{{ g.name }}</td>
+                        <td class="text-center">{{ g.count }}</td>
+                        <td class="text-center"><span class="score-pill" [class]="'score-pill ' + scoreClass(g.overall)">{{ fixed(g.overall) }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Latest comments -->
+        <div class="col-xl-6">
+          <div class="card h-100">
+            <div class="card-header fw-semibold">{{ 'reports.reviews.latestComments' | translate }}</div>
+            <div class="card-body comments">
+              @for (l of latestComments(); track l.e.id) {
+                <div class="comment">
+                  <div class="d-flex justify-content-between gap-2">
+                    <span class="fw-semibold">{{ l.student }} <small class="text-muted">· {{ l.subject }}</small></span>
+                    <span class="score-pill" [class]="'score-pill ' + scoreClass(l.overall)">{{ fixed(l.overall) }}</span>
+                  </div>
+                  <div class="comment-text">{{ l.e.comment }}</div>
+                  <small class="text-muted">{{ l.teacher }} · {{ l.e.date }}</small>
+                </div>
+              } @empty {
+                <div class="text-muted text-center small">{{ 'reports.reviews.noComments' | translate }}</div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Students -->
+      <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center gap-2">
+          <span class="fw-semibold">{{ 'reports.reviews.byStudent' | translate }}</span>
+          <span class="badge bg-secondary">{{ visibleStudents().length }}</span>
+          <div class="ms-auto d-flex flex-wrap align-items-center gap-2 no-print">
+            <input type="search" class="form-control form-control-sm search-input" [value]="searchTerm()"
+                   (input)="searchTerm.set($any($event.target).value)" [placeholder]="'reports.reviews.searchPlaceholder' | translate" />
+            <label class="small text-muted mb-0" for="rvThreshold">{{ 'reports.reviews.supportBelow' | translate }}</label>
+            <select id="rvThreshold" class="form-select form-select-sm w-auto" (change)="threshold.set(+$any($event.target).value)">
+              @for (t of thresholds; track t) {
+                <option [value]="t" [selected]="t === threshold()">{{ t }}</option>
+              }
+            </select>
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input" type="checkbox" id="rvSupport" [checked]="supportOnly()" (change)="supportOnly.set(!supportOnly())" />
+              <label class="form-check-label small" for="rvSupport">{{ 'reports.attendance.attentionOnly' | translate: { count: supportCount() } }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table appDataTable [dtSearch]="false" [dtPageSize]="25" class="table table-sm table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>{{ 'reports.reviews.student' | translate }}</th>
+                  <th>{{ 'reports.reviews.class' | translate }}</th>
+                  <th class="text-center">{{ 'reports.reviews.count' | translate }}</th>
+                  <th class="text-center">{{ 'reports.reviews.focus' | translate }}</th>
+                  <th class="text-center">{{ 'reports.reviews.interaction' | translate }}</th>
+                  <th class="text-center">{{ 'reports.reviews.behavior' | translate }}</th>
+                  <th class="text-center">{{ 'reports.reviews.healthNotes' | translate }}</th>
+                  <th class="text-center">{{ 'reports.reviews.average' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (st of visibleStudents(); track st.key; let i = $index) {
+                  <tr [class.support]="st.overall < threshold()">
+                    <td class="text-muted">{{ i + 1 }}</td>
+                    <td><a class="fw-semibold" [routerLink]="['/management/students', st.key]">{{ st.name }}</a></td>
+                    <td>{{ st.detail }}</td>
+                    <td class="text-center">{{ st.count }}</td>
+                    <td class="text-center">{{ fixed(st.focus) }}</td>
+                    <td class="text-center">{{ fixed(st.interaction) }}</td>
+                    <td class="text-center">{{ fixed(st.behavior) }}</td>
+                    <td class="text-center">{{ st.tired + st.sick || '-' }}</td>
+                    <td class="text-center"><span class="score-pill" [class]="'score-pill ' + scoreClass(st.overall)">{{ fixed(st.overall) }}</span></td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="9" class="text-center text-muted py-4">{{ 'reports.attendance.noStudents' | translate }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

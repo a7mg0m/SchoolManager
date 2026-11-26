@@ -193,8 +193,10 @@ class HomeworkService {
   HomeworkService._();
   static final instance = HomeworkService._();
 
-  Future<TeacherClasses> getMyClasses() async {
-    final data = await _send('GET', _withYear('/api/teacher/my-classes'), fallback: tr('تعذر تحميل فصولك.', 'Could not load your classes.'));
+  /// [fromTimetable]: only the classes / subjects of the teacher's lessons in the timetable (My classes)
+  Future<TeacherClasses> getMyClasses({bool fromTimetable = false}) async {
+    final data = await _send('GET', _withYear(fromTimetable ? '/api/teacher/my-classes?fromTimetable=true' : '/api/teacher/my-classes'),
+        fallback: tr('تعذر تحميل فصولك.', 'Could not load your classes.'));
     return data is Map<String, dynamic> ? TeacherClasses.fromJson(data) : const TeacherClasses();
   }
 

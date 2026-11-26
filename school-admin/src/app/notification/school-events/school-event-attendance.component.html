@@ -1,0 +1,162 @@
+<div class="container-fluid event-attendance">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+    <div class="min-w-0">
+      <button type="button" class="btn btn-link px-0 mb-1" (click)="backToList()">
+        <i class="pe-7s-angle-left"></i> {{ 'schoolEvents.backToList' | translate }}
+      </button>
+      <h2 class="mb-0">{{ 'eventAttendance.title' | translate }}</h2>
+      @if (event(); as e) {
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+          <span class="fw-semibold text-truncate">{{ e.title }}</span>
+          @if (eventForKey()) {
+            <span class="badge bg-primary">{{ eventForKey() | translate }}</span>
+          }
+          <small class="text-muted">{{ formatDate(e.eventDate) }} · {{ formatTime(e.startTime) }} – {{ formatTime(e.endTime) }}</small>
+        </div>
+      }
+    </div>
+    @if (event()) {
+      <div class="d-flex gap-2">
+        @if (changes().length > 0) {
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="discardChanges()" [disabled]="isSaving()">
+            {{ 'eventAttendance.discard' | translate }}
+          </button>
+        }
+        <button type="button" class="btn btn-primary btn-sm" *appCan="'edit'" (click)="save()" [disabled]="isSaving() || changes().length === 0">
+          @if (isSaving()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="pe-7s-diskette me-1"></i>
+          }
+          {{ 'eventAttendance.save' | translate: { count: changes().length } }}
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger" role="alert">{{ errorMessage() }}</div>
+  }
+  @if (savedMessage()) {
+    <div class="alert alert-success py-2" role="status">{{ savedMessage() }}</div>
+  }
+
+  @if (isLoading()) {
+    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+  } @else if (event()) {
+    <!-- Summary -->
+    @let s = summary();
+    <div class="row g-3 mb-3">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <i class="pe-7s-users"></i>
+          <div>
+            <div class="stat-value">{{ s.invited }}</div>
+            <div class="stat-label">{{ 'eventAttendance.invited' | translate: { students: s.students, teachers: s.teachers } }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card present">
+          <i class="pe-7s-check"></i>
+          <div>
+            <div class="stat-value">{{ s.present }}</div>
+            <div class="stat-label">{{ 'eventAttendance.present' | translate }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card absent">
+          <i class="pe-7s-close-circle"></i>
+          <div>
+            <div class="stat-value">{{ s.absent }}</div>
+            <div class="stat-label">{{ 'eventAttendance.absent' | translate }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card rate">
+          <i class="pe-7s-graph1"></i>
+          <div>
+            <div class="stat-value">{{ s.rate === null ? '-' : s.rate + '%' }}</div>
+            <div class="stat-label">{{ 'eventAttendance.rate' | translate: { unmarked: s.unmarked } }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <!-- Filters and bulk marking -->
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+          <input type="search" class="form-control form-control-sm search-input" [value]="searchTerm()"
+                 (input)="searchTerm.set($any($event.target).value)" [placeholder]="'eventAttendance.search' | translate" />
+          <select class="form-select form-select-sm w-auto" [value]="typeFilter()" (change)="typeFilter.set(+$any($event.target).value)">
+            <option [value]="0">{{ 'eventAttendance.everyone' | translate }}</option>
+            <option [value]="EventAttendeeType.Student">{{ 'eventAttendance.students' | translate }}</option>
+            <option [value]="EventAttendeeType.Teacher">{{ 'eventAttendance.teachers' | translate }}</option>
+          </select>
+          <select class="form-select form-select-sm w-auto" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value)">
+            <option value="">{{ 'eventAttendance.anyStatus' | translate }}</option>
+            <option value="present">{{ 'eventAttendance.present' | translate }}</option>
+            <option value="absent">{{ 'eventAttendance.absent' | translate }}</option>
+            <option value="unmarked">{{ 'eventAttendance.unmarked' | translate }}</option>
+          </select>
+          <div class="ms-auto d-flex flex-wrap gap-2" *appCan="'edit'">
+            <button type="button" class="btn btn-outline-success btn-sm" (click)="markVisible(true)" [disabled]="visible().length === 0">
+              <i class="pe-7s-check"></i> {{ 'eventAttendance.allPresent' | translate: { count: visible().length } }}
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="markVisible(false)" [disabled]="visible().length === 0">
+              <i class="pe-7s-close"></i> {{ 'eventAttendance.allAbsent' | translate }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="markVisible(null)" [disabled]="visible().length === 0">
+              {{ 'eventAttendance.clear' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table appDataTable [dtSearch]="false" [dtPageSize]="25" class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>#</th>
+                <th>{{ 'eventAttendance.name' | translate }}</th>
+                <th>{{ 'eventAttendance.classOrRole' | translate }}</th>
+                <th class="text-center">{{ 'eventAttendance.status' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of visible(); track p.key; let i = $index) {
+                @let m = markOf(p.key);
+                <tr [class.row-present]="m === true" [class.row-absent]="m === false">
+                  <td class="text-muted">{{ i + 1 }}</td>
+                  <td>
+                    <i class="me-1" [class.pe-7s-user]="p.type === EventAttendeeType.Student" [class.pe-7s-id]="p.type === EventAttendeeType.Teacher"></i>
+                    <span class="fw-semibold">{{ p.name }}</span>
+                  </td>
+                  <td class="text-muted">{{ p.detail }}</td>
+                  <td class="text-center text-nowrap">
+                    <div class="btn-group btn-group-sm mark-buttons" role="group">
+                      <button type="button" class="btn" [class.btn-success]="m === true" [class.btn-outline-success]="m !== true"
+                              [appCanDisable]="'edit'" (click)="setMark(p, true)">
+                        <i class="pe-7s-check"></i> {{ 'eventAttendance.present' | translate }}
+                      </button>
+                      <button type="button" class="btn" [class.btn-danger]="m === false" [class.btn-outline-danger]="m !== false"
+                              [appCanDisable]="'edit'" (click)="setMark(p, false)">
+                        <i class="pe-7s-close"></i> {{ 'eventAttendance.absent' | translate }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="4" class="text-center text-muted py-4">
+                  {{ (invitees().length === 0 ? 'eventAttendance.noInvitees' : 'eventAttendance.noMatches') | translate }}
+                </td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+</div>

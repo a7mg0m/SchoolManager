@@ -186,6 +186,11 @@ export class SchoolEventListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/notification/school-events/save']);
   }
 
+  /** Who came to the event (check-in) */
+  navigateToAttendance(id: string): void {
+    this.router.navigate(['/notification/school-events', id, 'attendance']);
+  }
+
   navigateToEdit(id: string): void {
     this.router.navigate(['/notification/school-events/save', id]);
   }

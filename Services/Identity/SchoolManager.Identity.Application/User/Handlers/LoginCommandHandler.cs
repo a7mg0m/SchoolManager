@@ -14,6 +14,8 @@ namespace SchoolManager.Identity.Application
         private readonly IPasswordHasher _passwordHasher;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IMapper _mapper;
+        private readonly IParentStudentsChecker _parentStudents;
+        private readonly ITeacherServiceChecker _teacherService;
 
         public LoginCommandHandler(
             IUserRepository repository,
@@ -21,8 +23,12 @@ namespace SchoolManager.Identity.Application
             IUnitOfWork unitOfWork,
             IPasswordHasher passwordHasher,
             IJwtTokenGenerator jwtTokenGenerator,
-            IMapper mapper)
+            IMapper mapper,
+            IParentStudentsChecker parentStudents,
+            ITeacherServiceChecker teacherService)
         {
+            _parentStudents = parentStudents;
+            _teacherService = teacherService;
             _repository = repository;
             _profileRepository = profileRepository;
             _unitOfWork = unitOfWork;
@@ -40,16 +46,34 @@ namespace SchoolManager.Identity.Application
                 throw new DomainException(ErrorKeys.InvalidCredentials);
             }
 
+            // A teacher signs in only while in service (checked first: ending service also deactivates the account,
+            // and the teacher should be told why)
+            if (user.RoleId == RoleIds.Teacher)
+            {
+                var teacherProfile = (await _profileRepository.SearchAsync(p => p.UserId == user.Id)).FirstOrDefault();
+                var inService = await _teacherService.IsInServiceAsync(teacherProfile?.TeacherId ?? user.Id, cancellationToken);
+                if (inService is null) throw new DomainException(ErrorKeys.TeacherCheckUnavailable);
+                if (inService == false) throw new DomainException(ErrorKeys.ServiceEnded);
+            }
+
             if (!user.IsActive)
             {
                 throw new DomainException(ErrorKeys.UserInactive);
             }
 
-            user.RecordLogin(DateTime.Now);
-            await _unitOfWork.SaveChangesAsync();
-
             // One profile per user (unique index on UserProfiles.UserId)
             var profile = (await _profileRepository.SearchAsync(p => p.UserId == user.Id)).FirstOrDefault();
+
+            // A parent signs in only while they have a child at the school (not all graduated / transferred)
+            if (user.RoleId == RoleIds.Parent)
+            {
+                var hasCurrent = await _parentStudents.HasCurrentStudentsAsync(profile?.ParentId ?? user.Id, cancellationToken);
+                if (hasCurrent is null) throw new DomainException(ErrorKeys.ParentCheckUnavailable);
+                if (hasCurrent == false) throw new DomainException(ErrorKeys.NoCurrentStudents);
+            }
+
+            user.RecordLogin(DateTime.Now);
+            await _unitOfWork.SaveChangesAsync();
 
             // Profile's employee / teacher / parent ids go into the token as claims
             var token = _jwtTokenGenerator.GenerateToken(user, profile);

@@ -21,7 +21,7 @@ namespace SchoolManager.Management.Application
                 return null;
 
             var slots = await _timetableRepository.GetSectionSlotsAsync(
-                request.AcademicYearId ?? student.AcademicYearId, request.SemesterId, student.GradeId, student.SectionId, cancellationToken);
+                request.AcademicYearId ?? student.AcademicYearId, request.SemesterId, student.GradeId, student.SectionId ?? Guid.Empty, cancellationToken);
 
             return new ChildTimetableDto
             {

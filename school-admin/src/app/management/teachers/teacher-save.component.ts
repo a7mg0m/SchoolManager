@@ -37,6 +37,8 @@ const ACCOUNT_ERROR_KEYS: Record<string, string> = {
 })
 export class TeacherSaveComponent implements OnInit, OnDestroy {
   form!: FormGroup;
+  /** yyyy-MM-dd: the end of service date can't be later */
+  readonly today = new Date().toISOString().slice(0, 10);
   isLoading = signal(false);
   isSaving = signal(false);
   errorMessage = signal<string | null>(null);
@@ -102,6 +104,8 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       // Job level (المستوى الوظيفي): optional free text
       jobLevel: ['', Validators.maxLength(100)],
       isActive: [true],
+      isServiceEnded: [false],
+      serviceEndDate: [''],
       // Login account of the teacher (created / updated in the Identity service)
       loginName: ['', [
         Validators.required,
@@ -162,6 +166,8 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       address: teacher.address ?? '',
       jobLevel: teacher.jobLevel ?? '',
       isActive: teacher.isActive ?? true,
+      isServiceEnded: !!teacher.isServiceEnded,
+      serviceEndDate: teacher.serviceEndDate ?? '',
       // Teachers saved before login names existed sign in with their national ID
       loginName: teacher.loginName || teacher.nationalId || ''
     });
@@ -250,7 +256,9 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       email: this.normalizeEmail(v.email),
       address: v.address.trim(),
       jobLevel: (v.jobLevel ?? '').trim() || null,
-      isActive: !!v.isActive,
+      isActive: !!v.isActive && !v.isServiceEnded,
+      isServiceEnded: !!v.isServiceEnded,
+      serviceEndDate: v.isServiceEnded ? (v.serviceEndDate || null) : null,
       loginName: v.loginName.trim(),
       password: v.password
     };
@@ -281,7 +289,9 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       email: this.normalizeEmail(v.email),
       address: v.address.trim(),
       jobLevel: (v.jobLevel ?? '').trim() || null,
-      isActive: !!v.isActive,
+      isActive: !!v.isActive && !v.isServiceEnded,
+      isServiceEnded: !!v.isServiceEnded,
+      serviceEndDate: v.isServiceEnded ? (v.serviceEndDate || null) : null,
       loginName: v.loginName.trim(),
       // Empty: keep the current password
       password: v.password || null

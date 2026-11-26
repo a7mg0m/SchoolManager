@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'core/app_info.dart';
 import 'core/auth/auth_service.dart';
 import 'core/push/push_service.dart';
 import 'core/i18n/app_language.dart';
@@ -40,7 +41,9 @@ class SmartSchoolDriverApp extends StatelessWidget {
       listenable: Listenable.merge(
           [ThemeController.instance, AppLanguage.instance]),
       builder: (context, _) => MaterialApp(
-        title: 'Smart School Driver',
+        // App name from app_setup.json, in the app's language
+        onGenerateTitle: (_) =>
+            AppInfo.name(AppLanguage.instance.value.languageCode),
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,

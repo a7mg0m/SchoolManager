@@ -127,7 +127,11 @@
                   <td class="d-none d-sm-table-cell" dir="ltr">{{ teacher.phoneNumber }}</td>
                   <td class="d-none d-lg-table-cell" dir="ltr">{{ teacher.email || '-' }}</td>
                   <td>
-                    @if (teacher.isActive) {
+                    @if (teacher.isServiceEnded) {
+                      <span class="badge bg-dark" [title]="teacher.serviceEndDate || ''">
+                        {{ 'teachers.serviceEnded' | translate }}@if (teacher.serviceEndDate) { · {{ teacher.serviceEndDate }} }
+                      </span>
+                    } @else if (teacher.isActive) {
                       <span class="badge bg-success">{{ 'common.active' | translate }}</span>
                     } @else {
                       <span class="badge bg-secondary">{{ 'common.inactive' | translate }}</span>

@@ -9,7 +9,7 @@ namespace SchoolManager.Notification.Application
         {
             var child = query.Child;
             var events = await repository.GetForStudentAsync(
-                query.AcademicYearId, query.SemesterId, child.GradeId, child.SectionId, child.Id, cancellationToken);
+                query.AcademicYearId, query.SemesterId, child.GradeId, child.SectionId ?? Guid.Empty, child.Id, cancellationToken);
 
             return events
                 .OrderBy(e => e.EventDate).ThenBy(e => e.StartTime)

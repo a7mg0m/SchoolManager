@@ -1,0 +1,180 @@
+// Attendance report. Day colours: present (green), partly present (amber), excused (blue), absent (red).
+$present: #16a34a;
+$partial: #f59e0b;
+$excused: #3b82f6;
+$absent: #ef4444;
+$late: #a855f7;
+
+.report-page {
+  .rate-card {
+    height: 100%;
+    padding: 1.1rem;
+    border-radius: 16px;
+    color: #fff;
+    background: linear-gradient(135deg, #64748b, #475569);
+
+    &.good { background: linear-gradient(135deg, #16a34a, #15803d); }
+    &.warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.bad { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+    .rate-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .rate-label {
+      font-weight: 600;
+      margin: 0.35rem 0 0.15rem;
+    }
+
+    small {
+      opacity: 0.85;
+    }
+  }
+
+  .mini {
+    height: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: var(--sg-muted, #6c757d);
+    background: var(--sg-surface, #fff);
+    border: 1px solid var(--sg-line, #dee2e6);
+    border-top: 4px solid currentColor;
+
+    span {
+      display: block;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--sg-ink, #13261f);
+    }
+
+    &.present { border-top-color: $present; }
+    &.partial { border-top-color: $partial; }
+    &.absent { border-top-color: $absent; }
+    &.excused { border-top-color: $excused; }
+    &.late { border-top-color: $late; }
+    &.missed { border-top-color: darken($absent, 15%); }
+  }
+
+  .day-list {
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  .day-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 48px;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.82rem;
+
+    .day-name {
+      color: var(--sg-muted, #6c757d);
+      white-space: nowrap;
+    }
+  }
+
+  .stack {
+    display: flex;
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    .present { background: $present; }
+    .partial { background: $partial; }
+    .excused { background: $excused; }
+    .absent { background: $absent; }
+  }
+
+  .day-rate {
+    font-weight: 700;
+    text-align: end;
+
+    &.good { color: $present; }
+    &.warn { color: darken($partial, 10%); }
+    &.bad { color: $absent; }
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 0.75rem;
+    font-size: 0.75rem;
+    color: var(--sg-muted, #6c757d);
+
+    i {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      margin-inline-end: 0.3rem;
+
+      &.present { background: $present; }
+      &.partial { background: $partial; }
+      &.excused { background: $excused; }
+      &.absent { background: $absent; }
+    }
+  }
+
+  .rate-col {
+    min-width: 150px;
+  }
+
+  .rate-bar {
+    height: 7px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: #94a3b8;
+
+      &.good { background: $present; }
+      &.warn { background: $partial; }
+      &.bad { background: $absent; }
+    }
+  }
+
+  tr.attention td {
+    background: rgba($absent, 0.06);
+  }
+
+  .search-input {
+    max-width: 220px;
+  }
+
+  .print-only {
+    display: none;
+  }
+}
+
+@media print {
+  .report-page {
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block;
+    }
+
+    .day-list {
+      max-height: none;
+      overflow: visible;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+  }
+}

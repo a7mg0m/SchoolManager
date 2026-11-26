@@ -7,7 +7,9 @@ export enum ExamType {
   Quiz = 1,
   Monthly = 2,
   MidTerm = 3,
-  Final = 4
+  Final = 4,
+  /** Resit of a Final, for the students who failed it (دور ثانٍ) */
+  SecondFinal = 5
 }
 
 /** Exam types with their translation keys, for selects and badges */
@@ -15,8 +17,38 @@ export const EXAM_TYPES: { value: ExamType; key: string; badge: string }[] = [
   { value: ExamType.Quiz, key: 'exams.types.quiz', badge: 'bg-info' },
   { value: ExamType.Monthly, key: 'exams.types.monthly', badge: 'bg-primary' },
   { value: ExamType.MidTerm, key: 'exams.types.midTerm', badge: 'bg-warning' },
-  { value: ExamType.Final, key: 'exams.types.final', badge: 'bg-danger' }
+  { value: ExamType.Final, key: 'exams.types.final', badge: 'bg-danger' },
+  { value: ExamType.SecondFinal, key: 'exams.types.secondFinal', badge: 'bg-dark' }
 ];
+
+/** A Final exam of a grade with its scores by student and its second final (GET /api/exam/promotion-finals) */
+export interface PromotionFinal {
+  examId: string;
+  subjectId: string;
+  /** null: for the whole grade */
+  sectionId: string | null;
+  semesterId: string;
+  examDate: string;
+  weight: number;
+  successScore: number;
+  /** Score by student id */
+  scores: Record<string, number>;
+  secondFinal: {
+    examId: string;
+    examDate: string;
+    weight: number;
+    successScore: number;
+    scores: Record<string, number>;
+  } | null;
+}
+
+/** A student who may sit a second final: failed its Final with this score (GET /api/exam/second-final-students/{id}) */
+export interface SecondFinalStudent {
+  studentId: string;
+  originalScore: number;
+  originalWeight: number;
+  originalSuccessScore: number;
+}
 
 /** Months of a Monthly exam (1 = January … 12 = December) with their translation keys */
 export const EXAM_MONTHS: { value: number; key: string }[] =
@@ -39,6 +71,8 @@ export interface Exam {
   academicYearId: string;
   semesterId: string;
   examType: ExamType;
+  /** Second final: the Final exam it is the resit of */
+  originalExamId?: string | null;
   /** Month of a Monthly exam (1..12); null for the other types */
   month: number | null;
   examDate: string;
@@ -64,6 +98,8 @@ export interface CreateExamRequest {
   academicYearId: string;
   semesterId: string;
   examType: ExamType;
+  /** Second final: the Final exam it is the resit of */
+  originalExamId?: string | null;
   /** Month of a Monthly exam (1..12); null for the other types */
   month: number | null;
   examDate: string;

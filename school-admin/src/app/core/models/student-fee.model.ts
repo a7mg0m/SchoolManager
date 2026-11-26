@@ -76,6 +76,21 @@ export interface StudentFee {
   waiveReason: string | null;
   /** ISO date-time (UTC) */
   waivedAt: string | null;
+  /** Set for a bus fee (created from a bus assignment) */
+  busAssignmentId?: string | null;
+}
+
+/** A payment applied to a student fee, with its date (GET /api/student-fee/payments) */
+export interface StudentFeePayment {
+  id: string;
+  studentFeeId: string;
+  studentId: string;
+  academicYearId: string | null;
+  isBusFee: boolean;
+  amount: number;
+  currency: string;
+  /** ISO date-time */
+  paidOn: string;
 }
 
 /** Body for PUT /api/student-fee/waive/{id} */
@@ -121,5 +136,7 @@ export interface ApplyStudentFeePaymentRequest {
 }
 
 export type StudentFeeListResponse = ApiResponse<StudentFee[]>;
+
+export type StudentFeePaymentListResponse = ApiResponse<StudentFeePayment[]>;
 
 export type StudentFeeSingleResponse = ApiResponse<StudentFee>;

@@ -1,0 +1,146 @@
+// Exam results report. Score colours: good (green, 75%+), fair (amber, 50%+), low (red).
+$good: #16a34a;
+$warn: #f59e0b;
+$bad: #ef4444;
+
+.report-page {
+  .score-card {
+    height: 100%;
+    padding: 1.1rem;
+    border-radius: 16px;
+    color: #fff;
+    background: linear-gradient(135deg, #64748b, #475569);
+
+    &.good { background: linear-gradient(135deg, #16a34a, #15803d); }
+    &.warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    &.bad { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+
+    .score-value {
+      font-size: 2.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .score-label {
+      font-weight: 600;
+      margin: 0.35rem 0 0.15rem;
+    }
+
+    small {
+      opacity: 0.85;
+    }
+  }
+
+  .mini {
+    height: 100%;
+    padding: 0.75rem;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    color: var(--sg-muted, #6c757d);
+    background: var(--sg-surface, #fff);
+    border: 1px solid var(--sg-line, #dee2e6);
+    border-top: 4px solid #94a3b8;
+
+    span {
+      display: block;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--sg-ink, #13261f);
+    }
+
+    &.pass { border-top-color: #6366f1; }
+    &.passed { border-top-color: $good; }
+    &.failed { border-top-color: $bad; }
+    &.range { border-top-color: $warn; }
+  }
+
+  .band-row {
+    display: grid;
+    grid-template-columns: 130px 1fr 36px;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.85rem;
+
+    .band-count {
+      font-weight: 700;
+      text-align: end;
+    }
+  }
+
+  .band-bar,
+  .rate-bar {
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--sg-line, #e9ecef);
+
+    span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+    }
+  }
+
+  .band-bar span {
+    &.b5 { background: #15803d; }
+    &.b4 { background: #22c55e; }
+    &.b3 { background: #84cc16; }
+    &.b2 { background: #f59e0b; }
+    &.b1 { background: #ef4444; }
+  }
+
+  .rate-bar {
+    height: 7px;
+
+    span {
+      &.good { background: $good; }
+      &.warn { background: $warn; }
+      &.bad { background: $bad; }
+    }
+  }
+
+  .rate-col {
+    min-width: 140px;
+  }
+
+  .score-pill {
+    display: inline-block;
+    min-width: 3rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-align: center;
+
+    &.good { color: $good; background: rgba($good, 0.12); }
+    &.warn { color: darken($warn, 12%); background: rgba($warn, 0.15); }
+    &.bad { color: $bad; background: rgba($bad, 0.12); }
+  }
+
+  tr.support td {
+    background: rgba($bad, 0.06);
+  }
+
+  .print-only {
+    display: none;
+  }
+}
+
+@media print {
+  .report-page {
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      box-shadow: none;
+      break-inside: avoid;
+    }
+  }
+}

@@ -28,9 +28,19 @@
         "Match": { "Path": "/api/{resource:regex(^(exam|exam-result|homework|homework-question|homework-publish)$)}/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5180" } ]
       },
+      "exam-files-route": {
+        "ClusterId": "examshomework-cluster",
+        "Match": { "Path": "/exam-files/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5180" } ]
+      },
       "notification-files-route": {
         "ClusterId": "notification-cluster",
         "Match": { "Path": "/notification-files/{**catch-all}" },
+        "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5233" } ]
+      },
+      "notification-hubs-route": {
+        "ClusterId": "notification-cluster",
+        "Match": { "Path": "/hubs/{**catch-all}" },
         "Transforms": [ { "RequestHeader": "Host", "Set": "localhost:5233" } ]
       },
       "notification-route": {

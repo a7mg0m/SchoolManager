@@ -9,6 +9,7 @@ import '../../core/theme/theme_controller.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/i18n/language_switch.dart';
 import '../../data/demo_data.dart';
+import '../activity/student_activity_screen.dart';
 import '../chat/chat_screens.dart';
 import '../attendance/attendance_screen.dart';
 import '../bus/bus_screen.dart';
@@ -883,6 +884,23 @@ class _HomeScreenState extends State<HomeScreen> {
           order: 3,
           child: SizedBox(
             height: unit - 16,
+            // Profile, the week's attendance with the teachers' reviews, exams: all in one page
+            child: _BentoTile(
+              key: const ValueKey('tile-activity'),
+              icon: Icons.insights_rounded,
+              label: tr('نشاط الطالب', 'Student activity'),
+              detail: tr('الحضور والتقييمات والاختبارات أسبوعياً', 'Weekly attendance, reviews and exams'),
+              colors: const [Color(0xFF0FA5A5), Color(0xFF0A7C7C)],
+              wide: true,
+              onTap: _openActivity,
+            ),
+          ),
+        ),
+        const SizedBox(height: gap),
+        _Appear(
+          order: 3,
+          child: SizedBox(
+            height: unit - 16,
             child: _BentoTile(
               icon: Icons.celebration_rounded,
               label: tr('الفعاليات', 'Events'),
@@ -1043,6 +1061,16 @@ class _HomeScreenState extends State<HomeScreen> {
         child: child,
         loadAttendance: widget.loadAttendance,
         loadTimetable: widget.loadTimetable,
+        onSessionExpired: _logout,
+      ));
+
+  /// The selected child's activity: profile, weekly attendance with the teachers' reviews, exams
+  void _openActivity() => _openForChild((child) => StudentActivityScreen(
+        child: child,
+        loadAttendance: widget.loadAttendance,
+        loadTimetable: widget.loadTimetable,
+        loadExams: widget.loadExams,
+        evaluationApi: widget.evaluationApi,
         onSessionExpired: _logout,
       ));
 
@@ -1218,15 +1246,21 @@ class _HomeScreenState extends State<HomeScreen> {
     if (route == null || !mounted) return;
     PushService.instance.openRoute.value = null;
     if (route.startsWith('/chat')) {
-      _openChats();
+      // /chat/{roomId}: straight into that chat
+      final roomId = route.split('/').where((s) => s.isNotEmpty).skip(1).firstOrNull;
+      _openChats(roomId: roomId);
     } else if (route.startsWith('/notifications')) {
       _openNotifications();
     }
   }
 
   /// Chats with the teachers of my children, above the home page; the bar stays
-  Future<void> _openChats() async {
-    if (selectedTab == 2) return;
+  /// Each opening of the chats; an older one that closes must not reset the tab of a newer one
+  int _chatsOpening = 0;
+
+  Future<void> _openChats({String? roomId}) async {
+    if (selectedTab == 2 && roomId == null) return;
+    final opening = ++_chatsOpening;
     _nav.popUntil((route) => route.isFirst);
     setState(() => selectedTab = 2);
     await _nav.push(MaterialPageRoute(
@@ -1234,10 +1268,16 @@ class _HomeScreenState extends State<HomeScreen> {
         api: widget.chatApi,
         onSessionExpired: _logout,
         refreshEvery: widget.chatRefreshEvery,
-        newChatHint: tr('راسل معلمي أبنائك.', "Message your children's teachers."),
+        newChatHint: selectedChild == null
+            ? tr('راسل معلمي أبنائك.', "Message your children's teachers.")
+            : tr('معلمو ${selectedChild!.fullNameAr} في جدول فصل ${selectedChild!.sectionName}.',
+                "${selectedChild!.fullNameEn}'s teachers in the ${selectedChild!.sectionName} timetable."),
+        openRoomId: roomId,
+        // New chat: only the teachers of the selected child's section timetable
+        contactsStudentId: selectedChild?.id,
       ),
     ));
-    if (mounted && selectedTab == 2) setState(() => selectedTab = 0);
+    if (mounted && opening == _chatsOpening && selectedTab == 2) setState(() => selectedTab = 0);
   }
 
   /// Floating rounded bar; the selected item becomes a coloured pill
@@ -1484,6 +1524,7 @@ class _HomeScreenState extends State<HomeScreen> {
 /// [big]: tall tile (icon on top, text at the bottom); [wide]: full-width row.
 class _BentoTile extends StatelessWidget {
   const _BentoTile({
+    super.key,
     required this.icon,
     required this.label,
     required this.detail,

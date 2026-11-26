@@ -15,10 +15,17 @@ export interface ParentStudent {
   email: string | null;
   address: string;
   gradeId: string;
-  sectionId: string;
+  sectionId: string | null;
   academicYearId: string;
   parentId: string;
   isActive: boolean;
+  /** 1 Current, 2 Graduated, 3 Transferred (missing: current) */
+  status?: number;
+}
+
+/** A student still at the school (not graduated / transferred) */
+export function isCurrentStudent(s: { status?: number | null }): boolean {
+  return (s.status ?? 1) === 1;
 }
 
 /**
@@ -53,7 +60,7 @@ export interface ParentStudentDto {
   email: string | null;
   address: string;
   gradeId: string;
-  sectionId: string;
+  sectionId: string | null;
   academicYearId: string;
 }
 

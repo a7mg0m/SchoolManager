@@ -14,6 +14,14 @@ namespace SchoolManager.Identity.Application
     {
         public const string InvalidCredentials = "InvalidCredentials";
         public const string UserInactive = "UserInactive";
+        /// <summary>A parent whose children all graduated / were transferred (or who has none)</summary>
+        public const string NoCurrentStudents = "NoCurrentStudents";
+        /// <summary>The Management service could not say whether the parent has a current child</summary>
+        public const string ParentCheckUnavailable = "ParentCheckUnavailable";
+        /// <summary>A teacher whose service ended</summary>
+        public const string ServiceEnded = "ServiceEnded";
+        /// <summary>The Management service could not say whether the teacher is still in service</summary>
+        public const string TeacherCheckUnavailable = "TeacherCheckUnavailable";
         public const string LoginNameRequired = "LoginNameRequired";
         public const string LoginNameTooShort = "LoginNameTooShort";
         public const string EmailRequired = "EmailRequired";

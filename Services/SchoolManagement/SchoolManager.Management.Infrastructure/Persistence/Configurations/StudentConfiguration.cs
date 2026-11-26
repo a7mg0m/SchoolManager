@@ -8,6 +8,9 @@ namespace SchoolManager.Management.Infrastructure
 	{
 		public void Configure(EntityTypeBuilder<Student> builder)
 		{
+			// Existing students are current
+			builder.Property(s => s.Status).HasConversion<int>().HasDefaultValue(StudentStatus.Current);
+			builder.Property(s => s.StatusNote).HasMaxLength(Student.MaxStatusNoteLength);
             builder.ToTable("Students");
             builder.HasKey(x => x.Id);
 

@@ -23,6 +23,10 @@ export interface Teacher {
   isActive: boolean;
   /** Job level (المستوى الوظيفي), free text; null when not set */
   jobLevel?: string | null;
+  /** The teacher no longer works at the school (inactive: no teacher app login) */
+  isServiceEnded?: boolean;
+  /** Last day of service (yyyy-MM-dd) */
+  serviceEndDate?: string | null;
   /** Login name of the teacher's account (null for teachers saved before it existed) */
   loginName?: string | null;
 }
@@ -43,6 +47,10 @@ export interface CreateTeacherRequest {
   isActive: boolean;
   /** Job level, free text (null when empty) */
   jobLevel: string | null;
+  /** The teacher no longer works at the school (inactive: no teacher app login) */
+  isServiceEnded?: boolean;
+  /** Last day of service (yyyy-MM-dd) */
+  serviceEndDate?: string | null;
   /** Login name of the teacher's account (required) */
   loginName: string;
   /** First password (required) */
@@ -63,6 +71,10 @@ export interface UpdateTeacherRequest {
   isActive: boolean;
   /** Job level, free text (null when empty) */
   jobLevel: string | null;
+  /** The teacher no longer works at the school (inactive: no teacher app login) */
+  isServiceEnded?: boolean;
+  /** Last day of service (yyyy-MM-dd) */
+  serviceEndDate?: string | null;
   loginName: string;
   /** New password, or null to keep the current one */
   password: string | null;

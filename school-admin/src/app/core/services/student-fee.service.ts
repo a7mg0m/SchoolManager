@@ -7,8 +7,7 @@ import {
   ApplyStudentFeePaymentRequest,
   AssignStudentFeesRequest,
   AssignStudentFeesResponse,
-  WaiveStudentFeeRequest
-} from '../models/student-fee.model';
+  WaiveStudentFeeRequest, StudentFeePaymentListResponse } from '../models/student-fee.model';
 
 /**
  * Student Fee Service
@@ -23,6 +22,12 @@ export class StudentFeeService {
   constructor(private apiService: ApiService) {}
 
   /** GET /api/student-fee/get-all */
+  /** Payments applied to student fees between two dates (yyyy-MM-dd, both included, either open) */
+  getPayments(from?: string, to?: string): Observable<StudentFeePaymentListResponse> {
+    const query = [from ? `from=${from}` : '', to ? `to=${to}` : ''].filter(Boolean).join('&');
+    return this.apiService.get<StudentFeePaymentListResponse>(`${this.endpoint}/payments${query ? '?' + query : ''}`);
+  }
+
   getAll(): Observable<StudentFeeListResponse> {
     return this.apiService.get<StudentFeeListResponse>(`${this.endpoint}/get-all`);
   }

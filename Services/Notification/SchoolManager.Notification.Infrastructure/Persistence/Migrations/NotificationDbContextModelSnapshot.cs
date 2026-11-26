@@ -115,6 +115,31 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
                     b.ToTable("ChatRooms", (string)null);
                 });
 
+            modelBuilder.Entity("SchoolManager.Notification.Domain.EventAttendance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AttendeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AttendeeType")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsPresent")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId", "AttendeeType", "AttendeeId")
+                        .IsUnique();
+
+                    b.ToTable("EventAttendances", (string)null);
+                });
+
             modelBuilder.Entity("SchoolManager.Notification.Domain.EventTarget", b =>
                 {
                     b.Property<Guid>("Id")
@@ -495,6 +520,47 @@ namespace SchoolManager.Notification.Infrastructure.Persistence.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("ChatRoomId");
+                        });
+
+                    b.Navigation("AuditInfo")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SchoolManager.Notification.Domain.EventAttendance", b =>
+                {
+                    b.HasOne("SchoolManager.Notification.Domain.SchoolEvent", null)
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("BuildingBlocks.AuditInfo", "AuditInfo", b1 =>
+                        {
+                            b1.Property<Guid>("EventAttendanceId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<Guid>("CreatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("CreatedBy");
+
+                            b1.Property<DateTime>("CreatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("CreatedOn");
+
+                            b1.Property<Guid?>("UpdatedBy")
+                                .HasColumnType("uniqueidentifier")
+                                .HasColumnName("UpdatedBy");
+
+                            b1.Property<DateTime?>("UpdatedOn")
+                                .HasColumnType("datetime2")
+                                .HasColumnName("UpdatedOn");
+
+                            b1.HasKey("EventAttendanceId");
+
+                            b1.ToTable("EventAttendances");
+
+                            b1.WithOwner()
+                                .HasForeignKey("EventAttendanceId");
                         });
 
                     b.Navigation("AuditInfo")
