@@ -34,23 +34,12 @@ namespace SchoolManager.Attendance.Application
             var to = query.To < from ? from : query.To;
             if (to.DayNumber - from.DayNumber > MaxDays) to = from.AddDays(MaxDays);
 
-            var year = query.AcademicYearId;
-            var grade = query.GradeId;
-            var section = query.SectionId;
-            var list = await days.SearchAsync(d =>
-                d.Date >= from && d.Date <= to
-                && (year == null || d.AcademicYearId == year)
-                && (grade == null || d.GradeId == grade)
-                && (section == null || d.SectionId == section));
-
-            return list
-                .OrderBy(d => d.Date)
+            // Counted by SQL: the lessons themselves are not loaded
+            var rows = await days.GetReportRowsAsync(from, to, query.AcademicYearId, query.GradeId, query.SectionId, cancellationToken);
+            return rows
                 .Select(d => new AttendanceReportRowDto(
                     d.StudentId, d.GradeId, d.SectionId, d.AcademicYearId, d.Date, d.Status,
-                    d.Periods.Count(p => p.Status == PeriodAttendanceStatus.Present),
-                    d.Periods.Count(p => p.Status == PeriodAttendanceStatus.Late),
-                    d.Periods.Count(p => p.Status == PeriodAttendanceStatus.Absent),
-                    d.Periods.Count(p => p.Status == PeriodAttendanceStatus.Excused)))
+                    d.PresentLessons, d.LateLessons, d.AbsentLessons, d.ExcusedLessons))
                 .ToList();
         }
     }

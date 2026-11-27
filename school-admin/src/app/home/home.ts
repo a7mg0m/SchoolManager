@@ -38,6 +38,8 @@ import { DashboardSummary } from '../core/models/dashboard.model';
 import { Exam, EXAM_TYPES } from '../core/models/exam.model';
 import { ExamResult } from '../core/models/exam-result.model';
 import { Subject as SchoolSubject } from '../core/models/subject.model';
+import { ExamResultSummary } from '../core/services/exam-result.service';
+import { isCurrentStudent } from '../core/models/parent.model';
 
 /**
  * Chart tokens – the dataviz reference palette (validated: categorical slots 1–2 pass all
@@ -125,7 +127,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private allEvents = signal<SchoolEvent[]>([]);
   private allNotifications = signal<AppNotification[]>([]);
   private allExams = signal<Exam[]>([]);
-  private examResults = signal<ExamResult[]>([]);
+  private examSummaries = signal<ExamResultSummary[]>([]);
   private subjects = signal<SchoolSubject[]>([]);
 
   /** Today's attendance and the transport (Attendance service), for the header's academic year */
@@ -166,7 +168,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       students: students.length,
       activeStudents: active,
       teachers: this.teachers().filter(t => t.isActive !== false).length,
-      parents: this.parents().length,
+      // Parents of the current students (as the parents page lists them)
+      parents: new Set(students.filter(isCurrentStudent).map(s => s.parentId).filter(Boolean)).size,
       sections: this.sections().length,
       upcomingEvents: this.upcomingEvents().length
     };
@@ -476,24 +479,19 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   /** Exams of the year that have results, newest first, with their pass rate */
   examResultRows = computed(() => {
-    const byExam = new Map<string, ExamResult[]>();
-    for (const r of this.examResults()) {
-      const list = byExam.get(r.examId);
-      list ? list.push(r) : byExam.set(r.examId, [r]);
-    }
+    // Counted by the server (one line per exam), not from every result
+    const byExam = new Map(this.examSummaries().map(s => [s.examId, s]));
     return this.exams()
-      .filter(e => byExam.has(e.id))
+      .filter(e => (byExam.get(e.id)?.count ?? 0) > 0)
       .sort((a, b) => b.examDate.localeCompare(a.examDate))
       .map(e => {
-        const results = byExam.get(e.id)!;
-        const passed = results.filter(r => r.isPassed).length;
-        const average = results.reduce((s, r) => s + (r.score || 0), 0) / results.length;
+        const s = byExam.get(e.id)!;
         return {
           exam: e,
-          count: results.length,
-          passed,
-          passRate: Math.round((passed / results.length) * 100),
-          averagePercent: e.weight > 0 ? Math.round((average / e.weight) * 100) : 0
+          count: s.count,
+          passed: s.passed,
+          passRate: Math.round((s.passed / s.count) * 100),
+          averagePercent: e.weight > 0 ? Math.round((s.averageScore / e.weight) * 100) : 0
         };
       });
   });
@@ -608,7 +606,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     forkJoin({
       students: safe('management', this.studentService.getAll()),
       teachers: safe('management', this.teacherService.getAll()),
-      parents: safe('management', this.parentService.getAll()),
       sections: safe('management', this.sectionService.getAll()),
       grades: safe('management', this.gradeService.getAllGrades()),
       stages: safe('management', this.stageService.getAllStages()),
@@ -617,16 +614,16 @@ export class HomeComponent implements OnInit, OnDestroy {
       revenues: safe('financial', this.revenueService.getAll()),
       expenses: safe('financial', this.expenseService.getAll()),
       events: safe('notification', this.schoolEventService.getAll()),
-      notifications: safe('notification', this.notificationService.getAll()),
+      // Only what the dashboard shows: the latest notifications, the results of each exam in numbers
+      notifications: safe('notification', this.notificationService.getLatest(50)),
       exams: safe('exams', this.examService.getAll()),
-      examResults: safe('exams', this.examResultService.getAll()),
+      examSummaries: safe('exams', this.examResultService.getSummary()),
       subjects: safe('management', this.subjectService.getAll())
     })
       .pipe(takeUntil(this.destroy$))
       .subscribe(r => {
         this.allStudents.set(list(r.students));
         this.teachers.set(list(r.teachers));
-        this.parents.set(list(r.parents));
         this.sections.set(list(r.sections));
         this.grades.set(list(r.grades));
         this.stages.set(list(r.stages));
@@ -637,7 +634,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.allEvents.set(list(r.events));
         this.allNotifications.set(list(r.notifications));
         this.allExams.set(list(r.exams));
-        this.examResults.set(list(r.examResults));
+        this.examSummaries.set(list(r.examSummaries));
         this.subjects.set(list(r.subjects));
         this.failedSources.set([...new Set(failed)]);
         this.isLoading.set(false);

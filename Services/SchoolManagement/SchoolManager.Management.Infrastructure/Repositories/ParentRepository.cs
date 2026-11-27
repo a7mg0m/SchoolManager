@@ -13,6 +13,6 @@ namespace SchoolManager.Management.Infrastructure
 			=> _dbSet.Include(x => x.Students).FirstOrDefaultAsync(x => x.Id == id);
 
 		public Task<List<Parent>> GetAllWithStudentsAsync()
-			=> _dbSet.Include(x => x.Students).ToListAsync();
+			=> _dbSet.AsNoTracking().Include(x => x.Students).ToListAsync();
 	}
 }

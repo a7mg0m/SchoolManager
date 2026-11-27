@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, OnDestroy, booleanAttribute, input, numberAttribute } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, OnDestroy, booleanAttribute, computed, effect, input, numberAttribute, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 
@@ -20,9 +20,17 @@ interface RowGroup {
  *  - a row with one cell spanning the columns (e.g. "No data" from @empty): left as Angular shows it, not counted.
  *  - a row Angular hides ([hidden]) counts as filtered out by the page's own filters.
  * Rows are only hidden / shown (display), never moved or removed, so Angular keeps owning them.
+ *
+ * Rows mode, for big lists (only the current page is rendered, so thousands of rows stay fast):
+ *
+ *   <table appDataTable #dt="appDataTable" [dtRows]="filteredStudents()" [dtText]="studentText">
+ *     @for (s of dt.view(); track s.id; let i = $index) { … {{ dt.offset() + i + 1 }} … }
+ *
+ * The directive pages (and searches, with [dtText] or the item's own text values) the data instead of the DOM.
  */
 @Directive({
   selector: 'table[appDataTable]',
+  exportAs: 'appDataTable',
   standalone: false
 })
 export class DataTableDirective implements AfterViewInit, OnDestroy {
@@ -34,6 +42,40 @@ export class DataTableDirective implements AfterViewInit, OnDestroy {
   dtPageSizes = input<number[]>([7, 10, 25, 50, 100]);
   /** Editor tables: when a row is added, go to the page that shows it */
   dtFollowNew = input(false, { transform: booleanAttribute });
+  /** Rows mode: the whole (filtered) list; the template renders view() — the current page — only */
+  dtRows = input<readonly any[] | null>(null);
+  /** Rows mode: the searchable text of an item (default: its own text / number values) */
+  dtText = input<((item: any) => string) | null>(null);
+
+  // Rows mode state
+  private readonly pageSig = signal(1);
+  private readonly sizeSig = signal(10);
+  private readonly termSig = signal('');
+
+  /** Rows mode: the items matching the search */
+  private readonly matching = computed(() => {
+    const rows = this.dtRows() ?? [];
+    const term = this.termSig();
+    if (!term) return rows;
+    const text = this.dtText() ?? DataTableDirective.defaultText;
+    return rows.filter(item => text(item).toLowerCase().includes(term));
+  });
+  private readonly pages = computed(() => Math.max(1, Math.ceil(this.matching().length / this.sizeSig())));
+  private readonly currentPage = computed(() => Math.min(Math.max(1, this.pageSig()), this.pages()));
+
+  /** Rows mode: index of the first shown item in the whole list (for row numbers: offset() + i + 1) */
+  readonly offset = computed(() => (this.currentPage() - 1) * this.sizeSig());
+  /** Rows mode: the items of the current page */
+  readonly view = computed(() => this.matching().slice(this.offset(), this.offset() + this.sizeSig()));
+
+  private static defaultText(item: any): string {
+    if (item == null || typeof item !== 'object') return String(item ?? '');
+    return Object.values(item).filter(v => typeof v === 'string' || typeof v === 'number').join(' ');
+  }
+
+  private get rowsMode(): boolean {
+    return this.dtRows() !== null;
+  }
 
   /** Rows seen so far (to find the ones just added) */
   private known = new WeakSet<HTMLTableRowElement>();
@@ -60,12 +102,26 @@ export class DataTableDirective implements AfterViewInit, OnDestroy {
     private translate: TranslateService
   ) {
     this.table = host.nativeElement;
+    // Rows mode: the footer (count, pages) follows the data
+    effect(() => {
+      this.view();
+      if (this.footer) this.schedule();
+    });
   }
 
   ngAfterViewInit(): void {
     this.pageSize = this.dtPageSizes().includes(this.dtPageSize()) ? this.dtPageSize() : this.dtPageSizes()[0];
+    this.sizeSig.set(this.pageSize);
     this.buildChrome();
     this.apply();
+    // Rows mode renders only the page itself: nothing to watch in the DOM
+    if (this.rowsMode) {
+      this.langSub = this.translate.onLangChange.subscribe(() => {
+        this.setLabels();
+        this.apply();
+      });
+      return;
+    }
 
     // Rows come and go with the data (and [hidden] changes with the page's filters): re-apply, once per frame
     this.observer = new MutationObserver(() => this.schedule());
@@ -117,6 +173,8 @@ export class DataTableDirective implements AfterViewInit, OnDestroy {
     this.sizeSelect.addEventListener('change', () => {
       this.pageSize = Number(this.sizeSelect.value) || this.pageSize;
       this.page = 1;
+      this.sizeSig.set(this.pageSize);
+      this.pageSig.set(1);
       this.apply();
     });
     sizeBox.append(this.sizeLabel, this.sizeSelect);
@@ -133,6 +191,8 @@ export class DataTableDirective implements AfterViewInit, OnDestroy {
       this.searchInput.addEventListener('input', () => {
         this.term = this.searchInput.value.trim().toLowerCase();
         this.page = 1;
+        this.termSig.set(this.term);
+        this.pageSig.set(1);
         this.apply();
       });
       searchBox.append(icon, this.searchInput);
@@ -223,6 +283,10 @@ export class DataTableDirective implements AfterViewInit, OnDestroy {
 
   private apply(): void {
     if (!this.footer) return;
+    if (this.rowsMode) {
+      this.applyRows();
+      return;
+    }
     // Our own display changes must not wake the observer again
     this.observer?.disconnect();
 
@@ -287,6 +351,22 @@ export class DataTableDirective implements AfterViewInit, OnDestroy {
     });
   }
 
+  /** Rows mode: the template already shows only the page; update the toolbar / footer */
+  private applyRows(): void {
+    const total = (this.dtRows() ?? []).length;
+    const matching = this.matching().length;
+    const hasData = total > 0 || !!this.term;
+    this.toolbar.style.display = hasData ? '' : 'none';
+    this.footer.style.display = hasData ? '' : 'none';
+    this.page = this.currentPage();
+    const start = this.offset();
+    const shown = this.view().length;
+    this.info.textContent = matching === 0
+      ? (this.term ? this.translate.instant('common.dataTable.noMatches') : '')
+      : this.translate.instant('common.dataTable.showing', { from: start + 1, to: start + shown, total: matching });
+    this.renderPager(this.pages());
+  }
+
   private renderPager(pages: number): void {
     this.pager.replaceChildren();
     this.pager.parentElement!.style.display = pages > 1 ? '' : 'none';
@@ -305,6 +385,7 @@ export class DataTableDirective implements AfterViewInit, OnDestroy {
       button.disabled = !!opts.disabled;
       button.addEventListener('click', () => {
         this.page = page;
+        this.pageSig.set(page);
         this.apply();
       });
       li.appendChild(button);

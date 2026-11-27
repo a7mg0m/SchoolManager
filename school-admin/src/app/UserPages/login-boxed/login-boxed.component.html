@@ -32,7 +32,8 @@
           }
 
           <!-- Login Form -->
-          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <!-- The login button is in the card footer (outside the form): form="loginFormEl" links it, so Enter logs in -->
+          <form id="loginFormEl" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
             <!-- Login Name Input -->
             <div class="mb-3">
               <label for="loginNameInput" class="form-label visually-hidden">{{ 'auth.loginName' | translate }}</label>
@@ -113,10 +114,10 @@
               {{ 'auth.recoverPassword' | translate }}
             </a>
             <button 
-              type="submit" 
+              type="submit"
+              form="loginFormEl"
               class="btn btn-primary btn-lg px-4"
-              [disabled]="!loginForm.valid || (loading$ | async)"
-              (click)="onSubmit()">
+              [disabled]="!loginForm.valid || (loading$ | async)">
               @if (loading$ | async) {
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 {{ 'common.loading' | translate }}

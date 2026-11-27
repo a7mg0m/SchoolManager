@@ -24,6 +24,11 @@ export class NotificationService {
   constructor(private apiService: ApiService) {}
 
   /** GET /api/notification/get-all (newest first) */
+  /** Home dashboard: the latest school-office notifications */
+  getLatest(take = 50): Observable<NotificationListResponse> {
+    return this.apiService.get<NotificationListResponse>(`/api/notification/latest?take=${take}`);
+  }
+
   getAll(): Observable<NotificationListResponse> {
     return this.apiService.get<NotificationListResponse>(`${this.endpoint}/get-all`);
   }

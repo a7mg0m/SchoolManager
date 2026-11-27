@@ -12,8 +12,9 @@ namespace SchoolManager.Management.Infrastructure
 		public override Task<Timetable?> GetByIdAsync(Guid id)
 			=> _dbSet.Include(x => x.Slots).FirstOrDefaultAsync(x => x.Id == id);
 
+		// Only read (lists, teacher / class lookups): not tracked
 		public override async Task<List<Timetable>> GetAllAsync()
-			=> await _dbSet.Include(x => x.Slots).ToListAsync();
+			=> await _dbSet.AsNoTracking().Include(x => x.Slots).ToListAsync();
 
 		public async Task<List<TimetableSlot>> GetTeacherSlotsAsync(Guid teacherId, Guid academicYearId, Guid? semesterId, CancellationToken cancellationToken = default)
 		{

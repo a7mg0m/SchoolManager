@@ -38,6 +38,16 @@ namespace SchoolManager.ExamsHomework.Infrastructure
                     && (e.ExamType == ExamType.Final || e.ExamType == ExamType.SecondFinal))
                 .ToListAsync(cancellationToken);
 
+        public async Task<List<ExamResultSummary>> GetResultSummariesAsync(CancellationToken cancellationToken = default)
+            => await _dbSet.AsNoTracking()
+                .Where(e => e.ExamResults.Any())
+                .Select(e => new ExamResultSummary(
+                    e.Id,
+                    e.ExamResults.Count,
+                    e.ExamResults.Count(r => r.Score >= e.SuccessScore),
+                    e.ExamResults.Average(r => r.Score)))
+                .ToListAsync(cancellationToken);
+
         public async Task<Exam?> GetWithResultsAsync(Guid id, CancellationToken cancellationToken = default)
             => await _dbSet
                 .AsNoTracking()

@@ -136,7 +136,7 @@
     <div class="card">
       <div class="card-body">
         <div class="table-responsive">
-          <table appDataTable [dtSearch]="false" class="table table-hover align-middle">
+          <table appDataTable #dt="appDataTable" [dtRows]="filteredStudents()" [dtSearch]="false" class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
                 <th class="row-number">#</th>
@@ -149,10 +149,10 @@
               </tr>
             </thead>
             <tbody>
-              @for (s of filteredStudents(); track s.id; let i = $index) {
+              @for (s of dt.view(); track s.id; let i = $index) {
                 @let fees = feeOverviewOf(s);
                 <tr class="clickable-row" (click)="viewProfile(s)">
-                  <td class="row-number text-muted">{{ i + 1 }}</td>
+                  <td class="row-number text-muted">{{ dt.offset() + i + 1 }}</td>
                   <td>
                     <div class="d-flex align-items-center gap-2">
                       <span class="avatar" [class.avatar-female]="s.gender === 'Female'">{{ initials(s) }}</span>

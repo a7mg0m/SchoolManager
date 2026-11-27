@@ -26,6 +26,7 @@ namespace SchoolManager.Attendance.Infrastructure
 
             // One evaluation per student, lesson and day
             builder.HasIndex(x => new { x.StudentId, x.TimetableSlotId, x.Date }).IsUnique();
+            builder.HasIndex(x => x.Date);
             builder.HasIndex(x => x.TeacherId);
             builder.HasIndex(x => x.SubjectId);
             builder.HasIndex(x => x.TimetableSlotId);

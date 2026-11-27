@@ -101,7 +101,7 @@
           <p class="text-muted text-center my-4">{{ 'exams.noMatchingExams' | translate }}</p>
         } @else {
           <div class="table-responsive">
-            <table appDataTable class="table table-hover align-middle mb-0">
+            <table appDataTable #dt="appDataTable" [dtRows]="filteredExams()" [dtText]="examText" class="table table-hover align-middle mb-0">
               <thead class="table-light">
                 <tr>
                   <th>{{ 'exams.subject' | translate }}</th>
@@ -118,7 +118,7 @@
                 </tr>
               </thead>
               <tbody>
-                @for (exam of filteredExams(); track exam.id) {
+                @for (exam of dt.view(); track exam.id) {
                   <tr>
                     <td><strong>{{ subjectName(exam.subjectId) }}</strong></td>
                     <td>

@@ -94,7 +94,7 @@
     <div class="card">
       <div class="card-body">
         <div class="table-responsive">
-          <table appDataTable [dtSearch]="false" class="table table-hover align-middle">
+          <table appDataTable #dt="appDataTable" [dtRows]="filteredParents()" [dtSearch]="false" class="table table-hover align-middle">
             <thead class="table-light">
               <tr>
                 <th class="row-number">#</th>
@@ -108,9 +108,9 @@
               </tr>
             </thead>
             <tbody>
-              @for (parent of filteredParents(); track parent.id; let i = $index) {
+              @for (parent of dt.view(); track parent.id; let i = $index) {
                 <tr>
-                  <td class="row-number text-muted">{{ i + 1 }}</td>
+                  <td class="row-number text-muted">{{ dt.offset() + i + 1 }}</td>
                   <td dir="rtl"><strong>{{ parent.fullNameAr }}</strong></td>
                   <td class="d-none d-md-table-cell" dir="ltr"><strong>{{ parent.fullNameEn }}</strong></td>
                   <td class="d-none d-sm-table-cell" dir="ltr">{{ parent.phoneNumber }}</td>

@@ -15,6 +15,14 @@ namespace SchoolManager.ExamsHomework.API.Controllers
             _mediator = mediator;
         }
 
+        /// <summary>Home dashboard: per exam with results { examId, count, passed, averageScore }</summary>
+        [HttpGet("summary")]
+        public async Task<IActionResult> GetSummary(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetExamResultSummariesQuery(), cancellationToken);
+            return Ok(new ApiResponse { data = result });
+        }
+
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {

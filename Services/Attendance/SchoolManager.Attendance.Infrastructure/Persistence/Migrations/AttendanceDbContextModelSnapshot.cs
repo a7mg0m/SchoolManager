@@ -202,6 +202,8 @@ namespace SchoolManager.Attendance.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AcademicYearId");
 
+                    b.HasIndex("Date");
+
                     b.HasIndex("GradeId");
 
                     b.HasIndex("SectionId", "Date");
@@ -356,6 +358,8 @@ namespace SchoolManager.Attendance.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Date");
 
                     b.HasIndex("EvaluationRequestId");
 

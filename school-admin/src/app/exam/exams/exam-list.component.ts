@@ -264,6 +264,12 @@ export class ExamListComponent implements OnInit, OnDestroy {
   gradeName(id: string): string { return this.getName(this.gradeMap.get(id)); }
   sectionName(id: string | null): string { return id ? this.getName(this.sectionMap.get(id)) : ''; }
   subjectName(id: string): string { return this.getName(this.subjectMap.get(id)); }
+
+  /** What the table's search looks in: subject, stage, grade, class, date, year / semester */
+  readonly examText = (exam: Exam): string => [
+    this.subjectName(exam.subjectId), this.stageName(exam), this.gradeName(exam.gradeId), this.sectionName(exam.sectionId),
+    (exam.examDate || '').substring(0, 10), this.academicYearName(exam.academicYearId), this.semesterName(exam.semesterId)
+  ].join(' ');
   academicYearName(id: string): string { return this.academicYearMap.get(id)?.name ?? '—'; }
   semesterName(id: string): string { return this.semesterMap.get(id)?.name ?? '—'; }
 

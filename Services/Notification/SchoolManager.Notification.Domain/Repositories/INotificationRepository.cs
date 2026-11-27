@@ -13,6 +13,9 @@ namespace SchoolManager.Notification.Domain
         /// <summary>Admin notifications (not the system ones) with their targets, of one academic year (null: all)</summary>
         Task<List<Notification>> GetForYearAsync(Guid? academicYearId, CancellationToken cancellationToken = default);
 
+        /// <summary>The latest school-office notifications (home dashboard)</summary>
+        Task<List<Notification>> GetLatestAdminAsync(int take, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Notifications already sent (on or before <paramref name="today"/>) that concern a student: for the whole school
         /// (no targets), its grade, its class or the student itself; of one academic year when given. Read-only, with targets.

@@ -5,6 +5,9 @@ using System.Text;
 
 namespace SchoolManager.ExamsHomework.Domain
 {
+    /// <summary>The results of one exam in numbers (home dashboard)</summary>
+    public sealed record ExamResultSummary(Guid ExamId, int Count, int Passed, double AverageScore);
+
     public interface IExamRepository : IRepository<Exam>
     {
         /// <summary>
@@ -24,6 +27,9 @@ namespace SchoolManager.ExamsHomework.Domain
 
         /// <summary>The Final and Second final exams of a grade in an academic year, with their results (read-only)</summary>
         Task<List<Exam>> GetFinalsWithResultsAsync(Guid academicYearId, Guid gradeId, CancellationToken cancellationToken = default);
+
+        /// <summary>Per exam with results: how many, how many passed, the average score (computed by SQL)</summary>
+        Task<List<ExamResultSummary>> GetResultSummariesAsync(CancellationToken cancellationToken = default);
 
         /// <summary>One exam with all its results (read-only)</summary>
         Task<Exam?> GetWithResultsAsync(Guid id, CancellationToken cancellationToken = default);

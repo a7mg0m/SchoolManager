@@ -31,6 +31,7 @@ namespace SchoolManager.Attendance.Infrastructure
             builder.HasIndex(x => new { x.SectionId, x.Date });
             builder.HasIndex(x => x.GradeId);
             builder.HasIndex(x => x.AcademicYearId);
+            builder.HasIndex(x => x.Date);
 
             builder.HasMany(x => x.Periods).WithOne().HasForeignKey(p => p.DailyAttendanceId).OnDelete(DeleteBehavior.Cascade);
             builder.Navigation(x => x.Periods).HasField("_periods").UsePropertyAccessMode(PropertyAccessMode.Field);

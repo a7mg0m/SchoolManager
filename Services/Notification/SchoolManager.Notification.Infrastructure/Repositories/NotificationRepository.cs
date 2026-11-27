@@ -51,10 +51,17 @@ namespace SchoolManager.Notification.Infrastructure
             => _dbSet.AnyAsync(x => x.SourceEventId == eventId, cancellationToken);
 
         public async Task<List<Domain.Notification>> GetForYearAsync(Guid? academicYearId, CancellationToken cancellationToken = default)
-            => await _dbSet.Include(x => x.Targets)
+            => await _dbSet.AsNoTracking().Include(x => x.Targets)
                 // The admin page lists the school office's notifications, not the system ones (homework)
                 .Where(x => x.Source == NotificationSource.Admin)
                 .Where(x => academicYearId == null || x.AcademicYearId == academicYearId)
+                .ToListAsync(cancellationToken);
+
+        public async Task<List<Domain.Notification>> GetLatestAdminAsync(int take, CancellationToken cancellationToken = default)
+            => await _dbSet.AsNoTracking().Include(x => x.Targets)
+                .Where(x => x.Source == NotificationSource.Admin)
+                .OrderByDescending(x => x.SentOn).ThenByDescending(x => x.AuditInfo.CreatedOn)
+                .Take(take)
                 .ToListAsync(cancellationToken);
     }
 }

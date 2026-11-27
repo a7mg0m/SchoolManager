@@ -77,6 +77,14 @@ namespace SchoolManager.Notification.API.Controllers
         }
 
         /// <summary>Notifications of the academic year chosen in the admin header (null: all), newest first.</summary>
+        /// <summary>Home dashboard: the latest school-office notifications (?take=50)</summary>
+        [HttpGet("latest")]
+        public async Task<IActionResult> GetLatest([FromQuery] int take = 50, CancellationToken cancellationToken = default)
+        {
+            var result = await _mediator.Send(new GetLatestNotificationsQuery(take), cancellationToken);
+            return Ok(new ApiResponse { data = result });
+        }
+
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAll([FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
         {

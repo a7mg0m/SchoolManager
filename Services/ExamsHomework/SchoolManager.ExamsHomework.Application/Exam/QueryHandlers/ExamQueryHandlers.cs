@@ -8,7 +8,7 @@ namespace SchoolManager.ExamsHomework.Application
     {
         public async Task<List<ExamDto>> Handle(GetAllExamsQuery request, CancellationToken cancellationToken)
         {
-            var items = await repository.GetAllAsync();
+            var items = await repository.GetAllReadOnlyAsync();
             return mapper.Map<List<ExamDto>>(items);
         }
     }

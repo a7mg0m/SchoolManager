@@ -37,6 +37,9 @@ namespace SchoolManager.Management.Infrastructure
 		public virtual async Task<List<T>> GetAllAsync()
 			=> await _dbSet.ToListAsync();
 
+		public virtual async Task<List<T>> GetAllReadOnlyAsync()
+			=> await _dbSet.AsNoTracking().ToListAsync();
+
 		public async Task<List<T>> SearchAsync(Expression<Func<T, bool>> predicate)
 			=> await _dbSet.Where(predicate).ToListAsync();
 	}

@@ -21,8 +21,8 @@ namespace SchoolManager.Attendance.Application
             var to = query.To < from ? from : query.To;
             if (to.DayNumber - from.DayNumber > MaxDays) to = from.AddDays(MaxDays);
 
-            var list = await evaluations.SearchAsync(e => e.Date >= from && e.Date <= to);
-            return mapper.Map<List<StudentEvaluationDto>>(list.OrderByDescending(e => e.Date).ToList());
+            var list = await evaluations.GetBetweenAsync(from, to, cancellationToken);
+            return mapper.Map<List<StudentEvaluationDto>>(list);
         }
     }
 }

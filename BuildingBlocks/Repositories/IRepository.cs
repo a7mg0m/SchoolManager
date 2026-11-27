@@ -12,6 +12,9 @@ namespace BuildingBlocks
         Task UpdateAsync(T entity);
         void Remove(T entity);
         Task<List<T>> GetAllAsync();
+
+        /// <summary>All rows, not tracked: for lists that are only read (much faster on big tables)</summary>
+        Task<List<T>> GetAllReadOnlyAsync();
         Task<List<T>> SearchAsync(Expression<Func<T, bool>> predicate);
 
     }
