@@ -10,6 +10,8 @@ namespace SchoolManager.ExamsHomework.Application
     public record GetChildExamsQuery(
         ParentChild Child,
         IReadOnlyDictionary<Guid, (string Ar, string En)> SubjectNames,
-        Guid? SemesterId = null
+        Guid? SemesterId = null,
+        // The answer model of every exam (teacher); else only of the exams the student has a result in (parent)
+        bool AnswerModelAlways = false
     ) : IQuery<List<ChildExamDto>>;
 }

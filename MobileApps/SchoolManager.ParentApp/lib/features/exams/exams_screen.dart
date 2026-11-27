@@ -9,6 +9,7 @@ import '../schedule/schedule_format.dart';
 import 'exams_service.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/files/answer_model.dart';
 
 /// Exams of the child selected on home, one tab per exam type:
 /// a summary, the upcoming exams (with a countdown) and the results (score ring, pass / fail).
@@ -539,6 +540,26 @@ class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear, Li
                       Text('${exam.percentage!.round()}%',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: resultColor)),
                     Text(tr('النجاح من ${_mark(exam.passMark)}', 'Pass mark ${_mark(exam.passMark)}'), style: TextStyle(fontSize: 11.5, color: _muted)),
+                    // The answer model, once the result is out
+                    if (hasResult && exam.answerModelUrl != null)
+                      InkWell(
+                        key: ValueKey('answer-model-${exam.id}'),
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => openAnswerModel(context, exam.answerModelUrl!),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                          decoration: BoxDecoration(color: color.withValues(alpha: .12), borderRadius: BorderRadius.circular(20)),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.task_rounded, size: 14, color: color),
+                              const SizedBox(width: 4),
+                              Text(tr('نموذج الإجابة', 'Answer model'),
+                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: color)),
+                            ],
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ],

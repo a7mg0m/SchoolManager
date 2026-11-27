@@ -43,7 +43,8 @@ namespace SchoolManager.ExamsHomework.Application
                         Duration = e.Duration,
                         Weight = e.Weight,
                         SuccessScore = e.SuccessScore,
-                        AnswerModelUrl = e.AnswerModelUrl,
+                        // A parent sees the answer model once the child's result is out
+                        AnswerModelUrl = query.AnswerModelAlways || result is not null ? e.AnswerModelUrl : null,
                         Score = result?.Score,
                         IsPassed = result is null ? null : e.IsPassed(result.Score),
                         Percentage = result is null || e.Weight <= 0

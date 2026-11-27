@@ -83,6 +83,7 @@ class TeacherExam {
     required this.successScore,
     this.resultCount = 0,
     this.averageScore,
+    this.answerModelUrl,
     this.isMine = true,
     this.addedByTeacher = true,
   });
@@ -116,6 +117,9 @@ class TeacherExam {
   /// Students with a score
   final int resultCount;
   final double? averageScore;
+
+  /// The answer model (file path or link) set by the school; null when none
+  final String? answerModelUrl;
 
   String get subjectName => pickLang(subjectNameAr, subjectNameEn);
   String get gradeName => pickLang(gradeNameAr, gradeNameEn);
@@ -159,6 +163,7 @@ class TeacherExam {
       successScore: (json['successScore'] as num?)?.toDouble() ?? 0,
       resultCount: (json['resultCount'] as num?)?.toInt() ?? 0,
       averageScore: (json['averageScore'] as num?)?.toDouble(),
+      answerModelUrl: (json['answerModelUrl'] as String?)?.trim().isNotEmpty == true ? (json['answerModelUrl'] as String).trim() : null,
       isMine: json['isMine'] != false,
       addedByTeacher: json['addedByTeacher'] != false,
     );

@@ -69,7 +69,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
                 student = student with { AcademicYearId = year };
 
             var subjectNames = await _management.GetSubjectNamesAsync(authorization, cancellationToken);
-            var exams = await _mediator.Send(new GetChildExamsQuery(student, subjectNames, semesterId), cancellationToken);
+            var exams = await _mediator.Send(new GetChildExamsQuery(student, subjectNames, semesterId, AnswerModelAlways: true), cancellationToken);
             return Ok(new ApiResponse { data = exams });
         }
 

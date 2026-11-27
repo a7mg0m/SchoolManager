@@ -62,10 +62,14 @@ class ChildExam {
     this.score,
     this.isPassed,
     this.percentage,
+    this.answerModelUrl,
   });
 
   final String id;
   final ExamKind kind;
+
+  /// The answer model (file path or link); the server sends it only once the child's result is out
+  final String? answerModelUrl;
 
   /// Month of a Monthly exam (1..12); null for the other types
   final int? month;
@@ -117,6 +121,7 @@ class ChildExam {
       score: _num(json['score']),
       isPassed: json['isPassed'] as bool?,
       percentage: _num(json['percentage']),
+      answerModelUrl: (json['answerModelUrl'] as String?)?.trim().isNotEmpty == true ? (json['answerModelUrl'] as String).trim() : null,
     );
   }
 }

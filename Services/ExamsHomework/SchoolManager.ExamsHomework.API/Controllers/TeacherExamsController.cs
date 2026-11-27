@@ -320,6 +320,7 @@ namespace SchoolManager.ExamsHomework.API.Controllers
                 Duration = e.Duration,
                 Weight = e.Weight,
                 SuccessScore = e.SuccessScore,
+                AnswerModelUrl = e.AnswerModelUrl,
                 ResultCount = e.ExamResults.Count,
                 AverageScore = e.ExamResults.Count == 0 ? null : Math.Round(e.ExamResults.Average(r => r.Score), 2)
             };

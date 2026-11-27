@@ -34,6 +34,8 @@ namespace SchoolManager.ExamsHomework.Application
         /// <summary>Full mark</summary>
         public double Weight { get; set; }
         public double SuccessScore { get; set; }
+        /// <summary>Uploaded answer model (/exam-files/…) or a link; null when none</summary>
+        public string? AnswerModelUrl { get; set; }
         /// <summary>How many students have a score</summary>
         public int ResultCount { get; set; }
         /// <summary>Average of the given scores; null when none yet</summary>

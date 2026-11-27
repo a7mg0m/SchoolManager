@@ -8,6 +8,7 @@ import '../homework/homework_screens.dart' show homeworkDate;
 import '../homework/homework_service.dart';
 import 'exam_service.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/files/answer_model.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -413,6 +414,16 @@ class _ExamCard extends StatelessWidget {
                     style: TextStyle(fontSize: 12, color: exam.resultCount == 0 ? palette.muted : _green, fontWeight: FontWeight.w600),
                   ),
                 ),
+                // The answer model of the exam (when the school uploaded one)
+                if (exam.answerModelUrl != null) ...[
+                  IconButton(
+                    key: ValueKey('answer-model-${exam.id}'),
+                    tooltip: tr('نموذج الإجابة', 'Answer model'),
+                    onPressed: () => openAnswerModel(context, exam.answerModelUrl!),
+                    icon: const Icon(Icons.task_rounded, color: AppTheme.blue),
+                  ),
+                  const SizedBox(width: 2),
+                ],
                 FilledButton.tonalIcon(
                   key: ValueKey('scores-${exam.id}'),
                   onPressed: busy ? null : onScores,
