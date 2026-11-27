@@ -383,3 +383,4 @@ Services/Notification/SchoolManager.Notification.API/wwwroot/events/*
 
 # Chat pictures / videos / voice notes uploaded by users (Notification service)
 **/ChatFiles/
+/docs
