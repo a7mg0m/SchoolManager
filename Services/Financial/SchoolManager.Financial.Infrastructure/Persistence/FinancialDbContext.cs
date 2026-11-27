@@ -19,6 +19,9 @@ namespace SchoolManager.Financial.Infrastructure
         public DbSet<StudentFee> StudentFees => Set<StudentFee>();
         public DbSet<StudentFeePayment> StudentFeePayments => Set<StudentFeePayment>();
 
+        /// <summary>Integration events saved with the business change, published to Kafka in the background</summary>
+        public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(FinancialDbContext).Assembly);

@@ -13,6 +13,7 @@ import '../evaluation/evaluation_service.dart';
 import '../exams/exams_screen.dart';
 import '../exams/exams_service.dart';
 import '../schedule/schedule_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -97,7 +98,11 @@ class StudentActivityScreen extends StatefulWidget {
   State<StudentActivityScreen> createState() => _StudentActivityScreenState();
 }
 
-class _StudentActivityScreenState extends State<StudentActivityScreen> with ReloadOnAcademicYear {
+class _StudentActivityScreenState extends State<StudentActivityScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _loadAll();
+
   @override
   Future<void> reloadForAcademicYear() => _loadAll();
 

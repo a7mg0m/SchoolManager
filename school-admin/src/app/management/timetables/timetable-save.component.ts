@@ -87,6 +87,26 @@ function noOverlappingSlots(array: AbstractControl): ValidationErrors | null {
   return null;
 }
 
+/** Array-level validator: a teacher cannot give two lessons at the same time (in two sections) */
+function noTeacherClash(array: AbstractControl): ValidationErrors | null {
+  const slots = (array as FormArray).controls.map(c => c.value);
+  for (let i = 0; i < slots.length; i++) {
+    for (let j = i + 1; j < slots.length; j++) {
+      const a = slots[i];
+      const b = slots[j];
+      if (
+        a.teacherId && a.teacherId === b.teacherId &&
+        a.day !== null && String(a.day) === String(b.day) &&
+        a.startTime && a.endTime && b.startTime && b.endTime &&
+        a.startTime < b.endTime && b.startTime < a.endTime
+      ) {
+        return { teacherClash: { first: i + 1, second: j + 1, teacherId: a.teacherId, day: Number(a.day), start: a.startTime } };
+      }
+    }
+  }
+  return null;
+}
+
 @Component({
   selector: 'app-timetable-save',
   standalone: false,
@@ -107,6 +127,10 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
   stages = signal<Stage[]>([]);
   grades = signal<Grade[]>([]);
   academicYears = signal<AcademicYear[]>([]);
+
+  /** Other timetables whose week settings can be copied (label: stage · grade · year · semester) */
+  weekSources = signal<{ id: string; label: string }[]>([]);
+  copyingWeek = signal(false);
   sections = signal<Section[]>([]);
   subjects = signal<SchoolSubject[]>([]);
   teachers = signal<Teacher[]>([]);
@@ -211,7 +235,7 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
         slotDuration: 45,
         slotCount: 7
       }))),
-      slots: this.formBuilder.array([], { validators: noOverlappingSlots })
+      slots: this.formBuilder.array([], { validators: [noOverlappingSlots, noTeacherClash] })
     });
   }
 
@@ -496,6 +520,7 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
           this.stages.set(res.stages.data || []);
           this.grades.set(res.grades.data || []);
           this.academicYears.set(res.academicYears.data || []);
+          this.loadWeekSources();
           this.sections.set(res.sections.data || []);
           this.subjects.set(res.subjects.data || []);
           this.teachers.set((res.teachers.data || []).filter(t => t.isActive));
@@ -553,21 +578,89 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
     this.applyGradeFilter(timetable.gradeId);
 
     // The saved week (timetables saved before it keep the defaults)
-    if (timetable.workDays?.length) {
-      this.form.get('dayStartTime')!.setValue(this.toInputTime(timetable.dayStartTime) || '07:30', { emitEvent: false });
-      this.workDays.clear();
-      WEEK_DAYS.forEach(d => {
-        const saved = timetable.workDays!.find(w => w.day === d.value);
-        this.workDays.push(this.createWorkDayGroup(saved ?? {
-          day: d.value, isWorkDay: false, breakStart: null, breakEnd: null, slotDuration: 45, slotCount: 7
-        }));
-      });
-    }
+    this.applyWeek(timetable);
 
     this.slots.clear();
     [...(timetable.slots || [])]
       .sort((a, b) => a.day - b.day || a.startTime.localeCompare(b.startTime))
       .forEach(slot => this.slots.push(this.createSlotGroup(slot)));
+  }
+
+  /** Day start and work days (breaks, period length / count) of a timetable; false when it has none saved */
+  private applyWeek(timetable: Timetable): boolean {
+    if (!timetable.workDays?.length) return false;
+    this.form.get('dayStartTime')!.setValue(this.toInputTime(timetable.dayStartTime) || '07:30', { emitEvent: false });
+    // Update the day groups in place: the work days table on the page stays bound to these controls
+    // (replacing them would leave the shown inputs on the old ones, e.g. when copying into a new timetable)
+    WEEK_DAYS.forEach((d, i) => {
+      const saved = timetable.workDays!.find(w => Number(w.day) === d.value)
+        ?? { day: d.value, isWorkDay: false, breakStart: null, breakEnd: null, slotDuration: 45, slotCount: 7 };
+      const group = this.workDays.at(i);
+      if (!group) {
+        this.workDays.push(this.createWorkDayGroup(saved));
+        return;
+      }
+      // isWorkDay first: its change enables / disables the day's other fields
+      group.get('isWorkDay')!.setValue(!!saved.isWorkDay);
+      group.patchValue({
+        day: d.value,
+        breakStart: this.toInputTime(saved.breakStart),
+        breakEnd: this.toInputTime(saved.breakEnd),
+        slotDuration: saved.slotDuration || 45,
+        slotCount: saved.slotCount || 7
+      });
+    });
+    this.workDays.markAsDirty();
+    return true;
+  }
+
+  /** The other timetables (labelled) for "Copy week from…" */
+  private loadWeekSources(): void {
+    this.timetableService.getAll().pipe(takeUntil(this.destroy$)).subscribe({
+      next: res => {
+        const name = (item: { nameAr?: string; nameEn?: string } | undefined) => this.getName(item);
+        this.weekSources.set((res.data || [])
+          .filter(t => t.id !== this.timetableId)
+          .map(t => {
+            const grade = this.grades().find(g => g.id === t.gradeId);
+            const stage = this.stages().find(s => s.id === (t.stageId || grade?.stageId));
+            const year = this.academicYears().find(y => y.id === t.academicYearId);
+            const semester = AcademicYearSemesters.ordered(year).find(s => s.id === t.semesterId);
+            return {
+              id: t.id,
+              label: [name(stage), name(grade), year?.name, semester ? name(semester as any) || (semester as any).name : '']
+                .filter(Boolean).join(' · ')
+            };
+          })
+          .sort((a, b) => a.label.localeCompare(b.label)));
+      }
+    });
+  }
+
+  /** Copies the chosen timetable's week settings into this one (periods / teachers are not touched) */
+  copyWeekFrom(select: HTMLSelectElement): void {
+    const id = select.value;
+    if (!id) return;
+    this.copyingWeek.set(true);
+    this.timetableService.getById(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: res => {
+        this.copyingWeek.set(false);
+        select.value = '';
+        const source = res.data;
+        if (source && this.applyWeek(source)) {
+          this.successMessage.set(this.translate.instant('timetables.weekCopied', {
+            from: this.weekSources().find(s => s.id === id)?.label ?? ''
+          }));
+        } else {
+          this.errorMessage.set(this.translate.instant('timetables.weekCopyEmpty'));
+        }
+      },
+      error: () => {
+        this.copyingWeek.set(false);
+        select.value = '';
+        this.errorMessage.set(this.translate.instant('timetables.weekCopyFailed'));
+      }
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -724,7 +817,10 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error saving timetable:', error);
-        this.errorMessage.set('Failed to save timetable. Please try again.');
+        const body = error?.error;
+        this.errorMessage.set(body?.message === 'TeacherClash' && Array.isArray(body.data)
+          ? this.clashMessage(body.data)
+          : 'Failed to save timetable. Please try again.');
         this.isSaving.set(false);
       }
     });
@@ -741,6 +837,32 @@ export class TimetableSaveComponent implements OnInit, OnDestroy {
   getName(item: { nameAr?: string; nameEn?: string } | undefined | null): string {
     if (!item) return '';
     return this.currentLanguage() === 'ar' ? (item.nameAr || item.nameEn) : (item.nameEn || item.nameAr);
+  }
+
+  /** "Ahmed is already teaching Grade 2 / B on Sunday 09:00 - 09:45" for each clash the server found */
+  private clashMessage(clashes: any[]): string {
+    const ar = this.currentLanguage() === 'ar';
+    const pick = (a: string, e: string) => (ar ? a || e : e || a);
+    const time = (t: string) => (t || '').substring(0, 5);
+    const lines = clashes.map(c => this.translate.instant('timetables.teacherClashLine', {
+      teacher: pick(c.teacherNameAr, c.teacherNameEn),
+      day: this.translate.instant(WEEK_DAYS.find(d => d.value === Number(c.day))?.key ?? ''),
+      time: `${time(c.startTime)} - ${time(c.endTime)}`,
+      section: pick(c.sectionNameAr, c.sectionNameEn),
+      other: [pick(c.otherGradeNameAr, c.otherGradeNameEn), pick(c.otherSectionNameAr, c.otherSectionNameEn)].filter(Boolean).join(' / '),
+      otherTime: `${time(c.otherStartTime)} - ${time(c.otherEndTime)}`
+    }));
+    return this.translate.instant('timetables.teacherClash') + ' ' + lines.join(' • ');
+  }
+
+  /** Name of the teacher of the in-form clash */
+  clashTeacherName(id: string): string {
+    const teacher = this.teachers().find(t => t.id === id);
+    return teacher ? this.getTeacherName(teacher) : '';
+  }
+
+  clashDayName(day: number): string {
+    return this.translate.instant(WEEK_DAYS.find(d => d.value === day)?.key ?? '');
   }
 
   getTeacherName(teacher: Teacher): string {

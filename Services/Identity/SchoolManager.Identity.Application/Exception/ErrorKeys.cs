@@ -22,6 +22,8 @@ namespace SchoolManager.Identity.Application
         public const string ServiceEnded = "ServiceEnded";
         /// <summary>The Management service could not say whether the teacher is still in service</summary>
         public const string TeacherCheckUnavailable = "TeacherCheckUnavailable";
+        /// <summary>The login name the session was opened with was changed (e.g. a bus's): sign in again</summary>
+        public const string LoginNameChanged = "LoginNameChanged";
         public const string LoginNameRequired = "LoginNameRequired";
         public const string LoginNameTooShort = "LoginNameTooShort";
         public const string EmailRequired = "EmailRequired";

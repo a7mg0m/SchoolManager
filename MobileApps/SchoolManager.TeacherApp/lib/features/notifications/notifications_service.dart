@@ -16,7 +16,8 @@ enum NoticeType {
   examResult(3, 'نتيجة امتحان', 'Exam result', Icons.emoji_events_rounded, Color(0xFF13864B)),
   event(4, 'فعالية', 'Event', Icons.celebration_rounded, Color(0xFFE0457B)),
   message(5, 'رسالة', 'Message', Icons.campaign_rounded, Color(0xFF1677E8)),
-  bus(6, 'الحافلة', 'Bus', Icons.directions_bus_rounded, Color(0xFF0F766E));
+  bus(6, 'الحافلة', 'Bus', Icons.directions_bus_rounded, Color(0xFF0F766E)),
+  evaluationRequest(8, 'طلب تقييم', 'Evaluation request', Icons.rate_review_rounded, Color(0xFF6D7DF2));
 
   const NoticeType(this.value, this._ar, this._en, this.icon, this.color);
 

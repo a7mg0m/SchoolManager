@@ -8,6 +8,50 @@ import '../../core/auth/auth_service.dart';
 import '../../core/config.dart';
 import '../../core/i18n/app_language.dart';
 
+/// Job information of the teacher, set by the school (GET /api/teacher/my-profile); read only in the app
+class TeacherJobInfo {
+  const TeacherJobInfo({
+    this.jobLevel = '',
+    this.jobTitle = '',
+    this.employeeNumber = '',
+    this.qualification = '',
+    this.specialization = '',
+    this.hireDate = '',
+    this.yearsOfExperience,
+  });
+
+  final String jobLevel;
+  final String jobTitle;
+  final String employeeNumber;
+  final String qualification;
+  final String specialization;
+
+  /// yyyy-MM-dd ('' when not set)
+  final String hireDate;
+  final int? yearsOfExperience;
+
+  static const empty = TeacherJobInfo();
+
+  bool get hasDetails =>
+      jobTitle.isNotEmpty || employeeNumber.isNotEmpty || qualification.isNotEmpty || specialization.isNotEmpty ||
+      hireDate.isNotEmpty || yearsOfExperience != null;
+
+  factory TeacherJobInfo.fromJson(Map<String, dynamic> json) {
+    String text(String key) => (json[key] as String?)?.trim() ?? '';
+    final years = json['yearsOfExperience'];
+    final hire = text('hireDate');
+    return TeacherJobInfo(
+      jobLevel: text('jobLevel'),
+      jobTitle: text('jobTitle'),
+      employeeNumber: text('employeeNumber'),
+      qualification: text('qualification'),
+      specialization: text('specialization'),
+      hireDate: hire.length >= 10 ? hire.substring(0, 10) : hire,
+      yearsOfExperience: years is num ? years.toInt() : int.tryParse('${years ?? ''}'),
+    );
+  }
+}
+
 /// Profile of the signed-in user (GET /api/user-profile/my-profile)
 class MyProfile {
   const MyProfile({
@@ -18,6 +62,7 @@ class MyProfile {
     this.phoneNumber = '',
     this.address = '',
     this.jobLevel = '',
+    this.job = TeacherJobInfo.empty,
     this.image,
   });
 
@@ -30,6 +75,9 @@ class MyProfile {
 
   /// Job level (المستوى الوظيفي) set by the school in the admin dashboard; read only here, '' when not set
   final String jobLevel;
+
+  /// Job title, employee number, qualification, … set by the school (read only here)
+  final TeacherJobInfo job;
 
   /// Profile picture bytes, or null when the user has none
   final Uint8List? image;
@@ -45,14 +93,25 @@ class MyProfile {
     return e.endsWith('@teachers.local') || e.endsWith('@parents.local');
   }
 
-  MyProfile withJobLevel(String value) => MyProfile(
+  MyProfile withJobLevel(String value) => withJob(TeacherJobInfo(
+        jobLevel: value,
+        jobTitle: job.jobTitle,
+        employeeNumber: job.employeeNumber,
+        qualification: job.qualification,
+        specialization: job.specialization,
+        hireDate: job.hireDate,
+        yearsOfExperience: job.yearsOfExperience,
+      ));
+
+  MyProfile withJob(TeacherJobInfo value) => MyProfile(
         firstName: firstName,
         lastName: lastName,
         loginName: loginName,
         email: email,
         phoneNumber: phoneNumber,
         address: address,
-        jobLevel: value,
+        jobLevel: value.jobLevel,
+        job: value,
         image: image,
       );
 
@@ -100,19 +159,19 @@ class ProfileService {
   /// Largest picture the API accepts
   static const maxImageBytes = 1024 * 1024;
 
-  /// Last job level read from the teacher record (kept on the profile returned after a save)
-  String _jobLevel = '';
+  /// Last job information read from the teacher record (kept on the profile returned after a save)
+  TeacherJobInfo _job = TeacherJobInfo.empty;
 
   /// Null when the profile could not be loaded (the home screen then keeps the default avatar).
   /// The job level comes from the teacher record (GET /api/teacher/my-profile).
   Future<MyProfile?> getMyProfile() async {
     try {
-      final results = await Future.wait([_send('GET', '/api/user-profile/my-profile'), _loadJobLevel()]);
+      final results = await Future.wait([_send('GET', '/api/user-profile/my-profile'), _loadJob()]);
       final response = results[0] as http.Response;
-      _jobLevel = results[1] as String;
+      _job = results[1] as TeacherJobInfo;
       if (response.statusCode != 200) return null;
       final data = _data(response);
-      return data is Map<String, dynamic> ? MyProfile.fromJson(data).withJobLevel(_jobLevel) : null;
+      return data is Map<String, dynamic> ? MyProfile.fromJson(data).withJob(_job) : null;
     } on SessionExpiredException {
       rethrow;
     } catch (_) {
@@ -120,17 +179,17 @@ class ProfileService {
     }
   }
 
-  /// '' when it is not set or cannot be read (the profile still loads)
-  Future<String> _loadJobLevel() async {
+  /// Empty when it is not set or cannot be read (the profile still loads)
+  Future<TeacherJobInfo> _loadJob() async {
     try {
       final response = await _send('GET', '/api/teacher/my-profile');
-      if (response.statusCode != 200) return '';
+      if (response.statusCode != 200) return TeacherJobInfo.empty;
       final data = _data(response);
-      return data is Map<String, dynamic> ? (data['jobLevel'] as String?)?.trim() ?? '' : '';
+      return data is Map<String, dynamic> ? TeacherJobInfo.fromJson(data) : TeacherJobInfo.empty;
     } on SessionExpiredException {
       rethrow;
     } catch (_) {
-      return '';
+      return TeacherJobInfo.empty;
     }
   }
 
@@ -157,7 +216,7 @@ class ProfileService {
 
     if (response.statusCode == 200) {
       final data = _data(response);
-      if (data is Map<String, dynamic>) return MyProfile.fromJson(data).withJobLevel(_jobLevel);
+      if (data is Map<String, dynamic>) return MyProfile.fromJson(data).withJob(_job);
     }
     throw ProfileException(_errorMessage(response, tr('تعذر حفظ الملف الشخصي، حاول مرة أخرى.', 'Could not save your profile. Please try again.')));
   }

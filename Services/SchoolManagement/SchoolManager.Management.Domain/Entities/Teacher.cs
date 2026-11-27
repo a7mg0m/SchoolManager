@@ -30,6 +30,19 @@ namespace SchoolManager.Management.Domain
         /// <summary>Job level (المستوى الوظيفي), typed by the school; null when not set</summary>
         public string? JobLevel { get; private set; }
 
+        // Job information, set by the school (read only in the teacher app)
+        public string? JobTitle { get; private set; }
+        public string? EmployeeNumber { get; private set; }
+        public string? Qualification { get; private set; }
+        public string? Specialization { get; private set; }
+        public DateOnly? HireDate { get; private set; }
+        public int? YearsOfExperience { get; private set; }
+
+        public const int MaxJobTitleLength = 100;
+        public const int MaxEmployeeNumberLength = 50;
+        public const int MaxQualificationLength = 200;
+        public const int MaxSpecializationLength = 200;
+
         public AuditInfo AuditInfo { get; private set; }
 
         // Navigation
@@ -98,6 +111,19 @@ namespace SchoolManager.Management.Domain
         public void SetJobLevel(string? jobLevel)
         {
             JobLevel = string.IsNullOrWhiteSpace(jobLevel) ? null : jobLevel.Trim();
+        }
+
+        /// <summary>The job information (empty texts are cleared)</summary>
+        public void SetJobInfo(string? jobTitle, string? employeeNumber, string? qualification, string? specialization,
+            DateOnly? hireDate, int? yearsOfExperience)
+        {
+            static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+            JobTitle = Clean(jobTitle);
+            EmployeeNumber = Clean(employeeNumber);
+            Qualification = Clean(qualification);
+            Specialization = Clean(specialization);
+            HireDate = hireDate;
+            YearsOfExperience = yearsOfExperience;
         }
 
         public void SetLoginName(string? loginName)

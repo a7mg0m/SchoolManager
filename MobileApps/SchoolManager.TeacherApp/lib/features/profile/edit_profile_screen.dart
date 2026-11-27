@@ -327,9 +327,63 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
               ),
+            // Job information set by the school: shown, not editable
+            if (widget.profile.job.hasDetails) ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 10),
+                child: Row(
+                  children: [
+                    Icon(Icons.badge_outlined, size: 18, color: context.palette.muted),
+                    const SizedBox(width: 6),
+                    Text(tr('البيانات الوظيفية', 'Job information'),
+                        style: TextStyle(fontWeight: FontWeight.bold, color: context.palette.ink)),
+                    const Spacer(),
+                    Text(tr('تحددها إدارة المدرسة', 'Set by the school'),
+                        style: TextStyle(fontSize: 11.5, color: context.palette.muted)),
+                  ],
+                ),
+              ),
+              for (final (key, label, value, icon) in [
+                ('jobTitleField', tr('المسمى الوظيفي', 'Job title'), widget.profile.job.jobTitle, Icons.work_outline),
+                ('employeeNumberField', tr('الرقم الوظيفي', 'Employee number'), widget.profile.job.employeeNumber, Icons.tag),
+                ('qualificationField', tr('المؤهل', 'Qualification'), widget.profile.job.qualification, Icons.school_outlined),
+                ('specializationField', tr('التخصص', 'Specialization'), widget.profile.job.specialization, Icons.menu_book_outlined),
+                ('hireDateField', tr('تاريخ التعيين', 'Hire date'), widget.profile.job.hireDate, Icons.event_outlined),
+                (
+                  'experienceField',
+                  tr('سنوات الخبرة', 'Years of experience'),
+                  widget.profile.job.yearsOfExperience == null
+                      ? ''
+                      : tr('${widget.profile.job.yearsOfExperience} سنة', '${widget.profile.job.yearsOfExperience} years'),
+                  Icons.timeline_outlined
+                ),
+              ])
+                if (value.isNotEmpty) _readOnlyField(key, label, value, icon),
+            ],
             const SizedBox(height: 6),
             _button(tr('حفظ التعديلات', 'Save changes'), _isSavingProfile, _saveProfile),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// A value set by the school: shown with a lock, not editable
+  Widget _readOnlyField(String key, String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        key: ValueKey(key),
+        initialValue: value,
+        readOnly: true,
+        enabled: false,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          suffixIcon: const Icon(Icons.lock_outline, size: 18),
+          filled: true,
+          fillColor: context.palette.field,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
         ),
       ),
     );

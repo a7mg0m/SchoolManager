@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import 'fees_service.dart';
 import '../../core/i18n/app_language.dart';
+import '../../core/live/live_refresh.dart';
 
 /// Fees of the child selected on home: what is due, paid and still to pay, then each fee.
 class FeesScreen extends StatefulWidget {
@@ -24,7 +25,11 @@ class FeesScreen extends StatefulWidget {
   State<FeesScreen> createState() => _FeesScreenState();
 }
 
-class _FeesScreenState extends State<FeesScreen> with ReloadOnAcademicYear {
+class _FeesScreenState extends State<FeesScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

@@ -124,6 +124,16 @@ class AuthService {
   static const _sessionKey = 'auth_session';
 
   AuthSession? _session;
+
+  /// Why the app signed the user out by itself (e.g. service ended); the login screen shows it once
+  String? _signedOutReason;
+
+  /// The reason, once (then null)
+  String? takeSignedOutReason() {
+    final reason = _signedOutReason;
+    _signedOutReason = null;
+    return reason;
+  }
   AuthSession? get session => _session;
 
   /// Load the saved session at startup; drops it when the token has expired
@@ -142,6 +152,61 @@ class AuthService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// When the app opens with a saved session: the server checks the user again and gives a fresh token, so the user
+  /// stays signed in while they use the app. Signed out (the login screen says why) only when the server ends the
+  /// session; offline / server errors keep it (checked again next time). Returns false when signed out.
+  Future<bool> renewSession() async {
+    final current = _session;
+    if (current == null) return true;
+
+    final http.Response response;
+    try {
+      response = await http.post(
+        Uri.parse('${AppConfig.apiBaseUrl}/api/user/renew'),
+        headers: {'Accept': 'application/json', 'Authorization': 'Bearer ${current.token}'},
+      ).timeout(const Duration(seconds: 8));
+    } catch (_) {
+      return true;
+    }
+
+    Map<String, dynamic>? body;
+    try {
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      if (decoded is Map<String, dynamic>) body = decoded;
+    } catch (_) {}
+
+    if (response.statusCode == 200) {
+      final data = body?['data'];
+      if (data is Map<String, dynamic>) {
+        try {
+          final renewed = AuthSession.fromLoginResult(data);
+          if (renewed.token.isNotEmpty) {
+            _session = renewed;
+            await _save(renewed);
+          }
+        } catch (_) {
+          // Keep the current session
+        }
+      }
+      return true;
+    }
+    if (response.statusCode != 401 && response.statusCode != 403) return true;
+
+    final errors = body?['errors'];
+    final key = errors is String ? errors : (errors is List && errors.isNotEmpty ? '${errors.first}' : '');
+    _signedOutReason = switch (key) {
+      'NoCurrentStudents' => tr('لا يوجد أبناء مسجلون حالياً في المدرسة لهذا الحساب، تم تسجيل خروجك.',
+          'This account has no children currently enrolled at the school, so you have been signed out.'),
+      'ServiceEnded' => tr('انتهت خدمتك في المدرسة، تم تسجيل خروجك.', 'Your service at the school has ended, so you have been signed out.'),
+      'LoginNameChanged' => tr('تم تغيير اسم المستخدم من إدارة المدرسة، سجّل الدخول بالاسم الجديد.',
+          'The school changed your username. Please sign in with the new one.'),
+      'UserInactive' => tr('هذا الحساب غير مفعّل، تواصل مع إدارة المدرسة.', 'This account is not active. Please contact the school office.'),
+      _ => tr('انتهت الجلسة، من فضلك سجّل الدخول مرة أخرى.', 'Your session has ended. Please sign in again.'),
+    };
+    await logout();
+    return false;
   }
 
   Future<AuthSession> login(String loginName, String password) async {

@@ -237,6 +237,44 @@
             }
           </div>
 
+          <!-- Job information (set by the school; read only in the teacher app) -->
+          <h6 class="mt-4 mb-3 text-muted">{{ 'teachers.jobInfo' | translate }}</h6>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="jobTitle" class="form-label">{{ 'teachers.jobTitle' | translate }}</label>
+              <input type="text" class="form-control" id="jobTitle" formControlName="jobTitle" maxlength="100"
+                     [placeholder]="'teachers.jobTitlePlaceholder' | translate" [class.is-invalid]="isInvalid('jobTitle')" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="employeeNumber" class="form-label">{{ 'teachers.employeeNumber' | translate }}</label>
+              <input type="text" class="form-control" id="employeeNumber" formControlName="employeeNumber" maxlength="50"
+                     dir="ltr" [class.is-invalid]="isInvalid('employeeNumber')" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="qualification" class="form-label">{{ 'teachers.qualification' | translate }}</label>
+              <input type="text" class="form-control" id="qualification" formControlName="qualification" maxlength="200"
+                     [placeholder]="'teachers.qualificationPlaceholder' | translate" [class.is-invalid]="isInvalid('qualification')" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="specialization" class="form-label">{{ 'teachers.specialization' | translate }}</label>
+              <input type="text" class="form-control" id="specialization" formControlName="specialization" maxlength="200"
+                     [placeholder]="'teachers.specializationPlaceholder' | translate" [class.is-invalid]="isInvalid('specialization')" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="hireDate" class="form-label">{{ 'teachers.hireDate' | translate }}</label>
+              <input type="date" class="form-control" id="hireDate" formControlName="hireDate" [max]="today" />
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="yearsOfExperience" class="form-label">{{ 'teachers.yearsOfExperience' | translate }}</label>
+              <input type="number" class="form-control" id="yearsOfExperience" formControlName="yearsOfExperience" min="0" max="60"
+                     [class.is-invalid]="isInvalid('yearsOfExperience')" />
+              @if (isInvalid('yearsOfExperience')) {
+                <div class="invalid-feedback">{{ 'teachers.yearsOfExperienceRange' | translate }}</div>
+              }
+            </div>
+          </div>
+          <small class="text-muted d-block mb-3">{{ 'teachers.jobInfoHint' | translate }}</small>
+
           <!-- Is Active -->
           <div class="mb-3">
             <label for="isActive" class="form-label">{{ 'common.status' | translate }}</label>

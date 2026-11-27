@@ -22,5 +22,14 @@ namespace BuildingBlocks.Messaging
 
         /// <summary>A new exam saved in the ExamsHomework service (key = exam id).</summary>
         public const string ExamsExamCreated = "examshomework.exam-created";
+
+        /// <summary>A student's exam score entered or changed in the ExamsHomework service (key = exam id).</summary>
+        public const string ExamsExamResultSaved = "examshomework.exam-result-saved";
+
+        /// <summary>A payment of a student's fee recorded in the Financial service (key = student fee id).</summary>
+        public const string FinancialFeePaymentRecorded = "financial.fee-payment-recorded";
+
+        /// <summary>A parent asked a teacher for an evaluation in the Attendance service (key = request id).</summary>
+        public const string AttendanceEvaluationRequested = "attendance.evaluation-requested";
     }
 }

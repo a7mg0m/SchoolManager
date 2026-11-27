@@ -21,11 +21,17 @@ Future<void> main() async {
   await ThemeController.instance.load();
   await AppLanguage.instance.load();
   // Signed in before as a driver (and the token is still valid)? Open Home directly.
-  final session = await AuthService.instance.restoreSession();
+  var session = await AuthService.instance.restoreSession();
+  // Renewed (stays signed in), or signed out when the school ended it (the login screen says why)
+  var signedOut = false;
+  if (session != null && !await AuthService.instance.renewSession()) {
+    session = null;
+    signedOut = true;
+  }
   // Already signed in: this device keeps receiving the user's notifications
   if (session != null) unawaited(PushService.instance.registerCurrentUser());
   runApp(SmartSchoolDriverApp(
-      initialRoute: session != null ? AppRoutes.home : AppRoutes.intro));
+      initialRoute: session != null ? AppRoutes.home : (signedOut ? AppRoutes.login : AppRoutes.intro)));
 }
 
 class SmartSchoolDriverApp extends StatelessWidget {
@@ -63,6 +69,18 @@ class SmartSchoolDriverApp extends StatelessWidget {
           AppRoutes.login: (_) => const LoginScreen(),
           AppRoutes.home: (_) => const HomeScreen(),
         },
+        // Start with only the first page: by default "/home" also puts "/" (the intro) under it, so Back on Home
+        // went to the intro / login instead of leaving the app
+        onGenerateInitialRoutes: (name) => [
+          MaterialPageRoute<void>(
+            settings: RouteSettings(name: name),
+            builder: (_) => switch (name) {
+              AppRoutes.login => const LoginScreen(),
+              AppRoutes.home => const HomeScreen(),
+              _ => const IntroScreen(),
+            },
+          ),
+        ],
       ),
     );
   }

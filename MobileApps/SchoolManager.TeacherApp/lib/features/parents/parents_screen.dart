@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../chat/chat_screens.dart';
 import '../chat/chat_service.dart';
 import 'parents_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _amber = Color(0xFFB7791F);
 const _green = Color(0xFF13864B);
@@ -40,7 +41,11 @@ class ParentsScreen extends StatefulWidget {
   State<ParentsScreen> createState() => _ParentsScreenState();
 }
 
-class _ParentsScreenState extends State<ParentsScreen> {
+class _ParentsScreenState extends State<ParentsScreen> with LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   List<TeacherParent>? _parents;
   String? _error;
   bool _loading = true;

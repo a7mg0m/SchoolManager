@@ -11,13 +11,16 @@ namespace SchoolManager.Attendance.Infrastructure
     /// </summary>
     public class ManagementParentChildrenService(HttpClient httpClient) : IParentChildrenService
     {
-        private sealed record ChildItem(Guid Id);
+        private sealed record ChildItem(Guid Id, string? FullNameAr, string? FullNameEn, Guid AcademicYearId);
         private sealed record ChildrenResponse(List<ChildItem>? Data);
 
         public async Task<IReadOnlyCollection<Guid>?> GetMyChildrenIdsAsync(string authorization, CancellationToken cancellationToken = default)
+            => (await GetMyChildrenAsync(authorization, cancellationToken))?.Select(c => c.Id).ToList();
+
+        public async Task<IReadOnlyCollection<ParentChildInfo>?> GetMyChildrenAsync(string authorization, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(authorization) || !AuthenticationHeaderValue.TryParse(authorization, out var header))
-                return Array.Empty<Guid>();
+                return Array.Empty<ParentChildInfo>();
 
             try
             {
@@ -27,12 +30,13 @@ namespace SchoolManager.Attendance.Infrastructure
                 using var response = await httpClient.SendAsync(request, cancellationToken);
                 // Not a parent / token rejected: no children
                 if ((int)response.StatusCode is 401 or 403)
-                    return Array.Empty<Guid>();
+                    return Array.Empty<ParentChildInfo>();
                 if (!response.IsSuccessStatusCode)
                     return null;
 
                 var body = await response.Content.ReadFromJsonAsync<ChildrenResponse>(cancellationToken);
-                return body?.Data?.Select(c => c.Id).ToList() ?? new List<Guid>();
+                return body?.Data?.Select(c => new ParentChildInfo(c.Id, c.FullNameAr ?? "", c.FullNameEn ?? "", c.AcademicYearId)).ToList()
+                    ?? new List<ParentChildInfo>();
             }
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException)
             {

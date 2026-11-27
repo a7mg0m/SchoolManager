@@ -11,7 +11,9 @@ namespace SchoolManager.Notification.Domain
         ExamResult = 3, // نتيجة الامتحان
         Event = 4, // الحدث
         Message = 5, // الرسالة
-        Bus = 6 // الحافلة (رحلة بدأت)
+        Bus = 6, // الحافلة (رحلة بدأت)
+        Fee = 7, // الرسوم (دفعة مستلمة)
+        EvaluationRequest = 8 // طلب تقييم من ولي أمر (للمعلم)
     }
 
 }

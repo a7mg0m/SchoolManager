@@ -17,6 +17,10 @@ namespace SchoolManager.Management.Infrastructure
             builder.Property(x => x.PhoneNumber).IsRequired().HasMaxLength(50);
             builder.Property(x => x.Address).IsRequired().HasMaxLength(500);
             builder.Property(x => x.JobLevel).HasMaxLength(100);
+            builder.Property(x => x.JobTitle).HasMaxLength(Teacher.MaxJobTitleLength);
+            builder.Property(x => x.EmployeeNumber).HasMaxLength(Teacher.MaxEmployeeNumberLength);
+            builder.Property(x => x.Qualification).HasMaxLength(Teacher.MaxQualificationLength);
+            builder.Property(x => x.Specialization).HasMaxLength(Teacher.MaxSpecializationLength);
             builder.Property(x => x.Email).HasMaxLength(256);
             builder.HasIndex(x => x.NationalId).IsUnique();
             builder.Property(x => x.LoginName).HasMaxLength(100);

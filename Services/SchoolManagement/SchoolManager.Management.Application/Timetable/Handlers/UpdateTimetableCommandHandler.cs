@@ -13,14 +13,20 @@ namespace SchoolManager.Management.Application
 		private readonly ISemesterRepository _semesterRepository;
 
 		private readonly ICurrentUserService _currentUser;
+		private readonly ITeacherRepository _teachers;
+		private readonly ISectionRepository _sections;
 
 		public UpdateTimetableCommandHandler(ICurrentUserService currentUser, 
 			ITimetableRepository repository,
 			ITimetableSlotRepository slotRepository,
 			IGradeRepository gradeRepository,
 			ISemesterRepository semesterRepository,
-			IUnitOfWork unitOfWork)
+			IUnitOfWork unitOfWork,
+			ITeacherRepository teachers,
+			ISectionRepository sections)
 		{
+			_teachers = teachers;
+			_sections = sections;
 			_currentUser = currentUser;
 			_gradeRepository = gradeRepository;
 			_semesterRepository = semesterRepository;
@@ -46,6 +52,12 @@ namespace SchoolManager.Management.Application
 				?? throw new InvalidOperationException("Semester not found.");
 			if (semester.AcademicYearId != request.AcademicYearId)
 				throw new InvalidOperationException("Semester does not belong to the selected academic year.");
+
+			// A teacher cannot be in two lessons at once (here, or in another grade's timetable)
+			await TeacherClashes.EnsureNoneAsync(_repository, _teachers, _sections, _gradeRepository,
+				request.AcademicYearId, request.SemesterId, request.GradeId, request.Id,
+				(request.Slots ?? new()).Select(s => new TimetableSlotTime(s.Day, s.StartTime, s.EndTime, s.TeacherId, s.SectionId)).ToList(),
+				cancellationToken);
 
 			// AuditInfo is an EF owned type: every entity needs its OWN instance.
 			// Sharing one instance across entities leaves the others' audit columns NULL.

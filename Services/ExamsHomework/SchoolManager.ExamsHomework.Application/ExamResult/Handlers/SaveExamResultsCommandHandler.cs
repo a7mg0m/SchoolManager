@@ -1,5 +1,7 @@
 using BuildingBlocks;
 using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging;
+using BuildingBlocks.Messaging.Events;
 using SchoolManager.ExamsHomework.Domain;
 
 namespace SchoolManager.ExamsHomework.Application
@@ -10,13 +12,16 @@ namespace SchoolManager.ExamsHomework.Application
         private readonly IExamResultRepository _repository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUser;
+        private readonly IIntegrationEventOutbox _outbox;
 
         public SaveExamResultsCommandHandler(
             IExamRepository examRepository,
             IExamResultRepository repository,
             IUnitOfWork unitOfWork,
-            ICurrentUserService currentUser)
+            ICurrentUserService currentUser,
+            IIntegrationEventOutbox outbox)
         {
+            _outbox = outbox;
             _examRepository = examRepository;
             _repository = repository;
             _unitOfWork = unitOfWork;
@@ -47,6 +52,8 @@ namespace SchoolManager.ExamsHomework.Application
 
             int created = 0, updated = 0, removed = 0;
             var now = DateTime.Now;
+            // Students whose score is new or changed: their parents are notified
+            var notify = new List<(Guid StudentId, double Score, bool IsCorrection)>();
 
             foreach (var item in command.Results)
             {
@@ -82,6 +89,7 @@ namespace SchoolManager.ExamsHomework.Application
                         item.Score.Value,
                         new AuditInfo(now, _currentUser.UserId)));
                     created++;
+                    notify.Add((item.StudentId, item.Score.Value, false));
                 }
                 else if (result.Score != item.Score.Value)
                 {
@@ -91,7 +99,29 @@ namespace SchoolManager.ExamsHomework.Application
                         result.AuditInfo.Updated(now, _currentUser.UserId));
                     await _repository.UpdateAsync(result);
                     updated++;
+                    notify.Add((item.StudentId, item.Score.Value, true));
                 }
+            }
+
+            // One notification per student, for their parents (Notification service, through Kafka; saved with the results)
+            foreach (var (studentId, score, isCorrection) in notify)
+            {
+                _outbox.Enqueue(Topics.ExamsExamResultSaved, exam.Id.ToString(), new ExamResultSavedIntegrationEvent
+                {
+                    ExamId = exam.Id,
+                    ExamType = (int)exam.ExamType,
+                    SubjectId = exam.SubjectId,
+                    GradeId = exam.GradeId,
+                    SectionId = exam.SectionId,
+                    AcademicYearId = exam.AcademicYearId,
+                    ExamDate = exam.ExamDate,
+                    StudentId = studentId,
+                    Score = score,
+                    Weight = exam.Weight,
+                    SuccessScore = exam.SuccessScore,
+                    IsCorrection = isCorrection,
+                    SavedBy = _currentUser.UserId
+                });
             }
 
             await _unitOfWork.SaveChangesAsync();

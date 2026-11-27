@@ -1,5 +1,8 @@
 namespace SchoolManager.Attendance.Application
 {
+    /// <summary>One of the parent's children, as Management describes it</summary>
+    public sealed record ParentChildInfo(Guid Id, string FullNameAr, string FullNameEn, Guid AcademicYearId);
+
     /// <summary>
     /// Children of the logged-in parent, from the Management service (Attendance does not know who a student's parent is).
     /// </summary>
@@ -11,5 +14,8 @@ namespace SchoolManager.Attendance.Application
         /// Null when the Management service could not answer.
         /// </summary>
         Task<IReadOnlyCollection<Guid>?> GetMyChildrenIdsAsync(string authorization, CancellationToken cancellationToken = default);
+
+        /// <summary>The parent's children with their names and academic year (null when Management could not answer)</summary>
+        Task<IReadOnlyCollection<ParentChildInfo>?> GetMyChildrenAsync(string authorization, CancellationToken cancellationToken = default);
     }
 }

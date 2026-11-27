@@ -8,6 +8,7 @@ import '../children/children_service.dart';
 import '../schedule/schedule_format.dart';
 import 'exams_service.dart';
 import '../../core/i18n/app_language.dart';
+import '../../core/live/live_refresh.dart';
 
 /// Exams of the child selected on home, one tab per exam type:
 /// a summary, the upcoming exams (with a countdown) and the results (score ring, pass / fail).
@@ -29,7 +30,11 @@ class ExamsScreen extends StatefulWidget {
   State<ExamsScreen> createState() => _ExamsScreenState();
 }
 
-class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear {
+class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

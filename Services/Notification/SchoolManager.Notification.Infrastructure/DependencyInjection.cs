@@ -45,6 +45,18 @@ namespace SchoolManager.Notification.Infrastructure
             services.AddKafkaConsumer<ExamCreatedIntegrationEvent, ExamCreatedIntegrationEventHandler>(
                 configuration, Topics.ExamsExamCreated);
 
+            // Kafka: a student's exam score saved → a notification for that student's parents
+            services.AddKafkaConsumer<ExamResultSavedIntegrationEvent, ExamResultSavedIntegrationEventHandler>(
+                configuration, Topics.ExamsExamResultSaved);
+
+            // Kafka: a fee payment recorded → a notification for that student's parents
+            services.AddKafkaConsumer<FeePaymentRecordedIntegrationEvent, FeePaymentRecordedIntegrationEventHandler>(
+                configuration, Topics.FinancialFeePaymentRecorded);
+
+            // Kafka: a parent asked a teacher for an evaluation → a notification for that teacher
+            services.AddKafkaConsumer<EvaluationRequestedIntegrationEvent, EvaluationRequestedIntegrationEventHandler>(
+                configuration, Topics.AttendanceEvaluationRequested);
+
             // Kafka: a bus trip started → a notification for the parents of its students
             services.AddKafkaConsumer<TripStartedIntegrationEvent, TripStartedIntegrationEventHandler>(
                 configuration, Topics.AttendanceTripStarted);

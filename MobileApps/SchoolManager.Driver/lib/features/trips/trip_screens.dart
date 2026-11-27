@@ -7,6 +7,7 @@ import 'location_tracker.dart';
 import 'trip_map_screen.dart';
 import 'trip_service.dart';
 import 'trip_widgets.dart';
+import '../../core/live/live_refresh.dart';
 
 /// Opens the "new trip" sheet; returns the trip created (date + type), or null when cancelled
 Future<(DateTime, TripType)?> showNewTripSheet(
@@ -220,7 +221,11 @@ class TripDetailsScreen extends StatefulWidget {
   State<TripDetailsScreen> createState() => _TripDetailsScreenState();
 }
 
-class _TripDetailsScreenState extends State<TripDetailsScreen> {
+class _TripDetailsScreenState extends State<TripDetailsScreen> with LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   Trip? _trip;
   String? _error;
   bool _busy = false;

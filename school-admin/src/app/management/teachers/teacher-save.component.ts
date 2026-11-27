@@ -82,6 +82,21 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** The job information of the form (empty → null) */
+  private jobInfo(v: any) {
+    const text = (s: string | null | undefined) => (s ?? '').trim() || null;
+    const years = v.yearsOfExperience === '' || v.yearsOfExperience === null || v.yearsOfExperience === undefined
+      ? null : Number(v.yearsOfExperience);
+    return {
+      jobTitle: text(v.jobTitle),
+      employeeNumber: text(v.employeeNumber),
+      qualification: text(v.qualification),
+      specialization: text(v.specialization),
+      hireDate: v.hireDate || null,
+      yearsOfExperience: years
+    };
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -106,6 +121,12 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       isActive: [true],
       isServiceEnded: [false],
       serviceEndDate: [''],
+      jobTitle: ['', Validators.maxLength(100)],
+      employeeNumber: ['', Validators.maxLength(50)],
+      qualification: ['', Validators.maxLength(200)],
+      specialization: ['', Validators.maxLength(200)],
+      hireDate: [''],
+      yearsOfExperience: [null as number | null, [Validators.min(0), Validators.max(60)]],
       // Login account of the teacher (created / updated in the Identity service)
       loginName: ['', [
         Validators.required,
@@ -168,6 +189,12 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       isActive: teacher.isActive ?? true,
       isServiceEnded: !!teacher.isServiceEnded,
       serviceEndDate: teacher.serviceEndDate ?? '',
+      jobTitle: teacher.jobTitle ?? '',
+      employeeNumber: teacher.employeeNumber ?? '',
+      qualification: teacher.qualification ?? '',
+      specialization: teacher.specialization ?? '',
+      hireDate: (teacher.hireDate ?? '').substring(0, 10),
+      yearsOfExperience: teacher.yearsOfExperience ?? null,
       // Teachers saved before login names existed sign in with their national ID
       loginName: teacher.loginName || teacher.nationalId || ''
     });
@@ -259,6 +286,7 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       isActive: !!v.isActive && !v.isServiceEnded,
       isServiceEnded: !!v.isServiceEnded,
       serviceEndDate: v.isServiceEnded ? (v.serviceEndDate || null) : null,
+      ...this.jobInfo(v),
       loginName: v.loginName.trim(),
       password: v.password
     };
@@ -292,6 +320,7 @@ export class TeacherSaveComponent implements OnInit, OnDestroy {
       isActive: !!v.isActive && !v.isServiceEnded,
       isServiceEnded: !!v.isServiceEnded,
       serviceEndDate: v.isServiceEnded ? (v.serviceEndDate || null) : null,
+      ...this.jobInfo(v),
       loginName: v.loginName.trim(),
       // Empty: keep the current password
       password: v.password || null

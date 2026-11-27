@@ -79,7 +79,39 @@ class TeacherTimetableDay {
 
   /// 0 = Sunday … 6 = Saturday
   final int dayOfWeek;
+
+  /// One per class (attendance and evaluations are recorded per class)
   final List<TeacherLesson> lessons;
+
+  /// One per lesson time: lessons at the same time of the same subject and grade (the teacher booked in several
+  /// classes at once) become one, with their classes listed together. For showing the timetable.
+  List<TeacherLesson> get merged {
+    final groups = <String, List<TeacherLesson>>{};
+    for (final l in lessons) {
+      groups.putIfAbsent('${l.start}|${l.end}|${l.subjectId}|${l.gradeId}', () => []).add(l);
+    }
+    return [
+      for (final g in groups.values)
+        g.length == 1
+            ? g.first
+            : TeacherLesson(
+                id: g.first.id,
+                start: g.first.start,
+                end: g.first.end,
+                subjectNameAr: g.first.subjectNameAr,
+                subjectNameEn: g.first.subjectNameEn,
+                nameAr: g.first.nameAr,
+                nameEn: g.first.nameEn,
+                gradeNameAr: g.first.gradeNameAr,
+                gradeNameEn: g.first.gradeNameEn,
+                sectionNameAr: g.map((l) => l.sectionNameAr).where((s) => s.isNotEmpty).toSet().join('، '),
+                sectionNameEn: g.map((l) => l.sectionNameEn).where((s) => s.isNotEmpty).toSet().join(', '),
+                subjectId: g.first.subjectId,
+                gradeId: g.first.gradeId,
+                sectionId: g.first.sectionId,
+              ),
+    ]..sort((a, b) => a.start.compareTo(b.start));
+  }
 
   factory TeacherTimetableDay.fromJson(Map<String, dynamic> json) => TeacherTimetableDay(
         dayOfWeek: dayOfWeekIndex(json['dayOfWeek']),
@@ -107,7 +139,7 @@ class TeacherTimetable {
 
   TeacherTimetableDay? dayOf(int dayOfWeek) => days.where((d) => d.dayOfWeek == dayOfWeek).firstOrNull;
 
-  int get lessonsCount => days.fold(0, (sum, d) => sum + d.lessons.length);
+  int get lessonsCount => days.fold(0, (sum, d) => sum + d.merged.length);
 
   factory TeacherTimetable.fromJson(Map<String, dynamic> json) => TeacherTimetable(
         today: dayOfWeekIndex(json['today']),

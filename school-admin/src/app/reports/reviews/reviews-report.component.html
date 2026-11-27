@@ -108,7 +108,7 @@
           </div>
         </div>
         <div class="col-md-8 col-xl-9">
-          <div class="row g-2 h-100">
+          <div class="row g-2">
             @for (c of [{ k: 'focus', v: s.focus }, { k: 'interaction', v: s.interaction }, { k: 'behavior', v: s.behavior }]; track c.k) {
               <div class="col-6 col-lg-3">
                 <div class="mini" [class]="'mini ' + scoreClass(c.v)">
@@ -134,7 +134,7 @@
       <div class="row g-3 mb-3">
         <!-- Spread of ratings -->
         <div class="col-xl-5">
-          <div class="card h-100">
+          <div class="card">
             <div class="card-header fw-semibold">{{ 'reports.reviews.distribution' | translate }}</div>
             <div class="card-body">
               @for (d of distribution(); track d.key) {
@@ -157,7 +157,7 @@
         </div>
         <!-- By subject -->
         <div class="col-xl-7">
-          <div class="card h-100">
+          <div class="card ">
             <div class="card-header fw-semibold">{{ 'reports.reviews.bySubject' | translate }}</div>
             <div class="card-body p-0">
               <div class="table-responsive">
@@ -194,7 +194,7 @@
       <div class="row g-3 mb-3">
         <!-- By teacher -->
         <div class="col-xl-6">
-          <div class="card h-100">
+          <div class="card">
             <div class="card-header fw-semibold">{{ 'reports.reviews.byTeacher' | translate }}</div>
             <div class="card-body p-0">
               <div class="table-responsive">
@@ -222,7 +222,7 @@
         </div>
         <!-- Latest comments -->
         <div class="col-xl-6">
-          <div class="card h-100">
+          <div class="card">
             <div class="card-header fw-semibold">{{ 'reports.reviews.latestComments' | translate }}</div>
             <div class="card-body comments">
               @for (l of latestComments(); track l.e.id) {

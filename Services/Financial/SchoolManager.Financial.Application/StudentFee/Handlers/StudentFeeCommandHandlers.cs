@@ -1,5 +1,7 @@
 using BuildingBlocks;
 using BuildingBlocks.CQRS;
+using BuildingBlocks.Messaging;
+using BuildingBlocks.Messaging.Events;
 using SchoolManager.Financial.Domain;
 
 namespace SchoolManager.Financial.Application
@@ -10,13 +12,16 @@ namespace SchoolManager.Financial.Application
         private readonly IStudentFeePaymentRepository _payments;
         private readonly ICurrentUserService _currentUser;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IIntegrationEventOutbox _outbox;
 
         public ApplyStudentFeePaymentCommandHandler(
             IStudentFeeRepository repository,
             IStudentFeePaymentRepository payments,
             ICurrentUserService currentUser,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IIntegrationEventOutbox outbox)
         {
+            _outbox = outbox;
             _repository = repository;
             _payments = payments;
             _currentUser = currentUser;
@@ -30,7 +35,23 @@ namespace SchoolManager.Financial.Application
 
             entity.ApplyPayment(new Money(command.Amount, command.Currency));
             // Dated record of the payment (income report)
-            await _payments.AddAsync(new StudentFeePayment(entity, command.Amount, command.Currency, DateTime.Now, _currentUser.UserId));
+            var payment = new StudentFeePayment(entity, command.Amount, command.Currency, DateTime.Now, _currentUser.UserId);
+            await _payments.AddAsync(payment);
+
+            // The student's parents get a notification (Notification service, through Kafka; saved with the payment)
+            _outbox.Enqueue(Topics.FinancialFeePaymentRecorded, entity.Id.ToString(), new FeePaymentRecordedIntegrationEvent
+            {
+                PaymentId = payment.Id,
+                StudentFeeId = entity.Id,
+                StudentId = entity.StudentId,
+                AcademicYearId = entity.AcademicYearId,
+                IsBusFee = payment.IsBusFee,
+                Amount = payment.Amount,
+                Currency = payment.Currency,
+                PaidOn = payment.PaidOn,
+                Balance = entity.Balance.Amount,
+                RecordedBy = _currentUser.UserId
+            });
 
             await _repository.UpdateAsync(entity);
             await _unitOfWork.SaveChangesAsync();

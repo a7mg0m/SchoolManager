@@ -8,6 +8,7 @@ import '../attendance/class_attendance_screen.dart';
 import '../homework/homework_screens.dart' show homeworkDate;
 import '../activity/student_activity_screen.dart';
 import 'classes_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _teal = Color(0xFF0FA5A5);
 const _red = Color(0xFFD93025);
@@ -41,7 +42,11 @@ class MyClassesScreen extends StatefulWidget {
   State<MyClassesScreen> createState() => _MyClassesScreenState();
 }
 
-class _MyClassesScreenState extends State<MyClassesScreen> with ReloadOnAcademicYear {
+class _MyClassesScreenState extends State<MyClassesScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 
@@ -261,7 +266,11 @@ class ClassStudentsScreen extends StatefulWidget {
   State<ClassStudentsScreen> createState() => _ClassStudentsScreenState();
 }
 
-class _ClassStudentsScreenState extends State<ClassStudentsScreen> {
+class _ClassStudentsScreenState extends State<ClassStudentsScreen> with LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   List<ClassStudent>? _students;
   String? _error;
   bool _loading = true;

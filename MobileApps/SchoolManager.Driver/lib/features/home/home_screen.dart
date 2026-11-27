@@ -15,6 +15,7 @@ import '../trips/location_tracker.dart';
 import '../trips/trip_screens.dart';
 import '../trips/trip_service.dart';
 import '../trips/trip_widgets.dart';
+import '../../core/live/live_refresh.dart';
 
 /// Driver home: today's trips of the bus (start / finish), all trips, and the account (profile, language, theme)
 class HomeScreen extends StatefulWidget {
@@ -56,7 +57,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _refresh();
+
   int _tab = 0;
   DriverBus? _bus;
   List<Trip> _trips = const [];

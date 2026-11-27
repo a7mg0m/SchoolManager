@@ -126,7 +126,7 @@
       <div class="row g-3 mb-3">
         <!-- By category -->
         <div class="col-lg-6">
-          <div class="card h-100">
+          <div class="card">
             <div class="card-header fw-semibold">{{ 'reports.expenses.byCategory' | translate }}</div>
             <div class="card-body">
               @for (g of byCategory(); track g.key + g.currency) {
@@ -143,7 +143,7 @@
         </div>
         <!-- By type -->
         <div class="col-lg-6">
-          <div class="card h-100">
+          <div class="card">
             <div class="card-header fw-semibold">{{ 'reports.expenses.byType' | translate }}</div>
             <div class="card-body">
               @for (g of byType(); track g.key + g.currency) {

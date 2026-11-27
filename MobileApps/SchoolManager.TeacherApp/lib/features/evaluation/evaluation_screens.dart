@@ -9,6 +9,7 @@ import '../classes/classes_service.dart';
 import '../timetable/teacher_timetable_screen.dart' show lessonTime, subjectColorOf;
 import '../timetable/teacher_timetable_service.dart';
 import 'evaluation_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _indigo = Color(0xFF4C5FD5);
 const _green = Color(0xFF13864B);
@@ -130,7 +131,11 @@ class EvaluationsScreen extends StatefulWidget {
   State<EvaluationsScreen> createState() => _EvaluationsScreenState();
 }
 
-class _EvaluationsScreenState extends State<EvaluationsScreen> with ReloadOnAcademicYear {
+class _EvaluationsScreenState extends State<EvaluationsScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

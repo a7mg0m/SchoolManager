@@ -169,8 +169,8 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Icon = "pe-7s-note2",
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                            Icon = "pe-7s-users",
                             IsActive = true,
                             Order = 2
                         },
@@ -179,93 +179,29 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000002001"),
                             IsActive = true,
                             Order = 1,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/school-info"
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                            Route = "/users/employee-groups"
                         },
                         new
                         {
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000002002"),
                             IsActive = true,
                             Order = 2,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/stages"
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                            Route = "/users/employees"
                         },
                         new
                         {
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000002003"),
                             IsActive = true,
                             Order = 3,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/grades"
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                            Route = "/users/group-permissions"
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002004"),
-                            IsActive = true,
-                            Order = 4,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/sections"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002005"),
-                            IsActive = true,
-                            Order = 5,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/academic-years"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002006"),
-                            IsActive = true,
-                            Order = 6,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/teachers"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002007"),
-                            IsActive = true,
-                            Order = 7,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/subjects"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002008"),
-                            IsActive = true,
-                            Order = 8,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/students"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002009"),
-                            IsActive = true,
-                            Order = 9,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/parents"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002010"),
-                            IsActive = true,
-                            Order = 10,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/timetables"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000002011"),
-                            IsActive = true,
-                            Order = 11,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
-                            Route = "/management/section-assignment"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
-                            Icon = "pe-7s-cash",
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Icon = "pe-7s-note2",
                             IsActive = true,
                             Order = 3
                         },
@@ -274,59 +210,161 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000003001"),
                             IsActive = true,
                             Order = 1,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
-                            Route = "/financial/fees"
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/school-info"
                         },
                         new
                         {
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000003002"),
                             IsActive = true,
                             Order = 2,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
-                            Route = "/financial/student-fees"
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/stages"
                         },
                         new
                         {
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000003003"),
                             IsActive = true,
                             Order = 3,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
-                            Route = "/financial/expenses"
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/grades"
                         },
                         new
                         {
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000003004"),
                             IsActive = true,
                             Order = 4,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
-                            Route = "/financial/revenues"
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/sections"
                         },
                         new
                         {
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000003005"),
                             IsActive = true,
                             Order = 5,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
-                            Route = "/financial/expense-categories"
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/academic-years"
                         },
                         new
                         {
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000003006"),
                             IsActive = true,
                             Order = 6,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/teachers"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000003007"),
+                            IsActive = true,
+                            Order = 7,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/subjects"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000003010"),
+                            IsActive = true,
+                            Order = 10,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                            Route = "/management/timetables"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000011"),
+                            Icon = "pe-7s-study",
+                            IsActive = true,
+                            Order = 4
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000004008"),
+                            IsActive = true,
+                            Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000011"),
+                            Route = "/management/students"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000004009"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000011"),
+                            Route = "/management/parents"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000004011"),
+                            IsActive = true,
+                            Order = 3,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000011"),
+                            Route = "/management/section-assignment"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Icon = "pe-7s-cash",
+                            IsActive = true,
+                            Order = 5
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005001"),
+                            IsActive = true,
+                            Order = 1,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
                             Route = "/financial/revenue-categories"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/expense-categories"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005003"),
+                            IsActive = true,
+                            Order = 3,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/revenues"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005004"),
+                            IsActive = true,
+                            Order = 4,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/expenses"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005005"),
+                            IsActive = true,
+                            Order = 5,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/fees"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005006"),
+                            IsActive = true,
+                            Order = 6,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                            Route = "/financial/student-fees"
                         },
                         new
                         {
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
                             Icon = "pe-7s-bell",
                             IsActive = true,
-                            Order = 4
+                            Order = 6
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000004001"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000006001"),
                             IsActive = true,
                             Order = 1,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
@@ -334,7 +372,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000004002"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000006002"),
                             IsActive = true,
                             Order = 2,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
@@ -345,60 +383,6 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
                             Icon = "pe-7s-note2",
                             IsActive = true,
-                            Order = 5
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005001"),
-                            IsActive = true,
-                            Order = 1,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
-                            Route = "/exam/exams"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000005002"),
-                            IsActive = true,
-                            Order = 2,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
-                            Route = "/exam/promotion"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
-                            Icon = "pe-7s-users",
-                            IsActive = true,
-                            Order = 6
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000006001"),
-                            IsActive = true,
-                            Order = 1,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
-                            Route = "/users/employee-groups"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000006002"),
-                            IsActive = true,
-                            Order = 2,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
-                            Route = "/users/employees"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000006003"),
-                            IsActive = true,
-                            Order = 3,
-                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
-                            Route = "/users/group-permissions"
-                        },
-                        new
-                        {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
-                            Icon = "pe-7s-like2",
-                            IsActive = true,
                             Order = 7
                         },
                         new
@@ -406,12 +390,35 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000007001"),
                             IsActive = true,
                             Order = 1,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
+                            Route = "/exam/exams"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000007002"),
+                            IsActive = true,
+                            Order = 2,
+                            ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
+                            Route = "/exam/promotion"
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                            Icon = "pe-7s-like2",
+                            IsActive = true,
+                            Order = 8
+                        },
+                        new
+                        {
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000008001"),
+                            IsActive = true,
+                            Order = 1,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
                             Route = "/clinic/students"
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000007002"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000008002"),
                             IsActive = true,
                             Order = 2,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
@@ -419,7 +426,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000007003"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000008003"),
                             IsActive = true,
                             Order = 3,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
@@ -427,7 +434,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000007004"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000008004"),
                             IsActive = true,
                             Order = 4,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
@@ -438,11 +445,11 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
                             Icon = "pe-7s-check",
                             IsActive = true,
-                            Order = 8
+                            Order = 9
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000008001"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009001"),
                             IsActive = true,
                             Order = 1,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
@@ -450,7 +457,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000008002"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009002"),
                             IsActive = true,
                             Order = 2,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
@@ -461,11 +468,11 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
                             Icon = "pe-7s-car",
                             IsActive = true,
-                            Order = 9
+                            Order = 10
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009001"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010001"),
                             IsActive = true,
                             Order = 1,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
@@ -473,7 +480,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009002"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010002"),
                             IsActive = true,
                             Order = 2,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
@@ -481,7 +488,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009003"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010003"),
                             IsActive = true,
                             Order = 3,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
@@ -489,7 +496,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000009004"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010004"),
                             IsActive = true,
                             Order = 4,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
@@ -500,11 +507,11 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                             Id = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
                             Icon = "pe-7s-graph2",
                             IsActive = true,
-                            Order = 10
+                            Order = 11
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010001"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000011001"),
                             IsActive = true,
                             Order = 1,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
@@ -512,7 +519,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010002"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000011002"),
                             IsActive = true,
                             Order = 2,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
@@ -520,7 +527,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010003"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000011003"),
                             IsActive = true,
                             Order = 3,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
@@ -528,7 +535,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010004"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000011004"),
                             IsActive = true,
                             Order = 4,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
@@ -536,7 +543,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010005"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000011005"),
                             IsActive = true,
                             Order = 5,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
@@ -544,7 +551,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010006"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000011006"),
                             IsActive = true,
                             Order = 6,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
@@ -552,7 +559,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
-                            Id = new Guid("6d9f1c00-0000-4000-8000-000000010007"),
+                            Id = new Guid("6d9f1c00-0000-4000-8000-000000011007"),
                             IsActive = true,
                             Order = 7,
                             ParentId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
@@ -963,7 +970,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
@@ -987,55 +994,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002004"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002005"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002006"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002007"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002008"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002009"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002010"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002011"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
@@ -1077,25 +1036,43 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003007"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004001"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003010"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000011"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004008"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004009"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004011"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000003"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
@@ -1113,7 +1090,31 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005005"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005006"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000004"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
@@ -1131,13 +1132,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006003"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000005"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
@@ -1155,19 +1150,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007003"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007004"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000007"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
@@ -1185,7 +1168,19 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000008"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
@@ -1203,19 +1198,7 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009003"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009004"),
-                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
-                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000009"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
@@ -1245,19 +1228,49 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010005"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000010"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010006"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011001"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010007"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011002"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011003"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011004"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011005"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011006"),
+                                    CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011007"),
                                     CreatedBy = new Guid("00000000-0000-0000-0000-000000000000"),
                                     CreatedOn = new DateTime(2026, 11, 14, 0, 0, 0, 0, DateTimeKind.Unspecified)
                                 });
@@ -1296,73 +1309,103 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
+                                    Arabic = "المستخدمون",
+                                    English = "Users"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002001"),
+                                    Arabic = "مجموعات الموظفين",
+                                    English = "Employee Groups"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002002"),
+                                    Arabic = "الموظفون",
+                                    English = "Employees"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002003"),
+                                    Arabic = "صلاحيات المجموعات",
+                                    English = "Group Permissions"
+                                },
+                                new
+                                {
                                     MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000002"),
                                     Arabic = "الإدارة",
                                     English = "Management"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002001"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003001"),
                                     Arabic = "بيانات المدرسة",
                                     English = "School Info"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003002"),
                                     Arabic = "المراحل",
                                     English = "Stages"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002003"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003003"),
                                     Arabic = "السنوات الدراسية",
                                     English = "Grades"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002004"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003004"),
                                     Arabic = "الفصول",
                                     English = "Sections"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002005"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003005"),
                                     Arabic = "السنوات الأكاديمية",
                                     English = "Academic Years"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002006"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003006"),
                                     Arabic = "المعلمين",
                                     English = "Teachers"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002007"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003007"),
                                     Arabic = "المواد الدراسية",
                                     English = "Subjects"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002008"),
-                                    Arabic = "الطلاب",
-                                    English = "Students"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002009"),
-                                    Arabic = "أولياء الأمور",
-                                    English = "Parents"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002010"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003010"),
                                     Arabic = "الجداول الدراسية",
                                     English = "Timetables"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000002011"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000011"),
+                                    Arabic = "إدارة الطلاب",
+                                    English = "Student Management"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004008"),
+                                    Arabic = "الطلاب",
+                                    English = "Students"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004009"),
+                                    Arabic = "أولياء الأمور",
+                                    English = "Parents"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004011"),
                                     Arabic = "تسكين الطلاب في الفصول",
                                     English = "Assign Sections"
                                 },
@@ -1374,39 +1417,39 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003001"),
-                                    Arabic = "الرسوم",
-                                    English = "Fees"
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005001"),
+                                    Arabic = "فئات الإيرادات",
+                                    English = "Revenue Categories"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003002"),
-                                    Arabic = "رسوم الطلاب",
-                                    English = "Student Fees"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003003"),
-                                    Arabic = "المصروفات",
-                                    English = "Expenses"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003004"),
-                                    Arabic = "الإيرادات",
-                                    English = "Revenues"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003005"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005002"),
                                     Arabic = "فئات المصروفات",
                                     English = "Expense Categories"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000003006"),
-                                    Arabic = "فئات الإيرادات",
-                                    English = "Revenue Categories"
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005003"),
+                                    Arabic = "الإيرادات",
+                                    English = "Revenues"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005004"),
+                                    Arabic = "المصروفات",
+                                    English = "Expenses"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005005"),
+                                    Arabic = "الرسوم",
+                                    English = "Fees"
+                                },
+                                new
+                                {
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005006"),
+                                    Arabic = "رسوم الطلاب",
+                                    English = "Student Fees"
                                 },
                                 new
                                 {
@@ -1416,13 +1459,13 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004001"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006001"),
                                     Arabic = "الإشعارات",
                                     English = "Notifications"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000004002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006002"),
                                     Arabic = "فعاليات المدرسة",
                                     English = "School Events"
                                 },
@@ -1434,39 +1477,15 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005001"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007001"),
                                     Arabic = "الامتحانات",
                                     English = "Exams"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000005002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007002"),
                                     Arabic = "اعتماد النتائج والترفيع",
                                     English = "Results Approval & Promotion"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000000006"),
-                                    Arabic = "المستخدمون",
-                                    English = "Users"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006001"),
-                                    Arabic = "مجموعات الموظفين",
-                                    English = "Employee Groups"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006002"),
-                                    Arabic = "الموظفون",
-                                    English = "Employees"
-                                },
-                                new
-                                {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000006003"),
-                                    Arabic = "صلاحيات المجموعات",
-                                    English = "Group Permissions"
                                 },
                                 new
                                 {
@@ -1476,25 +1495,25 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007001"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008001"),
                                     Arabic = "الملفات الصحية للطلاب",
                                     English = "Student Health Files"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008002"),
                                     Arabic = "زيارات العيادة",
                                     English = "Clinic Visits"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007003"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008003"),
                                     Arabic = "التطعيمات",
                                     English = "Vaccines"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000007004"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008004"),
                                     Arabic = "حملات التطعيم",
                                     English = "Vaccination Campaigns"
                                 },
@@ -1506,13 +1525,13 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008001"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009001"),
                                     Arabic = "الحضور اليومي",
                                     English = "Daily Attendance"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000008002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009002"),
                                     Arabic = "تقييمات الطلاب",
                                     English = "Student Evaluations"
                                 },
@@ -1524,25 +1543,25 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009001"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010001"),
                                     Arabic = "خطوط السير",
                                     English = "Bus Routes"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010002"),
                                     Arabic = "الباصات",
                                     English = "Buses"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009003"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010003"),
                                     Arabic = "توزيع الطلاب على الباصات",
                                     English = "Bus Assignments"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000009004"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010004"),
                                     Arabic = "الرحلات",
                                     English = "Trips"
                                 },
@@ -1554,43 +1573,43 @@ namespace SchoolManager.Identity.Infrastructure.Persistence.Migrations
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010001"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011001"),
                                     Arabic = "الطلاب حسب الحالة",
                                     English = "Students by Status"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010002"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011002"),
                                     Arabic = "تقرير المصروفات",
                                     English = "Expenses Report"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010003"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011003"),
                                     Arabic = "تقرير الإيرادات",
                                     English = "Income Report"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010004"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011004"),
                                     Arabic = "تقرير حضور الطلاب",
                                     English = "Attendance Report"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010005"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011005"),
                                     Arabic = "تقرير تقييمات الطلاب",
                                     English = "Reviews Report"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010006"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011006"),
                                     Arabic = "تقرير نتائج الامتحانات",
                                     English = "Exam Results Report"
                                 },
                                 new
                                 {
-                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000010007"),
+                                    MenuItemId = new Guid("6d9f1c00-0000-4000-8000-000000011007"),
                                     Arabic = "تقرير النقل المدرسي",
                                     English = "Transport Report"
                                 });

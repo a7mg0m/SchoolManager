@@ -38,6 +38,12 @@ namespace SchoolManager.Financial.Infrastructure
             services.AddKafkaConsumer<BusFeeIntegrationEvent, BusFeeIntegrationEventHandler>(
                 configuration, Topics.AttendanceBusFees);
 
+            // Kafka: events (fee payment recorded → Notification service) are stored in the outbox with the business
+            // change, then published in the background
+            services.AddKafkaPublisher(configuration);
+            services.AddScoped<IIntegrationEventOutbox, IntegrationEventOutbox>();
+            services.AddHostedService<OutboxPublisherService>();
+
             return services;
         }
     }

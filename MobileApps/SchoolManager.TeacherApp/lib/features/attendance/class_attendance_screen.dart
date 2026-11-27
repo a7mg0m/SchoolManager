@@ -7,6 +7,7 @@ import '../classes/classes_service.dart';
 import '../timetable/teacher_timetable_screen.dart' show lessonTime;
 import 'attendance_screens.dart';
 import 'attendance_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -41,7 +42,11 @@ class ClassAttendanceScreen extends StatefulWidget {
   State<ClassAttendanceScreen> createState() => _ClassAttendanceScreenState();
 }
 
-class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> {
+class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> with LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   List<ClassStudent>? _students;
   Map<String, StudentDay> _days = const {};
   bool _loading = true;

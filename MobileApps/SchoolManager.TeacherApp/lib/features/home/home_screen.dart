@@ -29,6 +29,7 @@ import '../events/events_service.dart';
 import '../exams/exam_screens.dart';
 import '../timetable/teacher_timetable_screen.dart';
 import '../timetable/teacher_timetable_service.dart';
+import '../../core/live/live_refresh.dart';
 
 /// Teacher home: greeting, the important notice and the teacher services; the bottom bar stays on every page.
 class HomeScreen extends StatefulWidget {
@@ -99,7 +100,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _loadEvents();
+
   int selectedTab = 0;
   MyProfile? profile;
   SchoolInfo? schoolInfo;

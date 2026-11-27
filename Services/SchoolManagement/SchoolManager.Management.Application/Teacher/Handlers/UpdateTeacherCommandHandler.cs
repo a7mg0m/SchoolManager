@@ -45,6 +45,8 @@ namespace SchoolManager.Management.Application
 			var passwordHash = TeacherAccount.HashPassword(request.Password, required: false);
 			entity.SetLoginName(loginName);
 			entity.SetJobLevel(request.JobLevel);
+			entity.SetJobInfo(request.JobTitle, request.EmployeeNumber, request.Qualification, request.Specialization,
+				request.HireDate, request.YearsOfExperience);
 
 			entity.Update(
 				new NameLocalized(request.FullNameAr.Trim(), request.FullNameEn.Trim()),

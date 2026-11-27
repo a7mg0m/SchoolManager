@@ -16,6 +16,12 @@ namespace SchoolManager.Management.Application
         string? Password = null,
         string? JobLevel = null,
         bool IsServiceEnded = false,
-        DateOnly? ServiceEndDate = null
+        DateOnly? ServiceEndDate = null,
+        string? JobTitle = null,
+        string? EmployeeNumber = null,
+        string? Qualification = null,
+        string? Specialization = null,
+        DateOnly? HireDate = null,
+        int? YearsOfExperience = null
     ) : ICommand<Guid>;
 }

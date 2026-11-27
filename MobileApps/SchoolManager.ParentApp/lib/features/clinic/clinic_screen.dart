@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import '../schedule/schedule_format.dart';
 import 'clinic_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _red = Color(0xFFD93025);
 const _green = Color(0xFF13864B);
@@ -50,7 +51,11 @@ class _Load<T> {
   String? error;
 }
 
-class _ClinicScreenState extends State<ClinicScreen> with SingleTickerProviderStateMixin {
+class _ClinicScreenState extends State<ClinicScreen> with SingleTickerProviderStateMixin, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => Future.wait([_loadProfile(), _loadVaccinations(), _loadVisits()]);
+
   late final _tabs = TabController(length: 3, vsync: this)..addListener(() => setState(() {}));
 
   final _profile = _Load<MedicalProfile?>();

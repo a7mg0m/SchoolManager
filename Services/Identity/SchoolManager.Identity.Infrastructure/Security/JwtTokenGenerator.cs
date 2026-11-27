@@ -45,7 +45,10 @@ namespace SchoolManager.Identity.Infrastructure
                 issuer: _settings.Issuer,
                 audience: _settings.Audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes),
+                // App users stay signed in (no practical expiry; checked when the app opens); the dashboard's tokens stay short
+                expires: profile?.ParentId is not null || profile?.TeacherId is not null || profile?.BusId is not null
+                    ? DateTime.UtcNow.AddDays(_settings.AppExpiryDays)
+                    : DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes),
                 signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

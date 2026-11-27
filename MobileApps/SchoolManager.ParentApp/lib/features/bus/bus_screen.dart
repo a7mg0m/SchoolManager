@@ -10,6 +10,7 @@ import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import '../school/school_location_map.dart' show MapLinks;
 import 'bus_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _amber = Color(0xFFB7791F);
 const _green = Color(0xFF13864B);
@@ -104,7 +105,11 @@ class BusScreen extends StatefulWidget {
   State<BusScreen> createState() => _BusScreenState();
 }
 
-class _BusScreenState extends State<BusScreen> with WidgetsBindingObserver {
+class _BusScreenState extends State<BusScreen> with WidgetsBindingObserver, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => Future.wait([_loadTrip(silent: true), _loadTrips()]);
+
   late Child _child = widget.child;
 
   CurrentTrip? _trip;

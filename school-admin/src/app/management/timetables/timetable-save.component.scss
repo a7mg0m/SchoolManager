@@ -80,3 +80,9 @@
 [dir='rtl'] .section-group.collapsed .chevron {
   transform: rotate(90deg);
 }
+
+// "Copy week from…" next to the day start time
+.copy-week {
+  width: auto;
+  max-width: 320px;
+}

@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import 'event_format.dart';
 import 'events_service.dart';
 import '../../core/i18n/app_language.dart';
+import '../../core/live/live_refresh.dart';
 
 enum _Tab { upcoming, past }
 
@@ -26,7 +27,11 @@ class EventsScreen extends StatefulWidget {
   State<EventsScreen> createState() => _EventsScreenState();
 }
 
-class _EventsScreenState extends State<EventsScreen> with ReloadOnAcademicYear {
+class _EventsScreenState extends State<EventsScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

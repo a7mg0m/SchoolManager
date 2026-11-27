@@ -129,6 +129,33 @@ namespace SchoolManager.Identity.API.Controllers
             return Ok(new ApiResponse { message = "Deleted Successfully" });
         }
 
+        /// <summary>
+        /// An app opened with a saved session: checks the user again (active, login name unchanged, teacher in service,
+        /// parent with a current child) and answers a fresh token like the login does. 401 with the reason key in
+        /// `errors` when the session must end; 503 when it could not be checked (the app keeps the session).
+        /// </summary>
+        [Authorize]
+        [HttpPost("renew")]
+        public async Task<ActionResult<LoginResultDto>> Renew([FromServices] ICurrentUserService currentUser, CancellationToken cancellationToken)
+        {
+            if (currentUser.UserId == Guid.Empty)
+                return Unauthorized(new ApiResponse { status = -1, message = "InvalidCredentials", errors = ErrorKeys.UserInactive });
+
+            try
+            {
+                var result = await _mediator.Send(new RenewSessionCommand(currentUser.UserId, currentUser.UserName), cancellationToken);
+                return Ok(new ApiResponse { data = result });
+            }
+            catch (DomainException ex) when (ex.Message is ErrorKeys.TeacherCheckUnavailable or ErrorKeys.ParentCheckUnavailable)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new ApiResponse { status = -1, message = "Unavailable", errors = ex.Message });
+            }
+            catch (DomainException ex)
+            {
+                return Unauthorized(new ApiResponse { status = -1, message = "SessionEnded", errors = ex.Message });
+            }
+        }
+
         [HttpPost("login")]
         public async Task<ActionResult<LoginResultDto>> Login([FromBody] LoginDto dto, CancellationToken cancellationToken)
         {

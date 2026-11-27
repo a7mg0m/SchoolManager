@@ -34,6 +34,7 @@ import '../homework/homework_screen.dart';
 import '../homework/homework_service.dart';
 import '../school/school_info_screen.dart';
 import '../school/school_info_service.dart';
+import '../../core/live/live_refresh.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen(
@@ -103,7 +104,11 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => selectedChild == null ? Future.value() : _loadLive(selectedChild!, quiet: true);
+
   List<Child> children = const [];
   Child? selectedChild;
   bool isLoadingChildren = true;
@@ -297,15 +302,17 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _liveFor;
 
   /// Timetable, exams, fees and events of [child], each on its own: a failure only leaves that tile plain
-  Future<void> _loadLive(Child child) async {
+  Future<void> _loadLive(Child child, {bool quiet = false}) async {
     _liveFor = child.id;
-    setState(() {
-      _timetable = null;
-      _exams = null;
-      _fees = null;
-      _events = null;
-      _homeworks = null;
-    });
+    if (!quiet) {
+      setState(() {
+        _timetable = null;
+        _exams = null;
+        _fees = null;
+        _events = null;
+        _homeworks = null;
+      });
+    }
 
     Future<void> load<T>(Future<T> Function(String studentId) loader, void Function(T value) apply) async {
       try {

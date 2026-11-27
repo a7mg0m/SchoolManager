@@ -332,7 +332,19 @@
     "jobLevelPlaceholder": "مثال: معلم أول",
     "serviceEnded": "انتهت الخدمة",
     "serviceEndDate": "تاريخ انتهاء الخدمة",
-    "serviceEndedHint": "يصبح المعلم غير نشط ولا يمكنه تسجيل الدخول إلى تطبيق المعلم. اترك التاريخ فارغاً ليكون اليوم."
+    "serviceEndedHint": "يصبح المعلم غير نشط ولا يمكنه تسجيل الدخول إلى تطبيق المعلم. اترك التاريخ فارغاً ليكون اليوم.",
+    "jobInfo": "البيانات الوظيفية",
+    "jobTitle": "المسمى الوظيفي",
+    "jobTitlePlaceholder": "مثال: معلم رياضيات",
+    "employeeNumber": "الرقم الوظيفي",
+    "qualification": "المؤهل",
+    "qualificationPlaceholder": "مثال: بكالوريوس تربية",
+    "specialization": "التخصص",
+    "specializationPlaceholder": "مثال: رياضيات",
+    "hireDate": "تاريخ التعيين",
+    "yearsOfExperience": "سنوات الخبرة",
+    "yearsOfExperienceRange": "أدخل رقماً من 0 إلى 60.",
+    "jobInfoHint": "يرى المعلم هذه البيانات في تطبيق المعلم ولا يستطيع تعديلها."
   },
   "subjects": {
     "title": "إدارة المواد الدراسية",
@@ -785,7 +797,14 @@
     "generateTitle": "استبدال الحصص؟",
     "periodsReplaced": "سيتم استبدالها",
     "periodsCreated": "حصة جديدة",
-    "replaceAndGenerate": "استبدال وإنشاء"
+    "replaceAndGenerate": "استبدال وإنشاء",
+    "teacherClash": "لا يمكن أن يكون للمعلم حصتان في نفس الوقت:",
+    "teacherClashLine": "{{teacher}} يوم {{day}} {{time}} ({{section}}) لديه حصة في {{other}} الساعة {{otherTime}}",
+    "teacherClashInForm": "{{teacher}} لديه حصتان في نفس الوقت يوم {{day}} الساعة {{time}}: غيّر المعلم أو وقت إحداهما.",
+    "copyWeekFrom": "نسخ إعدادات الأسبوع من جدول…",
+    "weekCopied": "تم نسخ إعدادات الأسبوع من {{from}}. راجعها ثم احفظ.",
+    "weekCopyEmpty": "هذا الجدول لا يحتوي على إعدادات أسبوع محفوظة.",
+    "weekCopyFailed": "تعذر تحميل الجدول."
   },
   "expenseCategories": {
     "title": "فئات المصروفات",

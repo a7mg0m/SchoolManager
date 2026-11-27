@@ -11,7 +11,6 @@ import 'core/routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
 import 'features/auth/login_screen.dart';
-import 'features/children/children_service.dart';
 import 'features/home/home_screen.dart';
 import 'features/intro/intro_screen.dart';
 
@@ -26,7 +25,8 @@ Future<void> main() async {
   var session = await AuthService.instance.restoreSession();
   // A parent with no child at the school any more is signed out (the login screen says why)
   var signedOut = false;
-  if (session != null && !await AuthService.instance.checkStillHasCurrentChildren(_currentChildrenCheck)) {
+  // Renewed (stays signed in), or signed out when the school ended it (e.g. no child at the school any more)
+  if (session != null && !await AuthService.instance.renewSession()) {
     session = null;
     signedOut = true;
   }
@@ -38,18 +38,6 @@ Future<void> main() async {
   }
   runApp(SmartSchoolParentApp(
       initialRoute: session != null ? AppRoutes.home : (signedOut ? AppRoutes.login : AppRoutes.intro)));
-}
-
-/// 'ok' / 'none' (no current child: the server lists only current children) / 'expired' / 'unknown' (offline…)
-Future<String> _currentChildrenCheck() async {
-  try {
-    final children = await ChildrenService.instance.getMyChildren();
-    return children.isNotEmpty ? 'ok' : 'none';
-  } on ChildrenException catch (e) {
-    return e.sessionExpired ? 'expired' : 'unknown';
-  } catch (_) {
-    return 'unknown';
-  }
 }
 
 class SmartSchoolParentApp extends StatelessWidget {
@@ -87,6 +75,18 @@ class SmartSchoolParentApp extends StatelessWidget {
           AppRoutes.login: (_) => const LoginScreen(),
           AppRoutes.home: (_) => const HomeScreen(),
         },
+        // Start with only the first page: by default "/home" also puts "/" (the intro) under it, so Back on Home
+        // went to the intro / login instead of leaving the app
+        onGenerateInitialRoutes: (name) => [
+          MaterialPageRoute<void>(
+            settings: RouteSettings(name: name),
+            builder: (_) => switch (name) {
+              AppRoutes.login => const LoginScreen(),
+              AppRoutes.home => const HomeScreen(),
+              _ => const IntroScreen(),
+            },
+          ),
+        ],
       ),
     );
   }

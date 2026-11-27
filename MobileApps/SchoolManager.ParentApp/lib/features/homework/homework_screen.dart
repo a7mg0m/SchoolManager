@@ -7,6 +7,7 @@ import '../children/children_service.dart';
 import '../schedule/schedule_format.dart';
 import 'homework_details_screen.dart';
 import 'homework_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -32,7 +33,11 @@ class HomeworkScreen extends StatefulWidget {
   State<HomeworkScreen> createState() => _HomeworkScreenState();
 }
 
-class _HomeworkScreenState extends State<HomeworkScreen> with ReloadOnAcademicYear {
+class _HomeworkScreenState extends State<HomeworkScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

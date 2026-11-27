@@ -27,6 +27,14 @@ export interface Teacher {
   isServiceEnded?: boolean;
   /** Last day of service (yyyy-MM-dd) */
   serviceEndDate?: string | null;
+  /** Job information, set by the school (read only in the teacher app) */
+  jobTitle?: string | null;
+  employeeNumber?: string | null;
+  qualification?: string | null;
+  specialization?: string | null;
+  /** yyyy-MM-dd */
+  hireDate?: string | null;
+  yearsOfExperience?: number | null;
   /** Login name of the teacher's account (null for teachers saved before it existed) */
   loginName?: string | null;
 }
@@ -51,6 +59,14 @@ export interface CreateTeacherRequest {
   isServiceEnded?: boolean;
   /** Last day of service (yyyy-MM-dd) */
   serviceEndDate?: string | null;
+  /** Job information, set by the school (read only in the teacher app) */
+  jobTitle?: string | null;
+  employeeNumber?: string | null;
+  qualification?: string | null;
+  specialization?: string | null;
+  /** yyyy-MM-dd */
+  hireDate?: string | null;
+  yearsOfExperience?: number | null;
   /** Login name of the teacher's account (required) */
   loginName: string;
   /** First password (required) */
@@ -75,6 +91,14 @@ export interface UpdateTeacherRequest {
   isServiceEnded?: boolean;
   /** Last day of service (yyyy-MM-dd) */
   serviceEndDate?: string | null;
+  /** Job information, set by the school (read only in the teacher app) */
+  jobTitle?: string | null;
+  employeeNumber?: string | null;
+  qualification?: string | null;
+  specialization?: string | null;
+  /** yyyy-MM-dd */
+  hireDate?: string | null;
+  yearsOfExperience?: number | null;
   loginName: string;
   /** New password, or null to keep the current one */
   password: string | null;

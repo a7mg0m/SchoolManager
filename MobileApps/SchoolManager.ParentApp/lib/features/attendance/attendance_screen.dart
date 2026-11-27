@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import '../schedule/schedule_service.dart';
 import 'attendance_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _teal = Color(0xFF0FA5A5);
 const _green = Color(0xFF13864B);
@@ -85,7 +86,11 @@ class AttendanceScreen extends StatefulWidget {
   State<AttendanceScreen> createState() => _AttendanceScreenState();
 }
 
-class _AttendanceScreenState extends State<AttendanceScreen> with ReloadOnAcademicYear {
+class _AttendanceScreenState extends State<AttendanceScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

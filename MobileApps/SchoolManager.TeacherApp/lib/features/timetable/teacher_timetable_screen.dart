@@ -5,6 +5,7 @@ import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/theme/app_theme.dart';
 import 'teacher_timetable_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _teal = Color(0xFF13A89E);
 const _green = Color(0xFF13864B);
@@ -61,7 +62,11 @@ class TeacherTimetableScreen extends StatefulWidget {
   State<TeacherTimetableScreen> createState() => _TeacherTimetableScreenState();
 }
 
-class _TeacherTimetableScreenState extends State<TeacherTimetableScreen> with ReloadOnAcademicYear {
+class _TeacherTimetableScreenState extends State<TeacherTimetableScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 
@@ -159,7 +164,7 @@ class _TeacherTimetableScreenState extends State<TeacherTimetableScreen> with Re
     }
 
     final day = _day ?? t.today;
-    final lessons = t.dayOf(day)?.lessons ?? const <TeacherLesson>[];
+    final lessons = t.dayOf(day)?.merged ?? const <TeacherLesson>[];
     final isToday = day == t.today;
     // Saturday first
     final weekOrder = [6, 0, 1, 2, 3, 4, 5];
@@ -180,7 +185,7 @@ class _TeacherTimetableScreenState extends State<TeacherTimetableScreen> with Re
                 if (t.dayOf(d) != null || d == t.today)
                   Padding(
                     padding: const EdgeInsetsDirectional.only(end: 8),
-                    child: _dayChip(d, t.dayOf(d)?.lessons.length ?? 0, selected: d == day, isToday: d == t.today),
+                    child: _dayChip(d, t.dayOf(d)?.merged.length ?? 0, selected: d == day, isToday: d == t.today),
                   ),
             ],
           ),
@@ -212,7 +217,7 @@ class _TeacherTimetableScreenState extends State<TeacherTimetableScreen> with Re
 
   /// Today: the lesson now (with progress) or the next one, or "done for today"
   Widget _todayCard(TeacherTimetable t) {
-    final lessons = t.dayOf(t.today)?.lessons ?? const <TeacherLesson>[];
+    final lessons = t.dayOf(t.today)?.merged ?? const <TeacherLesson>[];
     final now = t.now;
     final current = lessons.where((l) => l.start <= now && now < l.end).firstOrNull;
     final next = lessons.where((l) => l.start > now).firstOrNull;

@@ -332,7 +332,19 @@
     "jobLevelPlaceholder": "e.g. Senior teacher",
     "serviceEnded": "Service ended",
     "serviceEndDate": "End of service date",
-    "serviceEndedHint": "The teacher becomes inactive and can no longer sign in to the teacher app. Leave the date empty for today."
+    "serviceEndedHint": "The teacher becomes inactive and can no longer sign in to the teacher app. Leave the date empty for today.",
+    "jobInfo": "Job information",
+    "jobTitle": "Job title",
+    "jobTitlePlaceholder": "e.g. Math teacher",
+    "employeeNumber": "Employee number",
+    "qualification": "Qualification",
+    "qualificationPlaceholder": "e.g. Bachelor of Education",
+    "specialization": "Specialization",
+    "specializationPlaceholder": "e.g. Mathematics",
+    "hireDate": "Hire date",
+    "yearsOfExperience": "Years of experience",
+    "yearsOfExperienceRange": "Enter a number from 0 to 60.",
+    "jobInfoHint": "The teacher sees this information in the teacher app but cannot change it."
   },
   "subjects": {
     "title": "Subject Management",
@@ -785,7 +797,14 @@
     "generateTitle": "Replace the periods?",
     "periodsReplaced": "replaced",
     "periodsCreated": "new periods",
-    "replaceAndGenerate": "Replace and generate"
+    "replaceAndGenerate": "Replace and generate",
+    "teacherClash": "A teacher cannot give two lessons at the same time:",
+    "teacherClashLine": "{{teacher}} on {{day}} {{time}} ({{section}}) is already teaching {{other}} at {{otherTime}}",
+    "teacherClashInForm": "{{teacher}} has two lessons at the same time on {{day}} at {{time}}: change the teacher or the time of one of them.",
+    "copyWeekFrom": "Copy week from timetable…",
+    "weekCopied": "Week settings copied from {{from}}. Review them, then save.",
+    "weekCopyEmpty": "That timetable has no week settings saved.",
+    "weekCopyFailed": "The timetable could not be loaded."
   },
   "expenseCategories": {
     "title": "Expense Categories",

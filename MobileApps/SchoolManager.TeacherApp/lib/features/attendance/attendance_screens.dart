@@ -8,6 +8,7 @@ import '../classes/classes_service.dart';
 import '../timetable/teacher_timetable_screen.dart' show lessonTime, subjectColorOf;
 import '../timetable/teacher_timetable_service.dart';
 import 'attendance_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _blue = Color(0xFF2F80ED);
 const _green = Color(0xFF13864B);
@@ -102,7 +103,11 @@ class AttendanceLessonsScreen extends StatefulWidget {
   State<AttendanceLessonsScreen> createState() => _AttendanceLessonsScreenState();
 }
 
-class _AttendanceLessonsScreenState extends State<AttendanceLessonsScreen> with ReloadOnAcademicYear {
+class _AttendanceLessonsScreenState extends State<AttendanceLessonsScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

@@ -9,6 +9,7 @@ import 'schedule_format.dart';
 import 'schedule_service.dart';
 import 'schedule_timeline.dart';
 import '../../core/i18n/app_language.dart';
+import '../../core/live/live_refresh.dart';
 
 enum _ViewMode { day, week }
 
@@ -28,7 +29,11 @@ class TimetableScreen extends StatefulWidget {
   State<TimetableScreen> createState() => _TimetableScreenState();
 }
 
-class _TimetableScreenState extends State<TimetableScreen> with ReloadOnAcademicYear {
+class _TimetableScreenState extends State<TimetableScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

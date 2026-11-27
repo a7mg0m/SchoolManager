@@ -7,6 +7,7 @@ import '../../core/i18n/app_language.dart';
 import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import 'evaluation_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _indigo = Color(0xFF4C5FD5);
 const _green = Color(0xFF13864B);
@@ -76,7 +77,11 @@ class EvaluationRequestsScreen extends StatefulWidget {
   State<EvaluationRequestsScreen> createState() => _EvaluationRequestsScreenState();
 }
 
-class _EvaluationRequestsScreenState extends State<EvaluationRequestsScreen> with ReloadOnAcademicYear {
+class _EvaluationRequestsScreenState extends State<EvaluationRequestsScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() => _load();
 

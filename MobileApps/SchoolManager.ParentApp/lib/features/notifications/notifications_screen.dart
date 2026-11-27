@@ -5,6 +5,7 @@ import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/theme/app_theme.dart';
 import 'notifications_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _red = Color(0xFFD93025);
 const _green = Color(0xFF13864B);
@@ -54,7 +55,11 @@ class NotificationsScreen extends StatefulWidget {
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> with ReloadOnAcademicYear {
+class _NotificationsScreenState extends State<NotificationsScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _load();
+
   @override
   Future<void> reloadForAcademicYear() {
     setState(() => _notices = null);

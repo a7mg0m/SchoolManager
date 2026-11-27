@@ -44,6 +44,16 @@ namespace SchoolManager.Management.Infrastructure
 				.ToListAsync(cancellationToken);
 		}
 
+		public async Task<List<TimetableSlot>> GetTeachersOtherSlotsAsync(IReadOnlyCollection<Guid> teacherIds, Guid academicYearId, Guid? semesterId,
+			Guid? excludeTimetableId, CancellationToken cancellationToken = default)
+			=> await _dbSet.AsNoTracking()
+				.Where(t => t.AcademicYearId == academicYearId
+					&& (t.SemesterId == null || semesterId == null || t.SemesterId == semesterId)
+					&& (excludeTimetableId == null || t.Id != excludeTimetableId))
+				.SelectMany(t => t.Slots)
+				.Where(s => teacherIds.Contains(s.TeacherId))
+				.ToListAsync(cancellationToken);
+
 		public async Task<List<TimetableSlot>> GetSectionSlotsAsync(Guid academicYearId, Guid? semesterId, Guid gradeId, Guid sectionId, CancellationToken cancellationToken = default)
 		{
 			// No semester chosen: the one running today (if any)

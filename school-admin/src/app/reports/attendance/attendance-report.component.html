@@ -99,7 +99,7 @@
           </div>
         </div>
         <div class="col-md-8 col-xl-9">
-          <div class="row g-2 h-100">
+          <div class="row g-2 ">
             <div class="col-6 col-lg-2"><div class="mini present"><span>{{ s.present }}</span>{{ 'reports.attendance.present' | translate }}</div></div>
             <div class="col-6 col-lg-2"><div class="mini partial"><span>{{ s.partial }}</span>{{ 'reports.attendance.partial' | translate }}</div></div>
             <div class="col-6 col-lg-2"><div class="mini absent"><span>{{ s.absent }}</span>{{ 'reports.attendance.absent' | translate }}</div></div>
@@ -113,7 +113,7 @@
       <div class="row g-3 mb-3">
         <!-- Day by day -->
         <div class="col-xl-5">
-          <div class="card h-100">
+          <div class="card ">
             <div class="card-header fw-semibold">{{ 'reports.attendance.byDay' | translate }}</div>
             <div class="card-body day-list">
               @for (d of byDay(); track d.date) {
@@ -139,7 +139,7 @@
         </div>
         <!-- By class -->
         <div class="col-xl-7">
-          <div class="card h-100">
+          <div class="card ">
             <div class="card-header fw-semibold">{{ 'reports.attendance.byClass' | translate }}</div>
             <div class="card-body p-0">
               <div class="table-responsive">

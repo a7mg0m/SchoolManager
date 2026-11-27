@@ -6,6 +6,7 @@ import '../../core/academic_year/reload_on_academic_year.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/theme/app_theme.dart';
 import 'student_activity_service.dart';
+import '../../core/live/live_refresh.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -118,7 +119,11 @@ class StudentActivityScreen extends StatefulWidget {
   State<StudentActivityScreen> createState() => _StudentActivityScreenState();
 }
 
-class _StudentActivityScreenState extends State<StudentActivityScreen> with ReloadOnAcademicYear {
+class _StudentActivityScreenState extends State<StudentActivityScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
+  @override
+  Future<void> onLiveRefresh() => _loadAll();
+
   @override
   Future<void> reloadForAcademicYear() => _loadAll();
 

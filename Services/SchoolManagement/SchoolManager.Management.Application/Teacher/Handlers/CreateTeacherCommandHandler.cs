@@ -49,6 +49,8 @@ namespace SchoolManager.Management.Application
 			// Login account (created by the Identity service): login name kept here, password only as a hash
 			entity.SetLoginName(await TeacherAccount.ValidateLoginNameAsync(command.LoginName, entity.Id, _repository, _parents));
 			entity.SetJobLevel(command.JobLevel);
+			entity.SetJobInfo(command.JobTitle, command.EmployeeNumber, command.Qualification, command.Specialization,
+				command.HireDate, command.YearsOfExperience);
 			entity.SetService(command.IsServiceEnded, command.ServiceEndDate);
 			var passwordHash = TeacherAccount.HashPassword(command.Password, required: true);
 

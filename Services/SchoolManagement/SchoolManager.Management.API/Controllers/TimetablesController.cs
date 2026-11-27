@@ -40,15 +40,30 @@ namespace SchoolManager.Management.API.Controllers
 		public async Task<ActionResult<Guid>> Create([FromBody] CreateTimetableDto dto, CancellationToken cancellationToken)
 		{
 			var command = _mapper.Map<CreateTimetableCommand>(dto);
-			var id = await _mediator.Send(command, cancellationToken);
-			return CreatedAtAction(nameof(GetById), new { id }, new ApiResponse { InsertedId = id.ToString() });
+			try
+			{
+				var id = await _mediator.Send(command, cancellationToken);
+				return CreatedAtAction(nameof(GetById), new { id }, new ApiResponse { InsertedId = id.ToString() });
+			}
+			catch (TeacherClashException ex)
+			{
+				return BadRequest(new ApiResponse { status = 400, message = "TeacherClash", data = ex.Clashes });
+			}
 		}
 
 		[HttpPut("update")]
 		public async Task<IActionResult> Update([FromBody] UpdateTimetableDto dto, CancellationToken cancellationToken)
 		{
 			var command = _mapper.Map<UpdateTimetableCommand>(dto);
-			var success = await _mediator.Send(command, cancellationToken);
+			bool success;
+			try
+			{
+				success = await _mediator.Send(command, cancellationToken);
+			}
+			catch (TeacherClashException ex)
+			{
+				return BadRequest(new ApiResponse { status = 400, message = "TeacherClash", data = ex.Clashes });
+			}
 
 			if (!success)
 				return Ok(new ApiResponse { status = -1, message = "Update Failed" });

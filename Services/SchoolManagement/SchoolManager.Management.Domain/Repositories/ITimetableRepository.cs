@@ -21,6 +21,13 @@ namespace SchoolManager.Management.Domain
         /// </summary>
         Task<List<TimetableSlot>> GetTeacherSlotsAsync(Guid teacherId, Guid academicYearId, Guid? semesterId, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// The lessons of these teachers in the other timetables of an academic year that run in the semester (its own
+        /// and the whole-year ones), except the timetable excludeTimetableId (read-only).
+        /// </summary>
+        Task<List<TimetableSlot>> GetTeachersOtherSlotsAsync(IReadOnlyCollection<Guid> teacherIds, Guid academicYearId, Guid? semesterId,
+            Guid? excludeTimetableId, CancellationToken cancellationToken = default);
+
         Task<List<TimetableSlot>> GetSectionSlotsAsync(Guid academicYearId, Guid? semesterId, Guid gradeId, Guid sectionId, CancellationToken cancellationToken = default);
     }
    
