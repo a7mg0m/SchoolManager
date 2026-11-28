@@ -35,6 +35,7 @@ class NotificationsScreen extends StatefulWidget {
     this.subtitle,
     this.targetedLabel,
     this.onSessionExpired,
+    this.loadPage,
     this.now,
   });
 
@@ -47,6 +48,9 @@ class NotificationsScreen extends StatefulWidget {
   /// Badge of a notification that is not for everyone ("لابنك" / "لك")
   final String? targetedLabel;
   final Future<void> Function()? onSessionExpired;
+
+  /// Pages from the server (newest first, by type); null: [loadNotices] gives the whole list
+  final Future<NoticePage> Function(int page, int pageSize, NoticeType? type)? loadPage;
   final DateTime? now;
 
   @override
@@ -65,6 +69,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> with LiveRefr
   /// Type filter; null = all
   NoticeType? _type;
 
+  // Paged mode (widget.loadPage): the pages loaded so far, and the server's numbers about all of them
+  static const _pageSize = 30;
+  int _page = 0;
+  bool _hasMore = false;
+  bool _loadingMore = false;
+  Map<NoticeType, int> _counts = const {};
+  bool get _paged => widget.loadPage != null;
+
   DateTime get _now => widget.now ?? DateTime.now();
 
   @override
@@ -79,6 +91,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> with LiveRefr
       _error = null;
     });
     try {
+      if (_paged) {
+        // The pages already shown again (a refresh keeps the user's place), at least the first, at most 3
+        final loaded = _notices?.length ?? 0;
+        final size = ((loaded + _pageSize - 1) ~/ _pageSize).clamp(1, 3) * _pageSize;
+        final page = await widget.loadPage!(1, size, _type);
+        if (!mounted) return;
+        setState(() {
+          _notices = page.items;
+          _counts = page.counts;
+          _hasMore = page.hasMore;
+          _page = size ~/ _pageSize;
+          _loading = false;
+        });
+        return;
+      }
       final result = await widget.loadNotices();
       if (!mounted) return;
       setState(() {
@@ -95,6 +122,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> with LiveRefr
         _error = e.message;
         _loading = false;
       });
+    }
+  }
+
+  /// Paged mode: the next page, added under the ones shown
+  Future<void> _loadMore() async {
+    if (!_paged || !_hasMore || _loadingMore) return;
+    setState(() => _loadingMore = true);
+    try {
+      final page = await widget.loadPage!(_page + 1, _pageSize, _type);
+      if (!mounted) return;
+      setState(() {
+        final known = {for (final n in _notices ?? const <AppNotice>[]) n.id};
+        _notices = [...?_notices, ...page.items.where((n) => !known.contains(n.id))];
+        _counts = page.counts;
+        _hasMore = page.hasMore;
+        _page += 1;
+        _loadingMore = false;
+      });
+    } on NoticesException {
+      if (mounted) setState(() => _loadingMore = false);
+    }
+  }
+
+  /// Another type chip: in paged mode the server filters
+  void _selectType(NoticeType? type) {
+    if (_type == type) return;
+    setState(() => _type = type);
+    if (_paged) {
+      setState(() => _notices = null);
+      _load();
     }
   }
 
@@ -139,8 +196,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> with LiveRefr
       );
     }
 
-    final types = NoticeType.values.where((t) => all.any((n) => n.type == t)).toList();
-    final shown = _type == null ? all : all.where((n) => n.type == _type).toList();
+    final types = _paged
+        ? NoticeType.values.where((t) => (_counts[t] ?? 0) > 0).toList()
+        : NoticeType.values.where((t) => all.any((n) => n.type == t)).toList();
+    // Paged mode: the server already sent only the chosen type
+    final shown = _paged || _type == null ? all : all.where((n) => n.type == _type).toList();
     final todayCount = all.where((n) => n.isToday(_now)).length;
 
     final items = <Widget>[];
@@ -180,13 +240,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> with LiveRefr
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _typeChip(null, tr('الكل', 'All'), all.length),
-                for (final t in types) _typeChip(t, t.label, all.where((n) => n.type == t).length),
+                _typeChip(null, tr('الكل', 'All'), _paged ? _counts.values.fold(0, (a, b) => a + b) : all.length),
+                for (final t in types) _typeChip(t, t.label, _paged ? (_counts[t] ?? 0) : all.where((n) => n.type == t).length),
               ],
             ),
           ),
         const SizedBox(height: 4),
         ...items,
+        // Paged mode: the next page loads when the end of the list comes into view
+        if (_paged && _hasMore) _MoreNotices(key: ValueKey('more-${all.length}'), loading: _loadingMore, onMore: _loadMore),
       ],
     );
   }
@@ -198,7 +260,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with LiveRefr
           avatar: type == null ? null : Icon(type.icon, size: 16, color: type.color),
           label: Text('$label ($count)'),
           selected: _type == type,
-          onSelected: (_) => setState(() => _type = type),
+          onSelected: (_) => _selectType(type),
         ),
       );
 
@@ -497,4 +559,39 @@ class NotificationDetailsScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The end of a paged list: asks for the next page when it is built (it comes into view), or on tap
+class _MoreNotices extends StatefulWidget {
+  const _MoreNotices({super.key, required this.loading, required this.onMore});
+
+  final bool loading;
+  final Future<void> Function() onMore;
+
+  @override
+  State<_MoreNotices> createState() => _MoreNoticesState();
+}
+
+class _MoreNoticesState extends State<_MoreNotices> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.onMore();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Center(
+          child: widget.loading
+              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5))
+              : TextButton.icon(
+                  onPressed: widget.onMore,
+                  icon: const Icon(Icons.expand_more_rounded),
+                  label: Text(tr('عرض المزيد', 'Show more')),
+                ),
+        ),
+      );
 }

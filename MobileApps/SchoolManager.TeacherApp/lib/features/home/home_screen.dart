@@ -775,6 +775,9 @@ class _HomeScreenState extends State<HomeScreen> with LiveRefreshMixin {
     await _nav.push(MaterialPageRoute(
       builder: (_) => NotificationsScreen(
         loadNotices: widget.loadNotifications ?? NotificationsService.instance.getMine,
+        loadPage: widget.loadNotifications != null
+            ? null
+            : (page, size, type) => NotificationsService.instance.getMinePage(page: page, pageSize: size, type: type),
         targetedLabel: tr('لك', 'For you'),
         onSessionExpired: _logout,
       ),

@@ -8,6 +8,7 @@ import '../timetable/teacher_timetable_screen.dart' show lessonTime;
 import 'attendance_screens.dart';
 import 'attendance_service.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/widgets/paged.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -43,6 +44,9 @@ class ClassAttendanceScreen extends StatefulWidget {
 }
 
 class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> with LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _load();
@@ -304,10 +308,11 @@ class _ClassAttendanceScreenState extends State<ClassAttendanceScreen> with Live
                 textAlign: TextAlign.center, style: TextStyle(color: palette.muted)),
           )
         else
-          for (final s in shown) ...[
+          for (final s in _pages.take('days', shown)) ...[
             _studentTile(students.indexOf(s) + 1, s),
             const SizedBox(height: 8),
           ],
+          _pages.more(context, 'days', shown.length, setState),
       ],
     );
   }

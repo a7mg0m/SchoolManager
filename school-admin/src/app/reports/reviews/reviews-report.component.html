@@ -161,7 +161,7 @@
             <div class="card-header fw-semibold">{{ 'reports.reviews.bySubject' | translate }}</div>
             <div class="card-body p-0">
               <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0">
+                <table appDataTable [dtPageSize]="10" class="table table-sm table-hover align-middle mb-0">
                   <thead class="table-light">
                     <tr>
                       <th>{{ 'reports.reviews.subject' | translate }}</th>
@@ -198,7 +198,7 @@
             <div class="card-header fw-semibold">{{ 'reports.reviews.byTeacher' | translate }}</div>
             <div class="card-body p-0">
               <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0">
+                <table appDataTable [dtPageSize]="10" class="table table-sm table-hover align-middle mb-0">
                   <thead class="table-light">
                     <tr>
                       <th>{{ 'reports.reviews.teacher' | translate }}</th>

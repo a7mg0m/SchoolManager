@@ -16,6 +16,7 @@ import '../trips/trip_screens.dart';
 import '../trips/trip_service.dart';
 import '../trips/trip_widgets.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/widgets/paged.dart';
 
 /// Driver home: today's trips of the bus (start / finish), all trips, and the account (profile, language, theme)
 class HomeScreen extends StatefulWidget {
@@ -58,6 +59,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _refresh();
@@ -542,11 +546,13 @@ class _HomeScreenState extends State<HomeScreen> with LiveRefreshMixin {
                 tr('الرحلات التي تنشئها تظهر هنا.', 'The trips you create show up here.')),
           if (upcoming.isNotEmpty) ...[
             _section(tr('اليوم والقادمة', 'Today and upcoming')),
-            for (final t in upcoming) _tripCard(t, showDate: true),
+            for (final t in _pages.take('upcoming', upcoming)) _tripCard(t, showDate: true),
+            _pages.more(context, 'upcoming', upcoming.length, setState),
           ],
           if (past.isNotEmpty) ...[
             _section(tr('السابقة', 'Past')),
-            for (final t in past) _tripCard(t, showDate: true),
+            for (final t in _pages.take('past', past)) _tripCard(t, showDate: true),
+            _pages.more(context, 'past', past.length, setState),
           ],
         ],
       ),
@@ -567,6 +573,9 @@ class _HomeScreenState extends State<HomeScreen> with LiveRefreshMixin {
     return NotificationsScreen(
       key: ValueKey('notifications-$_notificationsVersion'),
       loadNotices: widget.loadNotifications ?? NotificationsService.instance.getMine,
+      loadPage: widget.loadNotifications != null
+          ? null
+          : (page, size, type) => NotificationsService.instance.getMinePage(page: page, pageSize: size, type: type),
       targetedLabel: tr('لحافلتك', 'For your bus'),
       onSessionExpired: _logout,
     );

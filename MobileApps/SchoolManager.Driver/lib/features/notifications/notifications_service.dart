@@ -86,6 +86,35 @@ class NoticesException implements Exception {
   String toString() => message;
 }
 
+/// One page of notifications from the server, with how many there are of each type (for the filter chips)
+class NoticePage {
+  const NoticePage({required this.items, required this.total, required this.hasMore, required this.counts});
+
+  final List<AppNotice> items;
+  /// How many in all (of the type asked)
+  final int total;
+  final bool hasMore;
+  /// How many of each type, whatever type was asked
+  final Map<NoticeType, int> counts;
+
+  factory NoticePage.fromJson(Map<String, dynamic> json) {
+    final counts = <NoticeType, int>{};
+    final raw = json['counts'];
+    if (raw is Map) {
+      raw.forEach((key, value) {
+        final type = NoticeType.from(int.tryParse('$key'));
+        if (value is num) counts[type] = (counts[type] ?? 0) + value.toInt();
+      });
+    }
+    return NoticePage(
+      items: (json['items'] as List? ?? const []).whereType<Map<String, dynamic>>().map(AppNotice.fromJson).toList(),
+      total: (json['total'] as num?)?.toInt() ?? 0,
+      hasMore: json['hasMore'] == true,
+      counts: counts,
+    );
+  }
+}
+
 class NotificationsService {
   NotificationsService._();
   static final instance = NotificationsService._();
@@ -93,7 +122,27 @@ class NotificationsService {
   /// Driver app: notifications for the whole school or for my bus (GET /api/notification/my-driver)
   Future<List<AppNotice>> getMine() => _get('/api/notification/my-driver');
 
+  /// A page at a time: notifications for the whole school or for my bus
+  Future<NoticePage> getMinePage({int page = 1, int pageSize = 30, NoticeType? type}) =>
+      _page('/api/notification/my-driver', page, pageSize, type);
+
   Future<List<AppNotice>> _get(String path) async {
+    final data = await _data(path);
+    if (data is! List) throw NoticesException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
+    return data.whereType<Map<String, dynamic>>().map(AppNotice.fromJson).toList();
+  }
+
+  /// One page from the server: newest first, [pageSize] items, optionally only one [type]
+  Future<NoticePage> _page(String path, int page, int pageSize, NoticeType? type) async {
+    final query = 'page=$page&pageSize=$pageSize${type == null ? '' : '&type=${type.value}'}';
+    final data = await _data('$path${path.contains('?') ? '&' : '?'}$query');
+    if (data is! Map<String, dynamic>) {
+      throw NoticesException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
+    }
+    return NoticePage.fromJson(data);
+  }
+
+  Future<dynamic> _data(String path) async {
     final session = AuthService.instance.session;
     if (session == null || session.isExpired) throw NoticesException(_sessionEnded, sessionExpired: true);
 
@@ -123,8 +172,8 @@ class NotificationsService {
     try {
       final body = jsonDecode(utf8.decode(response.bodyBytes));
       final data = body is Map<String, dynamic> ? body['data'] : null;
-      if (data is! List) throw const FormatException();
-      return data.whereType<Map<String, dynamic>>().map(AppNotice.fromJson).toList();
+      if (data == null) throw const FormatException();
+      return data;
     } catch (_) {
       throw NoticesException(tr('استجابة غير متوقعة من الخادم.', 'Unexpected response from the server.'));
     }

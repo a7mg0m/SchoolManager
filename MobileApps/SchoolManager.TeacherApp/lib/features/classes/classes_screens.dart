@@ -9,6 +9,7 @@ import '../homework/homework_screens.dart' show homeworkDate;
 import '../activity/student_activity_screen.dart';
 import 'classes_service.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/widgets/paged.dart';
 
 const _teal = Color(0xFF0FA5A5);
 const _red = Color(0xFFD93025);
@@ -267,6 +268,9 @@ class ClassStudentsScreen extends StatefulWidget {
 }
 
 class _ClassStudentsScreenState extends State<ClassStudentsScreen> with LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _load();
@@ -399,10 +403,11 @@ class _ClassStudentsScreenState extends State<ClassStudentsScreen> with LiveRefr
                 textAlign: TextAlign.center, style: TextStyle(color: palette.muted)),
           )
         else
-          for (final s in shown) ...[
+          for (final s in _pages.take('students', shown)) ...[
             _studentTile(students.indexOf(s) + 1, s),
             const SizedBox(height: 8),
           ],
+          _pages.more(context, 'students', shown.length, setState),
       ],
     );
   }

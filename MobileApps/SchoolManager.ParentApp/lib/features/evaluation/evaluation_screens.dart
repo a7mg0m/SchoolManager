@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../children/children_service.dart';
 import 'evaluation_service.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/widgets/paged.dart';
 
 const _indigo = Color(0xFF4C5FD5);
 const _green = Color(0xFF13864B);
@@ -78,6 +79,9 @@ class EvaluationRequestsScreen extends StatefulWidget {
 }
 
 class _EvaluationRequestsScreenState extends State<EvaluationRequestsScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _load();
@@ -389,10 +393,11 @@ class _EvaluationRequestsScreenState extends State<EvaluationRequestsScreen> wit
                 textAlign: TextAlign.center, style: TextStyle(color: palette.muted)),
           )
         else
-          for (final e in shown) ...[
+          for (final e in _pages.take('answers', shown)) ...[
             _evaluationCard(e),
             const SizedBox(height: 10),
           ],
+          _pages.more(context, 'answers', shown.length, setState),
       ],
     );
   }
@@ -524,10 +529,11 @@ class _EvaluationRequestsScreenState extends State<EvaluationRequestsScreen> wit
             ),
           )
         else
-          for (final r in requests) ...[
+          for (final r in _pages.take('requests', requests)) ...[
             _requestCard(r),
             const SizedBox(height: 10),
           ],
+          _pages.more(context, 'requests', requests.length, setState),
         if (requests.isNotEmpty && _teachers.isEmpty)
           Text(tr('لا يوجد معلمون لإرسال طلب جديد.', 'There are no teachers to send a new request to.'),
               textAlign: TextAlign.center, style: TextStyle(color: palette.muted)),

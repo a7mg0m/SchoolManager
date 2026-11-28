@@ -8,6 +8,7 @@ import '../chat/chat_screens.dart';
 import '../chat/chat_service.dart';
 import 'parents_service.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/widgets/paged.dart';
 
 const _amber = Color(0xFFB7791F);
 const _green = Color(0xFF13864B);
@@ -42,6 +43,9 @@ class ParentsScreen extends StatefulWidget {
 }
 
 class _ParentsScreenState extends State<ParentsScreen> with LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _load();
@@ -220,10 +224,11 @@ class _ParentsScreenState extends State<ParentsScreen> with LiveRefreshMixin {
             child: Text(tr('لا توجد نتائج.', 'No results.'), textAlign: TextAlign.center, style: TextStyle(color: palette.muted)),
           )
         else
-          for (final p in shown) ...[
+          for (final p in _pages.take('parents', shown)) ...[
             _parentCard(p),
             const SizedBox(height: 10),
           ],
+          _pages.more(context, 'parents', shown.length, setState),
       ],
     );
   }

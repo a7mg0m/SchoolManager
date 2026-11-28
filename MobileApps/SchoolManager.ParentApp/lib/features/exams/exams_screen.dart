@@ -10,6 +10,7 @@ import 'exams_service.dart';
 import '../../core/i18n/app_language.dart';
 import '../../core/live/live_refresh.dart';
 import '../../core/files/answer_model.dart';
+import '../../core/widgets/paged.dart';
 
 /// Exams of the child selected on home, one tab per exam type:
 /// a summary, the upcoming exams (with a countdown) and the results (score ring, pass / fail).
@@ -32,6 +33,9 @@ class ExamsScreen extends StatefulWidget {
 }
 
 class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _load();
@@ -248,12 +252,14 @@ class _ExamsScreenState extends State<ExamsScreen> with ReloadOnAcademicYear, Li
           ),
         if (upcoming.isNotEmpty) ...[
           _sectionTitle(tr('الاختبارات القادمة', 'Upcoming exams'), upcoming.length, Icons.upcoming_rounded, color),
-          for (final exam in upcoming) _upcomingCard(exam, color, isNext: exam == upcoming.first),
+          for (final exam in _pages.take('up-${kind.value}', upcoming)) _upcomingCard(exam, color, isNext: exam == upcoming.first),
+          _pages.more(context, 'up-${kind.value}', upcoming.length, setState),
           const SizedBox(height: 14),
         ],
         if (past.isNotEmpty) ...[
           _sectionTitle(tr('النتائج', 'Results'), past.length, Icons.grading_rounded, color),
-          for (final exam in past) _resultCard(exam, color),
+          for (final exam in _pages.take('past-${kind.value}', past)) _resultCard(exam, color),
+          _pages.more(context, 'past-${kind.value}', past.length, setState),
         ],
       ],
     );

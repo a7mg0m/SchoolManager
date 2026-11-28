@@ -34,8 +34,16 @@ namespace SchoolManager.Notification.API.Controllers
         /// school, its grade or class, or the child itself. The child must be the parent's (checked with Management).
         /// </summary>
         [Authorize]
+        /// <summary>?page=1&amp;pageSize=30&amp;type=3: one page (null without page: the whole list)</summary>
+        private static NotificationPaging? Paging(int? page, int pageSize, int? type)
+            => page is int p
+                ? new NotificationPaging(p, pageSize <= 0 ? 30 : pageSize,
+                    type is int t && Enum.IsDefined(typeof(Domain.NotificationTypeEnum), t) ? (Domain.NotificationTypeEnum)t : null)
+                : null;
+
         [HttpGet("my-child/{studentId}")]
-        public async Task<IActionResult> GetMyChildNotifications(Guid studentId, [FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetMyChildNotifications(Guid studentId, [FromQuery] Guid? academicYearId,
+            [FromQuery] int? page, [FromQuery] int pageSize, [FromQuery] int? type, CancellationToken cancellationToken)
         {
             if (CurrentParentId is null)
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotAParent"));
@@ -48,6 +56,9 @@ namespace SchoolManager.Notification.API.Controllers
             if (child is null)
                 return NotFound(new ApiResponse(404, "StudentNotFound"));
 
+            if (Paging(page, pageSize, type) is NotificationPaging paging)
+                return Ok(new ApiResponse { data = await _mediator.Send(new GetChildNotificationsPageQuery(child, academicYearId, paging), cancellationToken) });
+
             var result = await _mediator.Send(new GetChildNotificationsQuery(child, academicYearId), cancellationToken);
             return Ok(new ApiResponse { data = result });
         }
@@ -55,10 +66,14 @@ namespace SchoolManager.Notification.API.Controllers
         /// <summary>Notifications already sent for the whole school or for the logged-in teacher (teacher app).</summary>
         [Authorize]
         [HttpGet("my")]
-        public async Task<IActionResult> GetMyNotifications([FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetMyNotifications([FromQuery] Guid? academicYearId,
+            [FromQuery] int? page, [FromQuery] int pageSize, [FromQuery] int? type, CancellationToken cancellationToken)
         {
             if (CurrentTeacherId is not Guid teacherId)
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotATeacher"));
+
+            if (Paging(page, pageSize, type) is NotificationPaging paging)
+                return Ok(new ApiResponse { data = await _mediator.Send(new GetTeacherNotificationsPageQuery(teacherId, academicYearId, paging), cancellationToken) });
 
             var result = await _mediator.Send(new GetTeacherNotificationsQuery(teacherId, academicYearId), cancellationToken);
             return Ok(new ApiResponse { data = result });
@@ -67,10 +82,14 @@ namespace SchoolManager.Notification.API.Controllers
         /// <summary>Notifications already sent for the whole school or for the logged-in driver's bus (driver app).</summary>
         [Authorize]
         [HttpGet("my-driver")]
-        public async Task<IActionResult> GetMyDriverNotifications([FromQuery] Guid? academicYearId, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetMyDriverNotifications([FromQuery] Guid? academicYearId,
+            [FromQuery] int? page, [FromQuery] int pageSize, [FromQuery] int? type, CancellationToken cancellationToken)
         {
             if (CurrentBusId is not Guid busId)
                 return StatusCode(StatusCodes.Status403Forbidden, new ApiResponse(403, "NotADriver"));
+
+            if (Paging(page, pageSize, type) is NotificationPaging paging)
+                return Ok(new ApiResponse { data = await _mediator.Send(new GetDriverNotificationsPageQuery(busId, academicYearId, paging), cancellationToken) });
 
             var result = await _mediator.Send(new GetDriverNotificationsQuery(busId, academicYearId), cancellationToken);
             return Ok(new ApiResponse { data = result });

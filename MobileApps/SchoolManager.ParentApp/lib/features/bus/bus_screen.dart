@@ -11,6 +11,7 @@ import '../children/children_service.dart';
 import '../school/school_location_map.dart' show MapLinks;
 import 'bus_service.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/widgets/paged.dart';
 
 const _amber = Color(0xFFB7791F);
 const _green = Color(0xFF13864B);
@@ -106,6 +107,9 @@ class BusScreen extends StatefulWidget {
 }
 
 class _BusScreenState extends State<BusScreen> with WidgetsBindingObserver, LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => Future.wait([_loadTrip(silent: true), _loadTrips()]);
@@ -551,10 +555,11 @@ class _BusScreenState extends State<BusScreen> with WidgetsBindingObserver, Live
               child: _message(Icons.directions_bus_outlined, tr('لا توجد رحلات في آخر 30 يوماً.', 'No trips in the last 30 days.')),
             )
           else
-            for (final t in trips) ...[
+            for (final t in _pages.take('trips', trips)) ...[
               _tripTile(t),
               const SizedBox(height: 8),
             ],
+            _pages.more(context, 'trips', trips.length, setState),
         ],
       ),
     );

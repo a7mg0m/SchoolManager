@@ -9,6 +9,7 @@ import '../homework/homework_service.dart';
 import 'exam_service.dart';
 import '../../core/live/live_refresh.dart';
 import '../../core/files/answer_model.dart';
+import '../../core/widgets/paged.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -81,6 +82,9 @@ class ExamListScreen extends StatefulWidget {
 }
 
 class _ExamListScreenState extends State<ExamListScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _load();
@@ -236,7 +240,7 @@ class _ExamListScreenState extends State<ExamListScreen> with ReloadOnAcademicYe
                                   : tr('لا توجد اختبارات هنا.', 'No exams here.')),
                         )
                       else
-                        for (final e in list) ...[
+                        for (final e in _pages.take('exams', list)) ...[
                           _ExamCard(
                             exam: e,
                             now: widget.now ?? DateTime.now(),
@@ -247,6 +251,7 @@ class _ExamListScreenState extends State<ExamListScreen> with ReloadOnAcademicYe
                           ),
                           const SizedBox(height: 12),
                         ],
+                        _pages.more(context, 'exams', list.length, setState),
                     ],
                   ),
                 ),

@@ -1240,6 +1240,9 @@ class _HomeScreenState extends State<HomeScreen> with LiveRefreshMixin {
     await _nav.push(MaterialPageRoute(
       builder: (_) => NotificationsScreen(
         loadNotices: () => (widget.loadNotifications ?? NotificationsService.instance.getForChild)(child.id),
+        loadPage: widget.loadNotifications != null
+            ? null
+            : (page, size, type) => NotificationsService.instance.getForChildPage(child.id, page: page, pageSize: size, type: type),
         subtitle: child.name,
         targetedLabel: tr('لابنك', 'For your child'),
         onSessionExpired: _logout,

@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import 'homework_details_screen.dart';
 import 'homework_service.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/widgets/paged.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -102,6 +103,9 @@ class HomeworkListScreen extends StatefulWidget {
 }
 
 class _HomeworkListScreenState extends State<HomeworkListScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _load();
@@ -295,7 +299,7 @@ class _HomeworkListScreenState extends State<HomeworkListScreen> with ReloadOnAc
                                   : tr('لا توجد واجبات هنا.', 'No homework here.')),
                         )
                       else
-                        for (final h in list) ...[
+                        for (final h in _pages.take('homework', list)) ...[
                           _HomeworkCard(
                             homework: h,
                             busy: _busyId == h.id,
@@ -306,6 +310,7 @@ class _HomeworkListScreenState extends State<HomeworkListScreen> with ReloadOnAc
                           ),
                           const SizedBox(height: 12),
                         ],
+                        _pages.more(context, 'homework', list.length, setState),
                     ],
                   ),
                 ),

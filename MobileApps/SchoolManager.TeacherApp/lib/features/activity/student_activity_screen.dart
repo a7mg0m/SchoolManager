@@ -7,6 +7,7 @@ import '../../core/i18n/app_language.dart';
 import '../../core/theme/app_theme.dart';
 import 'student_activity_service.dart';
 import '../../core/live/live_refresh.dart';
+import '../../core/widgets/paged.dart';
 
 const _green = Color(0xFF13864B);
 const _red = Color(0xFFD93025);
@@ -120,6 +121,9 @@ class StudentActivityScreen extends StatefulWidget {
 }
 
 class _StudentActivityScreenState extends State<StudentActivityScreen> with ReloadOnAcademicYear, LiveRefreshMixin {
+  /// Long lists: the first items, then "Show more"
+  final _pages = PageWindows();
+
   /// Records saved elsewhere show without refreshing (push, back to the app, every 30 s)
   @override
   Future<void> onLiveRefresh() => _loadAll();
@@ -666,7 +670,8 @@ class _StudentActivityScreenState extends State<StudentActivityScreen> with Relo
         if (graded.isNotEmpty) ...[
           const SizedBox(height: 12),
           _subTitle(tr('النتائج', 'Results')),
-          for (final e in shownResults) _examRow(e),
+          for (final e in _pages.take('results', shownResults)) _examRow(e),
+          _pages.more(context, 'results', shownResults.length, setState),
           if (graded.length > 5)
             TextButton(
               key: const ValueKey('activity-more-results'),
